@@ -37,7 +37,7 @@ int main()
         r = r * (1 + i1);
         h = h * (1 + i1);
         s = s * (1 + i2);
-        std::cout << "\nAlice: " << a << " dom: " << h << "\nBob: " << b << "\n " << s; //проверка
+        //std::cout << "\nAlice: " << a << " dom: " << h << "\nBob: " << b << "\n " << s; //проверка
     }
 
     std::cout << "\nAlice: " << a + h << "\nBob: " << b;
