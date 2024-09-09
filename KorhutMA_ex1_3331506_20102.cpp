@@ -131,8 +131,7 @@ void simulation(int month, int year) {
 	alice.bank += alice.home;
 };
 
-void print_person(const Person person)
-{
+void print_person(const Person person) {
 	printf("%s:\n", person.name);
 	printf("  bank = %lld rub\n", (Lli)(person.bank / 100));
 };
@@ -146,6 +145,15 @@ int main()
 
 	print_person(bob);
 	print_person(alice);
-
+	
+	if (alice.bank + alice.home > bob.bank) {
+	printf("\nAlice won!\n");
+	}
+	else if (alice.bank + alice.home < bob.bank) {
+	printf("\nBob won!\n");
+	}
+	else {
+	printf("\nDraw!\n");
+	}
 	return 0;
 }
