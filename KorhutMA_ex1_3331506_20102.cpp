@@ -142,7 +142,7 @@ int main()
 	alice_init();
 	bob_init();
 
-	simulation(9, 2023);
+	simulation(9, 2024);
 
 	print_person(bob);
 	print_person(alice);
