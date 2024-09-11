@@ -22,11 +22,12 @@ typedef struct Date {
 
 Date begin_date;
 Date last_date;
+Date now_date;
 
 
-Person init (bool mortgage) {
+Person init (bool mortgage, Money begin_capital) {
     Person person;
-    person.capital = 1000000;
+    person.capital = begin_capital;
     person.salary = 200000;
     person.monthly_expences = 30000;
     person.mortgage = mortgage;
@@ -63,8 +64,17 @@ Person year_inflation (Person person) {
 }
 
 
-Person simulation (Person person, Date now_date, Date last_date) {
+Person work_incident (Person person){
+	if(person.mortgage == false){
+		if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
+		else if ((now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
+	}
+	return person;
+}
 
+
+Person simulation (Person person) {
+	now_date = begin_date;
     Money apartment_coast = 13000 * 1000;  // стоимость квартиры
 
     person = flat_payment(1000000, 0.16, apartment_coast, 30, person);  // рассчет ежемесячного платежа за ипотеку/аренду
@@ -72,8 +82,7 @@ Person simulation (Person person, Date now_date, Date last_date) {
     while ((now_date.year < last_date.year) ^ (now_date.month < last_date.month)) {
 
         person.capital = person.capital + person.salary - person.monthly_expences - person.person_flat_payment;  // рассчет капиталла
-        if(person.mortgage == false && now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
-        else if (person.mortgage == false && (now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
+       	person = work_incident(person);
         person.capital *= 1.0166;
 
         now_date.month++;
@@ -97,11 +106,11 @@ void results (Person Alice, Person Bob) {
 int main () {
     date_init(begin_date, last_date);
 
-    Person Alice = init(1);
-    Person Bob = init(0);
+    Person Alice = init(1, 1500 * 1000);
+    Person Bob = init(0, 1000 * 1000);
 
-    Alice = simulation(Alice, begin_date, last_date);
-    Bob = simulation(Bob, begin_date, last_date);
+    Alice = simulation(Alice);
+    Bob = simulation(Bob);
 
     results(Alice, Bob);
 }
