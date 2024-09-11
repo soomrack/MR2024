@@ -155,6 +155,15 @@ void add_inflation_to_goods(const int month)
     };
 }
 
+/**
+ * @brief Manages person's salary
+ * 
+ * Adds salary to person's capital.
+ * Adds inflation at the end of the year
+ * 
+ * @param p Person who's salary needs to be managed
+ * @param month Current month
+ */
 void manage_salary(Person* p, int month) 
 {
     p->capital += p->salary;
