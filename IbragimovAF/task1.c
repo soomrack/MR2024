@@ -24,7 +24,8 @@ Date begin_date;
 Date last_date;
 
 
-Person init (Person person, bool mortgage) {
+Person init (bool mortgage) {
+    Person person;
     person.capital = 1000000;
     person.salary = 200000;
     person.monthly_expences = 30000;
@@ -71,13 +72,15 @@ Person simulation (Person person, Date now_date, Date last_date) {
     while ((now_date.year < last_date.year) ^ (now_date.month < last_date.month)) {
 
         person.capital = person.capital + person.salary - person.monthly_expences - person.person_flat_payment;  // рассчет капиталла
+        if(person.mortgage == false && now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
+        else if (person.mortgage == false && (now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
         person.capital *= 1.0166;
 
-        now_date.month ++ ;
+        now_date.month++;
         if(now_date.month == 13) {
             person = year_inflation(person);  // учет инфляции
             now_date.month = 1;
-            now_date.year ++ ;
+            now_date.year++;
         }
     }
     person.capital += apartment_coast * person.mortgage;  // учет квартиры в конечном капитале
@@ -94,8 +97,8 @@ void results (Person Alice, Person Bob) {
 int main () {
     date_init(begin_date, last_date);
 
-    Person Alice = init(Alice, 1);
-    Person Bob = init(Bob, 0);
+    Person Alice = init(1);
+    Person Bob = init(0);
 
     Alice = simulation(Alice, begin_date, last_date);
     Bob = simulation(Bob, begin_date, last_date);
