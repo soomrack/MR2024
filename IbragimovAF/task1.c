@@ -28,10 +28,13 @@ money mortgage_payment(money initial_payment, float percent, money mortgage_summ
 
 
 person simulation (person Person, date now_date, date last_date, bool mortgage){
+	
+	money apartment_coast = 13000000;  //стоимость квартиры
+	
 	//printf("Sim\n");
 	if(mortgage == true){
 		Person.capital -= 1000000;  //первый взнос ипотеки
-		Person.person_flat_payment = mortgage_payment(1000000,0.16,13000000,30);  //рассчет ежемесячного платежа ипотеки
+		Person.person_flat_payment = mortgage_payment(1000000,0.16,apartment_coast,30);  //рассчет ежемесячного платежа ипотеки
 	}
 	else{ 
 		Person.person_flat_payment = 30000;  //учет аренды
@@ -51,12 +54,14 @@ person simulation (person Person, date now_date, date last_date, bool mortgage){
 			now_date.year ++ ;
 		}
 	}
+	if (mortgage == true) Person.capital += apartment_coast;  //учет квартиры в конечном капитале 
 	//printf("Sim end\n");
 	return Person;
 }
 
 
 int main (){
+	//Задание начальных и конечных дат симуляции
     date begin_date;
     date last_date;
     begin_date.month = 1;
@@ -76,8 +81,8 @@ int main (){
     Bob.salary = 200000;
     Bob.monthly_expences = 30000;
     
-    Bob = simulation (Bob, begin_date, last_date, 0);
-    Alice = simulation (Alice, begin_date, last_date, 1);
+    Bob = simulation (Bob, begin_date, last_date, 0);  //симуляция Боба
+    Alice = simulation (Alice, begin_date, last_date, 1);  //симуляция Алис
     printf("Alice Capital %llu\n", Alice.capital);
     printf("Bob capital %llu\n", Bob.capital);
 }
