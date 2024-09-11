@@ -28,7 +28,7 @@ int personal_cost = 15 * 1000;
 // ------------------------------------------------------  Types  ----------------------------------------------------- //
 
 typedef struct {
-    int cost;
+    long cost;
     int period;
     int rate;
     int payment;
@@ -42,7 +42,7 @@ typedef struct {
 typedef struct {
     const char name[20];
     long capital;
-    int salary;
+    long salary;
     Deposit deposit;
 } Person;
 
@@ -144,23 +144,33 @@ struct Simulation init_simulation()
     return result;
 }
 
-void add_inflation_to_goods() 
+void add_inflation_to_goods(const int month) 
 {
-    appartment_cost *= 1 + percent(inflation_rate);
-    appartment_rent_cost *= 1 + percent(inflation_rate);
-    food_cost *= 1 + percent(inflation_rate);
-    service_cost *= 1 + percent(inflation_rate);
-    personal_cost *= 1 + percent(inflation_rate);
+    if (month == 12) {
+        appartment_cost *= 1 + percent(inflation_rate);
+        appartment_rent_cost *= 1 + percent(inflation_rate);
+        food_cost *= 1 + percent(inflation_rate);
+        service_cost *= 1 + percent(inflation_rate);
+        personal_cost *= 1 + percent(inflation_rate);
+    };
 }
 
-void add_inflation_to_salary(Person* p) 
-{
-    p->salary *= 1 + percent(inflation_rate);
-}
-
-void recieve_salary(Person* p) 
+/**
+ * @brief Manages person's salary
+ * 
+ * Adds salary to person's capital.
+ * Adds inflation at the end of the year
+ * 
+ * @param p Person who's salary needs to be managed
+ * @param month Current month
+ */
+void manage_salary(Person* p, int month) 
 {
     p->capital += p->salary;
+
+    if (month == 12) {
+        p->salary *= 1 + percent(inflation_rate);
+    };
 }
 
 void pay_mortgage(Person* p, Mortage* m) 
@@ -199,15 +209,14 @@ void show_capital(Person* p)
     printf(" Capital is %.ld rub\n", p->capital);
 }
 
-void move_to_next_year(Dates* d) 
-{
-    d->current_year++;
-    d->current_month = 1;
-}
-
 void move_to_next_month(Dates* d) 
 {
-    d->current_month++;
+    if (d->current_month == 12) {
+        d->current_year++;
+        d->current_month = 1;
+    } else {
+        d->current_month++;
+    }
 }
 
 /**
@@ -235,10 +244,13 @@ void calculate_capital(Person* p, long components[], int components_count)
  */
 void run_simulation(struct Simulation simulation) 
 {
-    while (simulation.dates.current_year <= simulation.dates.end_year) {
+    while( !(
+        simulation.dates.current_year == simulation.dates.end_year && 
+        simulation.dates.current_month == simulation.dates.end_month
+        ) ) {
         // Calculate monthly income
-        recieve_salary(&simulation.alice);
-        recieve_salary(&simulation.bob);
+        manage_salary(&simulation.alice, simulation.dates.current_month);
+        manage_salary(&simulation.bob, simulation.dates.current_month);
 
         // Calculate monthly expenses
         pay_bills(&simulation.alice);
@@ -252,22 +264,11 @@ void run_simulation(struct Simulation simulation)
         increase_deposit(&simulation.alice);
         increase_deposit(&simulation.bob);
 
-        // Check if simulation is finished
-        if (simulation.dates.current_year == simulation.dates.end_year 
-            && simulation.dates.current_month == simulation.dates.end_month) {
-            break;
-        } else if (simulation.dates.current_month == 12) {
-            // Apply inflation at the end of the year
-            add_inflation_to_salary(&simulation.alice);
-            add_inflation_to_salary(&simulation.bob);
-            add_inflation_to_goods();
+        // Apply inflation at the end of the year
+        add_inflation_to_goods(simulation.dates.current_month);
 
-            // Move to the next year
-            move_to_next_year(&simulation.dates);
-        } else {
-            // Move to the next month
-            move_to_next_month(&simulation.dates);
-        }
+        // Move to the next month
+        move_to_next_month(&simulation.dates);
     }
 
     // Calculate final capital
