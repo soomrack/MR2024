@@ -27,30 +27,26 @@ int personal_cost = 15 * 1000;
 
 // ------------------------------------------------------  Types  ----------------------------------------------------- //
 
-typedef struct 
-{
+typedef struct {
     int cost;
     int period;
     int rate;
     int payment;
 } Mortage;
 
-typedef struct 
-{
+typedef struct {
     long value;
     const int rate;
 } Deposit;
 
-typedef struct
-{
+typedef struct {
     const char name[20];
     long capital;
     int salary;
     Deposit deposit;
 } Person;
 
-typedef struct
-{
+typedef struct {
     const int start_year;
     const int start_month;
     const int end_year;
@@ -76,7 +72,8 @@ struct Simulation {
  * @param value Percentage value as integer.
  * @return Decimal representation of the percentage.
  */
-double percent(int value) {
+double percent(int value) 
+{
     return value / 100.0;
 }
 
@@ -88,7 +85,8 @@ double percent(int value) {
  * 
  * @param m Pointer to the `Mortage` struct for which to calculate the payment.
  */
-void calculate_motrtage_payment(Mortage* m) {
+void calculate_motrtage_payment(Mortage* m) 
+{
     float monthly_rate = percent(m->rate) / 12;
     float total_rate = pow(1 + monthly_rate, m->period * 12);
     m->payment = m->cost * monthly_rate * total_rate / (total_rate - 1);
@@ -104,7 +102,8 @@ void calculate_motrtage_payment(Mortage* m) {
  * @param duration Duration of the simulation in years.
  * @return Initialized `Dates` struct.
  */
-Dates init_dates(int start_year, int start_month, int duration) {
+Dates init_dates(int start_year, int start_month, int duration) 
+{
     int end_year = start_year + duration;
     int end_month = 12;
 
@@ -128,7 +127,8 @@ Dates init_dates(int start_year, int start_month, int duration) {
  * 
  * @return Initialized `Simulation` struct.
  */
-struct Simulation init_simulation() {
+struct Simulation init_simulation() 
+{
     setlocale(LC_NUMERIC, "");
 
     Deposit deposit = {base_deposit, deposit_rate};
@@ -144,7 +144,8 @@ struct Simulation init_simulation() {
     return result;
 }
 
-void add_inflation_to_goods() {
+void add_inflation_to_goods() 
+{
     appartment_cost *= 1 + percent(inflation_rate);
     appartment_rent_cost *= 1 + percent(inflation_rate);
     food_cost *= 1 + percent(inflation_rate);
@@ -152,23 +153,28 @@ void add_inflation_to_goods() {
     personal_cost *= 1 + percent(inflation_rate);
 }
 
-void add_inflation_to_salary(Person* p) {
+void add_inflation_to_salary(Person* p) 
+{
     p->salary *= 1 + percent(inflation_rate);
 }
 
-void recieve_salary(Person* p) {
+void recieve_salary(Person* p) 
+{
     p->capital += p->salary;
 }
 
-void pay_mortgage(Person* p, Mortage* m) {
+void pay_mortgage(Person* p, Mortage* m) 
+{
     p->capital -= m->payment;
 }
 
-void pay_rent(Person* p) {
+void pay_rent(Person* p) 
+{
     p->capital -= appartment_rent_cost;
 }
 
-void pay_bills(Person* p) {
+void pay_bills(Person* p) 
+{
     p->capital -= (food_cost + service_cost + personal_cost);
 }
 
@@ -180,23 +186,27 @@ void pay_bills(Person* p) {
  * 
  * @param p Pointer to the `Person` struct for which to increase the deposit.
  */
-void increase_deposit(Person* p) {
+void increase_deposit(Person* p) 
+{
     p->deposit.value += p->capital;
     p->deposit.value *= 1 + percent(p->deposit.rate) / 12;
     p->capital = 0;
 }
 
-void show_capital(Person* p) {
+void show_capital(Person* p) 
+{
     printf("%s\n", p->name);
     printf(" Capital is %.ld rub\n", p->capital);
 }
 
-void move_to_next_year(Dates* d) {
+void move_to_next_year(Dates* d) 
+{
     d->current_year++;
     d->current_month = 1;
 }
 
-void move_to_next_month(Dates* d) {
+void move_to_next_month(Dates* d) 
+{
     d->current_month++;
 }
 
@@ -206,7 +216,8 @@ void move_to_next_month(Dates* d) {
  * @param p Pointer to the `Person` struct representing the person.
  * @param components Array of long integers representing different components of the capital.
  */
-void calculate_capital(Person* p, long components[], int components_count) {
+void calculate_capital(Person* p, long components[], int components_count) 
+{
     for (int i = 0; i < components_count; i++) {
         p->capital += components[i];
     }
@@ -222,7 +233,8 @@ void calculate_capital(Person* p, long components[], int components_count) {
  * 
  * @param simulation Initialized `Simulation` struct containing all necessary data.
  */
-void run_simulation(struct Simulation simulation) {
+void run_simulation(struct Simulation simulation) 
+{
     while (simulation.dates.current_year <= simulation.dates.end_year) {
         // Calculate monthly income
         recieve_salary(&simulation.alice);
@@ -241,7 +253,8 @@ void run_simulation(struct Simulation simulation) {
         increase_deposit(&simulation.bob);
 
         // Check if simulation is finished
-        if (simulation.dates.current_year == simulation.dates.end_year && simulation.dates.current_month == simulation.dates.end_month) {
+        if (simulation.dates.current_year == simulation.dates.end_year 
+            && simulation.dates.current_month == simulation.dates.end_month) {
             break;
         } else if (simulation.dates.current_month == 12) {
             // Apply inflation at the end of the year
@@ -276,7 +289,8 @@ void run_simulation(struct Simulation simulation) {
  * 
  * @return 0 if the program runs successfully.
  */
-int main() {
+int main() 
+{
     struct Simulation simulation = init_simulation();
     run_simulation(simulation);
     return 0;
