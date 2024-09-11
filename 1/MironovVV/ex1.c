@@ -13,13 +13,12 @@
 long Bob() //Bob capital calculations
 {
     long capital = start_cap; //starting capital
-    long salary = sal;
+    long delta = sal - oper_сosts - rent_cost;
     for (int i = 0; i < bill_period*12; i++)
     {   //capital are calculating every month
-        if (i%12==0) salary += salary*ann_infl/100;
-        
-        salary *= (double)(1 + ann_infl/100/12);
-        capital = capital*(1+(double)(in_on_dep - ann_infl)/100/12) + salary - oper_сosts - rent_cost;
+        delta += delta*ann_infl/100/12;
+
+        capital = capital*(1+(double)(in_on_dep - ann_infl)/100/12) + delta ;
     }
     return capital;
 }
@@ -28,12 +27,12 @@ long Alice()  //Alice capital calculations
 {
     long capital = 0;    //starting capital and appartment cost
     long appart = apart_cost;
-    long salary = sal;
+    long delta = sal - oper_сosts - loan_cost;
     for (int i = 0; i < bill_period*12; i++)
     {   //capital are calculating every month
-        if (i%12==0) salary += salary*ann_infl/100;
+        delta += delta*ann_infl/100/12;
         
-        capital = capital*(1+(double)(in_on_dep - ann_infl)/100/12) + salary - oper_сosts - loan_cost;
+        capital = capital*(1+(double)(in_on_dep - ann_infl)/100/12) + delta;
         appart *= (1+ann_infl/100/12);
     }
     return capital+appart;
