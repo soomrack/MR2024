@@ -1,44 +1,41 @@
 #include <stdio.h>
 
-
 typedef struct Hero
 {
-	int balance;
-	int salary;
-	int borrow;
-	int ipoteck_payment;
-	int month_payment;
-};
+    int balance;
+    int salary;
+    int borrow;
+    int payment_life;
+    int payment_ipotek;
+} Hero;
 
+Hero midas;
+Hero arno;
 
-//Hero midas;
-//Hero arno;
-
-/*
-void midas_init()
+void _init_midas()
 {
-	midas.balance = 1 * 1000 * 1000;
-	midas.salary = 400 * 1000;
-	midas.borrow = 12 * 1000 * 1000;
-	midas.ipoteck_payment = 200 * 1000;
-	midas.month_payment = 100 * 1000;
+    midas.balance = 1000 * 1000;
+    midas.salary = 400 * 1000;
+    midas.borrow = 12 * 1000 * 1000;
+    midas.payment_life = 70 * 1000;
+    midas.payment_ipotek = 200 * 1000;
 }
 
-
-void arno_init()
+void _init_arno()
 {
-	arno.balance = 1 * 1000 * 1000;
-	arno.salary = 350 * 1000;
-	arno.borrow = 0;
-	arno.ipoteck_payment = 0;
-	arno.month_payment = (60 + 30) * 1000;
+    arno.balance = 1000 * 1000;
+    arno.salary = 350 * 1000;
+    arno.borrow = 0;
+    arno.payment_life = 50 * 1000;
+    arno.payment_ipotek = 0;
 }
-*/
 
 int main()
 {
-	//printf("%d", midas.balance);
-	//printf("%d", arno.borrow);
+    _init_midas();
+    _init_arno();
+    printf("%d\n", midas.balance);
+    printf("%d\n", arno.payment_life);
 
-	return 1;
+    return 1;
 }
