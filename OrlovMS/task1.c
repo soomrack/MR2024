@@ -110,13 +110,13 @@ void bob_init(Person* person)
 }
 
 
-void add_salary(Person* person)
+void add_salary(Person* person, Date* date)
 {
     person->money += person->salary;
 }
 
 
-void pay_mortage(Person* person)
+void pay_mortage(Person* person, Date* date)
 {
     if(person->mortage.amount != 0)
     {
@@ -129,13 +129,13 @@ void pay_mortage(Person* person)
 }
 
 
-void pay_rent(Person* person)
+void pay_rent(Person* person, Date* date)
 {
     person->money -= person->rent_cost;
 }
 
 
-void pay_bills(Person* person)
+void pay_bills(Person* person, Date* date)
 {
     person->money -= person->food_cost;
     person->money -= person->service_cost;
@@ -143,26 +143,26 @@ void pay_bills(Person* person)
 }
 
 
-void add_deposit(Person* person)
+void add_deposit(Person* person, Date* date)
 {
     person->deposit.capital += person->money;
     person->money = 0;
 }
 
 
-void deposit_growth(Person* person)
+void deposit_growth(Person* person, Date* date)
 {
     person->deposit.capital += (uint64_t)((double)person->deposit.capital * DEPOSIT_RATE / 12.0);
 }
 
 
-void index_salary(Person* person)
+void index_salary(Person* person, Date* date)
 {
     person->salary += (uint64_t)((double)person->salary * INFLATION / 12.0);
 }
 
 
-void bills_inflation(Person* person)
+void bills_inflation(Person* person, Date* date)
 {
     person->food_cost += (uint64_t)((double)person->food_cost * INFLATION / 12.0);
     person->service_cost += (uint64_t)((double)person->service_cost * INFLATION / 12.0);
@@ -170,37 +170,37 @@ void bills_inflation(Person* person)
 }
 
 
-void rent_rise(Person* person)
+void rent_rise(Person* person, Date* date)
 {
     person->rent_cost += (uint64_t)((double)person->rent_cost * INFLATION / 12.0);
 }
 
 
-void estate_cost_rise(Person* person)
+void estate_cost_rise(Person* person, Date* date)
 {
     person->estate_cost += (uint64_t)((double)person->estate_cost * INFLATION / 12.0);
 }
 
 
-void month_operations(Person* person)
+void month_operations(Person* person, Date* date)
 {
     //person operations with money
-    add_salary(person);
-    pay_mortage(person);
-    pay_rent(person);
-    pay_bills(person);
-    add_deposit(person);
+    add_salary(person, date);
+    pay_mortage(person, date);
+    pay_rent(person, date);
+    pay_bills(person, date);
+    add_deposit(person, date);
 
     //processes
-    deposit_growth(person);
-    index_salary(person);
-    bills_inflation(person);
-    rent_rise(person);
-    estate_cost_rise(person);
+    deposit_growth(person, date);
+    index_salary(person, date);
+    bills_inflation(person, date);
+    rent_rise(person, date);
+    estate_cost_rise(person, date);
 }
 
 
-int is_date_equal(Date* first, Date *second)
+int is_date_equal(Date* first, Date* second)
 {
     return (first->year == second->year) && (first->month == second->month);
 }
@@ -225,8 +225,8 @@ void simulation(Person* alice, Person* bob)
 
     while(!is_date_equal(&date_current, &date_end))
     {
-        month_operations(alice);
-        month_operations(bob);
+        month_operations(alice, &date_current);
+        month_operations(bob, &date_current);
 
         date_increment(&date_current);
     }
