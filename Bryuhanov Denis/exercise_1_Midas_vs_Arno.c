@@ -22,24 +22,31 @@ int year = 30;
 
 void _init_midas()
 {
-    midas.balance = 1000 * 1000 * 100;
-    midas.salary = 400 * 1000 * 100;
-    midas.borrow = 12 * 1000 * 1000 * 100;
-    midas.payment_life = 70 * 1000 * 100;
-    midas.payment_ipotek = 200 * 1000 * 100;
-    midas.deposite_percent = 20;
-    midas.inflation = 7;
+    midas = (Hero){   
+        .balance = 1000 * 1000 * 100,
+        .salary = 400 * 1000 * 100,
+        .borrow = 12 * 1000 * 1000 * 100,
+        .payment_life = 70 * 1000 * 100,
+        .payment_ipotek = 200 * 1000 * 100,
+        .deposite_percent = 20,
+        .inflation = 7
+    };
+    
+    
 }
 
 void _init_arno()
 {
-    arno.balance = 1000 * 1000 * 100;
-    arno.salary = 350 * 1000 * 100;
-    arno.borrow = 0;
-    arno.payment_life = 50 * 1000 * 100 + 45 * 1000 * 100;
-    arno.payment_ipotek = 0;
-    arno.deposite_percent = 20;
-    arno.inflation = 7;
+    arno = (Hero){
+        .balance = 1000 * 1000 * 100,
+        .salary = 350 * 1000 * 100,
+        .borrow = 0,
+        .payment_life = 50 * 1000 * 100 + 45 * 1000 * 100,
+        .payment_ipotek = 0,
+        .deposite_percent = 20,
+        .inflation = 7
+    };
+    
 }
 
 void debt_repayment(struct Hero* hero)
@@ -68,7 +75,7 @@ void simulation(Hero* hero)
 
 int main()
 {
-    _init_midas();
+    _init_midas(&midas);
     _init_arno();
 
     debt_repayment(&midas);
