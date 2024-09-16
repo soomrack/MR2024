@@ -6,6 +6,7 @@ typedef long long int Lli;
 int MONTH = 9;
 int YEAR = 2024;
 double INFLATION = 0.08;
+double DEP_PERCENT = 0.2;
 Lli IPOTEKA_AMOUNT;
 
 struct Person
@@ -19,8 +20,9 @@ struct Person
 	Lli utility_expenses;
 	Lli other_expenses;
 	Lli rent;
+    Lli start_dep;
 	int duration;
-	double deposit;
+	Lli deposit;
 	char * name;
 };
 
@@ -48,6 +50,8 @@ void bob_init()
     bob.food_expenses = 15 * 1000 * 100;
 	bob.other_expenses = 17 * 1000 * 100;
 	bob.rent = 30 * 1000 * 100;
+    bob.deposit = 0;
+    bob.deposit = 0;
 	bob.name = "Bob";
 }
 
@@ -76,6 +80,7 @@ void alice_month()
 void bob_month()
 {
     bob.bank += bob.salary;
+    bob.deposit += bob.start_dep*(DEP_PERCENT/12);
     bob.bank -= (bob.food_expenses+bob.utility_expenses+bob.other_expenses+bob.rent);
 }
 void simulation(int month, int year)
@@ -86,10 +91,16 @@ void simulation(int month, int year)
     IPOTEKA_AMOUNT = alice.bank;
     alice.bank = 0;
 
+    //вносим депозит в банк за Боба 
+    bob.deposit = bob.bank;
+    bob.start_dep = bob.deposit;
+    bob.bank -= bob.deposit;
+
     while (!((year == end_year) && (month == MONTH)))
     {
         alice_month();
         bob_month();
+
         month += 1; 
         if (month == 13)
         {
@@ -98,13 +109,13 @@ void simulation(int month, int year)
             year += 1;
             month = 1;
         }
-        printf("%d",year);
-        printf("___%d \n", month);
-        printf("___%d \n", bob.bank/100);
+        //printf("%d",year);
+        //printf("___%d \n", month);
+        //printf("___%d \n", bob.bank/100);
         //printf("%d \n",alice.bank);
     }
     printf("Алиса заплатила за 30 лет %lld рублей \n",IPOTEKA_AMOUNT/100);
-    printf("Боб сэкономил за 30 лет %lld рублей \n",bob.bank/100);
+    printf("Боб сэкономил и заработал за 30 лет %lld рублей \n",(bob.bank+bob.deposit)/100);
     printf("За 30 лет квартира подорожала с %lld рублей до %lld \n",alice.home_start/100,alice.home/100);
     printf("Алиса переплатила %lld рублей", (IPOTEKA_AMOUNT-alice.home_start)/100);
 }
