@@ -45,7 +45,7 @@ void _init_arno()
         .payment_ipotek = 0,
         .deposite_percent = 20,
         .inflation = 7
-    };
+    }
     
 }
 
