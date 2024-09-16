@@ -3,44 +3,32 @@
 #include <stdint.h>
 #include <string.h>
 
-#define ALICE_CAPITAL 1000*1000
-#define BOB_CAPITAL 1000*1000
-#define ALICE_SALARY 300*1000
-#define BOB_SALARY 300*1000
 
-#define FLAT_COST 15*1000*1000
-#define RENT_COST 30*1000
-
-#define MORTAGE_DURATION 25
-#define MORTAGE_RATE 0.24
-#define INFLATION 0.20
-#define DEPOSIT_RATE 0.1
-
-#define YEAR_START 2024
-#define MONTH_START 9
-#define DURATION 25 // in years
-// Also constants in basic_consumer struct, line 48//
-
+typedef long int Money;
+typedef double Percent;
 
 typedef struct
 {
     char name[32];
-    uint64_t cost;
+    Money cost;
 } Expenditure;
 
 typedef struct
 {
-    int64_t money;
-    uint64_t salary;
+    Money money;
+    Money salary;
+    int vacation_month;
 
-    uint64_t estate_cost;
-    int64_t deposit;
+    Money estate_cost;
+    Money deposit;
+    Percent deposit_rate;
+    Percent inflation;
+ 
+    Money mortage_cap;
+    Money mortage_remaining_month;
+    Percent mortage_rate;
 
-    uint64_t mortage;
-    uint16_t mortage_remaining_month;
-    double mortage_rate;
-
-    uint64_t rent;
+    Money rent;
 
     Expenditure* consumers;
 } Person;
@@ -63,53 +51,60 @@ void deinit(Person* person)
 
 void bob_init(Person* person)
 {
+    person->vacation_month = -1;
     person->money = 0;
-    person->salary = BOB_SALARY;
+    person->salary = 300000;
 
     person->estate_cost = 0;
-    person->deposit = BOB_CAPITAL;
+    person->deposit = 1000000;
 
-    person->mortage = 0;
+    person->mortage_cap = 0;
     person->mortage_remaining_month = 0;
     person->mortage_rate = 0;
+    person->rent = 30000;
+    person->deposit_rate = 0.1;
 
-    person->rent = RENT_COST;
 
+    person->inflation=0.07;
     person->consumers = malloc(EXPED_SIZE);
     memcpy(person->consumers, &basic_consumer, EXPED_SIZE);
 }
 
-void alice_init(Person* person)
+void alice_init(Person* person, const int duration)
 {
+    person->vacation_month = 8;
     person->money = 0;
-    person->salary = ALICE_SALARY;
+    person->salary = 300000;
 
-    person->estate_cost = FLAT_COST;
-    person->deposit = 0;
+    person->estate_cost = 15000000;
+    person->deposit = 1000000;
 
-    person->mortage = FLAT_COST - ALICE_CAPITAL;
-    person->mortage_remaining_month = 12*DURATION;
-    person->mortage_rate = MORTAGE_RATE;
+    person->mortage_cap = person->estate_cost - person->deposit;
+    person->mortage_remaining_month = 12*duration;
+    person->mortage_rate = 0.24;
+    person->deposit_rate = 0.1;
 
     person->rent = 0;
 
+    person->inflation=0.07;
     person->consumers = malloc(EXPED_SIZE);
     memcpy(person->consumers, &basic_consumer, EXPED_SIZE);
 }
 
-void salary(Person* person)
+void salary(Person* person, int month)
 {
-    person->money += person->salary;
+    if (month != person->vacation_month)
+        person->money += person->salary;
 }
 
 void mortage(Person* person)
 {
-    if(person->mortage != 0)
+    if(person->mortage_cap != 0)
     {
-        person->money -= (uint64_t)((double)person->mortage * person->mortage_rate / 12.0); //mortage percentage payment
-        uint64_t mortage_payment = person->mortage / person->mortage_remaining_month;
+        person->money -= (Money)((Percent)person->mortage_cap * person->mortage_rate / 12.0); // mortage percentage payment
+        Money mortage_payment = person->mortage_cap / person->mortage_remaining_month;
         person->money -= mortage_payment;
-        person->mortage -= mortage_payment;
+        person->mortage_cap -= mortage_payment;
         person->mortage_remaining_month--;
     }
 }
@@ -122,7 +117,7 @@ void rent(Person* person)
 void consumers(Person* person)
 {
     Expenditure* pointer = person->consumers;
-    uint16_t index = 0;
+    int index = 0;
     while (pointer[index].cost != 0) {
         person->money -= pointer[index].cost;
         index++;
@@ -137,37 +132,39 @@ void add_deposit(Person* person)
 
 void deposit_growth(Person* person)
 {
-    person->deposit += (uint64_t)((double)person->deposit * DEPOSIT_RATE / 12.0);
+    person->deposit += (Money)((Percent)person->deposit * person->deposit_rate / 12.0);
 }
 
 void index_salary(Person* person)
 {
-    person->salary += (uint64_t)((double)person->salary * INFLATION / 12.0);
+    
+    person->salary += (Money)((Percent)person->salary * person->inflation / 12.0);
 }
 
-void consumer_inflate(Expenditure* pointer)
+void consumer_inflate(Person* person)
 {
+    Expenditure* pointer = person->consumers;
     uint16_t index = 0;
     while (pointer[index].cost != 0) {
-        pointer[index].cost += (uint64_t)((double)pointer[index].cost * INFLATION / 12.0);
+        pointer[index].cost += (Money)((Percent)pointer[index].cost * person->inflation / 12.0);
         index++;
     }
 }
 
 void rent_inflate(Person* person)
 {
-    person->rent += (uint64_t)((double)person->rent * INFLATION / 12.0);
+    person->rent += (Money)((Percent)person->rent * person->inflation / 12.0);
 }
 
 void estate_inflate(Person* person)
 {
-    person->estate_cost += (uint64_t)((double)person->estate_cost * INFLATION / 12.0);
+    person->estate_cost += (Money)((Percent)person->estate_cost * person->inflation / 12.0);
 }
 
-void month_cycle(Person* person)
+void month_cycle(Person* person, int month)
 {
     //person operations with money
-    salary(person);
+    salary(person, month);
     mortage(person);
     rent(person);
     consumers(person);
@@ -176,7 +173,7 @@ void month_cycle(Person* person)
     //processes
     deposit_growth(person);
     index_salary(person);
-    consumer_inflate(person->consumers);
+    consumer_inflate(person);
     rent_inflate(person);
     estate_inflate(person);
 }
@@ -193,13 +190,13 @@ void compare(Person* alice, Person* bob)
 
 int main()
 {
+    const int duration = 25, current_year = 2024, month_start = 9;
     Person alice, bob;
-    alice_init(&alice);
+    alice_init(&alice, duration);
     bob_init(&bob);
-
-    uint16_t year = YEAR_START;
-    uint8_t month = MONTH_START;
-    while(year < YEAR_START + DURATION || month < MONTH_START)
+    uint16_t year = current_year;
+    int month = month_start;
+    while(year < current_year + duration || month < month_start)
     {
         if(++month > 12)
         {
@@ -207,8 +204,8 @@ int main()
             year++;
         }
 
-        month_cycle(&alice);
-        month_cycle(&bob);
+        month_cycle(&alice, month);
+        month_cycle(&bob, month);
     }
     deinit(&alice);
     deinit(&bob);
@@ -216,3 +213,4 @@ int main()
 
     return 0;
 }
+
