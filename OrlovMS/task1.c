@@ -194,19 +194,38 @@ void month_operations(Person* person)
 }
 
 
-void comparison(Person* alice, Person* bob)
+void simulation(Person* alice, Person* bob)
+{
+    uint16_t year = YEAR_START;
+    uint8_t month = MONTH_START;
+
+    while(!(year >= YEAR_START + DURATION && month >= MONTH_START))
+    {
+        if(++month > 12)
+        {
+            month = 1;
+            year++;
+        }
+
+        month_operations(alice);
+        month_operations(bob);
+    }
+}
+
+
+void print_comparison(Person* alice, Person* bob)
 {
     if((alice->estate_cost + alice->deposit.capital) == bob->deposit.capital)
     {
-        printf("Alice and Bob funds are equal: %lu\n", bob->deposit);
+        printf("Alice and Bob funds are equal: %ld\n", bob->deposit.capital);
     }
     else if((alice->estate_cost + alice->deposit.capital) > bob->deposit.capital)
     {
-        printf("Alice funds: %lu are higher than Bob's %lu\n", alice->estate_cost + alice->deposit.capital, bob->deposit);
+        printf("Alice funds: %ld are higher than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
     }
     else
     {
-        printf("Alice funds: %lu are lower than Bob's %lu\n", alice->estate_cost + alice->deposit.capital, bob->deposit);
+        printf("Alice funds: %ld are lower than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
     }
 }
 
@@ -217,21 +236,9 @@ int main()
     alice_init(&alice);
     bob_init(&bob);
 
-    uint16_t year = YEAR_START;
-    uint8_t month = MONTH_START;
-    while(year < YEAR_START + DURATION || month < MONTH_START)
-    {
-        if(++month > 12)
-        {
-            month = 1;
-            year++;
-        }
+    simulation(&alice, &bob);
 
-        month_operations(&alice);
-        month_operations(&bob);
-    }
-
-    comparison(&alice, &bob);
+    print_comparison(&alice, &bob);
 
     return 0;
 }
