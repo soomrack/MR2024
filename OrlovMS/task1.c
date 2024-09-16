@@ -5,7 +5,7 @@
 #define BOB_CAPITAL 1000*1000
 
 #define FLAT_COST 15*1000*1000
-#define MORTAGE_DURATION 30 //years
+#define MORTAGE_DURATION 30 // years
 #define MORTAGE_RATE 0.17
 
 #define RENT_COST 30*1000
@@ -23,86 +23,111 @@
 
 #define YEAR_START 2024
 #define MONTH_START 9
-#define DURATION 30 //years
+#define DURATION 30 // years
+
+typedef int64_t Money; // Rub
 
 typedef struct
 {
-    int64_t money;
-    uint64_t salary;
+    Money capital;
+    double rate;
+} Deposit;
 
-    uint64_t estate_cost;
-    int64_t deposit;
+typedef struct
+{
+    Money amount;
+    uint16_t remaining_month;
+    double rate;
+} Mortage;
 
-    uint64_t mortage;
-    uint16_t mortage_remaining_month;
-    double mortage_rate;
+typedef struct
+{
+    Money money; // month cash
+    Money salary;
+    Deposit deposit;
 
-    uint64_t rent;
+    Money estate_cost;
 
-    uint64_t food_cost;
-    uint64_t service_cost;
-    uint64_t personel_cost;
+    Mortage mortage;
+
+    Money rent_cost;
+
+    Money food_cost;
+    Money service_cost;
+    Money personel_cost;
 } Person;
+
 
 void alice_init(Person* person)
 {
-    person->money = 0;
-    person->salary = ALICE_SALARY;
-
-    person->estate_cost = FLAT_COST;
-    person->deposit = 0;
-
-    person->mortage = FLAT_COST - ALICE_CAPITAL;
-    person->mortage_remaining_month = 12*DURATION;
-    person->mortage_rate = MORTAGE_RATE;
-
-    person->rent = 0;
-
-    person->food_cost = FOOD_COST;
-    person->service_cost = SERVICE_COST;
-    person->personel_cost = PERSONEL_COST;
+    *person = (Person){
+        .money = 0,
+        .salary = ALICE_SALARY,
+        .estate_cost = FLAT_COST,
+        .deposit = {
+            .capital = 0,
+            .rate = DEPOSIT_RATE
+        },
+        .mortage = {
+            .amount = FLAT_COST - ALICE_CAPITAL,
+            .remaining_month = 12 * DURATION,
+            .rate = MORTAGE_RATE
+        },
+        .rent_cost = 0,
+        .food_cost = FOOD_COST,
+        .service_cost = SERVICE_COST,
+        .personel_cost = PERSONEL_COST
+    };
 }
+
 
 void bob_init(Person* person)
 {
-    person->money = 0;
-    person->salary = BOB_SALARY;
-
-    person->estate_cost = 0;
-    person->deposit = BOB_CAPITAL;
-
-    person->mortage = 0;
-    person->mortage_remaining_month = 0;
-    person->mortage_rate = 0;
-
-    person->rent = RENT_COST;
-
-    person->food_cost = FOOD_COST;
-    person->service_cost = SERVICE_COST;
-    person->personel_cost = PERSONEL_COST;
+    *person = (Person){
+        .money = 0,
+        .salary = BOB_SALARY,
+        .estate_cost = 0,
+        .deposit = {
+            .capital = BOB_CAPITAL,
+            .rate = DEPOSIT_RATE
+        },
+        .mortage = {
+            .amount = 0,
+            .remaining_month = 0,
+            .rate = 0
+        },
+        .rent_cost = RENT_COST,
+        .food_cost = FOOD_COST,
+        .service_cost = SERVICE_COST,
+        .personel_cost = PERSONEL_COST
+    };
 }
+
 
 void add_salary(Person* person)
 {
     person->money += person->salary;
 }
 
+
 void pay_mortage(Person* person)
 {
-    if(person->mortage != 0)
+    if(person->mortage.amount != 0)
     {
-        person->money -= (uint64_t)((double)person->mortage * person->mortage_rate / 12.0); //mortage percentage payment
-        uint64_t mortage_payment = person->mortage / person->mortage_remaining_month;
+        person->money -= (uint64_t)((double)person->mortage.amount * person->mortage.rate / 12.0); //mortage percentage payment
+        uint64_t mortage_payment = person->mortage.amount / person->mortage.remaining_month;
         person->money -= mortage_payment;
-        person->mortage -= mortage_payment;
-        person->mortage_remaining_month--;
+        person->mortage.amount -= mortage_payment;
+        person->mortage.remaining_month--;
     }
 }
 
+
 void pay_rent(Person* person)
 {
-    person->money -= person->rent;
+    person->money -= person->rent_cost;
 }
+
 
 void pay_bills(Person* person)
 {
@@ -111,21 +136,25 @@ void pay_bills(Person* person)
     person->money -= person->personel_cost;
 }
 
+
 void add_deposit(Person* person)
 {
-    person->deposit += person->money;
+    person->deposit.capital += person->money;
     person->money = 0;
 }
 
+
 void deposit_growth(Person* person)
 {
-    person->deposit += (uint64_t)((double)person->deposit * DEPOSIT_RATE / 12.0);
+    person->deposit.capital += (uint64_t)((double)person->deposit.capital * DEPOSIT_RATE / 12.0);
 }
+
 
 void index_salary(Person* person)
 {
     person->salary += (uint64_t)((double)person->salary * INFLATION / 12.0);
 }
+
 
 void bills_inflation(Person* person)
 {
@@ -134,15 +163,18 @@ void bills_inflation(Person* person)
     person->personel_cost += (uint64_t)((double)person->personel_cost * INFLATION / 12.0);
 }
 
+
 void rent_rise(Person* person)
 {
-    person->rent += (uint64_t)((double)person->rent * INFLATION / 12.0);
+    person->rent_cost += (uint64_t)((double)person->rent_cost * INFLATION / 12.0);
 }
+
 
 void estate_cost_rise(Person* person)
 {
     person->estate_cost += (uint64_t)((double)person->estate_cost * INFLATION / 12.0);
 }
+
 
 void month_operations(Person* person)
 {
@@ -161,21 +193,23 @@ void month_operations(Person* person)
     estate_cost_rise(person);
 }
 
+
 void comparison(Person* alice, Person* bob)
 {
-    if(alice->estate_cost + alice->deposit == bob->deposit)
+    if((alice->estate_cost + alice->deposit.capital) == bob->deposit.capital)
     {
         printf("Alice and Bob funds are equal: %lu\n", bob->deposit);
     }
-    else if(alice->estate_cost + alice->deposit > bob->deposit)
+    else if((alice->estate_cost + alice->deposit.capital) > bob->deposit.capital)
     {
-        printf("Alice funds: %lu are higher than Bob's %lu\n", alice->estate_cost + alice->deposit, bob->deposit);
+        printf("Alice funds: %lu are higher than Bob's %lu\n", alice->estate_cost + alice->deposit.capital, bob->deposit);
     }
     else
     {
-        printf("Alice funds: %lu are lower than Bob's %lu\n", alice->estate_cost + alice->deposit, bob->deposit);
+        printf("Alice funds: %lu are lower than Bob's %lu\n", alice->estate_cost + alice->deposit.capital, bob->deposit);
     }
 }
+
 
 int main()
 {
