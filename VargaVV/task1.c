@@ -25,6 +25,7 @@ int main(){
          Bob_Salary = Bob_Salary*Inf;
          Bob_Rent = Bob_Rent*Inf;
          Bob_Expense = Bob_Expense*Inf;
+         Bob_Purpose = Bob_Purpose*Inf;
     }
     //Расчеты Алисы
     Alice_Credit = Alice_Credit - Alice_Balance;
@@ -36,7 +37,7 @@ int main(){
          Alice_Balance = Alice_Balance - Alice_Rent - Alice_Expense;
          Alice_Salary = Alice_Salary*Inf;
          Alice_Expense = Alice_Expense*Inf;
-         //Alice_Rent = Alice_Rent*Inf; 
+         Alice_Rent = Alice_Rent*Inf; 
     }
     //ОПределение победителя
     if (Bob_Balance > Alice_Balance+Bob_Purpose){
