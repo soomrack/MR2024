@@ -36,6 +36,7 @@ int main()
     _init_arno();
     printf("%d\n", midas.balance);
     printf("%d\n", arno.payment_life);
+    printf("Ingore")
 
     return 1;
 }
