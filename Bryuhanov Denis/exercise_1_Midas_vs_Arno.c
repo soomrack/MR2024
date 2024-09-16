@@ -45,7 +45,7 @@ void _init_arno()
         .payment_ipotek = 0,
         .deposite_percent = 20,
         .inflation = 7
-    }
+    };
     
 }
 
@@ -99,5 +99,6 @@ int main()
     printf("arno borrow %lld\n", arno.borrow / 100);
     printf("\n");
 
+    printf("exe\n");
     return 1;
 }
