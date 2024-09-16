@@ -18,7 +18,7 @@ int main(){
     Inf = 1 + Inf/(12*100);
     float Rate = 15;
     Rate = Rate/(30*12*100);
-
+     //Расчеты Боба
     for (int t=0; t<=Time; t++){
          Bob_Balance = Bob_Balance + Bob_Salary; 
          Bob_Balance = Bob_Balance - Bob_Rent - Bob_Expense;
@@ -26,7 +26,7 @@ int main(){
          Bob_Rent = Bob_Rent*Inf;
          Bob_Expense = Bob_Expense*Inf;
     }
-
+    //Расчеты Алисы
     Alice_Credit = Alice_Credit - Alice_Balance;
     Alice_Balance = 0;
     float Alice_Rent =  Alice_Credit*(Rate*pow((1+Rate),30*12)/(pow((1+Rate),30*12)-1));
@@ -36,8 +36,9 @@ int main(){
          Alice_Balance = Alice_Balance - Alice_Rent - Alice_Expense;
          Alice_Salary = Alice_Salary*Inf;
          Alice_Expense = Alice_Expense*Inf;
+         //Alice_Rent = Alice_Rent*Inf; 
     }
-    
+    //ОПределение победителя
     if (Bob_Balance > Alice_Balance+Bob_Purpose){
         printf("Bob is the winner\n"); 
     }
