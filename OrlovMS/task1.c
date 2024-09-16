@@ -25,6 +25,12 @@
 #define MONTH_START 9
 #define DURATION 30 // years
 
+typedef struct
+{
+    int year;
+    int month;
+} Date;
+
 typedef int64_t Money; // Rub
 
 typedef struct
@@ -194,21 +200,35 @@ void month_operations(Person* person)
 }
 
 
+int is_date_equal(Date* first, Date *second)
+{
+    return (first->year == second->year) && (first->month == second->month);
+}
+
+
+void date_increment(Date* date)
+{
+    date->month++;
+    if(date->month == 13)
+    {
+        date->month = 1;
+        date->year++;
+    }
+}
+
+
 void simulation(Person* alice, Person* bob)
 {
-    uint16_t year = YEAR_START;
-    uint8_t month = MONTH_START;
+    Date date_current = {.year = 2024, .month = 9}; // starting date
+    Date date_end = date_current;
+    date_end.year += 30; // duration - 30 years
 
-    while(!(year >= YEAR_START + DURATION && month >= MONTH_START))
+    while(!is_date_equal(&date_current, &date_end))
     {
-        if(++month > 12)
-        {
-            month = 1;
-            year++;
-        }
-
         month_operations(alice);
         month_operations(bob);
+
+        date_increment(&date_current);
     }
 }
 
