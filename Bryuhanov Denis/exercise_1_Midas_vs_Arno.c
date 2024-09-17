@@ -1,6 +1,8 @@
 #include <stdio.h>
 
+
 typedef long long int Money;
+
 
 typedef struct Hero
 {
@@ -10,15 +12,17 @@ typedef struct Hero
     Money payment_life;
     Money payment_ipotek;
     double deposite_percent;
-    int inflation;
+    double inflation;
 } Hero;
 
 
 Hero midas;
 Hero arno;
 
+
 int month = 12;
-int year = 30;
+int year = 2050;
+
 
 void _init_midas()
 {
@@ -28,12 +32,11 @@ void _init_midas()
         .borrow = 12 * 1000 * 1000 * 100,
         .payment_life = 70 * 1000 * 100,
         .payment_ipotek = 200 * 1000 * 100,
-        .deposite_percent = 20,
-        .inflation = 7
+        .deposite_percent = 0.20,
+        .inflation = 0.07
     };
-    
-    
 }
+
 
 void _init_arno()
 {
@@ -43,11 +46,11 @@ void _init_arno()
         .borrow = 0,
         .payment_life = 50 * 1000 * 100 + 45 * 1000 * 100,
         .payment_ipotek = 0,
-        .deposite_percent = 20,
-        .inflation = 7
+        .deposite_percent = 0.20,
+        .inflation = 0.07
     };
-    
 }
+
 
 void debt_repayment(struct Hero* hero)
 {
@@ -64,18 +67,36 @@ void debt_repayment(struct Hero* hero)
 
 void simulation(Hero* hero)
 {
-    for (int i = 0; i < month * year; i++) {
-        hero->balance += hero->balance * (hero->deposite_percent) / (100 * 12);
-        hero->balance += hero->salary;
-        hero->balance -= hero->payment_life;
-        hero->balance -= hero->payment_ipotek;
+    for (int current_year = 2020; current_year < year; current_year++){
+        for (int i = 0; i < month; i++) {
+            hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
+            hero->balance += hero->salary;
+            hero->balance -= hero->payment_life;
+            hero->balance -= hero->payment_ipotek;
+        }
+        hero->salary += (Money)((double)(hero->salary) * (hero->inflation));
+        hero->payment_life += (Money)((double)(hero->payment_life) * (hero->inflation));
     }
+    
     hero->borrow = 0;
 }
 
+
+void cost_inflation(Hero* hero)
+{
+    hero -> payment_life += (Money)(hero -> payment_life * hero -> inflation); 
+}
+
+
+void indexation(Hero* hero)
+{
+    hero -> salary += (Money)(hero -> salary * hero -> inflation);
+}
+
+
 int main()
 {
-    _init_midas(&midas);
+    _init_midas();
     _init_arno();
 
     debt_repayment(&midas);
@@ -85,8 +106,8 @@ int main()
     printf("midas balance %lld\n", midas.balance / 100);
     printf("arno balance %lld\n", arno.balance / 100);
 
-    printf("midas borrow %lld\n", midas.borrow / 100);
-    printf("arno borrow %lld\n", arno.borrow / 100);
+    printf("midas payment %lld\n", midas.payment_life / 100);
+    printf("arno payment %lld\n", arno.payment_life / 100);
     printf("\n");
 
     simulation(&midas);
@@ -95,10 +116,8 @@ int main()
 
     printf("midas balance %lld\n", midas.balance / 100);
     printf("arno balance %lld\n", arno.balance / 100);
-    printf("midas borrow %lld\n", midas.borrow / 100);
-    printf("arno borrow %lld\n", arno.borrow / 100);
+    printf("midas payment %lld\n", midas.payment_life / 100);
+    printf("arno payment %lld\n", arno.payment_life / 100);
     printf("\n");
-
-    printf("exe\n");
     return 1;
 }
