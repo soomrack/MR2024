@@ -13,6 +13,7 @@ typedef struct Hero
     Money payment_ipotek;
     double deposite_percent;
     double inflation;
+    double indexation;
 } Hero;
 
 
@@ -33,7 +34,8 @@ void _init_midas()
         .payment_life = 70 * 1000 * 100,
         .payment_ipotek = 200 * 1000 * 100,
         .deposite_percent = 0.20,
-        .inflation = 0.07
+        .inflation = 0.07,
+        .indexation = 0.07
     };
 }
 
@@ -47,7 +49,8 @@ void _init_arno()
         .payment_life = 50 * 1000 * 100 + 45 * 1000 * 100,
         .payment_ipotek = 0,
         .deposite_percent = 0.20,
-        .inflation = 0.07
+        .inflation = 0.07,
+        .indexation = 0.07
     };
 }
 
@@ -65,6 +68,18 @@ void debt_repayment(struct Hero* hero)
 }
 
 
+void cost_inflation(Hero* hero)
+{
+    hero -> payment_life += (Money)(hero -> payment_life * hero -> inflation); 
+}
+
+
+void indexation(Hero* hero)
+{
+    hero -> salary += (Money)(hero -> salary * hero -> indexation);
+}
+
+
 void simulation(Hero* hero)
 {
     for (int current_year = 2020; current_year < year; current_year++){
@@ -74,24 +89,12 @@ void simulation(Hero* hero)
             hero->balance -= hero->payment_life;
             hero->balance -= hero->payment_ipotek;
         }
-        hero->salary += (Money)((double)(hero->salary) * (hero->inflation));
-        hero->payment_life += (Money)((double)(hero->payment_life) * (hero->inflation));
+        cost_inflation(&*hero);
+        indexation(&*hero);
     }
-    
     hero->borrow = 0;
 }
 
-
-void cost_inflation(Hero* hero)
-{
-    hero -> payment_life += (Money)(hero -> payment_life * hero -> inflation); 
-}
-
-
-void indexation(Hero* hero)
-{
-    hero -> salary += (Money)(hero -> salary * hero -> inflation);
-}
 
 
 int main()
