@@ -103,7 +103,6 @@ void simulation(Hero* hero)
 }
 
 
-
 int main()
 {
     _init_midas();
