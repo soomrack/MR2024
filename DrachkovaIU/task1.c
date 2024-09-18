@@ -20,6 +20,8 @@ typedef struct
 {
     Money salary;
     Money count;
+    Mortgage mortgage;
+    Rent rent;
 } Person; 
 
 
@@ -60,7 +62,7 @@ void alice_salary(const int month)
 
 void alice_mortgage()
 {
-    alice.count -= alice_mortgage.monthly_payment;
+    alice.count -= alice.mortgage.monthly_payment;
 }
 
 
@@ -82,7 +84,7 @@ void bob_init()
 
     bob.rent.pledge = 30 * 1000 * 100;
     bob.rent.monthly_chek = 37 * 1000 * 100;  //Аренда + комуналка сразу в счёт за квартиру
-    bob.count -= bob.pledge;
+    bob.count -= bob.rent.pledge;
 }
 
 
@@ -97,7 +99,7 @@ void bob_salary(const int month)
 
 void bob_rent()
 {
-    bob.count -= bob_rent.monthly_chek;
+    bob.count -= bob.rent.monthly_chek;
 }
 
 
@@ -128,7 +130,7 @@ void simulation()
         
         month ++;
         if(month == 13) {
-            month == 1;
+            month = 1;
             year++;
         }
     }
