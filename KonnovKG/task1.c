@@ -17,6 +17,7 @@ typedef struct
     Money food_cost;
     Money service_cost;
     Money personal_cost;
+    Money vacation_cost;
     Money rent_cost;
     Money deposit;
 } Person;
@@ -46,9 +47,9 @@ double calc_credit_payment(Credit credit)
     double rate = credit.credit_rate;
     int duration = (credit.year_end * 12 + credit.month_end) - (credit.year_start * 12 + credit.month_start); // Расчёт срока кредита в месяцах
 
-    double month_rate = rate / 12;                                      // Ежемесячная ставка
-    double whole_rate = pow((1 + month_rate), (duration));              // Общая ставка
-    double payment = cost * month_rate * whole_rate / (whole_rate - 1); // Ежемесячный платеж
+    double month_rate = rate / 12;                                       // Ежемесячная ставка
+    double whole_rate = pow((1 + month_rate), (duration));               // Общая ставка
+    double payment = cost * month_rate * whole_rate / (whole_rate - 1);  // Ежемесячный платеж
     return payment;
 }
 
@@ -74,6 +75,7 @@ void bob_init()
     bob.food_cost = 15 * 1000 * 100;
     bob.service_cost = 8 * 1000 * 100;
     bob.personal_cost = 17 * 1000 * 100;
+    bob.vacation_cost = 100 * 1000 * 100;
     bob.deposit = 0;
     bob.rent_cost = 30 * 1000 * 100;
 };
@@ -86,7 +88,7 @@ void alice_mortgage_init()
     alice_apartment_mortgage.year_end = 2054;
     alice_apartment_mortgage.month_end = 9;
     alice_apartment_mortgage.credit_cost = 13 * 1000 * 1000 * 100;
-    alice_apartment_mortgage.credit_rate = 0.16; // Значение ставки по кредиту/ипотеке, п.п.
+    alice_apartment_mortgage.credit_rate = 0.16;  // Значение ставки по кредиту/ипотеке, п.п.
     alice_apartment_mortgage.credit_payment = calc_credit_payment(alice_apartment_mortgage);
 }
 
@@ -108,7 +110,9 @@ void manage_bob_salary(const int month)
         bob.salary *= 1. + INFLATION_RATE;
     }
 
-    bob.capital += bob.salary;
+    if (month != 8) {
+        bob.capital += bob.salary;
+    }
 
 }
 
@@ -130,7 +134,13 @@ void manage_bob_expenses(const int month)
         bob.food_cost *= 1. + INFLATION_RATE;
         bob.service_cost *= 1. + INFLATION_RATE;
         bob.personal_cost *= 1. + INFLATION_RATE;
+        bob.vacation_cost *= 1. + INFLATION_RATE;
     }
+
+    if (month == 8) {
+        bob.capital -= bob.vacation_cost;
+    }
+
     bob.capital -= (bob.food_cost + bob.service_cost + bob.personal_cost);
 }
 
