@@ -9,7 +9,7 @@ const double DEPOSITE_RATE = 0.2;   // Значение процента по в
 
 typedef struct
 {
-    char name[10];
+    const char name[10];
     Money capital;
     Money salary;
     Money food_cost;
@@ -30,8 +30,8 @@ typedef struct
     Money credit_payment;
 } Credit;
 
-Person alice;
-Person bob;
+Person alice = {"Alice"};
+Person bob = {"Bob"};
 Credit alice_apartment_mortgage;
 
 // Функция для расчета платежа по кредиту
@@ -49,7 +49,7 @@ double calc_credit_payment(Credit c)
 
 void alice_init()
 {
-    strcpy(alice.name, "Alice");
+    // strcpy(alice.name, "Alice");
     alice.capital = 1000 * 1000 * 100;  // коп.
     alice.salary = 200 * 1000 * 100;  // коп.
     alice.food_cost = 15 * 1000 * 100;  // коп.
@@ -61,7 +61,7 @@ void alice_init()
 
 void bob_init()
 {
-    strcpy(bob.name, "Bob");
+    // strcpy(bob.name, "Bob");
     bob.capital = 1000 * 1000 * 100;  // коп.
     bob.salary = 200 * 1000 * 100;  // коп.
     bob.food_cost = 15 * 1000 * 100;  // коп.
