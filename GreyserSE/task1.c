@@ -147,7 +147,7 @@ void simulation(int start_year, int start_month, int years_to_simulate)
     int current_year = start_year;
     int current_month = start_month;
 
-    while (!(current_year == start_year + years_to_simulate))
+    while (!(current_year == start_year + years_to_simulate && current_month == start_month))
     {
         
         salary();
