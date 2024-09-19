@@ -1,33 +1,74 @@
 #include <stdio.h>
 
-#define DURATION 30 //years
-#define YEAR_START 2024
-#define MONTH_START 9
-#define BOB_SALARY 200 * 1000
-#define ALICE_SALARY 200 * 1000
-#define RENTAL_COST 30 * 1000
-int bob_account = 0;
-int alice_account = 0;
+const int YEAR_START = 2024;
+const int MONTH_START = 9;
+const int DURATION = 1;
+const int inflation = 8;  // percent
 
-void bob_rent()
+typedef long long int Money;
+
+
+struct person{
+    Money bank_account;
+    Money salary;
+    Money monthly_expenses;
+    Money rent;
+} bob;
+
+
+struct mortgage{
+    Money start_installment;
+    Money mortgage_payment;
+    int interest_rate;
+    int duration;
+};
+
+
+void bob_init()
 {
-    bob_account -= RENTAL_COST;
+    bob.bank_account = 0;
+    bob.salary = 300 * 1000;
+    bob.monthly_expenses = 40 * 1000;
+    bob.rent = 30 * 1000;
 }
 
-void salary()
+
+void bob_salary(int month)
 {
-    bob_account += BOB_SALARY;
-    alice_account += ALICE_SALARY;
-    //printf("%d\n", bob_account);
+    bob.bank_account += bob.salary;
+
+    if (month == 12){
+        bob.salary *= 1 + inflation / 100;
+    }
 }
 
-void simulation(year, month)
+
+void bob_expenses(int month)
+{
+    bob.bank_account -= bob.monthly_expenses;
+    bob.bank_account -= bob.rent;
+
+    if (month == 12){
+        bob.monthly_expenses *= 1 + inflation / 100;
+        bob.rent *= 1 + inflation / 100;
+    }
+}
+
+
+void bob_print()
+{
+    printf("Капитал Боба: %lld", bob.bank_account);
+}
+
+
+void simulation(int year, int month)
 {
     while(year <= YEAR_START + DURATION)
     {
         while(month <= 12)
         {
-            salary();
+            bob_salary(month);
+            bob_expenses(month);
             //printf("Прошел %d месяц\n", month);
             month++;
         }
@@ -38,8 +79,11 @@ void simulation(year, month)
 }
 
 
-
 int main()
 {
+    bob_init();
+
     simulation(YEAR_START, MONTH_START);
+
+    bob_print();
 }
