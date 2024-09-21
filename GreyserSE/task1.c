@@ -39,7 +39,7 @@ Person alice;    // Выплачивает ипотеку за квартиру
 Mortgage alice_mortgage;
 
 
-Money calculate_mortgage_pay(Mortgage mortgage)
+Money calculate_mortgage_pay(Mortgage mortgage) // Формула расчета ануитетного платежа, сумма платежа сходится с https://calcus.ru/kalkulyator-ipoteki
 {
     int number_of_months = mortgage.duration_years * 12;
     PercentagePt monthly_percent = mortgage.mortgage_rate / 12;
