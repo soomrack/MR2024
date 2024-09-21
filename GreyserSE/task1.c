@@ -29,6 +29,8 @@ typedef struct
     Money first_pay;
     Money monthly_pay;
     int duration_years;
+    int start_year;
+    int start_month;
 } Mortgage;
 
 
@@ -47,13 +49,15 @@ Money calculate_mortgage_pay(Mortgage mortgage)
 }
 
 
-void alice_mortgage_init()
+void alice_mortgage_init(int year, int month)
 {
     alice_mortgage.duration_years = 30;
     alice_mortgage.first_pay = 1000 * 1000;
     alice_mortgage.mortgage_rate = 0.17;
     alice_mortgage.sum_of_mortgage = 15 * 1000 * 1000;
     alice_mortgage.monthly_pay = calculate_mortgage_pay(alice_mortgage);
+    alice_mortgage.start_year = year;
+    alice_mortgage.start_month = month;
 }
 
 
@@ -94,39 +98,60 @@ void alice_buying_flat()
     alice.property += alice_mortgage.sum_of_mortgage; 
 }
 
-void salary()
+void bob_salary()
 {
     bob.money_on_bank_account += bob.salary;
+}
+
+
+void alice_salary()
+{
     alice.money_on_bank_account += alice.salary;
 }
 
 
-void paying_expenses()
+void bob_paying_expenses()
 {
-    alice.money_on_bank_account -= (alice.food_expenses + alice.personal_expenses + alice.utility_expenses + alice.pay_for_flat);
     bob.money_on_bank_account -= (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat);
 }
 
 
-void end_of_month()  // Выплата процентов по вкладам (на минимальный остаток) и перевод остатка зарплаты на вклад
-{   
-    alice.deposit *= (1 + alice.deposit_rate / 12);
-    alice.deposit += alice.money_on_bank_account;
-    alice.money_on_bank_account = 0;
+void alice_paying_expences()
+{
+    alice.money_on_bank_account -= (alice.food_expenses + alice.personal_expenses + alice.utility_expenses);
+}
 
+
+void alice_paying_mortgage(int current_year, int current_month)
+{
+    if (!(current_year == alice_mortgage.start_year + alice_mortgage.duration_years && current_month == alice_mortgage.start_month))
+    {
+        alice.money_on_bank_account -= alice.pay_for_flat;
+    }
+    else
+    {
+        alice.pay_for_flat = 0;
+    } 
+}
+
+
+void bob_deposit_increasing()
+{
     bob.deposit *= (1 + bob.deposit_rate / 12);
     bob.deposit += bob.money_on_bank_account;
     bob.money_on_bank_account = 0;
 }
 
+void alice_deposit_increasing()
+{   
+    alice.deposit *= (1 + alice.deposit_rate / 12);
+    alice.deposit += alice.money_on_bank_account;
+    alice.money_on_bank_account = 0;
+}
 
-void inflation()
+
+void bob_inflation()
 {
-    alice.food_expenses *= (1 + INFLATION_RATE);
-    alice.personal_expenses *= (1 + INFLATION_RATE);
-    alice.utility_expenses *= (1 + INFLATION_RATE);
-    alice.property *= (1 + INFLATION_RATE);
-
     bob.food_expenses *= (1 + INFLATION_RATE);
     bob.personal_expenses *= (1 + INFLATION_RATE);
     bob.utility_expenses *= (1 + INFLATION_RATE);
@@ -135,10 +160,24 @@ void inflation()
 }
 
 
-void salary_increasing()
+void alice_inflation()
+{
+    alice.food_expenses *= (1 + INFLATION_RATE);
+    alice.personal_expenses *= (1 + INFLATION_RATE);
+    alice.utility_expenses *= (1 + INFLATION_RATE);
+    alice.property *= (1 + INFLATION_RATE);
+}
+
+
+void bob_salary_indexation()
+{
+    bob.salary *= (1 + INFLATION_RATE);
+}
+
+
+void alice_salary_indexation()
 {
     alice.salary *= (1 + INFLATION_RATE);
-    bob.salary *= (1 + INFLATION_RATE);
 }
 
 
@@ -149,10 +188,13 @@ void simulation(int start_year, int start_month, int years_to_simulate)
 
     while (!(current_year == start_year + years_to_simulate && current_month == start_month))
     {
-        
-        salary();
-        paying_expenses();
-        end_of_month();
+        bob_salary();
+        alice_salary();
+        bob_paying_expenses();
+        alice_paying_expences();
+        alice_paying_mortgage(current_year, current_month);
+        bob_deposit_increasing();
+        alice_deposit_increasing();
         
         current_month += 1;
 
@@ -161,8 +203,10 @@ void simulation(int start_year, int start_month, int years_to_simulate)
             current_year++;
             current_month = 1;
 
-            inflation();
-            salary_increasing();
+            bob_inflation();
+            alice_inflation();
+            bob_salary_indexation();
+            alice_salary_indexation();
         }
     }
 }
@@ -176,7 +220,7 @@ void printing_results()
 
 int main()
 {
-    alice_mortgage_init();
+    alice_mortgage_init(2024, 9);
     bob_init();
     alice_init();
     alice_buying_flat();
