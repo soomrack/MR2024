@@ -1,8 +1,3 @@
-/*
-дописать структуру deposit
-написать функцию депозита
-*/
-
 #include <stdio.h>
 #include <math.h>
 
@@ -10,7 +5,7 @@ const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
 
-const double INFLATION = 8;  // percent
+const double INFLATION = 8;  // проценты
 
 typedef long long int Money;
 
@@ -39,7 +34,7 @@ struct deposit{
 
 
 void mortgage_payment(){
-    mortgage.first_installment = 1*1000*1000;
+    mortgage.first_installment = 1*1000*1000;  // рубли
     mortgage.apartment_cost = 15*1000*1000;
     mortgage.interest_rate = 18;
 
@@ -76,7 +71,7 @@ void deposit()
 void bob_init()
 {
     bob.bank_account = 1*1000*1000;
-    bob.salary = 300 * 1000;
+    bob.salary = 300 * 1000;  // рубли
     bob.monthly_expenses = 40 * 1000;
     bob.rent = 30 * 1000;
 }
@@ -85,7 +80,7 @@ void bob_init()
 void alice_init()
 {
     alice.bank_account = 0;
-    alice.salary = 300 * 1000;
+    alice.salary = 300 * 1000;  // рубли
     alice.monthly_expenses = 40 * 1000;
     alice.rent = 0;
 }
