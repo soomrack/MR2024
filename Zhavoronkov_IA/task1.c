@@ -1,167 +1,227 @@
 #include <stdio.h>
 
-typedef unsigned long long int Money;
+typedef unsigned long long int Money; //расчёт в рублях
 
-double monthly_percent = (double)20/12/100;
+int START_YEAR = 2024;
+int START_MONTH = 9;
+int PERIOD = 30; //расчетный период симуляции
 
 
-typedef struct Person
+struct Mortgage
 {
-    Money start_sum;
-    Money flat_cost;
-    Money start_salary;
-    double bank_account;
-    Money expences;
-    Money debet_card;
-    //ToDo: дописать переменные
-} Person;
-
-Person Alice;
-Person Bob;
+    Money sum;
+    Money first_pay;
+    Money monthly_payments;
+    double rate;
+};
 
 
-
-
-void Bob_init()
+struct Person
 {
-    //Задаем начальные параметры Боба в копейках
-    Bob.start_sum=0*1000*1000*100;
-    Bob.flat_cost=30*1000*100;
-    Bob.start_salary=2*100*1000*100;
-    Bob.bank_account=0.0;
-    Bob.expences=40*1000*100;
-    Bob.debet_card=Bob.start_sum;
+    Money salary;
+    Money account;
+    Money house_price;
+    Money life_cost;
+    Money monthly_rent;
+    struct Mortgage mortgage;
+    double deposit_rate;
+    double inflation_index;
+};
+
+struct Person alice;
+struct Person bob;
+
+
+void alice_init()
+{
+    alice.account = 1 * 1000 * 1000;
+    alice.salary = 270 * 1000;
+    alice.life_cost = 30 * 1000;
+
+    alice.deposit_rate = 0.2;
+    alice.inflation_index = 0.08;
+
+    alice.mortgage.sum = 15 * 1000 * 1000;
+    alice.mortgage.first_pay = 1 * 1000 * 1000;
+    alice.mortgage.rate = 0.17;
+    alice.mortgage.monthly_payments = 200 * 1000;  //url: https://calcus.ru/kalkulyator-ipoteki?input=eyJjdXJyZW5jeSI6IlJVQiIsInR5cGUiOiIxIiwiY29zdCI6IjE1MDAwMDAwIiwic3RhcnRfc3VtIjoiMTAwMDAwMCIsInN0YXJ0X3N1bV90eXBlIjoiMSIsInBlcmlvZCI6IjMwIiwicGVyaW9kX3R5cGUiOiJZIiwicGVyY2VudCI6IjE3IiwicGF5bWVudF90eXBlIjoiMSJ9
+    alice.account -= alice.mortgage.first_pay;
+    alice.house_price = alice.mortgage.sum;
 }
 
 
-void Alice_init()
+void alice_salary(const int month)
 {
-    //Задаем начальные параметры Элис в копейках
-    Alice.start_sum=1*1000*1000*100;
-    Alice.flat_cost=30*1000*100;
-    Alice.start_salary=2*100*1000*100;
-    Alice.bank_account=0.0;
-    Alice.expences=40*1000*100;
-    Alice.debet_card=Alice.start_sum;
-
-}
-
-
-/*int new_init(const Person person)
-{
-    printf("Enter %s start_sum\n", person);
-    scanf("%d", &person.start_sum);
-    return person.start_sum;;
-
-} */
-
-
-/*int init_info()
-{
-    printf("Enter initial parametrs\n");
-    printf("Enter 0 for standart parametrs and 1 for unique\n");
-    int code;
-    scanf("%d", &code);
-    if (code == 0) {
-        Bob_init();
-        Alice_init();
-        printf ("%d", Bob.flat_cost);
-    } else {
-        new_init(Bob);
-        printf("%d",Bob);
-    } 
-
-}*/
-
-
-void Bob_salary()
-{
-    Bob.debet_card += Bob.start_salary;
-    //Учесть индексацию
-}
-
-
-void Bob_expences() //Коммуналка, еда, одежда и тд
-{
-    Bob.debet_card -= Bob.expences;
-    //Учесть инфляцию 
-}
-
-
-void Bob_flat()
-{
-    Bob.debet_card -= Bob.flat_cost;
-    //Учесть инфляцию
-}
-
-
-void Bob_bank()
-{
-    printf("%.4f\n",monthly_percent);
-    Bob.bank_account += (double)monthly_percent*Bob.bank_account;
-    Bob.bank_account += Bob.debet_card;
-    printf("Bob bank account %.2f\n\n", Bob.bank_account/100);
-    Bob.debet_card = 0;
-}
-
-
-void Bob_count()
-{
-    Bob_salary();
-    Bob_expences();
-    Bob_flat();
-    Bob_bank();
-
-}
-
-
-/*void Alice_count()
-{
-
-
-}*/
-
-
-int simulation(int month, int year)
-{
-    //2054
-    int end_month = month;
-    int end_year = year + 2;
-    Bob_init();
-    
-
-    while (!(year == end_year && month == end_month + 1 ))
-    {
-        printf("Current period %d.%d\n",month, year);
-        Bob_count();
-        //Alice_count();
-        month++;
-
-        if (month == 13)
-        {
-            month=1;
-            year++;
-        }
+    if (month == 1) {
+        alice.salary *= (1 + alice.inflation_index);
     }
     
-    printf("Bob Money: %.2f\n",Bob.bank_account/100);
-    //printf("Alice Money: %.2f",Alice.bank_account/100);
+    alice.account += alice.salary;
+}
+
+
+void alice_mortgage(const int month)
+{
+    alice.account -= alice.mortgage.monthly_payments;
+}
+
+
+void alice_life_cost(const int month)
+{
+    if (month == 1) {
+        alice.life_cost *= (1 + alice.inflation_index);
+    } 
+
+    alice.account -= alice.life_cost;
+}
+
+
+void alice_house_price(const int month)
+{
+    if (month == 1)
+    {
+        alice.house_price *= (1 + alice.inflation_index);
+    }
 
 }
 
 
-int main() 
+void alice_deposit()
 {
-    simulation(9,2024);
+    alice.account += alice.account * (alice.deposit_rate / 12);
+}
 
+
+void alice_print()
+{
+    printf("Alice summary capital: %lld \n", alice.account + alice.house_price);
+}
+
+
+
+
+void bob_init()
+{
+    bob.account = 1 * 1000 * 1000;
+    bob.salary = 270 * 1000;
+    bob.life_cost = 30 * 1000;
+
+    bob.deposit_rate = 0.2;
+    bob.inflation_index = 0.08;
+
+    bob.monthly_rent = 35 * 1000; //url: https://spb.cian.ru/rent/flat/307489774/
+}
+
+
+void bob_salary(const int month)
+{
+    if (month == 1) {
+        bob.salary *= (1 + bob.inflation_index);
+    }
+
+    bob.account += bob.salary;
+}
+
+
+void bob_rent(const int month)
+{
+    if (month == 1) {
+        bob.monthly_rent *= (1 + bob.inflation_index);
+    } 
+    
+    bob.account -= bob.monthly_rent;
+}
+
+
+void bob_life_cost(const int month)
+{
+    if (month == 1) {
+        bob.life_cost *= (1 + bob.inflation_index);
+    }
+    
+    bob.account -= bob.life_cost;
+}
+
+
+void bob_deposit()
+{
+    bob.account += bob.account * (bob.deposit_rate / 12);
+}
+
+
+void bob_print()
+{
+    printf("Bob summary capital: %lld \n", bob.account);
+}
+
+
+void conclusion()
+{
+    printf("-----------------------------\n");
+    if ((alice.account + alice.house_price) > bob.account) {
+        printf("Alice is winner\n");
+    } else {
+        if ((alice.account + alice.house_price) == bob.account) {
+            printf("Alice and Bob are equal\n");
+        } else {
+            printf("Bob is winner\n");
+        }
+    }
+}
+
+
+void simulation()          
+{
+    int year = START_YEAR;
+    int month = START_MONTH;
+    
+    while (!((year == START_YEAR + PERIOD) && (month == START_MONTH + 1)))
+    {
+        alice_salary(month);
+        alice_mortgage(month);
+        alice_life_cost(month);
+        alice_house_price(month);
+        
+        alice_deposit();
+        
+        bob_salary(month);
+        bob_rent(month);
+        bob_life_cost(month);
+
+        bob_deposit();
+
+        month++;
+        if (month == 13) {
+            year++;
+            month = 1;
+        }
+    }
+}
+
+
+int main()
+{
+    alice_init();
+    bob_init();
+
+    simulation();
+
+    printf("Results for %d.%d are:\n",START_MONTH, START_YEAR + PERIOD);
+    printf("-----------------------------\n");
+    
+    alice_print();
+    bob_print();
+
+    conclusion();
+    return 0;
 }
 
 
 /*Условия задачи:
 Alice и Bob, стартовый капитал - 1.000.000 Р 
 Alice эту сумму как первый взнос по ипотеке (15.000.000 Р) на 30 лет под 17% годовых (ставку рассчитать по онлайн-калькулятору)
-Bob копит на квартиру и живет в съемной - 30.000 Р в месяц
-Зарплата обоих составляет 200.000 Р в месяц
+Bob копит на квартиру и живет в съемной - ~30.000 Р в месяц
+Зарплата обоих составляет ~200.000 Р в месяц
 Стоит учитывать базовые потребности типа еды, комуналки, 
 Все цены и зарплаты подвержены инфляции в 8% в год
 
