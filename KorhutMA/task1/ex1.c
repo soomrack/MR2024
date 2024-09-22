@@ -1,107 +1,115 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
 typedef long long int Lli;
-const double inflation = 9.0;
+const double inflation = 0.01;
 
 typedef struct Person {
 	Lli bank;
 	Lli salary;
 	Lli home;
 	Lli downplayment;
-	Lli	mortgage_pay; //ipoteka
+	Lli mortgage_pay;
 	Lli food_expenses;
 	Lli utility_expenses;
 	Lli other_expenses;
 	Lli rent;
 	int duration;
 	double deposit;
-	char name[5];
+	char name[6];
 
 }Person;
 Person alice;
 Person bob;
 
 void alice_init() {
-	alice.bank = 0;
-	alice.salary = 200 * 1000 * 100;
+	alice.bank = 1000 * 1000 * 100;
+	alice.salary = 250 * 1000 * 100;
 	alice.home = 13 * 1000 * 1000 * 100;
 	alice.downplayment = 1000 * 1000 * 100;
 	alice.mortgage_pay = 16137084;
 	alice.food_expenses = 15 * 1000 * 100;
 	alice.utility_expenses = 8000 * 100;
 	alice.other_expenses = 17000 * 100;
-	alice.deposit = 20;
+	alice.deposit = 0.2;
 	alice.rent = 0;
 	strcpy(alice.name, "Alice");
 };
 
 void bob_init() {
 	bob.bank = 1000 * 1000 * 100;
-	bob.salary = 200 * 1000 * 100;
+	bob.salary = 250 * 1000 * 100;
 	bob.home = 0;
 	bob.downplayment = 0;
 	bob.mortgage_pay = 0;
 	bob.food_expenses = 15000 * 100;
 	bob.utility_expenses = 8000 * 100;
 	bob.other_expenses = 17000 * 100;
-	bob.deposit = 20;
+	bob.deposit = 0.2;
 	bob.rent = 30 * 1000 * 100;
 	strcpy(bob.name, "Bob");
 };
 
-void alise_salary(const int year, const int month) {
-	if (month == 12)
-		alice.salary += (Lli)(alice.salary * inflation / 100.0);
-	if (month != 7)
+void alice_income() {
+	alice.bank += (Lli)(alice.bank * alice.deposit / 12.0);
+};
+
+void alice_salary_indexation(const int year, const int month) {
+	if (month == 12) {
+		alice.salary += (Lli)(alice.salary * inflation);
+	}
+}
+void alice_salary(const int year, const int month) {
+	if (year == 2027 && (month == 10 || month == 11)) {
+
+	}
+
+    else {
 		alice.bank += alice.salary;
+	} 
 };
 
 void alice_home() {
 	alice.bank -= alice.mortgage_pay;
-	alice.mortgage_pay += (Lli)(alice.mortgage_pay * inflation / 100.0 / 12.0);
+	alice.mortgage_pay += (Lli)(alice.mortgage_pay * inflation / 12.0);
 };
 
 void alice_expenses() {
 	alice.bank -=
 		(alice.food_expenses + alice.utility_expenses + alice.other_expenses);
-	alice.food_expenses += (Lli)(alice.food_expenses * inflation / 100.0 / 12.0);
-	alice.utility_expenses += (Lli)(alice.utility_expenses * inflation / 100.0);
-	alice.other_expenses += (Lli)(alice.other_expenses * inflation / 100.0);
+	alice.food_expenses += (Lli)(alice.food_expenses * inflation / 12.0);
+	alice.utility_expenses += (Lli)(alice.utility_expenses * inflation);
+	alice.other_expenses += (Lli)(alice.other_expenses * inflation);
 };
 
 void alice_home_index(int month) {
 	if (month == 12)
-		alice.home += (Lli)(alice.home * (inflation / 100.0));
+		alice.home += (Lli)(alice.home * (inflation));
 };
 
-void alice_income() {
-	alice.bank += (Lli)(alice.bank * alice.deposit / 100.0 / 12.0);
-};
+void bob_income() {
+	bob.bank += (Lli)(bob.bank * bob.deposit / 12.0);
+}
 
 void bob_salary(const int year, const int month) {
 	if (month == 12)
-		bob.salary += (Lli)(bob.salary * inflation / 100.0);
+		bob.salary += (Lli)(bob.salary * inflation);
 	bob.bank += bob.salary;
-};
+}
 
 void bob_rent() {
 	bob.bank -= bob.rent;
-};
+}
 
 void bob_expenses() {
 	bob.bank -=
 		(bob.food_expenses + bob.utility_expenses + bob.other_expenses);
-	bob.food_expenses += (Lli)(bob.food_expenses * inflation / 100.0 / 12.0);
-	bob.utility_expenses += (Lli)(bob.utility_expenses * inflation / 100.0);
-	bob.other_expenses += (Lli)(bob.other_expenses * inflation / 100.0);
-};
-
-void bob_income() {
-	bob.bank += (Lli)(bob.bank * bob.deposit / 100.0 / 12.0);
+	bob.food_expenses += (Lli)(bob.food_expenses * inflation / 12.0);
+	bob.utility_expenses += (Lli)(bob.utility_expenses * inflation);
+	bob.other_expenses += (Lli)(bob.other_expenses * inflation);
 };
 
 void simulation(int month, int year) {
@@ -110,7 +118,8 @@ void simulation(int month, int year) {
 	alice.bank = 0;
 
 	while (!(year == (temp_year + 30) && month == temp_month)) {
-		alise_salary(year, month);
+		alice_salary(year, month);
+		alice_salary_indexation(year, month);
 		alice_home();
 		alice_expenses();
 		alice_income();
@@ -136,8 +145,7 @@ void print_person(const Person person) {
 	printf("  bank = %lld rub\n", (Lli)(person.bank / 100));
 };
 
-int main()
-{
+int main() {
 	alice_init();
 	bob_init();
 
@@ -145,15 +153,16 @@ int main()
 
 	print_person(bob);
 	print_person(alice);
-	
+
 	if (alice.bank + alice.home > bob.bank) {
-	printf("\nAlice won!\n");
+		printf("\nAlice won!\n");
 	}
 	else if (alice.bank + alice.home < bob.bank) {
-	printf("\nBob won!\n");
+		printf("\nBob won!\n");
 	}
 	else {
-	printf("\nDraw!\n");
+		printf("\nDraw!\n");
 	}
+
 	return 0;
 }
