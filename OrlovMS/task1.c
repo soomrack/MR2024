@@ -1,29 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define ALICE_CAPITAL 1000*1000
-#define BOB_CAPITAL 1000*1000
-
-#define FLAT_COST 15*1000*1000
-#define MORTAGE_DURATION 30 // years
-#define MORTAGE_RATE 0.17
-
-#define RENT_COST 30*1000
-
-#define ALICE_SALARY 300*1000
-#define BOB_SALARY 300*1000
-
-#define FOOD_COST 20*1000
-#define SERVICE_COST 10*1000
-#define PERSONEL_COST 15*1000
-
-#define INFLATION 0.08
-
-#define DEPOSIT_RATE 0.2
-
-#define YEAR_START 2024
-#define MONTH_START 9
-#define DURATION 30 // years
 
 typedef struct
 {
@@ -64,25 +41,38 @@ typedef struct
 } Person;
 
 
+const Money flat_cost = 15 * 1000 * 1000;
+
+const Money food_cost = 20 * 1000;
+const Money service_cost = 10 * 1000;
+const Money personel_cost = 15 * 1000;
+
+const double inflation = 0.08;
+
+const double deposit_rate = 0.2;
+
+const int duration = 30; // years
+
+
 void alice_init(Person* person)
 {
     *person = (Person){
         .money = 0,
-        .salary = ALICE_SALARY,
-        .estate_cost = FLAT_COST,
+        .salary = 300 * 1000,
+        .estate_cost = flat_cost,
         .deposit = {
             .capital = 0,
-            .rate = DEPOSIT_RATE
+            .rate = deposit_rate
         },
         .mortage = {
-            .amount = FLAT_COST - ALICE_CAPITAL,
-            .remaining_month = 12 * DURATION,
-            .rate = MORTAGE_RATE
+            .amount = flat_cost - (1000 * 1000),
+            .remaining_month = 12 * duration,
+            .rate = 0.17
         },
         .rent_cost = 0,
-        .food_cost = FOOD_COST,
-        .service_cost = SERVICE_COST,
-        .personel_cost = PERSONEL_COST
+        .food_cost = food_cost,
+        .service_cost = service_cost,
+        .personel_cost = personel_cost
     };
 }
 
@@ -91,21 +81,21 @@ void bob_init(Person* person)
 {
     *person = (Person){
         .money = 0,
-        .salary = BOB_SALARY,
+        .salary = 300 * 1000,
         .estate_cost = 0,
         .deposit = {
-            .capital = BOB_CAPITAL,
-            .rate = DEPOSIT_RATE
+            .capital = 1000 * 1000,
+            .rate = deposit_rate
         },
         .mortage = {
             .amount = 0,
             .remaining_month = 0,
             .rate = 0
         },
-        .rent_cost = RENT_COST,
-        .food_cost = FOOD_COST,
-        .service_cost = SERVICE_COST,
-        .personel_cost = PERSONEL_COST
+        .rent_cost = 30 * 1000,
+        .food_cost = food_cost,
+        .service_cost = service_cost,
+        .personel_cost = personel_cost
     };
 }
 
@@ -152,33 +142,33 @@ void add_deposit(Person* person, Date* date)
 
 void deposit_growth(Person* person, Date* date)
 {
-    person->deposit.capital += (uint64_t)((double)person->deposit.capital * DEPOSIT_RATE / 12.0);
+    person->deposit.capital += (uint64_t)((double)person->deposit.capital * person->deposit.rate / 12.0);
 }
 
 
 void index_salary(Person* person, Date* date)
 {
-    person->salary += (uint64_t)((double)person->salary * INFLATION / 12.0);
+    person->salary += (uint64_t)((double)person->salary * inflation / 12.0);
 }
 
 
 void bills_inflation(Person* person, Date* date)
 {
-    person->food_cost += (uint64_t)((double)person->food_cost * INFLATION / 12.0);
-    person->service_cost += (uint64_t)((double)person->service_cost * INFLATION / 12.0);
-    person->personel_cost += (uint64_t)((double)person->personel_cost * INFLATION / 12.0);
+    person->food_cost += (uint64_t)((double)person->food_cost * inflation / 12.0);
+    person->service_cost += (uint64_t)((double)person->service_cost * inflation / 12.0);
+    person->personel_cost += (uint64_t)((double)person->personel_cost * inflation / 12.0);
 }
 
 
 void rent_rise(Person* person, Date* date)
 {
-    person->rent_cost += (uint64_t)((double)person->rent_cost * INFLATION / 12.0);
+    person->rent_cost += (uint64_t)((double)person->rent_cost * inflation / 12.0);
 }
 
 
 void estate_cost_rise(Person* person, Date* date)
 {
-    person->estate_cost += (uint64_t)((double)person->estate_cost * INFLATION / 12.0);
+    person->estate_cost += (uint64_t)((double)person->estate_cost * inflation / 12.0);
 }
 
 
@@ -221,7 +211,7 @@ void simulation(Person* alice, Person* bob)
 {
     Date date_current = {.year = 2024, .month = 9}; // starting date
     Date date_end = date_current;
-    date_end.year += 30; // duration - 30 years
+    date_end.year += duration;
 
     while(!is_date_equal(&date_current, &date_end))
     {
