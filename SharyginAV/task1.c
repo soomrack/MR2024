@@ -30,7 +30,7 @@ struct deposit{
     int duration;
     double rate;
     Money capital, monthly_payment;
-} bob_deposit;
+} bob_deposit, alice_deposit;
 
 
 void mortgage_payment(){
@@ -58,13 +58,23 @@ void inflation(month)
 }
 
 
-void deposit()
+void deposit_bob()
 {   
     bob_deposit.rate = 17.0;
     bob_deposit.capital += bob.bank_account;
     bob.bank_account = 0;  // весь остаток положил на вклад
     bob_deposit.monthly_payment = bob_deposit.capital * bob_deposit.rate / 100. / 12.;
     bob.bank_account += bob_deposit.monthly_payment;
+}
+
+
+void deposit_alice()
+{   
+    alice_deposit.rate = 17.0;
+    alice_deposit.capital += alice.bank_account;
+    alice.bank_account = 0;  // весь остаток положил на вклад
+    alice_deposit.monthly_payment = alice_deposit.capital * alice_deposit.rate / 100. / 12.;
+    alice.bank_account += alice_deposit.monthly_payment;
 }
 
 
@@ -128,7 +138,7 @@ void bob_print()
 
 void alice_print()
 {
-    printf("Капитал Алисы: %lld", alice.bank_account + mortgage.apartment_cost);
+    printf("Капитал Алисы: %lld", alice.bank_account + mortgage.apartment_cost + alice_deposit.capital);
 }
 
 
@@ -140,10 +150,11 @@ void simulation(int year, int month)
         {
             bob_salary(month);
             bob_expenses(month);
-            deposit();
+            deposit_bob();
 
             alice_salary(month);
             alice_expenses(month);
+            deposit_alice();
 
             inflation(month);
 
