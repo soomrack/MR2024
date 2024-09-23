@@ -21,6 +21,7 @@ struct Human  // структура для Алисы и Боба
     Money mortgage_payment;  // ежемесячный платёж по ипотеке
     Money rent;  // стоимость аренды
     Money monthly_payment;  // ежемесяная плата
+    Money yacht;
 };                             
 
 
@@ -49,6 +50,7 @@ void Bob_init()                                 // инициализация Б
     Bob.bank_percent = 0.2;
     Bob.wastes = 40 * 1000 * 100;
     Bob.rent = 50 * 1000 * 100;
+    Bob.yacht = 100 * 1000 * 100;
     Bob.monthly_payment = Bob.wastes + Bob.rent;
 }
 
@@ -126,9 +128,12 @@ void print_bob()
 
 void Bob_holiday(const int year, const int month)  // нюанс
 {
-    int yacht = 100 * 1000 * 100;
+    if(month == 1){
+        Bob.yacht += Bob.yacht * INFLATION;
+    }
+
     if (month > 5 && month < 9) {
-		Bob.account -= yacht;
+		Bob.account -= Bob.yacht;
         Bob.salary == 0;
 	}
 }
