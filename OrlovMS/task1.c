@@ -19,7 +19,7 @@ typedef struct
 typedef struct
 {
     Money amount;
-    uint16_t remaining_month;
+    unsigned remaining_month;
     double rate;
 } Mortage;
 
@@ -110,8 +110,8 @@ void pay_mortage(Person* person, Date* date)
 {
     if(person->mortage.amount != 0)
     {
-        person->money -= (uint64_t)((double)person->mortage.amount * person->mortage.rate / 12.0); //mortage percentage payment
-        uint64_t mortage_payment = person->mortage.amount / person->mortage.remaining_month;
+        person->money -= (Money)((double)person->mortage.amount * person->mortage.rate / 12.0); //mortage percentage payment
+        Money mortage_payment = person->mortage.amount / person->mortage.remaining_month;
         person->money -= mortage_payment;
         person->mortage.amount -= mortage_payment;
         person->mortage.remaining_month--;
@@ -142,33 +142,33 @@ void add_deposit(Person* person, Date* date)
 
 void deposit_growth(Person* person, Date* date)
 {
-    person->deposit.capital += (uint64_t)((double)person->deposit.capital * person->deposit.rate / 12.0);
+    person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
 }
 
 
 void index_salary(Person* person, Date* date)
 {
-    person->salary += (uint64_t)((double)person->salary * inflation / 12.0);
+    person->salary += (Money)((double)person->salary * inflation / 12.0);
 }
 
 
 void bills_inflation(Person* person, Date* date)
 {
-    person->food_cost += (uint64_t)((double)person->food_cost * inflation / 12.0);
-    person->service_cost += (uint64_t)((double)person->service_cost * inflation / 12.0);
-    person->personel_cost += (uint64_t)((double)person->personel_cost * inflation / 12.0);
+    person->food_cost += (Money)((double)person->food_cost * inflation / 12.0);
+    person->service_cost += (Money)((double)person->service_cost * inflation / 12.0);
+    person->personel_cost += (Money)((double)person->personel_cost * inflation / 12.0);
 }
 
 
 void rent_rise(Person* person, Date* date)
 {
-    person->rent_cost += (uint64_t)((double)person->rent_cost * inflation / 12.0);
+    person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
 }
 
 
 void estate_cost_rise(Person* person, Date* date)
 {
-    person->estate_cost += (uint64_t)((double)person->estate_cost * inflation / 12.0);
+    person->estate_cost += (Money)((double)person->estate_cost * inflation / 12.0);
 }
 
 
