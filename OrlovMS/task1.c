@@ -103,6 +103,15 @@ void bob_init(Person* person)
 }
 
 
+void alice_promotion(Person* alice, const Date* date)
+{
+    if(date->year == 2040 && date->month == 5)
+    {
+        alice->salary += (Money)((double)alice->salary * 0.25);  // alice promotion
+    }
+}
+
+
 void add_salary(Person* person, const Date* date)
 {
     person->money += person->salary;
@@ -175,42 +184,17 @@ void estate_cost_rise(Person* person, const Date* date)
 }
 
 
-void additional_conditions(Person* person, const Date* date)
+void bob_car(Person* bob, const Date* date)
 {
-    if(person->person_id == ALICE)
+    if(date->year == 2030 && date->month == 2)
     {
-        if(date->year == 2040 && date->month == 5)
-        {
-            person->salary += (Money)((double)person->salary * 0.25);  // alice promotion
-        }
+        bob->deposit.capital -= 700 * 1000;  // bob buys car
     }
-    else
+
+    if(date->year > 2030 || (date->year == 2030 && date->month >= 2))
     {
-        if(date->year == 2032 && date->month == 2)
-        {
-            person->deposit.capital -= 700 * 1000;  // bob buys car
-        }
+        bob->money -= 20 * 1000;  // car bills
     }
-}
-
-
-void month_operations(Person* person, const Date* date)
-{
-    additional_conditions(person, date);
-
-    //person operations with money
-    add_salary(person, date);
-    pay_mortage(person, date);
-    pay_rent(person, date);
-    pay_bills(person, date);
-    add_deposit(person, date);
-
-    //processes
-    deposit_growth(person, date);
-    index_salary(person, date);
-    bills_inflation(person, date);
-    rent_rise(person, date);
-    estate_cost_rise(person, date);
 }
 
 
@@ -239,8 +223,29 @@ void simulation(Person* alice, Person* bob)
 
     while(!is_date_equal(&date_current, &date_end))
     {
-        month_operations(alice, &date_current);
-        month_operations(bob, &date_current);
+        alice_promotion(alice, &date_current);
+        add_salary(alice, &date_current);
+        pay_mortage(alice, &date_current);
+        pay_bills(alice, &date_current);
+        add_deposit(alice, &date_current);
+
+        deposit_growth(alice, &date_current);
+        index_salary(alice, &date_current);
+        bills_inflation(alice, &date_current);
+        estate_cost_rise(alice, &date_current);
+
+
+        add_salary(bob, &date_current);
+        pay_bills(bob, &date_current);
+        pay_rent(bob, &date_current);
+        bob_car(bob, &date_current);
+        add_deposit(bob, &date_current);
+
+        deposit_growth(bob, &date_current);
+        index_salary(bob, &date_current);
+        bills_inflation(bob, &date_current);
+        rent_rise(bob, &date_current);
+
 
         date_increment(&date_current);
     }
