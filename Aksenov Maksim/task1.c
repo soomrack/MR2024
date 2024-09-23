@@ -2,12 +2,12 @@
 #include <math.h>
 
 
-typedef long long int Money;  // увеличиваем диапазон счёта, который будем вести в копейках
+typedef long long int Money;  // копейки
 
-const double INFLATION = 0.08;  // инфляция в год
-const int START_MONTH = 9;  // начальный месяц
-const int START_YEAR = 2024;  // начальный год
-const int YEARS = 30;  // количество лет
+const double INFLATION = 0.08;  
+const int START_MONTH = 9;  
+const int START_YEAR = 2024;  
+const int YEARS = 30;  
 
 
 struct Human  // структура для Алисы и Боба
@@ -55,8 +55,7 @@ void Bob_init()                                 // инициализация Б
 
 void Alice_income(const int year, const int month)  // начисление зарплаты Алисе
 {
-    if (month == 1) 
-    {
+    if (month == 1) {
         Alice.salary += Alice.salary * INFLATION;
     }
     Alice.account += Alice.salary;
@@ -72,8 +71,7 @@ void Alice_deposite(const int year, const int month)  // проценты по �
 
 void Alice_expenses(const int year, const int month)  //  расходы Алисы
 {
-    if (month == 1) 
-    {
+    if (month == 1) {
 		Alice.wastes += Alice.wastes * INFLATION;
 	}
 	Alice.account -= Alice.monthly_payment;
@@ -83,8 +81,7 @@ void Alice_expenses(const int year, const int month)  //  расходы Али�
 
 void Bob_income(const int year, const int month)  // начисление зарплаты Бобу
 {
-    if (month == 1) 
-    {
+    if (month == 1) {
         Bob.salary += Bob.salary * INFLATION;
     }
     Bob.account += Bob.salary;
@@ -99,8 +96,7 @@ void Bob_deposite(const int year, const int month)  // проценты по в�
 
 void Bob_expenses(const int year, const int month)  //  расходы Боба
 {
-    if (month == 1) 
-    {
+    if (month == 1) {
 		Bob.wastes += Bob.wastes * INFLATION;
         Bob.rent += Bob.rent * INFLATION; 
 	}
@@ -110,32 +106,53 @@ void Bob_expenses(const int year, const int month)  //  расходы Боба
 
 void price_inflation(const int year, const int month)  // удорожание квартиры от инфляции
 {
-    if (month == 1) 
-    {
+    if (month == 1) {
         Alice.target += Alice.target * INFLATION;
     }
 }
+
+
+void print_alice()
+{
+    printf("Alice's capital: %lld kopecks\n", Alice.account + Alice.target);
+}
+
+
+void print_bob()
+{
+    printf("Bob's capital: %lld kopecks", Bob.account);
+}
+
+
+void Bob_holiday(const int year, const int month)  // нюанс
+{
+    int yacht = 100 * 1000 * 100;
+    if (month > 5 && month < 9) {
+		Bob.account -= yacht;
+        Bob.salary == 0;
+	}
+}
+
 
 void simulation()
 {
     int month = START_MONTH;
     int year = START_YEAR;
 
-    while (year < (START_YEAR + YEARS) || month < 8)
-    {
+    while (year < (START_YEAR + YEARS) || month < 9) {
         Alice_income(year, month);
         Alice_expenses(year, month);
         Alice_deposite(year, month);
 
         Bob_income(year, month);
         Bob_expenses(year, month);
+        Bob_holiday(year, month);
         Bob_deposite(year, month);
         
         price_inflation(year, month);
 
         ++month;
-        if(month == 13)
-        {
+        if(month == 13) {
             ++year;
             month = 1;
         }
@@ -149,10 +166,9 @@ int main()
     Bob_init();
 
     simulation();
-    
-    printf("Alice's capital; %lld kopecks", Alice.account + Alice.target);
-    printf("\n");
-    printf("Bob's capital %lld kopecks", Bob.account);
+
+    print_alice();
+    print_bob();
 
     return 0;
 }
