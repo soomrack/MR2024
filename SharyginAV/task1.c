@@ -4,9 +4,9 @@
 const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
-const int TAX_DEDUCTION = 13;
 
-const double INFLATION = 8;  // проценты
+const double TAX_DEDUCTION = 13.0;
+const double INFLATION = 8.0;  // проценты
 
 typedef long long int Money;
 
@@ -129,6 +129,18 @@ void bob_expenses(const int month, const int year)
 }
 
 
+void tax_refund(const int year)
+{
+    if (year == 2028) {
+        bob.bank_account += 2 * bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    }
+
+    if (year > 2028) {
+        bob.bank_account += 2 * bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    }
+}
+
+
 void alice_expenses(const int month)
 {
     alice.bank_account -= alice.monthly_expenses;
@@ -158,7 +170,7 @@ void simulation(int year, int month)
         while(month <= 12 && year != YEAR_START + DURATION && month != MONTH_START)
         {
             bob_salary(month);
-            bob_expenses(month);
+            bob_expenses(month, year);
             bob_dep();
 
             alice_salary(month);
