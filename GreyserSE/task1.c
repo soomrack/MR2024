@@ -66,7 +66,7 @@ Money calculate_mortgage_pay(Mortgage mortgage)
 }
 
 
-void alice_mortgage_init(int year, int month)
+void alice_mortgage_init(const int year, const int month)
 {
     alice_mortgage.duration_years = 30;
     alice_mortgage.first_pay = 1000 * 1000;
@@ -119,7 +119,7 @@ void alice_buying_flat()
 }
 
 
-void bob_car_init(int year_of_purchasing, int month_of_purchasing)
+void bob_car_init(const int year_of_purchasing, const  int month_of_purchasing)
 {
     bob_car.cost = 4 * 1000 * 1000;
     bob_car.gas_per_month_cost = 20 * 1000;
@@ -131,7 +131,7 @@ void bob_car_init(int year_of_purchasing, int month_of_purchasing)
 }
 
 
-void bob_salary(int month)
+void bob_salary(const int month)
 {
     bob.money_on_bank_account += bob.salary;
 
@@ -141,7 +141,7 @@ void bob_salary(int month)
 }
 
 
-void alice_salary(int month)
+void alice_salary(const int month)
 {
     alice.money_on_bank_account += alice.salary;
 
@@ -151,7 +151,7 @@ void alice_salary(int month)
 }
 
 
-void bob_paying_expenses(int month)
+void bob_paying_expenses(const int month)
 {
     bob.money_on_bank_account -= 
         (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat + bob.car_expenses);
@@ -166,7 +166,7 @@ void bob_paying_expenses(int month)
 }
 
 
-void alice_paying_expences(int month)
+void alice_paying_expences(const int month)
 {
     alice.money_on_bank_account -= 
         (alice.food_expenses + alice.personal_expenses + alice.utility_expenses);
@@ -180,7 +180,7 @@ void alice_paying_expences(int month)
 }
 
 
-void alice_paying_mortgage(int current_year, int current_month)
+void alice_paying_mortgage(const int current_year, const int current_month)
 {
     if (!(current_year == alice_mortgage.start_year + alice_mortgage.duration_years 
             && current_month == alice_mortgage.start_month)) {
@@ -208,11 +208,16 @@ void alice_deposit_increasing()
 }
 
 
-void bob_car_expenses(int cur_year, int cur_month)
+void bob_car(const int cur_year, const int cur_month)
 {
-    if (cur_year >= bob_car.year_of_purchasing 
-        && cur_month >= bob_car.month_of_purchasing) {
-        
+    static int is_car = 0;
+    
+    if (cur_year == 2028 && cur_month == 3) {
+        bob_car_init(cur_year, cur_month);
+        is_car = 1;
+    }
+    
+    if (is_car) {
         bob.money_on_bank_account -= (bob_car.gas_per_month_cost + bob_car.washing_per_month_cost);
 
         if (cur_month == bob_car.month_of_purchasing + 6 || cur_month == bob_car.month_of_purchasing) {
@@ -273,7 +278,6 @@ int main()
     bob_init();
     alice_init();
     alice_buying_flat();
-    bob_car_init(2028, 3);
 
     simulation(2024, 9, alice_mortgage.duration_years);
     
