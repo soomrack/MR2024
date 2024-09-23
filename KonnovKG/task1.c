@@ -1,86 +1,231 @@
 #include <stdio.h>
 #include <math.h>
 #include <locale.h>
+#include <string.h>
 
-// Функция для расчета платежа по ипотеке прям тут, чтобы было удобнее
-// Аналогична всем онлайн-калькуляторам, в том числе calcus.ru
-float calc_mortgage_payment(float cost, float rate, float duration) {
-    float month_rate = rate / 12; // Ежемесячная ставка
-    float whole_rate = pow((1 + month_rate), (duration * 12)); // Общая ставка
-    float payment = cost * month_rate * whole_rate / (whole_rate - 1); // Ежемесячный платеж
+
+typedef long long int Money;        // коп.
+const double INFLATION_RATE = 0.09; // Значение годовой инфляции в п.п.
+const double DEPOSITE_RATE = 0.2;   // Значение процента по вкладу в п.п.
+
+
+typedef struct
+{
+    char name[10];
+    Money capital;
+    Money salary;
+    Money food_cost;
+    Money service_cost;
+    Money personal_cost;
+    Money vacation_cost;
+    Money rent_cost;
+    Money deposit;
+} Person;
+
+
+typedef struct
+{
+    int year_start;
+    int month_start;
+    int year_end;
+    int month_end;
+    Money credit_cost;
+    double credit_rate;
+    Money credit_payment;
+} Credit;
+
+
+Person alice;
+Person bob;
+Credit alice_apartment_mortgage;
+
+
+// Функция для расчета платежа по кредиту, аналогична сайту calcus.ru
+double calc_credit_payment(Credit credit)
+{
+    Money cost = credit.credit_cost;
+    double rate = credit.credit_rate;
+    int duration = (credit.year_end * 12 + credit.month_end) - (credit.year_start * 12 + credit.month_start); // Расчёт срока кредита в месяцах
+
+    double month_rate = rate / 12;                                       // Ежемесячная ставка
+    double whole_rate = pow((1 + month_rate), (duration));               // Общая ставка
+    double payment = cost * month_rate * whole_rate / (whole_rate - 1);  // Ежемесячный платеж
     return payment;
 }
 
-int main() {
-    setlocale(LC_NUMERIC, "");
-    
-    float alice_capital = 1000000;
-    float bob_capital = 1000000;
 
-    float alice_salary = 200000;
-    float bob_salary = 200000;
+void alice_init()
+{
+    strcpy(alice.name, "Alice");
+    alice.capital = 1000 * 1000 * 100;
+    alice.salary = 200 * 1000 * 100;
+    alice.food_cost = 15 * 1000 * 100;
+    alice.service_cost = 8 * 1000 * 100;
+    alice.personal_cost = 17 * 1000 * 100; 
+    alice.deposit = 0; 
+    alice.rent_cost = 0; 
+};
 
-    float alice_deposit = 0;
-    float bob_deposit = 0;
 
-    float food_cost = 20000;
-    float service_cost = 6000;
-    float personal_cost = 15000;
-    float rent_cost = 30000;
+void bob_init()
+{
+    strcpy(bob.name, "Bob");
+    bob.capital = 1000 * 1000 * 100;
+    bob.salary = 200 * 1000 * 100;
+    bob.food_cost = 15 * 1000 * 100;
+    bob.service_cost = 8 * 1000 * 100;
+    bob.personal_cost = 17 * 1000 * 100;
+    bob.vacation_cost = 100 * 1000 * 100;
+    bob.deposit = 0;
+    bob.rent_cost = 30 * 1000 * 100;
+};
 
-    float inflation_rate = 0.09;
-    float deposit_rate = 0.2;
-    float mortgage_duration = 30;
-    float mortgage_rate = 0.16;
-    float apartment_cost = 13000000;
-    float mortgage_payment = calc_mortgage_payment(apartment_cost, mortgage_rate, mortgage_duration);
-    // printf("%.2f\n", mortgage_payment);
 
-    for (int year = 0; year < mortgage_duration; year++) {
-        // printf("Year %d\n", year);
-        for (int month = 0; month < 12; month++) {
-            alice_capital += alice_salary;
-            alice_capital -= food_cost;
-            alice_capital -= service_cost;
-            alice_capital -= personal_cost;
-            alice_capital -= mortgage_payment;
-            alice_deposit += alice_capital;
-            alice_capital = 0;
+void alice_mortgage_init()
+{
+    alice_apartment_mortgage.year_start = 2024;
+    alice_apartment_mortgage.month_start = 9;
+    alice_apartment_mortgage.year_end = 2054;
+    alice_apartment_mortgage.month_end = 9;
+    alice_apartment_mortgage.credit_cost = 13 * 1000 * 1000 * 100;
+    alice_apartment_mortgage.credit_rate = 0.16;  // Значение ставки по кредиту/ипотеке, п.п.
+    alice_apartment_mortgage.credit_payment = calc_credit_payment(alice_apartment_mortgage);
+}
 
-            bob_capital += bob_salary;
-            bob_capital -= food_cost;
-            bob_capital -= service_cost;
-            bob_capital -= personal_cost;
-            bob_capital -= rent_cost;
-            bob_deposit += bob_capital;
-            bob_capital = 0;
 
-            alice_deposit *= (1 + deposit_rate / 12);
-            bob_deposit *= (1 + deposit_rate / 12);
+void manage_alice_salary(const int month)
+{
+    if (month == 12) {
+        alice.salary *= 1. + INFLATION_RATE;
+    }
+
+    alice.capital += alice.salary;
+
+}
+
+
+void manage_bob_salary(const int month)
+{
+    if (month == 12) {
+        bob.salary *= 1. + INFLATION_RATE;
+    }
+
+    if (month != 8) {
+        bob.capital += bob.salary;
+    }
+
+}
+
+
+void manage_alice_expenses(const int month)
+{
+    if (month == 12) {
+        alice.food_cost *= 1. + INFLATION_RATE;
+        alice.service_cost *= 1. + INFLATION_RATE;
+        alice.personal_cost *= 1. + INFLATION_RATE;
+    }
+    alice.capital -= (alice.food_cost + alice.service_cost + alice.personal_cost);
+}
+
+
+void manage_bob_expenses(const int month)
+{
+    if (month == 12) {
+        bob.food_cost *= 1. + INFLATION_RATE;
+        bob.service_cost *= 1. + INFLATION_RATE;
+        bob.personal_cost *= 1. + INFLATION_RATE;
+        bob.vacation_cost *= 1. + INFLATION_RATE;
+    }
+
+    if (month == 8) {
+        bob.capital -= bob.vacation_cost;
+    }
+
+    bob.capital -= (bob.food_cost + bob.service_cost + bob.personal_cost);
+}
+
+
+void manage_bob_rent(const int month)
+{
+    if (month == 12) {
+        bob.rent_cost *= 1. + INFLATION_RATE;
+    }
+
+    bob.capital -= bob.rent_cost;
+}
+
+
+void manage_alice_deposit()
+{
+    alice.deposit += alice.capital;
+    alice.deposit *= 1. + DEPOSITE_RATE / 12;
+    alice.capital = 0;
+}
+
+
+void manage_bob_deposit()
+{
+    bob.deposit += bob.capital;
+    bob.deposit *= 1. + DEPOSITE_RATE / 12;
+    bob.capital = 0;
+}
+
+
+void manage_alice_credit(Credit *credit, const int current_month, const int current_year)
+{
+    if (credit->year_start <= current_year <= credit->year_end && credit->month_start <= current_month <= credit->month_end) {
+        alice.capital -= credit->credit_payment;
+    }
+}
+
+
+void print_capital(Person *p) 
+{
+    setlocale(LC_NUMERIC, "");  // Для вывода чисел в американском формате (1,234,567,890) 
+
+    printf("%s\n", p->name);
+    printf("Final capital is %'.lld Rub\n", p->deposit / 100);  // Вывод финального капитала, руб.
+    printf("\n");
+}
+
+
+void simulation(const int start_month, const int start_year)
+{
+    int year = start_year;
+    int month = start_month;
+
+    while (!(year == (start_year + 30) && month == start_month)) {
+
+        manage_alice_salary(month);
+        manage_alice_expenses(month);
+        manage_alice_credit(&alice_apartment_mortgage, month, year);
+        manage_alice_deposit();
+
+        manage_bob_salary(month);
+        manage_bob_expenses(month);
+        manage_bob_rent(month);
+        manage_bob_deposit();
+
+        ++month;
+
+        if (month == 13) {
+            month = 1;
+            ++year;
         }
-
-        food_cost *= 1 + inflation_rate;
-        service_cost *= 1 + inflation_rate;
-        personal_cost *= 1 + inflation_rate;
-        alice_salary *= 1 + inflation_rate;
-        bob_salary *= 1 + inflation_rate;
-        apartment_cost *= 1 + inflation_rate;
-        rent_cost *= 1 + inflation_rate; // Подорожание аренды жилья
     }
+};
 
-    float alice_final_capital = alice_deposit + apartment_cost;
-    float bob_final_capital = bob_deposit;
+
+int main()
+{
+    alice_init();
+    bob_init();
+    alice_mortgage_init();
+
+    simulation(9, 2024);
+
+    print_capital(&alice);
+    print_capital(&bob);
     
-    printf("Alice Capital is %'0.0f Rub\n", alice_final_capital);
-    printf("  Bob Capital is %'0.0f Rub\n", bob_final_capital);
-
-    if(alice_final_capital > bob_final_capital) {
-        printf("Be like Alice\n");
-    } else if(alice_final_capital < bob_final_capital) {
-        printf("Be like Bob\n");
-    } else {
-        printf("Equal Results\n");
-    }
-
     return 0;
 }
