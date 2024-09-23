@@ -10,6 +10,7 @@ struct Mortgage {
     double rate;
 };
 
+
 struct Person
 {
     Money house_cost;  // Цена квартиры
@@ -19,7 +20,6 @@ struct Person
     Money rent;  // Ежемесячная плата за квартиру
     struct Mortgage mortgage;
 } alice, bob;
-
 
 
 void alice_init()
@@ -37,6 +37,7 @@ void alice_init()
 
 }
 
+
 void bob_init()
 {
     bob.account = 1000*1000;  // Изначальный капитал Боба
@@ -44,6 +45,7 @@ void bob_init()
     bob.cost_food = 20*1000;  // Траты на еду в месц
     bob.rent = 30*1000;  // Оплата квартиры за месяц
 }
+
 
 void alice_salary(const int month, const int year)
 {
@@ -54,6 +56,7 @@ void alice_salary(const int month, const int year)
     }
 }
 
+
 void alice_food (const int month)
 {
     alice.account -= alice.cost_food;
@@ -62,10 +65,12 @@ void alice_food (const int month)
     }
 }
 
+
 void alice_mortgage()
 {
     alice.account -= alice.mortgage.monthly_payments;
 }
+
 
 void alice_house_cost(const int month)
 {
@@ -73,6 +78,7 @@ void alice_house_cost(const int month)
     alice.house_cost = (Money)(alice.house_cost * 1.07);  //  Подорожание квартиры на 7 % за год
  }
 }
+
 
 void bob_salary(const int month, const int year)
 {
@@ -83,6 +89,7 @@ void bob_salary(const int month, const int year)
     }
 }
 
+
 void bob_rent(const int month)
 {
     bob.account -= bob.rent;
@@ -91,6 +98,7 @@ void bob_rent(const int month)
         bob.rent = (Money)(bob.rent * 1.07);  //  Индексация зп на 7 %
     }
 }
+
 
 void bob_food (const int month)
 {
@@ -101,6 +109,7 @@ void bob_food (const int month)
     }
 }
 
+
 void alice_print()
 {
     printf("Alice accaount : %lld RUB\n", alice.account);
@@ -108,10 +117,12 @@ void alice_print()
     printf("Alice capital : %lld RUB\n", (alice.account + alice.house_cost));
 }
 
+
 void bob_print()
 {
     printf("Bob capital = %lld RUB\n", bob.account);
 }
+
 
 void simulation()
 {
@@ -129,16 +140,14 @@ void simulation()
         bob_food(month);
         bob_rent(month);
 
-
         month++;
         if(month == 13){
             month = 1;
             year++;
         }
     }
-    
-
 }
+
 
  int main()
 {
