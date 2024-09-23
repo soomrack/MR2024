@@ -208,7 +208,7 @@ void alice_deposit_increasing()
 }
 
 
-void bob_car(const int cur_year, const int cur_month)
+void bob_car_expenses(const int cur_year, const int cur_month)
 {
     static int is_car = 0;
     
