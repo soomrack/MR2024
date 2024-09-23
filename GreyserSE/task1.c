@@ -19,6 +19,7 @@ typedef struct
     Money utility_expenses;
     Money pay_for_flat;
     Money property;          // Стоимость имущества
+    Money car_expenses;
 } Person;
 
 
@@ -34,16 +35,30 @@ typedef struct
 } Mortgage;
 
 
+typedef struct
+{
+    Money cost;
+    Money gas_per_month_cost;
+    Money utility_per_month_cost;
+    int year_of_purchasing;
+    int month_of_purchasing;
+} Car;
+
+
+
 Person bob;      // Снимает квартиру
 Person alice;    // Выплачивает ипотеку за квартиру
 Mortgage alice_mortgage;
+Car bob_car;
 
 
-Money calculate_mortgage_pay(Mortgage mortgage) // Формула расчета ануитетного платежа, сумма платежа сходится с https://calcus.ru/kalkulyator-ipoteki
+Money calculate_mortgage_pay(Mortgage mortgage)
 {
     int number_of_months = mortgage.duration_years * 12;
     PercentagePt monthly_percent = mortgage.mortgage_rate / 12;
-    Money payment = (mortgage.sum_of_mortgage - mortgage.first_pay) * (monthly_percent * pow((1. + monthly_percent), number_of_months) / (pow((1. + monthly_percent), number_of_months) - 1));
+    Money payment = (mortgage.sum_of_mortgage - mortgage.first_pay) * 
+        (monthly_percent * pow((1. + monthly_percent), number_of_months) / 
+            (pow((1. + monthly_percent), number_of_months) - 1));
 
     return payment;
 }
@@ -66,27 +81,30 @@ void alice_init()
     alice.money_on_bank_account = 0;
     alice.deposit = 1000 * 1000;
     alice.deposit_rate = 0.2;
-    alice.salary = 250 * 1000;
+    alice.salary = 230 * 1000;
 
     alice.food_expenses = 15000;
     alice.personal_expenses = 10000;
     alice.utility_expenses = 5000;
     alice.pay_for_flat = alice_mortgage.monthly_pay;
+    alice.car_expenses = 0;
 
     alice.property = 0;
 }
+
 
 void bob_init()
 {
     bob.money_on_bank_account = 0;
     bob.deposit = 1000 * 1000;
     bob.deposit_rate = 0.2;
-    bob.salary = 250 * 1000;
+    bob.salary = 220 * 1000;
 
     bob.food_expenses = 15000;
     bob.personal_expenses = 10000;
     bob.utility_expenses = 5000;
     bob.pay_for_flat = 34000;  // Стоимость аренды квартиры
+    bob.car_expenses = 0;
     
     bob.property = 0;
 }
@@ -98,38 +116,81 @@ void alice_buying_flat()
     alice.property += alice_mortgage.sum_of_mortgage; 
 }
 
-void bob_salary()
+
+void bob_car_init()
+{
+    bob_car.cost = 4 * 1000 * 1000;
+    bob_car.gas_per_month_cost = 20 * 1000;
+    bob_car.utility_per_month_cost = 5000;
+    bob_car.month_of_purchasing = 1;
+    bob_car.year_of_purchasing = 2028;
+}
+
+
+void bob_buying_car()
+{
+    bob.car_expenses = bob_car.gas_per_month_cost + bob_car.utility_per_month_cost;
+    bob.deposit -= bob_car.cost;
+    bob.property += bob_car.cost;
+}
+
+
+void bob_salary(int month)
 {
     bob.money_on_bank_account += bob.salary;
+
+    if (month == 12) {
+        bob.salary *= (1. + INFLATION_RATE);
+    }
 }
 
 
-void alice_salary()
+void alice_salary(int month)
 {
     alice.money_on_bank_account += alice.salary;
+
+    if (month == 12) {
+        alice.salary *= (1. + INFLATION_RATE);
+    }
 }
 
 
-void bob_paying_expenses()
+void bob_paying_expenses(int month)
 {
-    bob.money_on_bank_account -= (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat);
+    bob.money_on_bank_account -= 
+        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat + bob.car_expenses);
+
+    if (month == 12) {
+        bob.food_expenses *= (1. + INFLATION_RATE);
+        bob.personal_expenses *= (1. + INFLATION_RATE);
+        bob.utility_expenses *= (1. + INFLATION_RATE);
+        bob.property *= (1. + INFLATION_RATE);
+        bob.pay_for_flat *= (1. + INFLATION_RATE);
+    }
 }
 
 
-void alice_paying_expences()
+void alice_paying_expences(int month)
 {
-    alice.money_on_bank_account -= (alice.food_expenses + alice.personal_expenses + alice.utility_expenses);
+    alice.money_on_bank_account -= 
+        (alice.food_expenses + alice.personal_expenses + alice.utility_expenses);
+
+    if (month == 12) {
+        alice.food_expenses *= (1. + INFLATION_RATE);
+        alice.personal_expenses *= (1. + INFLATION_RATE);
+        alice.utility_expenses *= (1. + INFLATION_RATE);
+        alice.property *= (1. + INFLATION_RATE);
+    }
 }
 
 
 void alice_paying_mortgage(int current_year, int current_month)
 {
-    if (!(current_year == alice_mortgage.start_year + alice_mortgage.duration_years && current_month == alice_mortgage.start_month))
-    {
+    if (!(current_year == alice_mortgage.start_year + alice_mortgage.duration_years 
+            && current_month == alice_mortgage.start_month)) {
         alice.money_on_bank_account -= alice.pay_for_flat;
     }
-    else
-    {
+    else {
         alice.pay_for_flat = 0;
     } 
 }
@@ -142,6 +203,7 @@ void bob_deposit_increasing()
     bob.money_on_bank_account = 0;
 }
 
+
 void alice_deposit_increasing()
 {   
     alice.deposit *= (1 + alice.deposit_rate / 12);
@@ -150,63 +212,33 @@ void alice_deposit_increasing()
 }
 
 
-void bob_inflation()
-{
-    bob.food_expenses *= (1 + INFLATION_RATE);
-    bob.personal_expenses *= (1 + INFLATION_RATE);
-    bob.utility_expenses *= (1 + INFLATION_RATE);
-    bob.property *= (1 + INFLATION_RATE);
-    bob.pay_for_flat *= (1 + INFLATION_RATE);
-}
-
-
-void alice_inflation()
-{
-    alice.food_expenses *= (1 + INFLATION_RATE);
-    alice.personal_expenses *= (1 + INFLATION_RATE);
-    alice.utility_expenses *= (1 + INFLATION_RATE);
-    alice.property *= (1 + INFLATION_RATE);
-}
-
-
-void bob_salary_indexation()
-{
-    bob.salary *= (1 + INFLATION_RATE);
-}
-
-
-void alice_salary_indexation()
-{
-    alice.salary *= (1 + INFLATION_RATE);
-}
-
-
 void simulation(int start_year, int start_month, int years_to_simulate)
 {
     int current_year = start_year;
     int current_month = start_month;
 
-    while (!(current_year == start_year + years_to_simulate && current_month == start_month))
-    {
-        bob_salary();
-        alice_salary();
-        bob_paying_expenses();
-        alice_paying_expences();
-        alice_paying_mortgage(current_year, current_month);
+    while (!(current_year == start_year + years_to_simulate 
+                && current_month == start_month)) {
+    
+        if (current_month == bob_car.month_of_purchasing 
+            && current_year == bob_car.year_of_purchasing) {
+            bob_buying_car();
+        }
+        
+        bob_salary(current_month);
+        bob_paying_expenses(current_month);
         bob_deposit_increasing();
+        
+        alice_salary(current_month);
+        alice_paying_expences(current_month);
+        alice_paying_mortgage(current_year, current_month);
         alice_deposit_increasing();
         
         current_month += 1;
 
-        if (current_month == 13)
-        {
+        if (current_month == 13) {
             current_year++;
             current_month = 1;
-
-            bob_inflation();
-            alice_inflation();
-            bob_salary_indexation();
-            alice_salary_indexation();
         }
     }
 }
@@ -214,7 +246,8 @@ void simulation(int start_year, int start_month, int years_to_simulate)
 
 void printing_results()
 {
-    printf("Капитал Боба: %lld руб и имущество на %lld руб, капитал Элис: %lld руб и имущество на %lld руб", bob.deposit, bob.property, alice.deposit, alice.property);
+    printf("Капитал Боба: %lld руб и имущество на %lld руб, капитал Элис: %lld руб и имущество на %lld руб", 
+            bob.deposit, bob.property, alice.deposit, alice.property);
 }
 
 
@@ -224,6 +257,7 @@ int main()
     bob_init();
     alice_init();
     alice_buying_flat();
+    bob_car_init();
 
     simulation(2024, 9, alice_mortgage.duration_years);
     

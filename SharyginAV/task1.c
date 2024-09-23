@@ -5,20 +5,23 @@ const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
 
-const double INFLATION = 8;  // проценты
+const double TAX_DEDUCTION = 13.0;
+const double INFLATION = 8.0;  // проценты
 
 typedef long long int Money;
 
 
-struct person{
+struct Person {
     Money bank_account;
     Money salary;
     Money monthly_expenses;
+    Money big_teeth_expenses;
+    Money half_year_teeth_expenses;
     Money rent;
 } bob, alice;
 
 
-struct mortgage{
+struct Mortgage {
     Money first_installment;
     Money apartment_cost;
     Money monthly_payment;
@@ -26,14 +29,15 @@ struct mortgage{
 } mortgage;
 
 
-struct deposit{
+struct Deposit {
     int duration;
     double rate;
     Money capital, monthly_payment;
-} bob_deposit;
+} bob_deposit, alice_deposit;
 
 
-void mortgage_payment(){
+void mortgage_payment()
+{
     mortgage.first_installment = 1*1000*1000;  // рубли
     mortgage.apartment_cost = 15*1000*1000;
     mortgage.interest_rate = 18;
@@ -45,20 +49,7 @@ void mortgage_payment(){
 }
 
 
-void inflation(month)
-{
-    if (month == 12)
-    {
-        mortgage.apartment_cost *= 1 + INFLATION / 100;
-        bob.rent *= 1 + INFLATION / 100;
-        bob.monthly_expenses *= 1 + INFLATION / 100;
-        alice.monthly_expenses *= 1 + INFLATION / 100;
-
-    }
-}
-
-
-void deposit()
+void bob_dep()
 {   
     bob_deposit.rate = 17.0;
     bob_deposit.capital += bob.bank_account;
@@ -68,11 +59,23 @@ void deposit()
 }
 
 
+void alice_dep()
+{   
+    alice_deposit.rate = 17.0;
+    alice_deposit.capital += alice.bank_account;
+    alice.bank_account = 0;  // весь остаток положил на вклад
+    alice_deposit.monthly_payment = alice_deposit.capital * alice_deposit.rate / 100. / 12.;
+    alice.bank_account += alice_deposit.monthly_payment;
+}
+
+
 void bob_init()
 {
     bob.bank_account = 1*1000*1000;
     bob.salary = 300 * 1000;  // рубли
     bob.monthly_expenses = 40 * 1000;
+    bob.big_teeth_expenses = 70 * 1000;
+    bob.half_year_teeth_expenses = 25 * 1000;
     bob.rent = 30 * 1000;
 }
 
@@ -86,37 +89,65 @@ void alice_init()
 }
 
 
-void bob_salary(int month)
+void bob_salary(const int month)
 {
     bob.bank_account += bob.salary;
 
-    if (month == 12){
+    if (month == 12) {
         bob.salary *= 1 + INFLATION / 100;  // индексация
     }
 }
 
 
-void alice_salary(int month)
+void alice_salary(const int month)
 {
     alice.bank_account += alice.salary;
 
-    if (month == 12){
+    if (month == 12) {
         alice.salary *= 1 + INFLATION / 100;  // индексация
     }
 }
 
 
-void bob_expenses(int month)
+void bob_expenses(const int month, const int year)
 {
     bob.bank_account -= bob.monthly_expenses;
     bob.bank_account -= bob.rent;
+
+    if (year == 2028 && (month == 4 || month == 6)) {
+        bob.bank_account -=  bob.big_teeth_expenses;
+    }
+
+    if (year > 2028 && (month == 9 || month == 3)) {
+        bob.bank_account -= bob.half_year_teeth_expenses;
+    }
+
+    if (month == 12) {
+        bob.monthly_expenses *= 1 + INFLATION / 100;
+        bob.rent *= 1 + INFLATION / 100;
+    }
 }
 
 
-void alice_expenses(int month)
+void tax_refund(const int year)
+{
+    if (year == 2028) {
+        bob.bank_account += 2 * bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    }
+
+    if (year > 2028) {
+        bob.bank_account += 2 * bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    }
+}
+
+
+void alice_expenses(const int month)
 {
     alice.bank_account -= alice.monthly_expenses;
     alice.bank_account -= mortgage.monthly_payment;
+    if (month == 12) {
+        alice.monthly_expenses *= 1 + INFLATION / 100;
+    }
 }
 
 
@@ -128,7 +159,7 @@ void bob_print()
 
 void alice_print()
 {
-    printf("Капитал Алисы: %lld", alice.bank_account + mortgage.apartment_cost);
+    printf("Капитал Алисы: %lld", alice.bank_account + mortgage.apartment_cost + alice_deposit.capital);
 }
 
 
@@ -136,16 +167,19 @@ void simulation(int year, int month)
 {
     while(year <= YEAR_START + DURATION)
     {
-        while(month <= 12)
+        while(month <= 12 && year != YEAR_START + DURATION && month != MONTH_START)
         {
             bob_salary(month);
-            bob_expenses(month);
-            deposit();
+            bob_expenses(month, year);
+            bob_dep();
 
             alice_salary(month);
             alice_expenses(month);
+            alice_dep();
 
-            inflation(month);
+            if (month == 12) {
+                mortgage.apartment_cost *= 1 + INFLATION / 100;
+            }
 
             month++;
         }
