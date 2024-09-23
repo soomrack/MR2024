@@ -19,6 +19,7 @@ typedef struct
     Money utility_expenses;
     Money pay_for_flat;
     Money property;          // Стоимость имущества
+    Money car_expenses;
 } Person;
 
 
@@ -34,9 +35,21 @@ typedef struct
 } Mortgage;
 
 
+typedef struct
+{
+    Money cost;
+    Money gas_per_month_cost;
+    Money utility_per_month_cost;
+    int year_of_purchasing;
+    int month_of_purchasing;
+} Car;
+
+
+
 Person bob;      // Снимает квартиру
 Person alice;    // Выплачивает ипотеку за квартиру
 Mortgage alice_mortgage;
+Car bob_car;
 
 
 Money calculate_mortgage_pay(Mortgage mortgage)
@@ -74,6 +87,7 @@ void alice_init()
     alice.personal_expenses = 10000;
     alice.utility_expenses = 5000;
     alice.pay_for_flat = alice_mortgage.monthly_pay;
+    alice.car_expenses = 0;
 
     alice.property = 0;
 }
@@ -90,6 +104,7 @@ void bob_init()
     bob.personal_expenses = 10000;
     bob.utility_expenses = 5000;
     bob.pay_for_flat = 34000;  // Стоимость аренды квартиры
+    bob.car_expenses = 0;
     
     bob.property = 0;
 }
@@ -102,12 +117,29 @@ void alice_buying_flat()
 }
 
 
+void bob_car_init()
+{
+    bob_car.cost = 4 * 1000 * 1000;
+    bob_car.gas_per_month_cost = 20 * 1000;
+    bob_car.utility_per_month_cost = 5000;
+    bob_car.month_of_purchasing = 1;
+    bob_car.year_of_purchasing = 2028;
+}
+
+
+void bob_buying_car()
+{
+    bob.car_expenses = bob_car.gas_per_month_cost + bob_car.utility_per_month_cost;
+    bob.deposit -= bob_car.cost;
+    bob.property += bob_car.cost;
+}
+
+
 void bob_salary(int month)
 {
     bob.money_on_bank_account += bob.salary;
 
-    if (month == 12)
-    {
+    if (month == 12) {
         bob.salary *= (1. + INFLATION_RATE);
     }
 }
@@ -117,8 +149,7 @@ void alice_salary(int month)
 {
     alice.money_on_bank_account += alice.salary;
 
-    if (month == 12)
-    {
+    if (month == 12) {
         alice.salary *= (1. + INFLATION_RATE);
     }
 }
@@ -127,9 +158,9 @@ void alice_salary(int month)
 void bob_paying_expenses(int month)
 {
     bob.money_on_bank_account -= 
-        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat);
+        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat + bob.car_expenses);
 
-    if (month == 12){
+    if (month == 12) {
         bob.food_expenses *= (1. + INFLATION_RATE);
         bob.personal_expenses *= (1. + INFLATION_RATE);
         bob.utility_expenses *= (1. + INFLATION_RATE);
@@ -189,6 +220,11 @@ void simulation(int start_year, int start_month, int years_to_simulate)
     while (!(current_year == start_year + years_to_simulate 
                 && current_month == start_month)) {
     
+        if (current_month == bob_car.month_of_purchasing 
+            && current_year == bob_car.year_of_purchasing) {
+            bob_buying_car();
+        }
+        
         bob_salary(current_month);
         bob_paying_expenses(current_month);
         bob_deposit_increasing();
@@ -221,6 +257,7 @@ int main()
     bob_init();
     alice_init();
     alice_buying_flat();
+    bob_car_init();
 
     simulation(2024, 9, alice_mortgage.duration_years);
     
