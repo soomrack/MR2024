@@ -4,21 +4,24 @@
 const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
+const int TAX_DEDUCTION = 13;
 
 const double INFLATION = 8;  // проценты
 
 typedef long long int Money;
 
 
-struct person {
+struct Person {
     Money bank_account;
     Money salary;
     Money monthly_expenses;
+    Money big_teeth_expenses;
+    Money half_year_teeth_expenses;
     Money rent;
 } bob, alice;
 
 
-struct mortgage {
+struct Mortgage {
     Money first_installment;
     Money apartment_cost;
     Money monthly_payment;
@@ -26,7 +29,7 @@ struct mortgage {
 } mortgage;
 
 
-struct deposit {
+struct Deposit {
     int duration;
     double rate;
     Money capital, monthly_payment;
@@ -71,6 +74,8 @@ void bob_init()
     bob.bank_account = 1*1000*1000;
     bob.salary = 300 * 1000;  // рубли
     bob.monthly_expenses = 40 * 1000;
+    bob.big_teeth_expenses = 70 * 1000;
+    bob.half_year_teeth_expenses = 25 * 1000;
     bob.rent = 30 * 1000;
 }
 
@@ -104,10 +109,19 @@ void alice_salary(const int month)
 }
 
 
-void bob_expenses(const int month)
+void bob_expenses(const int month, const int year)
 {
     bob.bank_account -= bob.monthly_expenses;
     bob.bank_account -= bob.rent;
+
+    if (year == 2028 && (month == 4 || month == 6)) {
+        bob.bank_account -=  bob.big_teeth_expenses;
+    }
+
+    if (year > 2028 && (month == 9 || month == 3)) {
+        bob.bank_account -= bob.half_year_teeth_expenses;
+    }
+
     if (month == 12) {
         bob.monthly_expenses *= 1 + INFLATION / 100;
         bob.rent *= 1 + INFLATION / 100;
