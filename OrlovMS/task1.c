@@ -2,30 +2,38 @@
 #include <stdint.h>
 
 
-typedef struct
-{
+typedef struct {
     int year;
     int month;
 } Date;
 
-typedef int64_t Money; // Rub
 
-typedef struct
-{
+typedef int64_t Money;  // Rub
+
+
+typedef struct {
     Money capital;
     double rate;
 } Deposit;
 
-typedef struct
-{
+
+typedef struct {
     Money amount;
     unsigned remaining_month;
     double rate;
 } Mortage;
 
-typedef struct
-{
-    Money money; // month cash
+
+typedef enum {
+    ALICE,
+    BOB
+} Id;
+
+
+typedef struct {
+    Id person_id;
+
+    Money money;  // month cash
     Money salary;
     Deposit deposit;
 
@@ -42,21 +50,15 @@ typedef struct
 
 
 const Money flat_cost = 15 * 1000 * 1000;
-
-const Money food_cost = 20 * 1000;
-const Money service_cost = 10 * 1000;
-const Money personel_cost = 15 * 1000;
-
 const double inflation = 0.08;
-
 const double deposit_rate = 0.2;
-
 const int duration = 30; // years
 
 
 void alice_init(Person* person)
 {
     *person = (Person){
+        .person_id = ALICE,
         .money = 0,
         .salary = 300 * 1000,
         .estate_cost = flat_cost,
@@ -70,9 +72,9 @@ void alice_init(Person* person)
             .rate = 0.17
         },
         .rent_cost = 0,
-        .food_cost = food_cost,
-        .service_cost = service_cost,
-        .personel_cost = personel_cost
+        .food_cost = 20 * 1000,
+        .service_cost = 10 * 1000,
+        .personel_cost = 15 * 1000
     };
 }
 
@@ -80,6 +82,7 @@ void alice_init(Person* person)
 void bob_init(Person* person)
 {
     *person = (Person){
+        .person_id = BOB,
         .money = 0,
         .salary = 300 * 1000,
         .estate_cost = 0,
@@ -93,24 +96,24 @@ void bob_init(Person* person)
             .rate = 0
         },
         .rent_cost = 30 * 1000,
-        .food_cost = food_cost,
-        .service_cost = service_cost,
-        .personel_cost = personel_cost
+        .food_cost = 30 * 1000,
+        .service_cost = 10 * 1000,
+        .personel_cost = 15 * 1000
     };
 }
 
 
-void add_salary(Person* person, Date* date)
+void add_salary(Person* person, const Date* date)
 {
     person->money += person->salary;
 }
 
 
-void pay_mortage(Person* person, Date* date)
+void pay_mortage(Person* person, const Date* date)
 {
     if(person->mortage.amount != 0)
     {
-        person->money -= (Money)((double)person->mortage.amount * person->mortage.rate / 12.0); //mortage percentage payment
+        person->money -= (Money)((double)person->mortage.amount * person->mortage.rate / 12.0);  // mortage percentage payment
         Money mortage_payment = person->mortage.amount / person->mortage.remaining_month;
         person->money -= mortage_payment;
         person->mortage.amount -= mortage_payment;
@@ -119,13 +122,13 @@ void pay_mortage(Person* person, Date* date)
 }
 
 
-void pay_rent(Person* person, Date* date)
+void pay_rent(Person* person, const Date* date)
 {
     person->money -= person->rent_cost;
 }
 
 
-void pay_bills(Person* person, Date* date)
+void pay_bills(Person* person, const Date* date)
 {
     person->money -= person->food_cost;
     person->money -= person->service_cost;
@@ -133,26 +136,26 @@ void pay_bills(Person* person, Date* date)
 }
 
 
-void add_deposit(Person* person, Date* date)
+void add_deposit(Person* person, const Date* date)
 {
     person->deposit.capital += person->money;
     person->money = 0;
 }
 
 
-void deposit_growth(Person* person, Date* date)
+void deposit_growth(Person* person, const Date* date)
 {
     person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
 }
 
 
-void index_salary(Person* person, Date* date)
+void index_salary(Person* person, const Date* date)
 {
     person->salary += (Money)((double)person->salary * inflation / 12.0);
 }
 
 
-void bills_inflation(Person* person, Date* date)
+void bills_inflation(Person* person, const Date* date)
 {
     person->food_cost += (Money)((double)person->food_cost * inflation / 12.0);
     person->service_cost += (Money)((double)person->service_cost * inflation / 12.0);
@@ -160,20 +163,41 @@ void bills_inflation(Person* person, Date* date)
 }
 
 
-void rent_rise(Person* person, Date* date)
+void rent_rise(Person* person, const Date* date)
 {
     person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
 }
 
 
-void estate_cost_rise(Person* person, Date* date)
+void estate_cost_rise(Person* person, const Date* date)
 {
     person->estate_cost += (Money)((double)person->estate_cost * inflation / 12.0);
 }
 
 
-void month_operations(Person* person, Date* date)
+void additional_conditions(Person* person, const Date* date)
 {
+    if(person->person_id == ALICE)
+    {
+        if(date->year == 2040 && date->month == 5)
+        {
+            person->salary += (Money)((double)person->salary * 0.25);  // alice promotion
+        }
+    }
+    else
+    {
+        if(date->year == 2032 && date->month == 2)
+        {
+            person->deposit.capital -= 700 * 1000;  // bob buys car
+        }
+    }
+}
+
+
+void month_operations(Person* person, const Date* date)
+{
+    additional_conditions(person, date);
+
     //person operations with money
     add_salary(person, date);
     pay_mortage(person, date);
@@ -190,7 +214,7 @@ void month_operations(Person* person, Date* date)
 }
 
 
-int is_date_equal(Date* first, Date* second)
+int is_date_equal(const Date* first, const Date* second)
 {
     return (first->year == second->year) && (first->month == second->month);
 }
@@ -223,7 +247,7 @@ void simulation(Person* alice, Person* bob)
 }
 
 
-void print_comparison(Person* alice, Person* bob)
+void print_comparison(const Person* alice, const Person* bob)
 {
     if((alice->estate_cost + alice->deposit.capital) == bob->deposit.capital)
     {
