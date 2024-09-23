@@ -155,25 +155,24 @@ void bob_life_cost(const int month)
 
 void bob_cat(const int month, const int year)
 {
+    static int is_cat = 0;
 
     if ((month == 5) && (year == 2036) ) {
         bob.account -= bob.cat.buy;
+        is_cat = 1;
     }
 
-    if ((year == 2036 && month > 5) || (year == 2050 && month < 11)) {
-        bob.account -= bob.cat.cost;
-    }
-
-    if (year > 2036 && year < 2050) {
-       if (month == 1) {
+    if (is_cat == 1) {
+        if (month == 1) {
         bob.cat.cost *= (1. + bob.inflation_index);
-       }
-       
+        }
+
         bob.account -= bob.cat.cost;
     }
 
     if ((month == 11) && (year == 2050)) {
         bob.account -= bob.cat.funeral;
+        is_cat = 0;
     }
 }
 
