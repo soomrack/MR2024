@@ -160,12 +160,16 @@ void bob_cat(const int month, const int year)
         bob.account -= bob.cat.buy;
     }
 
-    if ( ((month > 5) && (year >= 2036)) && ((month < 11) && (year <= 2050)) ) {
-        if (month == 1) {
-        bob.cat.cost *= (1. + bob.inflation_index);
-
+    if ((year == 2036 && month > 5) || (year == 2050 && month < 11)) {
         bob.account -= bob.cat.cost;
-        }
+    }
+
+    if (year > 2036 && year < 2050) {
+       if (month == 1) {
+        bob.cat.cost *= (1. + bob.inflation_index);
+       }
+       
+        bob.account -= bob.cat.cost;
     }
 
     if ((month == 11) && (year == 2050)) {
@@ -217,7 +221,7 @@ void simulation()
         bob_salary(month);
         bob_rent(month);
         bob_life_cost(month);
-        bob_cat(month,year);
+        bob_cat(month, year);
         bob_deposit();
 
         month++;
