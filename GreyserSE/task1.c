@@ -39,7 +39,9 @@ typedef struct
 {
     Money cost;
     Money gas_per_month_cost;
-    Money utility_per_month_cost;
+    Money utility_cost;       //  ТО два раза в год
+    Money car_tax;
+    Money washing_per_month_cost;
     int year_of_purchasing;
     int month_of_purchasing;
 } Car;
@@ -117,21 +119,15 @@ void alice_buying_flat()
 }
 
 
-void bob_car_init()
+void bob_car_init(int year_of_purchasing, int month_of_purchasing)
 {
     bob_car.cost = 4 * 1000 * 1000;
     bob_car.gas_per_month_cost = 20 * 1000;
-    bob_car.utility_per_month_cost = 5000;
-    bob_car.month_of_purchasing = 1;
-    bob_car.year_of_purchasing = 2028;
-}
-
-
-void bob_buying_car()
-{
-    bob.car_expenses = bob_car.gas_per_month_cost + bob_car.utility_per_month_cost;
-    bob.deposit -= bob_car.cost;
-    bob.property += bob_car.cost;
+    bob_car.utility_cost = 20 * 1000;
+    bob_car.month_of_purchasing = month_of_purchasing;
+    bob_car.year_of_purchasing = year_of_purchasing;
+    bob_car.car_tax = 40 * 1000;
+    bob_car.washing_per_month_cost = 4000;
 }
 
 
@@ -212,6 +208,30 @@ void alice_deposit_increasing()
 }
 
 
+void bob_car_expenses(int cur_year, int cur_month)
+{
+    if (cur_year >= bob_car.year_of_purchasing 
+        && cur_month >= bob_car.month_of_purchasing) {
+        
+        bob.money_on_bank_account -= (bob_car.gas_per_month_cost + bob_car.washing_per_month_cost);
+
+        if (cur_month == bob_car.month_of_purchasing + 6 || cur_month == bob_car.month_of_purchasing) {
+            bob.money_on_bank_account -= bob_car.utility_cost;
+        }
+
+        if (cur_month == 12) {
+            bob.money_on_bank_account -= bob_car.car_tax;
+
+            bob_car.car_tax *= (1. + INFLATION_RATE);
+            bob_car.gas_per_month_cost *= (1. + INFLATION_RATE);
+            bob_car.utility_cost *= (1. + INFLATION_RATE);
+            bob_car.washing_per_month_cost *= (1. + INFLATION_RATE);
+            bob_car.cost *= (1. + INFLATION_RATE);
+        }   
+    }   
+}
+
+
 void simulation(int start_year, int start_month, int years_to_simulate)
 {
     int current_year = start_year;
@@ -220,13 +240,9 @@ void simulation(int start_year, int start_month, int years_to_simulate)
     while (!(current_year == start_year + years_to_simulate 
                 && current_month == start_month)) {
     
-        if (current_month == bob_car.month_of_purchasing 
-            && current_year == bob_car.year_of_purchasing) {
-            bob_buying_car();
-        }
-        
         bob_salary(current_month);
         bob_paying_expenses(current_month);
+        bob_car_expenses(current_year, current_month);
         bob_deposit_increasing();
         
         alice_salary(current_month);
@@ -247,7 +263,7 @@ void simulation(int start_year, int start_month, int years_to_simulate)
 void printing_results()
 {
     printf("Капитал Боба: %lld руб и имущество на %lld руб, капитал Элис: %lld руб и имущество на %lld руб", 
-            bob.deposit, bob.property, alice.deposit, alice.property);
+            bob.deposit, bob_car.cost, alice.deposit, alice.property);
 }
 
 
@@ -257,7 +273,7 @@ int main()
     bob_init();
     alice_init();
     alice_buying_flat();
-    bob_car_init();
+    bob_car_init(2028, 3);
 
     simulation(2024, 9, alice_mortgage.duration_years);
     
