@@ -63,7 +63,7 @@ void alice_dep()
 {   
     alice_deposit.rate = 17.0;
     alice_deposit.capital += alice.bank_account;
-    alice.bank_account = 0;  // весь остаток положил на вклад
+    alice.bank_account = 0;  // весь остаток положила на вклад
     alice_deposit.monthly_payment = alice_deposit.capital * alice_deposit.rate / 100. / 12.;
     alice.bank_account += alice_deposit.monthly_payment;
 }
@@ -114,14 +114,6 @@ void bob_expenses(const int month, const int year)
     bob.bank_account -= bob.monthly_expenses;
     bob.bank_account -= bob.rent;
 
-    if (year == 2028 && (month == 4 || month == 6)) {
-        bob.bank_account -=  bob.big_teeth_expenses;
-    }
-
-    if (year > 2028 && (month == 9 || month == 3)) {
-        bob.bank_account -= bob.half_year_teeth_expenses;
-    }
-
     if (month == 12) {
         bob.monthly_expenses *= 1 + INFLATION / 100;
         bob.rent *= 1 + INFLATION / 100;
@@ -129,14 +121,16 @@ void bob_expenses(const int month, const int year)
 }
 
 
-void tax_refund(const int year)
+void teeth_expenses(const int month, const int year)
 {
-    if (year == 2028) {
-        bob.bank_account += 2 * bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    if (year == 2028 && (month == 4 || month == 6)) {
+        bob.bank_account -=  bob.big_teeth_expenses;
+        bob.bank_account +=  bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 
-    if (year > 2028) {
-        bob.bank_account += 2 * bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+    if (year > 2028 && (month == 9 || month == 3)) {
+        bob.bank_account -= bob.half_year_teeth_expenses;
+        bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 }
 
@@ -145,8 +139,17 @@ void alice_expenses(const int month)
 {
     alice.bank_account -= alice.monthly_expenses;
     alice.bank_account -= mortgage.monthly_payment;
+
     if (month == 12) {
         alice.monthly_expenses *= 1 + INFLATION / 100;
+    }
+}
+
+
+void house_price_increase(const int month)
+{
+    if (month == 12) {
+        mortgage.apartment_cost *= 1 + INFLATION / 100;
     }
 }
 
@@ -165,26 +168,24 @@ void alice_print()
 
 void simulation(int year, int month)
 {
-    while(year <= YEAR_START + DURATION)
-    {
-        while(month <= 12 && year != YEAR_START + DURATION && month != MONTH_START)
-        {
-            bob_salary(month);
-            bob_expenses(month, year);
-            bob_dep();
+    while( !((year == YEAR_START + DURATION) && (month == MONTH_START)) ) {
+        
+        bob_salary(month);
+        bob_expenses(month, year);
+        teeth_expenses(month, year);
+        bob_dep();
 
-            alice_salary(month);
-            alice_expenses(month);
-            alice_dep();
+        alice_salary(month);
+        alice_expenses(month);
+        house_price_increase(month);
+        alice_dep();
 
-            if (month == 12) {
-                mortgage.apartment_cost *= 1 + INFLATION / 100;
-            }
-
-            month++;
+        ++month;
+        
+        if (month == 13) {
+            month = 1;
+            ++year;
         }
-        month = 1;
-        year++;
     }
 }
 
