@@ -1,89 +1,229 @@
 #include <stdio.h>
 #include <math.h>
+#include <locale.h>
 
-const int base_capital = 1000 * 1000;       
-const float inflation_rate = 0.09;            // Годовая инфляция 9% 
-const float deposit_rate = 0.2;               // Проценты на банковском вкладе
-const int number_of_years = 30;              // Количество лет, в течение которых проводится симуляция
-const float mortage_rate = 0.16;             // Ставка по ипотеке 16%
-int flat_cost = 13 * 1000 * 1000;            // Стоимость квартиры, руб
-int salary = 200 * 1000;                     
-int flat_rent_cost = 30 * 1000;                  // Стоимость аренды квартиры, руб
-double salary_index_rate = 0.02;              // Индексация зарплаты
+typedef long long int Money;      //  В рублях
+typedef double PercentagePt;
 
-long food_cost = 20 * 1000;                        // Доп. траты
-long public_utility_cost = 4 * 1000;
-long personal_cost = 10 * 1000;
-
-const long start_year = 2024;
-const long start_month = 9;          // начинаем симуляцию с сентября 2024           
-long end_year;
-long end_month;
-int current_year;
-int current_month;
-
-int number_of_months = number_of_years * 12; 
-
-int month_pay;                 
-float monthly_deposit_rate = deposit_rate / 12;          // Ежемесячный процент по вкладу
-
-long bob_capital = 1000 * 1000;
-long alice_capital = 0;
+const PercentagePt INFLATION_RATE = 0.09;
+const PercentagePt SALARY_INDEX_RATE = 0.03;
 
 
-int count_mortgage_pay()                 // выплаты по ипотеке
+typedef struct
 {
-    float month_rate = mortage_rate / 12;
-    month_pay = (flat_cost - base_capital) * (month_rate * pow(1 + month_rate, number_of_months)) / (pow(1 + month_rate, number_of_months) - 1); // ежемесячный платёж
+    Money deposit;
+    PercentagePt deposit_rate;
+    Money money_on_bank_account;
+    Money salary;
+    Money food_expenses;
+    Money personal_expenses;
+    Money utility_expenses;
+    Money pay_for_flat;
+    Money property;          // Стоимость имущества
+} Person;
+
+
+typedef struct
+{
+    PercentagePt mortgage_rate;
+    Money sum_of_mortgage;
+    Money first_pay;
+    Money monthly_pay;
+    int duration_years;
+    int start_year;
+    int start_month;
+} Mortgage;
+
+
+Person bob;      // Снимает квартиру
+Person alice;    // Выплачивает ипотеку за квартиру
+Mortgage alice_mortgage;
+
+
+Money calculate_mortgage_pay(Mortgage mortgage)
+{
+    int number_of_months = mortgage.duration_years * 12;
+    PercentagePt monthly_percent = mortgage.mortgage_rate / 12;
+    Money payment = (mortgage.sum_of_mortgage - mortgage.first_pay) * 
+        (monthly_percent * pow((1. + monthly_percent), number_of_months) / 
+            (pow((1. + monthly_percent), number_of_months) - 1));
+
+    return payment;
 }
 
 
-int new_month()   
+void alice_mortgage_init(const int year, const int month)
 {
-    int money_for_month = salary - (food_cost + public_utility_cost + personal_cost);   // остаток средств после прочих расходов без включения жилья
-    bob_capital += money_for_month - flat_rent_cost;                //  капитал Боба после оплаты аренды
-    alice_capital += money_for_month - month_pay;                  //  капитал Элис после месячного платежа 
-    bob_capital *= (1 + monthly_deposit_rate);                    //  начисление процента на депозитном счёте Боба
-    alice_capital *= (1 + monthly_deposit_rate);                 //  начисление процента на депозитном счёте Элис
-    current_month += 1;
-    money_for_month = 0;
-}
- 
-int new_year()             // индексация уровня жизни 
-{
-    current_month = 1;
-    flat_cost *= (1 + inflation_rate);
-    flat_rent_cost *= (1 + inflation_rate);
-    food_cost *= (1 + inflation_rate);
-    public_utility_cost *= (1 + inflation_rate);
-    personal_cost *= (1 + inflation_rate);
-    salary *= (1 + salary_index_rate);
-    current_year += 1;
+    alice_mortgage.duration_years = 30;
+    alice_mortgage.first_pay = 1000 * 1000;
+    alice_mortgage.mortgage_rate = 0.17;
+    alice_mortgage.sum_of_mortgage = 13 * 1000 * 1000;
+    alice_mortgage.monthly_pay = calculate_mortgage_pay(alice_mortgage);
+    alice_mortgage.start_year = year;
+    alice_mortgage.start_month = month;
 }
 
-int simulation()
-{
-    end_year = start_year + number_of_years;
-    end_month = number_of_months - 1;
-    current_year = start_year;
-    current_month = start_month;
-    monthly_deposit_rate = deposit_rate / 12;         
 
-    count_mortgage_pay(); 
-    
-     while ((current_month < start_month) || (current_year < start_year + number_of_years ))
-      {    
-        if (current_month < 12)
-        {
-            new_month();
-     }  else{
-        new_year();
+void alice_init()
+{
+    alice.money_on_bank_account = 0;
+    alice.deposit = 1000 * 1000;
+    alice.deposit_rate = 0.2;
+    alice.salary = 200 * 1000;
+
+    alice.food_expenses = 15000;
+    alice.personal_expenses = 10000;
+    alice.utility_expenses = 5000;
+    alice.pay_for_flat = alice_mortgage.monthly_pay;
+    alice.property = 0;
+}
+
+
+void bob_init()
+{
+    bob.money_on_bank_account = 0;
+    bob.deposit = 1000 * 1000;
+    bob.deposit_rate = 0.2;
+    bob.salary = 200 * 1000;
+
+    bob.food_expenses = 15000;
+    bob.personal_expenses = 10000;
+    bob.utility_expenses = 5000;
+    bob.pay_for_flat = 30000;  // Стоимость аренды квартиры    
+    bob.property = 0;
+}
+
+
+void alice_buying_flat()
+{
+    alice.deposit -= alice_mortgage.first_pay;
+    alice.property += alice_mortgage.sum_of_mortgage; 
+}
+
+
+void bob_salary(const int month)
+{
+    bob.money_on_bank_account += bob.salary;
+
+    if (month == 12) {
+        bob.salary *= (1. + SALARY_INDEX_RATE);
+    }
+}
+
+
+void alice_salary(const int month, const int year)
+{
+    alice.money_on_bank_account += alice.salary;
+     if (year == 2027 && month == 6){
+        alice.salary == 2 * alice.salary;
      }
-      }
+    if (month == 12) {
+        alice.salary *= (1. + SALARY_INDEX_RATE);
+    }
 }
-void main()
+
+
+void bob_paying_expenses(const int month)
 {
-    simulation();
-    printf(" капитал Элис: %.ld руб + квартира за %ld руб, Общая сумма ипотеки %ld руб, Капитал Боба: %.ld руб,  %d, %d", alice_capital, 
-    flat_cost, month_pay * 30 * 12, bob_capital, current_year, current_month); 
-} 
+    bob.money_on_bank_account -= 
+        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat);
+
+    if (month == 12) {
+        bob.food_expenses *= (1. + INFLATION_RATE);
+        bob.personal_expenses *= (1. + INFLATION_RATE);
+        bob.utility_expenses *= (1. + INFLATION_RATE);
+        bob.property *= (1. + INFLATION_RATE);
+        bob.pay_for_flat *= (1. + INFLATION_RATE);
+    }
+}
+
+
+void alice_paying_expences(const int month)
+{
+    alice.money_on_bank_account -= 
+        (alice.food_expenses + alice.personal_expenses + alice.utility_expenses);
+
+    if (month == 12) {
+        alice.food_expenses *= (1. + INFLATION_RATE);
+        alice.personal_expenses *= (1. + INFLATION_RATE);
+        alice.utility_expenses *= (1. + INFLATION_RATE);
+        alice.property *= (1. + INFLATION_RATE);
+    }
+}
+
+
+void alice_paying_mortgage(const int current_year, const int current_month)
+{
+    if ((current_year <= alice_mortgage.start_year + alice_mortgage.duration_years) 
+            || (current_month <= alice_mortgage.start_month)) {
+        alice.money_on_bank_account -= alice.pay_for_flat;
+    }
+    else {
+        alice.pay_for_flat = 0;
+    } 
+}
+
+
+void bob_deposit_increasing()
+{
+    bob.deposit *= (1 + bob.deposit_rate / 12);
+    bob.deposit += bob.money_on_bank_account;
+    bob.money_on_bank_account = 0;
+}
+
+
+void alice_deposit_increasing()
+{   
+    alice.deposit *= (1 + alice.deposit_rate / 12);
+    alice.deposit += alice.money_on_bank_account;
+    alice.money_on_bank_account = 0;
+}
+
+
+void simulation(int start_year, int start_month, int years_to_simulate)
+{
+    int current_year = start_year;
+    int current_month = start_month;
+
+    while ((current_year <= start_year + years_to_simulate) 
+                || (current_month <= start_month)) {
+    
+        bob_salary(current_month);
+        bob_paying_expenses(current_month);
+        bob_deposit_increasing();
+        
+        alice_salary(current_month, current_year);
+        alice_paying_expences(current_month);
+        alice_paying_mortgage(current_year, current_month);
+        alice_deposit_increasing();
+        
+        current_month += 1;
+
+        if (current_month == 13) {
+            current_year++;
+            current_month = 1;
+        }
+    }
+}
+
+
+void printing_results()
+{
+    printf("Капитал Боба: %lld руб, капитал Элис: %lld руб и имущество на %lld руб", 
+            bob.deposit, alice.deposit, alice.property);
+}
+
+
+int main()
+{
+    alice_mortgage_init(2024, 9);
+    bob_init();
+    alice_init();
+    alice_buying_flat();
+
+    simulation(2024, 9, alice_mortgage.duration_years);
+    
+    printing_results(); 
+
+    return 0;
+}
