@@ -2,26 +2,26 @@
 #include <math.h>
 #include <locale.h>
 
-int start_balance = 1000000;
-int salary = 200000; 
+unsigned long int start_balance = 1000000;
+unsigned long int salary = 200000; 
 
 int mortage_duration = 30;
 int mortage_rate = 16;
 
 int start_year = 2024;
-int start_month = 1;
+int start_month = 9;
 
-int appartment_cost = 13000000;
-int appartment_rent = 30000;
+unsigned long int appartment_cost = 13000000;
+unsigned long int appartment_rent = 30000;
 
-int base_deposit = 0; 
+unsigned long int base_deposit = 0; 
 
 int deposit_rate = 20;
 int inflation_rate = 9; 
 
-int personal_cost = 15000; 
-int food_cost = 20000; 
-int service_cost = 6000; 
+unsigned long int personal_cost = 15000; 
+unsigned long int food_cost = 20000; 
+unsigned long int service_cost = 6000; 
 
 typedef struct
 {
