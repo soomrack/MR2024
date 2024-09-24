@@ -6,13 +6,5 @@ int main()
     float mortA
     float mortperc
     int time, inf, ind;
-    printf("Hello, world!");
-    for (int i =0; i<t; i++)
-    {
-        int n; //мсавмвапвап
-        if (n/2020>=n%2020)
-            cout<<"YES\n";
-        else
-            cout<<"NO\n";
     }
 }
