@@ -9,6 +9,12 @@ const int START_MONTH = 9;
 const int START_YEAR = 2024;  
 const int YEARS = 30;  
 
+struct Mortgage
+{
+    double rate;  // ставка по ипотеке
+    Money payment;  // ежемесячный платёж по ипотеке
+};
+
 
 struct Human  // структура для Алисы и Боба
 {
@@ -16,12 +22,12 @@ struct Human  // структура для Алисы и Боба
     Money account;  // счёт
     Money salary;  // зарплата
     double bank_percent;  // годовая ставка вклада в банке
-    double mortgage_rate;  // ставка по ипотеке
     Money wastes;  // траты на существование
-    Money mortgage_payment;  // ежемесячный платёж по ипотеке
     Money rent;  // стоимость аренды
     Money monthly_payment;  // ежемесяная плата
     Money yacht;
+    struct Mortgage mortgage;
+
 };                             
 
 
@@ -35,10 +41,10 @@ void Alice_init()                               // инициализация А
     Alice.account = 1 * 1000 * 1000 * 100;
     Alice.salary = 300 * 1000 * 100;
     Alice.bank_percent = 0.2;
-    Alice.mortgage_rate = 0.17;
+    Alice.mortgage.rate = 0.17;
     Alice.wastes = 40 * 1000 * 100;
-    Alice.mortgage_payment = (Alice.target - Alice.account) * ((Alice.mortgage_rate / 12) + ((Alice.mortgage_rate / 12))/ (pow((1 + Alice.mortgage_rate / 12), YEARS * 12) - 1));
-    Alice.monthly_payment = Alice.wastes + Alice.mortgage_payment; 
+    Alice.mortgage.payment = (Alice.target - Alice.account) * ((Alice.mortgage.rate / 12) + ((Alice.mortgage.rate / 12))/ (pow((1 + Alice.mortgage.rate / 12), YEARS * 12) - 1));
+    Alice.monthly_payment = Alice.wastes + Alice.mortgage.payment; 
 }
 
 
@@ -55,7 +61,7 @@ void Bob_init()                                 // инициализация Б
 }
 
 
-void Alice_income(const int year, const int month)  // начисление зарплаты Алисе
+void Alice_salary(const int year, const int month)  // начисление зарплаты Алисе
 {
     if (month == 1) {
         Alice.salary += Alice.salary * INFLATION;
@@ -81,11 +87,15 @@ void Alice_expenses(const int year, const int month)  //  расходы Али�
 }  
 
 
-void Bob_income(const int year, const int month)  // начисление зарплаты Бобу
+void Bob_salary(const int year, const int month)  // начисление зарплаты Бобу
 {
     if (month == 1) {
         Bob.salary += Bob.salary * INFLATION;
     }
+
+    if (month > 5 && month < 9) {
+        Bob.salary == 0;
+	}
     Bob.account += Bob.salary;
 }
 
@@ -134,7 +144,6 @@ void Bob_holiday(const int year, const int month)  // нюанс
 
     if (month > 5 && month < 9) {
 		Bob.account -= Bob.yacht;
-        Bob.salary == 0;
 	}
 }
 
@@ -145,11 +154,11 @@ void simulation()
     int year = START_YEAR;
 
     while (year < (START_YEAR + YEARS) || month < 9) {
-        Alice_income(year, month);
+        Alice_salary(year, month);
         Alice_expenses(year, month);
         Alice_deposite(year, month);
 
-        Bob_income(year, month);
+        Bob_salary(year, month);
         Bob_expenses(year, month);
         Bob_holiday(year, month);
         Bob_deposite(year, month);
