@@ -115,7 +115,7 @@ void alice_salary(const int month, const int year)
 {
     alice.money_on_bank_account += alice.salary;
      if (year == 2027 && month == 6){
-        alice.salary == 2 * alice.salary;
+        alice.salary *= 2;
      }
     if (month == 12) {
         alice.salary *= (1. + SALARY_INDEX_RATE);
