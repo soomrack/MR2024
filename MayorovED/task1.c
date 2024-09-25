@@ -104,6 +104,11 @@ void show_capital(personType* p) {
     printf(" Balance is %.ld rub\n", p->capital);
 }
 
+void show_date(datesType* d) {
+    printf("Current year is %d\n", d->current_year);
+    printf("Current month is %d\n", d->current_month);
+}
+
 datesType init_dates(int start_year, int start_month, int duration) {
     int end_year = start_year + duration;
     int end_month = 12;
@@ -185,6 +190,7 @@ void run_simulation(struct Simulation simulation) {
 
     calculate_capital(&simulation.alice, (long[]) {appartment_cost, simulation.alice.deposit.value}, 2);
     calculate_capital(&simulation.bob, (long[]) {simulation.bob.deposit.value}, 1);
+    show_date(&simulation.dates);
     show_capital(&simulation.alice);
     show_capital(&simulation.bob);
 }
