@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Cash; // rub
+typedef long long int Cash;  // rub
+
 const float INFLATION = 1.1;
 const float INDEXATION = 1.07;
 const float DEPOSITE = 1.18;
+const float TAX = 0.0001;
 
 struct Person
 {
@@ -17,7 +19,9 @@ struct Person
     Cash flat_rent;
     Cash communal_bills;
     Cash flat_cost;
+    Cash flat_tax;
 };
+
 
 struct Mortgage
 {
@@ -27,9 +31,11 @@ struct Mortgage
     int term;
 };
 
+
 struct Person bob;
 struct Person alice;
-struct Mortgage mortgage;
+struct Mortgage alice_mortgage;
+
 
 void bob_set()
 {
@@ -53,16 +59,17 @@ void alice_set()
     alice.person_expense = 30 * 1000;
     alice.flat_rent = 5 * 1000;
     alice.check = 1000 * 1000;
+    alice.flat_tax = 0;
     alice.expense = alice.food + alice.person_expense + alice.transport;
 }
 
 
 void mortgage_set()
 {
-    mortgage.monthly_pay = 0;
-    mortgage.loan_amount = 13 * 1000 * 1000;
-    mortgage.annual_rate = 16;
-    mortgage.term = 30;
+    alice_mortgage.monthly_pay = 0;
+    alice_mortgage.loan_amount = 13 * 1000 * 1000;
+    alice_mortgage.annual_rate = 16;
+    alice_mortgage.term = 30;
 }
 
 
@@ -75,7 +82,7 @@ void bob_salary(const int month)
 }
 
 
-void bob_flat(const int month)
+void bob_flat_rent(const int month)
 {
     bob.check -= bob.flat_rent;
 
@@ -143,27 +150,40 @@ void alice_flat_cost(const int month)
 }
 
 
-void mortgage_monthly_pay()
+void alice_mortgage_monthly_pay()
 {
-    double monthly_rate = mortgage.annual_rate / 12.0 / 100.0;
-    int total_month = mortgage.term * 12;
+    double monthly_rate = alice_mortgage.annual_rate / 12.0 / 100.0;
+    int total_month = alice_mortgage.term * 12;
 
-    mortgage.monthly_pay = mortgage.loan_amount * (monthly_rate * pow(1 + monthly_rate, total_month)) / (pow(1 + monthly_rate, total_month) - 1);
+    alice_mortgage.monthly_pay = alice_mortgage.loan_amount 
+        * (monthly_rate * pow(1 + monthly_rate, total_month)) 
+        / (pow(1 + monthly_rate, total_month) - 1);
 
-    alice.check -= mortgage.monthly_pay;
+    alice.check -= alice_mortgage.monthly_pay;
 }
 
+
+void alice_flat_tax(const int month, const int year)
+{
+    alice.check -= alice.flat_tax;
+
+    if (month == 9)
+        alice.flat_tax = alice.flat_cost * TAX;
+   
+    if (year == 2026)
+        alice.check += alice.flat_tax;
+}
 
 void simulation(const int start_month,const int start_year)
 {
     int year = start_year;
     int month = start_month;
 
-    while (!(year == (start_year + 30) && month == start_month)){
+    while (!(year == (start_year + 30) && month == start_month)) {
 
         bob_salary(month);
         bob_expense(month);
-        bob_flat(month);
+        bob_flat_rent(month);
         bob_deposite(month);
 
         alice_salary(month);
@@ -171,8 +191,8 @@ void simulation(const int start_month,const int start_year)
         alice_communal_bills(month);
         alice_deposite(month);
         alice_flat_cost(month);
-
-        mortgage_monthly_pay();
+        alice_flat_tax(month, year);
+        alice_mortgage_monthly_pay();
 
         month++;
         if (month == 13) {
