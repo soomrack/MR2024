@@ -1,49 +1,45 @@
 #include <stdio.h>
 #include <math.h>
 #include <locale.h>
+#include <stdlib.h>
+#include <time.h>
 
 // ----------------------------------------------------  Settings  ---------------------------------------------------- //
 
-const int base_capital = 1000 * 1000;
-const int salary = 200 * 1000;
-
-const int mortage_duration = 30;  // Duration of the mortgage in years.
-const int mortage_rate = 16;
-
-const int start_year = 2024;
-const int start_month = 1;  // 1 for January, 2 for February, 3 for March, etc.
-
-int appartment_cost = 13 * 1000 * 1000;
-int appartment_rent_cost = 30 * 1000;
-
-const int base_deposit = 0;
-
-const int deposit_rate = 20;
-const int inflation_rate = 9;
-
-int food_cost = 20 * 1000;
-int service_cost = 6 * 1000;
-int personal_cost = 15 * 1000;
+float inflation_rate = 9.0;
 
 // ------------------------------------------------------  Types  ----------------------------------------------------- //
 
+typedef long long int Money;
+
 typedef struct {
-    long cost;
+    Money cost;
     int period;
     int rate;
-    int payment;
+    Money payment;
 } Mortage;
 
 typedef struct {
-    long value;
-    const int rate;
+    Money value;
+    int rate;
 } Deposit;
 
 typedef struct {
-    const char name[20];
-    long capital;
-    long salary;
+    Money appartment_cost;
+    Money appartment_rent_cost;
+    Money food_cost;
+    Money service_cost;
+    Money personal_cost;
+} Goods;
+
+typedef struct {
+    char name[20];
+    Money capital;
     Deposit deposit;
+    Money salary;
+    Money annual_bonus;
+    int is_working;
+    Goods goods;
 } Person;
 
 typedef struct {
@@ -53,56 +49,29 @@ typedef struct {
     const int end_month;
     int current_year;
     int current_month;
+    int alice_fired_in_months;
+    int bob_fired_in_months;
 } Dates;
 
-// -----------------------------------------------------  Structs  ----------------------------------------------------- //
-
-struct Simulation {
+typedef struct {
     Person alice;
     Person bob;
     Mortage mortage;
     Dates dates;
-};
+} Simulation;
 
 // ----------------------------------------------------  Functions  ---------------------------------------------------- //
 
-/**
- * @brief Converts a percentage value to its decimal representation.
- * 
- * @param value Percentage value as integer.
- * @return Decimal representation of the percentage.
- */
-double percent(int value) 
+Mortage init_mortage(Money cost, int rate, int duration) 
 {
-    return value / 100.0;
+    float monthly_rate = rate / 100 / 12;
+    float total_rate = pow(1 + monthly_rate, duration * 12);
+    Money payment = cost * monthly_rate * total_rate / (total_rate - 1);
+    Mortage result = {cost, duration, rate, payment};
+    return result;
 }
 
-/**
- * @brief Calculates the monthly mortgage payment.
- * 
- * The calculation is based on the mortgage cost, duration, and interest rate.
- * The result is stored in the `payment` field of the provided `Mortage` struct.
- * 
- * @param m Pointer to the `Mortage` struct for which to calculate the payment.
- */
-void calculate_motrtage_payment(Mortage* m) 
-{
-    float monthly_rate = percent(m->rate) / 12;
-    float total_rate = pow(1 + monthly_rate, m->period * 12);
-    m->payment = m->cost * monthly_rate * total_rate / (total_rate - 1);
-}
-
-/**
- * @brief Initializes a `Dates` struct with start and end dates.
- * 
- * Calculates the end year and month based on the provided start year, start month, and duration.
- * 
- * @param start_year Year when the simulation starts.
- * @param start_month Month when the simulation starts (1 for January, 2 for February, 3 for March, etc).
- * @param duration Duration of the simulation in years.
- * @return Initialized `Dates` struct.
- */
-Dates init_dates(int start_year, int start_month, int duration) 
+Dates init_dates(int start_year, int start_month, int duration, int alice_fired_in_months, int bob_fired_in_months) 
 {
     int end_year = start_year + duration;
     int end_month = 12;
@@ -114,117 +83,116 @@ Dates init_dates(int start_year, int start_month, int duration)
         end_month = start_month - 1;
     }
 
-    Dates result = {start_year, start_month, end_year, end_month, start_year, start_month};
+    Dates result = {
+        start_year, start_month, 
+        end_year, end_month, 
+        start_year, start_month, 
+        alice_fired_in_months, bob_fired_in_months
+    };
+
     return result;
 }
 
-/**
- * @brief Initializes a `Simulation` struct with default values.
- * 
- * Sets up Alice and Bob with their initial capital, salary, and deposit.
- * Initializes the mortgage parameters and calculates the monthly payment.
- * Sets up the simulation dates based on the provided start year, start month, and mortgage duration.
- * 
- * @return Initialized `Simulation` struct.
- */
-struct Simulation init_simulation() 
+Simulation init_simulation() 
 {
     setlocale(LC_NUMERIC, "");
 
-    Deposit deposit = {base_deposit, deposit_rate};
-    Person alice = {"Alice", base_capital, salary, deposit};
-    Person bob = {"Bob", base_capital, salary, deposit};
-    Dates dates = init_dates(start_year, start_month, mortage_duration);
+    Deposit alice_deposit = {0, 24};
+    Goods alice_goods = {15 * 1000 * 1000, 0, 15 * 1000, 8 * 1000, 17 * 1000};
+    Person alice = {"Alice", 1000 * 1000, alice_deposit, 200 * 1000, 300 * 1000, 1};
 
-    Mortage mortage = {appartment_cost, mortage_duration, mortage_rate};
+    Deposit bob_deposit = {0, 22};
+    Goods bob_goods = {0, 30 * 1000, 12 * 1000, 10 * 1000, 7 * 1000};
+    Person bob = {"Bob", 700 * 1000, bob_deposit, 300 * 1000, 500 * 1000, 1};
+    Dates dates = init_dates(2024, 1, 30, 57, 96);
 
-    calculate_motrtage_payment(&mortage);
+    Mortage mortage = init_mortage(15 * 1000 * 1000, 30, 20);
 
-    struct Simulation result = {alice, bob, mortage, dates};
+    Simulation result = {alice, bob, mortage, dates};
     return result;
 }
 
-void add_inflation_to_goods(const int month) 
+void add_inflation_to_goods(const int month, Goods* goods) 
 {
     if (month == 12) {
-        appartment_cost *= 1 + percent(inflation_rate);
-        appartment_rent_cost *= 1 + percent(inflation_rate);
-        food_cost *= 1 + percent(inflation_rate);
-        service_cost *= 1 + percent(inflation_rate);
-        personal_cost *= 1 + percent(inflation_rate);
+        goods->appartment_cost *= 1 + inflation_rate / 100;
+        goods->appartment_rent_cost *= 1 + inflation_rate /100;
+        goods->food_cost *= 1 + inflation_rate / 100;
+        goods->service_cost *= 1 + inflation_rate / 100;
+        goods->personal_cost *= 1 + inflation_rate / 100;
     };
 }
 
-/**
- * @brief Manages person's salary
- * 
- * Adds salary to person's capital.
- * Adds inflation at the end of the year
- * 
- * @param p Person who's salary needs to be managed
- * @param month Current month
- */
-void manage_salary(Person* p, int month) 
-{
-    p->capital += p->salary;
+void salary(Person* person, int month) 
+{   
+    if (person->is_working == 0) {
+        return;
+    }
+
+    person->capital += person->salary;
 
     if (month == 12) {
-        p->salary *= 1 + percent(inflation_rate);
+        person->salary *= 1 + inflation_rate / 100;
     };
 }
 
-void pay_mortgage(Person* p, Mortage* m) 
+void pay_mortgage(Person* person, Mortage* mortage) 
 {
-    p->capital -= m->payment;
+    person->capital -= mortage->payment;
 }
 
-void pay_rent(Person* p) 
+void pay_bills(Person* person) 
 {
-    p->capital -= appartment_rent_cost;
+
+    person->capital -= person->goods.food_cost;
+    person->capital -= person->goods.service_cost;
+    person->capital -= person->goods.personal_cost;
+    person->capital -= person->goods.appartment_rent_cost;
 }
 
-void pay_bills(Person* p) 
+void increase_deposit(Person* person) 
 {
-    p->capital -= (food_cost + service_cost + personal_cost);
+    person->deposit.value += person->capital;
+    person->deposit.value *= 1 + person->deposit.rate / 100 / 12;
+    person->capital = 0;
 }
 
-/**
- * @brief Increases the value of a person's deposit.
- * 
- * Adds the person's current capital to their deposit, then applies the deposit interest rate.
- * The person's capital is then reset to 0.
- * 
- * @param p Pointer to the `Person` struct for which to increase the deposit.
- */
-void increase_deposit(Person* p) 
+void show_capital(Person* person) 
 {
-    p->deposit.value += p->capital;
-    p->deposit.value *= 1 + percent(p->deposit.rate) / 12;
-    p->capital = 0;
+    printf("%s\n", person->name);
+    printf(" Capital is %.lld rub\n", person->capital);
 }
 
-void show_capital(Person* p) 
+void inflation_change() 
 {
-    printf("%s\n", p->name);
-    printf(" Capital is %.ld rub\n", p->capital);
+    int change_direction = arc4random() % 2 ? 1 : -1;
+    int change_value = random() / (RAND_MAX / 6);
+    inflation_rate *= (100 + change_direction * change_value) * 1.0 / 100;
 }
 
-void move_to_next_month(Dates* d) 
+void move_to_next_month(Simulation* simulation) 
 {
-    if (d->current_month == 12) {
-        d->current_year++;
-        d->current_month = 1;
+    if (simulation->dates.current_month == 12) {
+        simulation->dates.current_year++;
+        simulation->dates.current_month = 1;
+        inflation_change();
+
     } else {
-        d->current_month++;
+        simulation->dates.current_month++;
+    }
+
+    simulation->dates.alice_fired_in_months--;
+    simulation->dates.bob_fired_in_months--;
+    
+    if (simulation->dates.alice_fired_in_months == 0) {
+        simulation->alice.is_working = 0;
+    }
+
+    if (simulation->dates.bob_fired_in_months == 0) {
+        simulation->bob.is_working = 0;
     }
 }
 
-/**
- * @brief Calculates the total capital of a person by summing up provided components.
- * 
- * @param p Pointer to the `Person` struct representing the person.
- * @param components Array of long integers representing different components of the capital.
- */
 void calculate_capital(Person* p, long components[], int components_count) 
 {
     for (int i = 0; i < components_count; i++) {
@@ -234,48 +202,31 @@ void calculate_capital(Person* p, long components[], int components_count)
 
 // ----------------------------------------------------  Simulation  --------------------------------------------------- //
 
-/**
- * @brief Runs the financial simulation.
- * 
- * Simulates the financial situation of Alice (buying an apartment with a mortgage and investing)
- * and Bob (renting an apartment and investing) over the specified duration.
- * 
- * @param simulation Initialized `Simulation` struct containing all necessary data.
- */
-void run_simulation(struct Simulation simulation) 
+void run_simulation(Simulation simulation) 
 {
     while( !(
         simulation.dates.current_year == simulation.dates.end_year && 
         simulation.dates.current_month == simulation.dates.end_month
         ) ) {
-        // Calculate monthly income
-        manage_salary(&simulation.alice, simulation.dates.current_month);
-        manage_salary(&simulation.bob, simulation.dates.current_month);
+        salary(&simulation.alice, simulation.dates.current_month);
+        salary(&simulation.bob, simulation.dates.current_month);
 
-        // Calculate monthly expenses
+        pay_mortgage(&simulation.alice, &simulation.mortage);
         pay_bills(&simulation.alice);
         pay_bills(&simulation.bob);
-        
-        // Account for housing costs
-        pay_mortgage(&simulation.alice, &simulation.mortage);
-        pay_rent(&simulation.bob);
 
-        // Increase deposit value
         increase_deposit(&simulation.alice);
         increase_deposit(&simulation.bob);
 
-        // Apply inflation at the end of the year
-        add_inflation_to_goods(simulation.dates.current_month);
+        add_inflation_to_goods(simulation.dates.current_month, &simulation.alice.goods);
+        add_inflation_to_goods(simulation.dates.current_month, &simulation.bob.goods);
 
-        // Move to the next month
-        move_to_next_month(&simulation.dates);
+        move_to_next_month(&simulation);
     }
 
-    // Calculate final capital
-    calculate_capital(&simulation.alice, (long[]) {appartment_cost, simulation.alice.deposit.value}, 2);
+    calculate_capital(&simulation.alice, (long[]) {simulation.alice.goods.appartment_cost, simulation.alice.deposit.value}, 2);
     calculate_capital(&simulation.bob, (long[]) {simulation.bob.deposit.value}, 1);
 
-    // Display results
     show_capital(&simulation.alice);
     show_capital(&simulation.bob);
 }
@@ -283,16 +234,10 @@ void run_simulation(struct Simulation simulation)
 
 // -------------------------------------------------------  Main  ------------------------------------------------------ //
 
-/**
- * @brief Main function of the program.
- * 
- * Initializes the simulation and runs it.
- * 
- * @return 0 if the program runs successfully.
- */
 int main() 
 {
-    struct Simulation simulation = init_simulation();
+    srand(time(NULL));
+    Simulation simulation = init_simulation();
     run_simulation(simulation);
     return 0;
 }
