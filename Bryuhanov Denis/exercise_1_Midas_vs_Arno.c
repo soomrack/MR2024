@@ -1,96 +1,123 @@
 #include <stdio.h>
 
+
 typedef long long int Money;
+
 
 typedef struct Hero
 {
     Money balance;
     Money salary;
-    Money borrow;
-    Money payment_life;
-    Money payment_ipotek;
+    Money salary_bonus;
+    Money ipotek;
+    Money food_payment;
+    Money comunal_payment;
+    Money another_payment; //Траты на одежду, медикаменты и прочее
+    Money vacation_cost;
+    Money ipotek_payment;
     double deposite_percent;
-    int inflation;
+    double inflation;
+    double indexation;
 } Hero;
 
 
 Hero midas;
 Hero arno;
 
+
 int month = 12;
-int year = 30;
+int year = 2050;
+
 
 void _init_midas()
 {
-    midas.balance = 1000 * 1000 * 100;
-    midas.salary = 400 * 1000 * 100;
-    midas.borrow = 12 * 1000 * 1000 * 100;
-    midas.payment_life = 70 * 1000 * 100;
-    midas.payment_ipotek = 200 * 1000 * 100;
-    midas.deposite_percent = 20;
-    midas.inflation = 7;
+    midas = (Hero){   
+        .balance = 0,
+        .salary = 300 * 1000 * 100,
+        .salary_bonus = 100 * 1000 * 100,
+        .ipotek = 12 * 1000 * 1000 * 100,
+        .food_payment = 20 * 1000 * 100,
+        .comunal_payment = 15 * 1000 * 100,
+        .another_payment = 35 * 1000 * 100,
+        .vacation_cost = 300 * 1000 * 100,
+        .ipotek_payment = 200 * 1000 * 100,
+        .deposite_percent = 0.18,
+        .inflation = 0.07,
+        .indexation = 0.07
+    };
 }
+
 
 void _init_arno()
 {
-    arno.balance = 1000 * 1000 * 100;
-    arno.salary = 350 * 1000 * 100;
-    arno.borrow = 0;
-    arno.payment_life = 50 * 1000 * 100 + 45 * 1000 * 100;
-    arno.payment_ipotek = 0;
-    arno.deposite_percent = 20;
-    arno.inflation = 7;
+    arno = (Hero){
+        .balance = 1000 * 1000 * 100,
+        .salary = 200 * 1000 * 100,
+        .salary_bonus = 300 * 1000 * 100, //Премия в конце года
+        .food_payment = 25 * 1000 * 100 ,
+        .comunal_payment = 15 * 1000 * 100,
+        .another_payment = 45 * 1000 * 100,
+        .vacation_cost = 250 * 1000 * 100,
+        .ipotek_payment = 0,
+        .deposite_percent = 0.18,
+        .inflation = 0.07,
+        .indexation = 0.07
+    };
 }
 
-void debt_repayment(struct Hero* hero)
+
+void cost_inflation(Hero* hero)
 {
-    if (hero->borrow > hero->balance) {
-        hero->borrow = hero->borrow - hero->balance;
-        hero->balance = 0;
-    }
-    else if (hero->borrow <= hero->balance) {
-        hero->balance = hero->balance - hero->borrow;
-        hero->borrow = 0;
-    }
+    hero -> food_payment += (Money)(hero -> food_payment * hero -> inflation);
+    hero -> comunal_payment += (Money)(hero -> comunal_payment * hero -> inflation); 
+    hero -> another_payment += (Money)(hero -> another_payment * hero -> inflation); 
+    hero -> vacation_cost += (Money)(hero -> vacation_cost * hero -> inflation);  
+    hero -> ipotek += (Money)(hero -> ipotek * hero -> inflation);
+}
+
+
+void indexation(Hero* hero)
+{
+    hero -> salary += (Money)(hero -> salary * hero -> indexation);
+    hero -> salary_bonus += (Money)(hero -> salary_bonus * hero -> indexation);
 }
 
 
 void simulation(Hero* hero)
 {
-    for (int i = 0; i < month * year; i++) {
-        hero->balance += hero->balance * (hero->deposite_percent) / (100 * 12);
-        hero->balance += hero->salary;
-        hero->balance -= hero->payment_life;
-        hero->balance -= hero->payment_ipotek;
+    for (int current_year = 2020; current_year < year; current_year++){
+        for (int i = 0; i < month; i++) {
+            hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
+            hero->balance += hero->salary;
+            hero->balance -= hero->food_payment;
+            hero->balance -= hero->comunal_payment;
+            hero->balance -= hero->another_payment;  
+            hero->balance -= hero->ipotek_payment;
+        }
+        hero -> balance += hero -> salary_bonus;
+        hero -> balance -= hero -> vacation_cost;
+
+        cost_inflation(&*hero);
+        indexation(&*hero);
     }
-    hero->borrow = 0;
 }
+
 
 int main()
 {
     _init_midas();
     _init_arno();
 
-    debt_repayment(&midas);
-    debt_repayment(&arno);
-    printf("\n");
-
     printf("midas balance %lld\n", midas.balance / 100);
     printf("arno balance %lld\n", arno.balance / 100);
-
-    printf("midas borrow %lld\n", midas.borrow / 100);
-    printf("arno borrow %lld\n", arno.borrow / 100);
     printf("\n");
 
     simulation(&midas);
     simulation(&arno);
 
-
-    printf("midas balance %lld\n", midas.balance / 100);
+    printf("midas balance %lld\n", (midas.balance + midas.ipotek) / 100);
     printf("arno balance %lld\n", arno.balance / 100);
-    printf("midas borrow %lld\n", midas.borrow / 100);
-    printf("arno borrow %lld\n", arno.borrow / 100);
+    printf("house cost %lld\n", (midas.ipotek) / 100);
     printf("\n");
-
     return 1;
 }

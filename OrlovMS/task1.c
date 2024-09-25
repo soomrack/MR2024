@@ -1,181 +1,273 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define ALICE_CAPITAL 1000*1000
-#define BOB_CAPITAL 1000*1000
 
-#define FLAT_COST 15*1000*1000
-#define MORTAGE_DURATION 30 //years
-#define MORTAGE_RATE 0.17
+typedef struct {
+    int year;
+    int month;
+} Date;
 
-#define RENT_COST 30*1000
 
-#define ALICE_SALARY 300*1000
-#define BOB_SALARY 300*1000
+typedef int64_t Money;  // Rub
 
-#define FOOD_COST 20*1000
-#define SERVICE_COST 10*1000
-#define PERSONEL_COST 15*1000
 
-#define INFLATION 0.08
+typedef struct {
+    Money capital;
+    double rate;
+} Deposit;
 
-#define DEPOSIT_RATE 0.2
 
-#define YEAR_START 2024
-#define MONTH_START 9
-#define DURATION 30 //years
+typedef struct {
+    Money amount;
+    unsigned remaining_month;
+    double rate;
+} Mortage;
 
-typedef struct
-{
-    int64_t money;
-    uint64_t salary;
 
-    uint64_t estate_cost;
-    int64_t deposit;
+typedef enum {
+    ALICE,
+    BOB
+} Id;
 
-    uint64_t mortage;
-    uint16_t mortage_remaining_month;
-    double mortage_rate;
 
-    uint64_t rent;
+typedef struct {
+    Id person_id;
 
-    uint64_t food_cost;
-    uint64_t service_cost;
-    uint64_t personel_cost;
+    Money money;  // month cash
+    Money salary;
+    Deposit deposit;
+
+    Money estate_cost;
+
+    Mortage mortage;
+
+    Money rent_cost;
+
+    Money food_cost;
+    Money service_cost;
+    Money personel_cost;
 } Person;
+
+
+const Money flat_cost = 15 * 1000 * 1000;
+const double inflation = 0.08;
+const double deposit_rate = 0.2;
+const int duration = 30; // years
+
 
 void alice_init(Person* person)
 {
-    person->money = 0;
-    person->salary = ALICE_SALARY;
-
-    person->estate_cost = FLAT_COST;
-    person->deposit = 0;
-
-    person->mortage = FLAT_COST - ALICE_CAPITAL;
-    person->mortage_remaining_month = 12*DURATION;
-    person->mortage_rate = MORTAGE_RATE;
-
-    person->rent = 0;
-
-    person->food_cost = FOOD_COST;
-    person->service_cost = SERVICE_COST;
-    person->personel_cost = PERSONEL_COST;
+    *person = (Person){
+        .person_id = ALICE,
+        .money = 0,
+        .salary = 300 * 1000,
+        .estate_cost = flat_cost,
+        .deposit = {
+            .capital = 0,
+            .rate = deposit_rate
+        },
+        .mortage = {
+            .amount = flat_cost - (1000 * 1000),
+            .remaining_month = 12 * duration,
+            .rate = 0.17
+        },
+        .rent_cost = 0,
+        .food_cost = 20 * 1000,
+        .service_cost = 10 * 1000,
+        .personel_cost = 15 * 1000
+    };
 }
+
 
 void bob_init(Person* person)
 {
-    person->money = 0;
-    person->salary = BOB_SALARY;
-
-    person->estate_cost = 0;
-    person->deposit = BOB_CAPITAL;
-
-    person->mortage = 0;
-    person->mortage_remaining_month = 0;
-    person->mortage_rate = 0;
-
-    person->rent = RENT_COST;
-
-    person->food_cost = FOOD_COST;
-    person->service_cost = SERVICE_COST;
-    person->personel_cost = PERSONEL_COST;
+    *person = (Person){
+        .person_id = BOB,
+        .money = 0,
+        .salary = 300 * 1000,
+        .estate_cost = 0,
+        .deposit = {
+            .capital = 1000 * 1000,
+            .rate = deposit_rate
+        },
+        .mortage = {
+            .amount = 0,
+            .remaining_month = 0,
+            .rate = 0
+        },
+        .rent_cost = 30 * 1000,
+        .food_cost = 30 * 1000,
+        .service_cost = 10 * 1000,
+        .personel_cost = 15 * 1000
+    };
 }
 
-void add_salary(Person* person)
+
+void alice_promotion(Person* alice, const Date* date)
+{
+    if(date->year == 2040 && date->month == 5)
+    {
+        alice->salary += (Money)((double)alice->salary * 0.25);  // alice promotion
+    }
+}
+
+
+void add_salary(Person* person, const Date* date)
 {
     person->money += person->salary;
 }
 
-void pay_mortage(Person* person)
+
+void pay_mortage(Person* person, const Date* date)
 {
-    if(person->mortage != 0)
+    if(person->mortage.amount != 0)
     {
-        person->money -= (uint64_t)((double)person->mortage * person->mortage_rate / 12.0); //mortage percentage payment
-        uint64_t mortage_payment = person->mortage / person->mortage_remaining_month;
+        person->money -= (Money)((double)person->mortage.amount * person->mortage.rate / 12.0);  // mortage percentage payment
+        Money mortage_payment = person->mortage.amount / person->mortage.remaining_month;
         person->money -= mortage_payment;
-        person->mortage -= mortage_payment;
-        person->mortage_remaining_month--;
+        person->mortage.amount -= mortage_payment;
+        person->mortage.remaining_month--;
     }
 }
 
-void pay_rent(Person* person)
+
+void pay_rent(Person* person, const Date* date)
 {
-    person->money -= person->rent;
+    person->money -= person->rent_cost;
 }
 
-void pay_bills(Person* person)
+
+void pay_bills(Person* person, const Date* date)
 {
     person->money -= person->food_cost;
     person->money -= person->service_cost;
     person->money -= person->personel_cost;
 }
 
-void add_deposit(Person* person)
+
+void add_deposit(Person* person, const Date* date)
 {
-    person->deposit += person->money;
+    person->deposit.capital += person->money;
     person->money = 0;
 }
 
-void deposit_growth(Person* person)
+
+void deposit_growth(Person* person, const Date* date)
 {
-    person->deposit += (uint64_t)((double)person->deposit * DEPOSIT_RATE / 12.0);
+    person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
 }
 
-void index_salary(Person* person)
+
+void index_salary(Person* person, const Date* date)
 {
-    person->salary += (uint64_t)((double)person->salary * INFLATION / 12.0);
+    person->salary += (Money)((double)person->salary * inflation / 12.0);
 }
 
-void bills_inflation(Person* person)
+
+void bills_inflation(Person* person, const Date* date)
 {
-    person->food_cost += (uint64_t)((double)person->food_cost * INFLATION / 12.0);
-    person->service_cost += (uint64_t)((double)person->service_cost * INFLATION / 12.0);
-    person->personel_cost += (uint64_t)((double)person->personel_cost * INFLATION / 12.0);
+    person->food_cost += (Money)((double)person->food_cost * inflation / 12.0);
+    person->service_cost += (Money)((double)person->service_cost * inflation / 12.0);
+    person->personel_cost += (Money)((double)person->personel_cost * inflation / 12.0);
 }
 
-void rent_rise(Person* person)
+
+void rent_rise(Person* person, const Date* date)
 {
-    person->rent += (uint64_t)((double)person->rent * INFLATION / 12.0);
+    person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
 }
 
-void estate_cost_rise(Person* person)
+
+void estate_cost_rise(Person* person, const Date* date)
 {
-    person->estate_cost += (uint64_t)((double)person->estate_cost * INFLATION / 12.0);
+    person->estate_cost += (Money)((double)person->estate_cost * inflation / 12.0);
 }
 
-void month_operations(Person* person)
-{
-    //person operations with money
-    add_salary(person);
-    pay_mortage(person);
-    pay_rent(person);
-    pay_bills(person);
-    add_deposit(person);
 
-    //processes
-    deposit_growth(person);
-    index_salary(person);
-    bills_inflation(person);
-    rent_rise(person);
-    estate_cost_rise(person);
-}
-
-void comparison(Person* alice, Person* bob)
+void bob_car(Person* bob, const Date* date)
 {
-    if(alice->estate_cost + alice->deposit == bob->deposit)
+    if(date->year == 2030 && date->month == 2)
     {
-        printf("Alice and Bob funds are equal: %lu\n", bob->deposit);
+        bob->deposit.capital -= 700 * 1000;  // bob buys car
     }
-    else if(alice->estate_cost + alice->deposit > bob->deposit)
+
+    if(date->year > 2030 || (date->year == 2030 && date->month >= 2))
     {
-        printf("Alice funds: %lu are higher than Bob's %lu\n", alice->estate_cost + alice->deposit, bob->deposit);
+        bob->money -= 20 * 1000;  // car bills
+    }
+}
+
+
+int is_date_equal(const Date* first, const Date* second)
+{
+    return (first->year == second->year) && (first->month == second->month);
+}
+
+
+void date_increment(Date* date)
+{
+    date->month++;
+    if(date->month == 13)
+    {
+        date->month = 1;
+        date->year++;
+    }
+}
+
+
+void simulation(Person* alice, Person* bob)
+{
+    Date date_current = {.year = 2024, .month = 9}; // starting date
+    Date date_end = date_current;
+    date_end.year += duration;
+
+    while(!is_date_equal(&date_current, &date_end))
+    {
+        alice_promotion(alice, &date_current);
+        add_salary(alice, &date_current);
+        pay_mortage(alice, &date_current);
+        pay_bills(alice, &date_current);
+        add_deposit(alice, &date_current);
+
+        deposit_growth(alice, &date_current);
+        index_salary(alice, &date_current);
+        bills_inflation(alice, &date_current);
+        estate_cost_rise(alice, &date_current);
+
+
+        add_salary(bob, &date_current);
+        pay_bills(bob, &date_current);
+        pay_rent(bob, &date_current);
+        bob_car(bob, &date_current);
+        add_deposit(bob, &date_current);
+
+        deposit_growth(bob, &date_current);
+        index_salary(bob, &date_current);
+        bills_inflation(bob, &date_current);
+        rent_rise(bob, &date_current);
+
+
+        date_increment(&date_current);
+    }
+}
+
+
+void print_comparison(const Person* alice, const Person* bob)
+{
+    if((alice->estate_cost + alice->deposit.capital) == bob->deposit.capital)
+    {
+        printf("Alice and Bob funds are equal: %ld\n", bob->deposit.capital);
+    }
+    else if((alice->estate_cost + alice->deposit.capital) > bob->deposit.capital)
+    {
+        printf("Alice funds: %ld are higher than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
     }
     else
     {
-        printf("Alice funds: %lu are lower than Bob's %lu\n", alice->estate_cost + alice->deposit, bob->deposit);
+        printf("Alice funds: %ld are lower than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
     }
 }
+
 
 int main()
 {
@@ -183,21 +275,9 @@ int main()
     alice_init(&alice);
     bob_init(&bob);
 
-    uint16_t year = YEAR_START;
-    uint8_t month = MONTH_START;
-    while(year < YEAR_START + DURATION || month < MONTH_START)
-    {
-        if(++month > 12)
-        {
-            month = 1;
-            year++;
-        }
+    simulation(&alice, &bob);
 
-        month_operations(&alice);
-        month_operations(&bob);
-    }
-
-    comparison(&alice, &bob);
+    print_comparison(&alice, &bob);
 
     return 0;
 }
