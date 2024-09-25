@@ -77,7 +77,7 @@ void bob_data_init() {
     bob.deposit = 0;
     bob.salary = (200 * 1000) * 100;
     bob.rent.month_pay = (70 * 1000) * 100;
-    bob.month_expences = FOOD_COST + TRANSPORT_COST + HOUSE_BILLS + PERSONAL;
+    bob.month_expences = 0;
 }
 
 
@@ -94,7 +94,7 @@ void mortgage_month_pay() {
 }
 
 
-void alice_cat_expences(int year, int month) {
+void alice_cat_expences(const int year, const int month) {
     if ((year == alice.cat.year_of_purchase) && (month == alice.cat.month_of_purchase));
         alice.bank_account -= alice.cat.cost;
 
@@ -106,32 +106,32 @@ void alice_cat_expences(int year, int month) {
         alice.bank_account -= alice.cat.medical_cost;
 
     if (month == 12) {
-            alice.cat.cost *= (1 + INFLATION_PERCENT / 100);
-            alice.cat.funeral_cost *= (1 + INFLATION_PERCENT / 100);
-            alice.cat.food_cost = (1 + INFLATION_PERCENT / 100);
-            alice.cat.medical_cost = (1 + INFLATION_PERCENT / 100);
+            alice.cat.cost *= (1. + IDEXATION_PERCENT / (100*12));
+            alice.cat.funeral_cost *= (1. + IDEXATION_PERCENT / (100*12));
+            alice.cat.food_cost = (1. + IDEXATION_PERCENT / (100*12));
+            alice.cat.medical_cost = (1. + IDEXATION_PERCENT / (100*12));
         }
 }
 
 
-void alice_salary(int year, int month) {
+void alice_salary(const int year, const int month) {
     
     alice.bank_account += alice.salary;
     if (month == 12) {
-            alice.salary *= (1 + IDEXATION_PERCENT / 100);
+            alice.salary *= (1. + IDEXATION_PERCENT / (100*12));
         }
 }
 
 
-void bob_salary(int year, int month) {
+void bob_salary(const int year, const int month) {
     bob.bank_account += bob.salary;
     if (month == 12) {
-            bob.salary *= (1 + IDEXATION_PERCENT / 100);
+            bob.salary *= (1. + IDEXATION_PERCENT / (100*12));
         }
 }
 
 
-void alice_personal_expences(int year, int month, int start_year, int start_month) {
+void alice_personal_expences(const int year, const int month, const int start_year, const int start_month) {
     if ((year == start_year) && (month == start_month)) {
         alice.month_expences = FOOD_COST + TRANSPORT_COST + HOUSE_BILLS + PERSONAL;
     }
@@ -139,17 +139,17 @@ void alice_personal_expences(int year, int month, int start_year, int start_mont
     alice.bank_account -= alice.month_expences;
 
     if (month == 12) {
-            alice.month_expences *= (1 + INFLATION_PERCENT / 100);
+            alice.month_expences *= (1. + INFLATION_PERCENT / (100*12));
         }
 }
 
 
-void alice_mortgage_expences(int year, int month) {
+void alice_mortgage_expences(const int year, const int month) {
     alice.bank_account -= alice.mortgage.month_pay;
 }
 
 
-void bob_personal_expences(int year, int month, int start_year, int start_month) {
+void bob_personal_expences(const int year, const int month, const int start_year, const int start_month) {
     if ((year == start_year) && (month == start_month)) {
         bob.month_expences = FOOD_COST + TRANSPORT_COST + HOUSE_BILLS + PERSONAL;
     }
@@ -157,29 +157,29 @@ void bob_personal_expences(int year, int month, int start_year, int start_month)
     bob.bank_account -= bob.month_expences;
 
     if (month == 12) {
-            bob.month_expences *= (1 + INFLATION_PERCENT / 100);
+            bob.month_expences *= (1. + INFLATION_PERCENT / (100*12));
         }
 }
 
 
-void bob_rent_expences(int year, int month) {
+void bob_rent_expences(const int year, const int month) {
     bob.bank_account -= bob.rent.month_pay;
 
     if (month == 12) {
-            bob.rent.month_pay *= (1 + INFLATION_PERCENT / 100);
+            bob.rent.month_pay *= (1. + INFLATION_PERCENT / (100*12));
         }
 }
 
 
 void alice_deposit() {
-    alice.deposit *= (1 + DEPOSIT_PERCENT / (100*12));
+    alice.deposit *= (1. + DEPOSIT_PERCENT / (100*12));
     alice.deposit += alice.bank_account;
     alice.bank_account = 0;
 }
 
 
 void bob_deposit() {
-    bob.deposit *= (1 + DEPOSIT_PERCENT / (100*12));
+    bob.deposit *= (1. + DEPOSIT_PERCENT / (100*12));
     bob.deposit += bob.bank_account;
     bob.bank_account = 0;
 }
@@ -202,13 +202,8 @@ void simulation() {
     int month = start_month;
 
     int end_year = start_year + SIMULATION_TIME;
-    int end_month = start_month+1;
-    
-    if (end_month == 13) {
-        end_year += 1;
-        end_month = 1; 
-    }
 
+    int end_month = (start_month == 12) ? (end_year++, 1) : (start_month + 1);
 
     while( !((year == end_year) && (month == end_month)) ) {
 
@@ -223,7 +218,6 @@ void simulation() {
         bob_rent_expences(year, month);
         bob_deposit();
         
-
         ++month;
         if(month == 13) {
             month = 1;
