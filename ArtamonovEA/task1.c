@@ -132,7 +132,9 @@ void salary(Person* person, int month)
     person->capital += person->salary;
 
     if (month == 12) {
+        person->capital += person->annual_bonus;
         person->salary *= 1 + inflation_rate / 100;
+        person->annual_bonus *= 1 + inflation_rate / 100;
     };
 }
 
