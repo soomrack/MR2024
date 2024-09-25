@@ -224,7 +224,7 @@ void bob_car_expenses(const int current_year, const int current_month)
             bob.money_on_bank_account -= bob_car_chepyrka.utility_cost;
         }
 
-        if (current_month == 12) {
+        if (current_year > 2029 && current_month == 12) {
             bob.money_on_bank_account -= bob_car_chepyrka.car_tax;
 
             bob_car_chepyrka.car_tax *= (1. + INFLATION_RATE);
