@@ -2,49 +2,46 @@
 #include <math.h>
 
 
-typedef unsigned long long int money; // в копейках
-
-const double INFLATION_P = 9; // процент инфляции
-const double IDEXATION_P = 7; // процент инфляции
-const double DEPOSIT_P = 20; // годовой процент депозита
-const double MORTGAGE_P = 16; // ставка по ипотеке
-const int SIMULATION_TIME = 30; //длительность ипотеки
-
-const money FOOD_COST = 15 * 1000 * 100;
-const money TRANSPORT_COST = 3 * 1000 * 100;
-const money HOUSE_BILLS = 7 * 1000 * 100;
-const money PERSONAL = 10 * 1000 * 100;
+typedef unsigned long long int Money; // в копейках
 
 
-struct Mortgage
-{
-money sum;
-money first_pay;
-money month_pay;
+const double INFLATION_PERCENT = 9.;
+const double IDEXATION_PERCENT = 7.;
+const double DEPOSIT_PERCENT = 20;
+const double MORTGAGE_PERCENT = 16;
+const int SIMULATION_TIME = 30; 
+
+const Money FOOD_COST = 15 * 1000 * 100;
+const Money TRANSPORT_COST = 3 * 1000 * 100;
+const Money HOUSE_BILLS = 7 * 1000 * 100;
+const Money PERSONAL = 10 * 1000 * 100;
+
+
+struct Mortgage {
+    Money sum;
+    Money first_pay;
+    Money month_pay;
 };
 
-
-struct Rent
-{
-money month_pay;
+struct Rent {
+    Money month_pay;
 };
 
-struct Cat
-{
+struct Cat {
     int year_of_purchase;
     int month_of_purchase;
-    money cost;
-    money food_cost;
-    money medical_cost;
-    money funeral_cost;
+    Money cost;
+    Money food_cost;
+    Money medical_cost;
+    Money funeral_cost;
     int duration_of_life;
 };
 
-typedef struct Person
-{
-    money bank_account;
-    money earns;
-    money month_expences;
+typedef struct {
+    Money bank_account;
+    Money deposit;
+    Money earns;
+    Money month_expences;
 
     struct Mortgage mortgage;
     struct Rent rent;
@@ -52,17 +49,18 @@ typedef struct Person
 } Person;
 
 
-    Person alice;
-    Person bob;
+Person alice;
+Person bob;
 
 
-void alice_data()
-{
+void alice_data_init() {
     alice.bank_account = (1000 * 1000) * 100;
+    alice.deposit = 0;
     alice.earns = (200 * 1000) * 100;
     alice.month_expences = FOOD_COST + TRANSPORT_COST + HOUSE_BILLS + PERSONAL + alice.cat.food_cost + alice.cat.medical_cost;
     alice.mortgage.sum = (13 * 1000 * 1000) * 100;
     alice.mortgage.first_pay = (1000 * 1000) * 100;
+
 
     alice.cat.year_of_purchase = 2030;
     alice.cat.month_of_purchase = 9;
@@ -71,22 +69,20 @@ void alice_data()
     alice.cat.medical_cost = (2 * 1000) * 100;
     alice.cat.funeral_cost = (30 * 1000) * 100;
     alice.cat.duration_of_life = 12;
-    
 }
 
 
-void bob_data()
-{
+void bob_data_init() {
     bob.bank_account = (1000 * 1000) * 100;
+    bob.deposit = 0;
     bob.earns = (200 * 1000) * 100;
     bob.rent.month_pay = (70 * 1000) * 100;
     bob.month_expences = FOOD_COST + TRANSPORT_COST + HOUSE_BILLS + PERSONAL;
 }
 
 
-void mortgage_month_pay()
-{
-    double month_percentage = MORTGAGE_P / (100 * 12);
+void mortgage_month_pay() {
+    double month_percentage = MORTGAGE_PERCENT / (100 * 12);
 
     alice.bank_account -= alice.mortgage.first_pay;
     
@@ -94,63 +90,79 @@ void mortgage_month_pay()
     * month_percentage / (1 - ( 1/ pow((1 + month_percentage), SIMULATION_TIME*12)));
 
     alice.mortgage.month_pay = round (alice.mortgage.month_pay);
-    (money)alice.mortgage.month_pay;
+    (Money)alice.mortgage.month_pay;
 }
 
 
-void earns()
-{
-    alice.bank_account += alice.earns;
-    bob.bank_account += bob.earns;
-}
-
-
-void deposit_percents()
-{
-    alice.bank_account *= (1 + DEPOSIT_P / (100*12));
-
-    bob.bank_account *= (1 + DEPOSIT_P / (100*12));
-}
-
-
-void month_expences()
-{
-    alice.bank_account -= alice.month_expences;
-    alice.bank_account -= alice.mortgage.month_pay;
-
-    bob.bank_account -= alice.month_expences;
-    bob.bank_account -= bob.rent.month_pay;
-}
-
-void cat_keeping(int year, int month)
-{
+void cat_keeping(int year, int month) {
     if ((year == alice.cat.year_of_purchase) && (month == alice.cat.month_of_purchase));
         alice.bank_account -= alice.cat.cost;
     if ((year == alice.cat.year_of_purchase + alice.cat.duration_of_life) && (month == alice.cat.month_of_purchase));
         alice.bank_account -= alice.cat.funeral_cost;
 }
 
-void inflation_and_indexation()
-{
-    alice.month_expences *= (1 + INFLATION_P / 100);
-    alice.earns *= (1 + IDEXATION_P / 100);
 
-    bob.month_expences *= (1 + INFLATION_P / 100);
-    bob.rent.month_pay *= (1 + INFLATION_P / 100);
-    bob.earns *= (1 + IDEXATION_P / 100);
+void alice_earns(int year, int month) {
+    
+    alice.bank_account += alice.earns;
+    if (month == 12) {
+            alice.earns *= (1 + IDEXATION_PERCENT / 100);;
+        }
 }
 
 
-void print()
-{
-    alice.bank_account += alice.mortgage.sum;
-    printf("Alice mortgage = %lld\n", alice.mortgage.month_pay);
-    printf("Alice capital = %lld\nBob capital = %lld\n", alice.bank_account, bob.bank_account);
+void bob_earns(int year, int month) {
+    bob.bank_account += bob.earns;
+    if (month == 12) {
+            bob.earns *= (1 + IDEXATION_PERCENT / 100);;
+        }
 }
 
 
-void simulation()
-{
+void alice_expences(int year, int month) {
+    alice.bank_account -= alice.month_expences;
+    alice.bank_account -= alice.mortgage.month_pay;
+    cat_keeping(year, month);
+
+    if (month == 12) {
+            alice.month_expences *= (1 + INFLATION_PERCENT / 100);
+        }
+}
+
+
+void bob_expences(int year, int month) {
+    bob.bank_account -= bob.month_expences;
+    bob.bank_account -= bob.rent.month_pay;
+
+    if (month == 12) {
+            bob.month_expences *= (1 + INFLATION_PERCENT / 100);
+            bob.rent.month_pay *= (1 + INFLATION_PERCENT / 100);
+        }
+}
+
+
+void alice_deposit() {
+    alice.deposit *= (1 + DEPOSIT_PERCENT / (100*12));
+    alice.deposit += alice.bank_account;
+    alice.bank_account = 0;
+}
+
+
+void bob_deposit() {
+    bob.deposit *= (1 + DEPOSIT_PERCENT / (100*12));
+    bob.deposit += bob.bank_account;
+    bob.bank_account = 0;
+}
+
+
+void print() {
+    alice.deposit += alice.mortgage.sum;
+
+    printf("Alice capital = %lld\nBob capital   = %lld\n", alice.deposit, bob.deposit);
+}
+
+
+void simulation() {
     mortgage_month_pay();
     
     const int start_year = 2024;
@@ -159,22 +171,15 @@ void simulation()
     int month = start_month;
     
     while( !((year == start_year + SIMULATION_TIME) && (month == start_month + 1)) ) {
-        //printf("Alice capital = %lld\nBob capital =   %lld\n\n", alice->bank_account/100, bob.bank_account/100);
-        //получение зарплаты
-        earns();
 
-        //траты
-        month_expences();
+        alice_earns(year, month);  // операции с зарплатой участников
+        bob_earns(year, month); 
 
-        //получение процентов по депозиту
-        if (!((year == start_year) && (month == start_month))) {
-            deposit_percents();
-        }
+        alice_expences(year, month);  // операции с тратами участников
+        bob_expences(year, month);
 
-        //изменения
-        if (month == 12) {
-            inflation_and_indexation();
-        }
+        alice_deposit();  // операции с депозитами участников
+        bob_deposit();
         
         ++month;
         if(month == 13) {
@@ -188,8 +193,8 @@ void simulation()
 
 int main()
 {
-    alice_data();
-    bob_data();
+    alice_data_init();
+    bob_data_init();
 
     simulation();
 
