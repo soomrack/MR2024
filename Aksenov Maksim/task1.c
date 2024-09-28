@@ -18,6 +18,7 @@ struct Mortgage
 
 struct Human  // структура для Алисы и Боба
 {
+    Money start;
     Money target;  // стоимость квартиры
     Money account;  // счёт
     Money salary;  // зарплата
@@ -37,13 +38,14 @@ struct Human Bob;
 
 void Alice_init()                               // инициализация Алисы
 {
+    Alice.start = 1 * 1000 * 1000 * 100;
     Alice.target = 15 * 1000 * 1000 * 100;
-    Alice.account = 1 * 1000 * 1000 * 100;
+    Alice.account = 0;
     Alice.salary = 300 * 1000 * 100;
     Alice.bank_percent = 0.2;
     Alice.mortgage.rate = 0.17;
     Alice.wastes = 40 * 1000 * 100;
-    Alice.mortgage.payment = (Alice.target - Alice.account) * ((Alice.mortgage.rate / 12) + ((Alice.mortgage.rate / 12))/ (pow((1 + Alice.mortgage.rate / 12), YEARS * 12) - 1));
+    Alice.mortgage.payment = (Alice.target - Alice.start) * ((Alice.mortgage.rate / 12) + ((Alice.mortgage.rate / 12))/ (pow((1 + Alice.mortgage.rate / 12), YEARS * 12) - 1));
     Alice.monthly_payment = Alice.wastes + Alice.mortgage.payment; 
 }
 
@@ -116,7 +118,7 @@ void Bob_expenses(const int year, const int month)  //  расходы Боба
 }
 
 
-void price_inflation(const int year, const int month)  // удорожание квартиры от инфляции
+void target_inflation(const int year, const int month)  // удорожание квартиры от инфляции
 {
     if (month == 1) {
         Alice.target += Alice.target * INFLATION;
@@ -163,7 +165,7 @@ void simulation()
         Bob_holiday(year, month);
         Bob_deposite(year, month);
         
-        price_inflation(year, month);
+        target_inflation(year, month);
 
         ++month;
         if(month == 13) {
