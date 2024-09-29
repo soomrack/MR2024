@@ -1,31 +1,30 @@
 #include <stdio.h>
-#include <math.h>
 
 const int ALICE_CAPITAL = 1000 * 1000 * 100;
 const int BOB_CAPITAL = 1000 * 1000 * 100;
 
 const int PRICE_HOME = 15 * 1000 * 1000 * 100;
-const int MORTGAGE_TIME = 30; // YEARS
-const double MORTGAGE_RATE = 1.17;
+const int MORTGAGE_TIME = 30; // годы
+const float MORTGAGE_RATE = 1.17;
 const int MONTH_PAY = 19959455; // ежемесячный платеж по ипотеке
 
-const double INFLIATION = 1.08;
-const double INDEXATION = 1.04;
-const double DEPOSIT_RATE = 1.1;
+const float INFLIATION = 1.08;
+const float INDEXATION = 1.04;
+const float DEPOSIT_RATE = 1.1;
 
 typedef long long int Money; // копейки
 
 struct Person
 {
-    unsigned long int summ;
+    unsigned long long int summ; // сумма процентов и стоимости квартиры по ипотеке
+    unsigned long int account;   // деньги на вкладе
     Money salary;
-    unsigned long int account;
     Money cost_food;
     Money cost_entertainmants;
     Money cost_transport;
     Money cost_services;
     Money cost_home; // стоимость дома Алисы
-    Money capital;
+    Money capital;   // деньги на руках, не лежащие на вкладе
     Money rent;
 };
 
@@ -34,26 +33,26 @@ struct Person bob;
 
 void alice_init()
 {
-    alice.account = 0; // деньги на счету в банке
+    alice.account = 0;
     alice.salary = 250 * 1000 * 100;
-    alice.summ = 71854038 * 100;
+    alice.summ = 7185403800;
     alice.cost_food = 20 * 1000 * 100;
     alice.cost_entertainmants = 5 * 1000 * 100;
     alice.cost_transport = 15 * 1000 * 100;
     alice.cost_services = 10 * 1000 * 100;
     alice.cost_home = PRICE_HOME;
-    alice.capital = 0; // деньги с зарплаты
+    alice.capital = 0;
 }
 
 void bob_init()
 {
-    bob.account = 0; // деньги на счету в банке
+    bob.account = 0;
     bob.salary = 250 * 1000 * 100;
     bob.cost_food = 20 * 1000 * 100;
     bob.cost_entertainmants = 5 * 1000 * 100;
     bob.cost_transport = 15 * 1000 * 100;
     bob.cost_services = 10 * 1000 * 100;
-    bob.capital = 0; // деньги с зарплаты
+    bob.capital = 0;
     bob.rent = 50 * 000;
 }
 
@@ -101,17 +100,10 @@ void alice_mortgage()
 {
     if (alice.summ > 0)
     {
-        if (alice.summ > MONTH_PAY)
-        {
-            alice.summ -= MONTH_PAY;
-            alice.capital -= MONTH_PAY;
-        }
-        else
-        {
-            alice.capital -= alice.summ;
-            alice.summ = 0;
-        }
+        alice.summ -= MONTH_PAY;
+        alice.capital -= MONTH_PAY;
     }
+    printf("alice's summ %llu\n", alice.summ);
 }
 
 void print()
@@ -131,6 +123,7 @@ void print()
 
 void simulation()
 {
+    // начало отсчета
     int year = 2024;
     int month = 9;
 
@@ -138,17 +131,17 @@ void simulation()
 
     while (!(year == 2024 + MORTGAGE_TIME && month == 9))
     {
-        alice_salary(month);
-        alice_infliation(month);
-        bob_salary(month);
-        bob_infliation(month);
-
         month += 1;
         if (month == 13)
         {
             month = 1;
             year += 1;
         }
+
+        alice_salary(month);
+        alice_infliation(month);
+        bob_salary(month);
+        bob_infliation(month);
 
         alice.account += (alice.account * DEPOSIT_RATE / 12);
         alice.capital += alice.salary;
