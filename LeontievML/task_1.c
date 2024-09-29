@@ -58,18 +58,12 @@ void bob_init()
 
 void alice_salary(const int month)
 {
-    if (month == 1)
-    {
-        alice.salary *= INDEXATION;
-    }
+    if (month == 1) alice.salary *= INDEXATION;
 }
 
 void bob_salary(const int month)
 {
-    if (month == 1)
-    {
-        bob.salary *= INDEXATION;
-    }
+    if (month == 1) bob.salary *= INDEXATION;
 }
 
 void alice_infliation(const int month)
@@ -103,7 +97,6 @@ void alice_mortgage()
         alice.summ -= MONTH_PAY;
         alice.capital -= MONTH_PAY;
     }
-    printf("alice's summ %llu\n", alice.summ);
 }
 
 void print()
@@ -111,14 +104,8 @@ void print()
     printf("Alice's capital = %llu kopeek\n", alice.account + alice.cost_home);
     printf("Bob's capital = %llu kopeek\n", bob.account);
 
-    if ((alice.account + alice.cost_home) > bob.account)
-    {
-        printf("An Alice's stratagy is more succesful\n");
-    }
-    else
-    {
-        printf("A Bob's stratagy is more succesful\n");
-    }
+    if ((alice.account + alice.cost_home) > bob.account) printf("An Alice's stratagy is more succesful\n");
+    else printf("A Bob's stratagy is more succesful\n");
 }
 
 void simulation()
