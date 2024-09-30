@@ -12,11 +12,11 @@ const float INFLIATION = 1.08;
 const float INDEXATION = 1.04;
 const float DEPOSIT_RATE = 1.1;
 
-int HUMSTER_COST = 2 * 1000 * 100;
-int CAT_COST = 5 * 1000 * 100;
-int TURTLE_COST = 7 * 1000 * 100;
-
 typedef long long int Money; // копейки
+
+Money HUMSTER_COST = 2 * 1000 * 100;
+Money CAT_COST = 5 * 1000 * 100;
+Money TURTLE_COST = 7 * 1000 * 100;
 
 
 struct Person {
@@ -60,7 +60,7 @@ void bob_init()
     bob.cost_entertainmants = 5 * 1000 * 100;
     bob.cost_transport = 15 * 1000 * 100;
     bob.cost_services = 10 * 1000 * 100;
-    bob.rent = 50 * 000;
+    bob.rent = 50 * 1000;
 }
 
 
