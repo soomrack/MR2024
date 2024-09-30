@@ -24,15 +24,7 @@ typedef struct {
 } Mortage;
 
 
-typedef enum {
-    ALICE,
-    BOB
-} Id;
-
-
 typedef struct {
-    Id person_id;
-
     Money money;  // month cash
     Money salary;
     Deposit deposit;
@@ -58,7 +50,6 @@ const int duration = 30; // years
 void alice_init(Person* person)
 {
     *person = (Person){
-        .person_id = ALICE,
         .money = 0,
         .salary = 300 * 1000,
         .estate_cost = flat_cost,
@@ -82,7 +73,6 @@ void alice_init(Person* person)
 void bob_init(Person* person)
 {
     *person = (Person){
-        .person_id = BOB,
         .money = 0,
         .salary = 300 * 1000,
         .estate_cost = 0,
