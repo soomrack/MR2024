@@ -1,5 +1,16 @@
 #include <stdio.h>
 
+/*
+Условия задачи:
+Alice и Bob
+стартовый капитал - 1.000.000 Р 
+Alice эту сумму как первый взнос по ипотеке (15.000.000 Р) на 30 лет под 17% годовых (ставку рассчитать по онлайн-калькулятору)
+Bob копит на квартиру и живет в съемной - ~30.000 Р в месяц
+Зарплата обоих составляет ~200.000 Р в месяц
+Учитывать базовые потребности типа еды, комуналки, 
+Все цены подвержены инфляции в 8% в год, а зарплата такому же индексированию
+*/
+
 typedef long long int Money;
 
 const int START_YEAR = 2024;
@@ -41,7 +52,7 @@ void alice_init()
     alice.mortgage.sum = 15 * 1000 * 1000;
     alice.mortgage.first_pay = 1000 * 1000;
     alice.mortgage.rate = 0.17;
-    alice.mortgage.monthly_payments = 170*1000; // source: url...
+    alice.mortgage.monthly_payments = 200*1000; // source: https://calcus.ru/kalkulyator-ipoteki?input=eyJjdXJyZW5jeSI6IlJVQiIsInR5cGUiOiIxIiwiY29zdCI6IjE1MDAwMDAwIiwic3RhcnRfc3VtIjoiMTAwMDAwMCIsInN0YXJ0X3N1bV90eXBlIjoiMSIsInBlcmlvZCI6IjMwIiwicGVyaW9kX3R5cGUiOiJZIiwicGVyY2VudCI6IjE3IiwicGF5bWVudF90eXBlIjoiMSJ9
     alice.account -= alice.mortgage.first_pay;
     alice.flat_price = alice.mortgage.sum;
 }
@@ -99,7 +110,7 @@ void bob_init()
     bob.life_cost = 50 * 1000;
     bob.deposit_rate = 0.2;
     bob.inflation_index = 0.08;
-    bob.monthly_rent = 35*1000;
+    bob.monthly_rent = 36*1000; // source: https://www.avito.ru/sankt-peterburg/kvartiry/1-k._kvartira_31_m_55_et._4269985596
 }
 
 
@@ -140,7 +151,7 @@ void bob_deposit()
 
 void bob_print()
 {
-    printf("Bob summary capital: %lld \n", bob.account);
+    printf("Bob summary capital:   %lld \n", bob.account);
 }
 
 
@@ -187,8 +198,8 @@ void simulation ()
 
 void print_output()
 {
-    printf("Results for %d.%d are:\n",START_MONTH, START_YEAR + PERIOD);
-    printf("----------------------------------\n");
+    printf("Results for %d.%d:\n",START_MONTH, START_YEAR + PERIOD);
+    printf("==================================\n");
     alice_print();
     bob_print();
     conclusion();
