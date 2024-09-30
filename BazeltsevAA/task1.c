@@ -7,9 +7,8 @@ const int START_YEAR = 2024;
 const int START_MONTH = 9;
 const int PERIOD = 30;  // период симуляции
 
-typedef struct Person
-{
-    long long int available_funds; //свободные деньги
+typedef struct Person  {
+    long long int account; //свободные деньги
     Money capital; //капитал
     Money salary; //зарплата
     Money monthly_payment; //ежемесячный платёж
@@ -27,7 +26,7 @@ Person Bob;
 void Bob_init()
 {
     Bob.capital = 0;
-    Bob.available_funds = 0;
+    Bob.account = 0;
     Bob.salary = 300 * 1000;
     Bob.monthly_payment = 50 * 1000;
     Bob.necessary_expenses = 50 * 1000;
@@ -39,7 +38,7 @@ void Bob_init()
 void Alice_init()
 {
     Alice.capital = 0;
-    Alice.available_funds = 0;
+    Alice.account = 0;
     Alice.salary = 300 * 1000;
     Alice.monthly_payment = 192466; //на 30 лет через калькулятор ипотеки от яндекса под 17%
     Alice.necessary_expenses = 50 * 1000;
@@ -49,10 +48,11 @@ void Alice_init()
 }
 
 
-Money search_inflation() // данные взяты с https://calcus.ru/inflyaciya с 2010-2023 год
+ double search_inflation() // данные взяты с https://calcus.ru/inflyaciya с 2010-2023 год
 { 
     int probability = (rand() % 100);
-    Money inflation;
+    double inflation;
+
     if (probability > 90) {
         inflation = (1001 + rand() % 2);
     }
@@ -65,104 +65,102 @@ Money search_inflation() // данные взяты с https://calcus.ru/inflyac
     if (probability <= 10) {
         inflation = (1010 + rand() % 4);
     }
-    return(inflation);
+    return((double) inflation / 1000.0);
 }
 
 
-Money indexation()
+double indexation()
 {
-    return((100 + rand() % 9));
+    return((double) (100 + rand() % 9) / 100.0);
 }
 
 
-void Bob_profit(int month)
-{
-    if (month == 1) {
-        Bob.salary = ((Bob.salary * indexation()) / 100);
-    }
-    Bob.available_funds = Bob.salary;
-}
-
-
-void Alice_profit(int month)
+void Bob_salary(const int month)
 {
     if (month == 1) {
-        Alice.salary = ((Alice.salary * indexation()) / 100);
+        Bob.salary *= indexation();
     }
-    Alice.available_funds = Alice.salary;
+    Bob.account = Bob.salary;
 }
 
 
-void Bob_expenses(Money inflation)
+void Alice_salary(const int month)
 {
-    Bob.necessary_expenses = (Bob.necessary_expenses * inflation) / 1000;
-    Bob.available_funds -= Bob.necessary_expenses;
-    Bob.monthly_payment = (Bob.monthly_payment * inflation) / 1000;
-    Bob.available_funds -= Bob.monthly_payment;
+    if (month == 1) {
+        Alice.salary *= indexation();
+    }
+
+    Alice.account = Alice.salary;
+
+    if (month % 3 == 0) {
+        Alice.account += 4*1000;
+    }
+    if (month == 12) {
+        Alice.account += Alice.salary;
+    }
 }
 
 
-void Alice_expenses(Money inflation)
+void Bob_expenses(const double inflation)
 {
-    Alice.necessary_expenses = (Alice.necessary_expenses * inflation) / 1000;
-    Alice.available_funds -= Alice.necessary_expenses;
-    Alice.available_funds -= Alice.monthly_payment;
+    Bob.necessary_expenses *= inflation;
+    Bob.account -= Bob.necessary_expenses;
+    Bob.monthly_payment *= inflation;
+    Bob.account -= Bob.monthly_payment;
+}
+
+
+void Alice_expenses(const double inflation)
+{
+    Alice.necessary_expenses *= inflation;
+    Alice.account -= Alice.necessary_expenses;
+    Alice.account -= Alice.monthly_payment;
 }
 
 
 void Bob_contribution()
 {
-    Bob.contribution = (Bob.contribution + Bob.available_funds) * Bob.rate_contribution;
+    Bob.contribution = (Bob.contribution + Bob.account) * Bob.rate_contribution;
 }
 
 
 void Alice_contribution()
 {
-    Alice.contribution = (Alice.contribution + Alice.available_funds) * Alice.rate_contribution;
+    Alice.contribution = (Alice.contribution + Alice.account) * Alice.rate_contribution;
 }
 
 
-void Alice_capital(Money inflation)
+void Alice_capital(const double inflation)
 {
-    Alice.cost_house = (Alice.cost_house * inflation) / 1000;
+    Alice.cost_house *= inflation;
     Alice.capital = Alice.contribution + Alice.cost_house;
 }
 
 
-void Bob_capital(Money inflation)
+void Bob_capital(const double inflation)
 {
     Bob.capital = Bob.contribution;
-}
-
-
-void Alice_count(int month, Money inflation)
-{ 
-    Alice_profit(month);
-    Alice_expenses(inflation);
-    Alice_contribution();
-    Alice_capital(inflation);
-}
-
-
-void Bob_count(int month, Money inflation)
-{ 
-    Bob_profit(month);
-    Bob_expenses(inflation);
-    Bob_contribution();
-    Bob_capital(inflation); 
 }
 
 
 void simulation()
 {
     int month = START_MONTH, year = START_YEAR;
-    Bob_init();
-    Alice_init();
-    while (year < START_YEAR + PERIOD)
-    {
+
+    while (year < START_YEAR + PERIOD)  {
+
         Money inflation = search_inflation();
-        Alice_count(month, inflation);
-        Bob_count(month, inflation);
+
+        Alice_salary(month);
+        Alice_expenses(inflation);
+        Alice_contribution();
+        Alice_capital(inflation);
+
+        Bob_salary(month);
+        Bob_expenses(inflation);
+        Bob_contribution();
+        Bob_capital(inflation); 
+
         month++;
         if (month > 12)  {
             year++;
@@ -176,6 +174,7 @@ void print()
 {
     printf("%lld\n", Alice.capital);
     printf("%lld\n", Bob.capital);
+
     if (Alice.capital > Bob.capital)  {
         printf("Alice win!\n");
     }
@@ -187,6 +186,10 @@ void print()
 
 int main()
 {
+    Bob_init();
+    Alice_init();
+
     simulation();
+
     print();
 }
