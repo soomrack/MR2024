@@ -175,10 +175,12 @@ void bob_life_cost(const int month)
 }
 
 
-void bob_newyear_party(const int month)
+void bob_newyear_party(const int month, const int year)
 {
     if (month == 12){
-        bob.newyear_party *= (1. + bob.inflation_index);
+        if (year != START_YEAR){
+            bob.newyear_party *= (1. + bob.inflation_index);
+        }
         bob.account -= bob.newyear_party;
     }
 }
@@ -229,7 +231,7 @@ void simulation ()
         bob_year_bonus(month);
         bob_rent(month);
         bob_life_cost(month);
-        bob_newyear_party(month);
+        bob_newyear_party(month,year);
         bob_deposit();
 
         month++;
