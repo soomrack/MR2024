@@ -62,15 +62,13 @@ void bob_init()
 
 void alice_salary(const int month)
 {
-    if (month == 1)
-        alice.salary *= INDEXATION;
+    if (month == 1) alice.salary *= INDEXATION;
 }
 
 
 void bob_salary(const int month)
 {
-    if (month == 1)
-        bob.salary *= INDEXATION;
+    if (month == 1) bob.salary *= INDEXATION;
 }
 
 
@@ -87,9 +85,8 @@ void alice_account()
 
 void bob_account()
 {
-    alice.account += (alice.account * DEPOSIT_RATE / 12);
-
     bob.account += (bob.account * DEPOSIT_RATE / 12);
+    
     bob.capital += bob.salary;
     bob.capital -= (bob.cost_food + bob.cost_entertainmants + bob.cost_transport + bob.cost_services + bob.rent);
     bob.account += bob.capital;

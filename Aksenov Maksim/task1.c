@@ -19,7 +19,7 @@ struct Mortgage
 struct Human  // структура для Алисы и Боба
 {
     Money start;
-    Money target;  // стоимость квартиры
+    Money flat;  // стоимость квартиры
     Money account;  // счёт
     Money salary;  // зарплата
     double bank_percent;  // годовая ставка вклада в банке
@@ -39,20 +39,20 @@ struct Human Bob;
 void Alice_init()                               // инициализация Алисы
 {
     Alice.start = 1 * 1000 * 1000 * 100;
-    Alice.target = 15 * 1000 * 1000 * 100;
+    Alice.flat = 15 * 1000 * 1000 * 100;
     Alice.account = 0;
     Alice.salary = 300 * 1000 * 100;
     Alice.bank_percent = 0.2;
     Alice.mortgage.rate = 0.17;
     Alice.wastes = 40 * 1000 * 100;
-    Alice.mortgage.payment = (Alice.target - Alice.start) * ((Alice.mortgage.rate / 12) + ((Alice.mortgage.rate / 12))/ (pow((1 + Alice.mortgage.rate / 12), YEARS * 12) - 1));
+    Alice.mortgage.payment = (Alice.flat - Alice.start) * ((Alice.mortgage.rate / 12) + ((Alice.mortgage.rate / 12))/ (pow((1 + Alice.mortgage.rate / 12), YEARS * 12) - 1));
     Alice.monthly_payment = Alice.wastes + Alice.mortgage.payment; 
 }
 
 
 void Bob_init()                                 // инициализация Боба
 {
-    Bob.target = 15 * 1000 * 1000 * 100;
+    Bob.flat = 15 * 1000 * 1000 * 100;
     Bob.account = 1 * 1000 * 1000 * 100;
     Bob.salary = 300 * 1000 * 100;
     Bob.bank_percent = 0.2;
@@ -82,7 +82,7 @@ void Alice_deposite(const int year, const int month)  // проценты по �
 void Alice_expenses(const int year, const int month)  //  расходы Алисы
 {
     if (month == 1) {
-		Alice.wastes += Alice.wastes * INFLATION;
+	    Alice.wastes += Alice.wastes * INFLATION;
 	}
 	Alice.account -= Alice.monthly_payment;
 
@@ -91,14 +91,21 @@ void Alice_expenses(const int year, const int month)  //  расходы Али�
 
 void Bob_salary(const int year, const int month)  // начисление зарплаты Бобу
 {
+    int is_salary;
     if (month == 1) {
         Bob.salary += Bob.salary * INFLATION;
     }
 
-    if (month > 5 && month < 9) {
-        Bob.salary == 0;
-	}
-    Bob.account += Bob.salary;
+    if (month == 6 || month == 7 || month == 8) {
+        is_salary = 0;
+	} else {
+        is_salary = 1;
+    }
+
+    if (is_salary == 1) {
+        Bob.account += Bob.salary;
+    }
+
 }
 
 
@@ -111,24 +118,24 @@ void Bob_deposite(const int year, const int month)  // проценты по в�
 void Bob_expenses(const int year, const int month)  //  расходы Боба
 {
     if (month == 1) {
-		Bob.wastes += Bob.wastes * INFLATION;
+	Bob.wastes += Bob.wastes * INFLATION;
         Bob.rent += Bob.rent * INFLATION; 
 	}
 	Bob.account -= Bob.monthly_payment;
 }
 
 
-void target_inflation(const int year, const int month)  // удорожание квартиры от инфляции
+void flat_inflation(const int year, const int month)  // удорожание квартиры от инфляции
 {
     if (month == 1) {
-        Alice.target += Alice.target * INFLATION;
+        Alice.flat += Alice.flat * INFLATION;
     }
 }
 
 
 void print_alice()
 {
-    printf("Alice's capital: %lld kopecks\n", Alice.account + Alice.target);
+    printf("Alice's capital: %lld kopecks\n", Alice.account + Alice.flat);
 }
 
 
@@ -144,8 +151,8 @@ void Bob_holiday(const int year, const int month)  // нюанс
         Bob.yacht += Bob.yacht * INFLATION;
     }
 
-    if (month > 5 && month < 9) {
-		Bob.account -= Bob.yacht;
+    if (month == 6 || month == 7 || month == 8) {
+	    Bob.account -= Bob.yacht;
 	}
 }
 
@@ -165,7 +172,7 @@ void simulation()
         Bob_holiday(year, month);
         Bob_deposite(year, month);
         
-        target_inflation(year, month);
+        flat_inflation(year, month);
 
         ++month;
         if(month == 13) {
