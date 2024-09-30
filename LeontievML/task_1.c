@@ -28,6 +28,7 @@ struct Person {
     Money rent;
 };
 
+
 struct Person alice;
 struct Person bob;
 
@@ -132,6 +133,14 @@ void alice_mortgage()
 }
 
 
+void bob_pets(const int year)
+{
+    if (year <= 2026) bob.account -= 2 * 1000;  // Боб завел хомяка
+    if (year <= 2030 && year > 2026) bob.account -= 5 * 1000;  // Боб завел кошку
+    if (year > 2030) bob.account -= 7 * 1000;  // Боб завел черепашку
+}
+
+
 void print()
 {
     printf("Alice's capital = %llu kopeek\n", alice.account + alice.cost_home);
@@ -160,6 +169,7 @@ void simulation()
         bob_infliation(month);
 
         alice_mortgage();
+        bob_pets(year);
 
         alice_account();
         bob_account();
