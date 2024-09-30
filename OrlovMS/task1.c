@@ -103,22 +103,28 @@ void bob_init(Person* person)
 }
 
 
-void alice_promotion(Person* alice, const Date* date)
+void alice_salary(Person* alice, const Date* date)
 {
     if(date->year == 2040 && date->month == 5)
     {
         alice->salary += (Money)((double)alice->salary * 0.25);  // alice promotion
     }
+
+    alice->money += alice->salary;
+
+    alice->salary += (Money)((double)alice->salary * inflation / 12.0);
 }
 
 
-void add_salary(Person* person, const Date* date)
+void bob_salary(Person* bob, const Date* date)
 {
-    person->money += person->salary;
+    bob->money += bob->salary;
+
+    bob->salary += (Money)((double)bob->salary * inflation / 12.0);
 }
 
 
-void pay_mortage(Person* person, const Date* date)
+void alice_pay_mortage(Person* person, const Date* date)
 {
     if(person->mortage.amount != 0)
     {
@@ -131,50 +137,32 @@ void pay_mortage(Person* person, const Date* date)
 }
 
 
-void pay_rent(Person* person, const Date* date)
+void rent(Person* person, const Date* date)
 {
     person->money -= person->rent_cost;
+
+    person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
 }
 
 
-void pay_bills(Person* person, const Date* date)
+void bills(Person* person, const Date* date)
 {
     person->money -= person->food_cost;
     person->money -= person->service_cost;
     person->money -= person->personel_cost;
-}
 
-
-void add_deposit(Person* person, const Date* date)
-{
-    person->deposit.capital += person->money;
-    person->money = 0;
-}
-
-
-void deposit_growth(Person* person, const Date* date)
-{
-    person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
-}
-
-
-void index_salary(Person* person, const Date* date)
-{
-    person->salary += (Money)((double)person->salary * inflation / 12.0);
-}
-
-
-void bills_inflation(Person* person, const Date* date)
-{
     person->food_cost += (Money)((double)person->food_cost * inflation / 12.0);
     person->service_cost += (Money)((double)person->service_cost * inflation / 12.0);
     person->personel_cost += (Money)((double)person->personel_cost * inflation / 12.0);
 }
 
 
-void rent_rise(Person* person, const Date* date)
+void deposit(Person* person, const Date* date)
 {
-    person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
+    person->deposit.capital += person->money;
+    person->money = 0;
+
+    person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
 }
 
 
@@ -204,7 +192,7 @@ int is_date_equal(const Date* first, const Date* second)
 }
 
 
-void date_increment(Date* date)
+void date_month_increment(Date* date)
 {
     date->month++;
     if(date->month == 13)
@@ -223,31 +211,20 @@ void simulation(Person* alice, Person* bob)
 
     while(!is_date_equal(&date_current, &date_end))
     {
-        alice_promotion(alice, &date_current);
-        add_salary(alice, &date_current);
-        pay_mortage(alice, &date_current);
-        pay_bills(alice, &date_current);
-        add_deposit(alice, &date_current);
-
-        deposit_growth(alice, &date_current);
-        index_salary(alice, &date_current);
-        bills_inflation(alice, &date_current);
+        alice_salary(alice, &date_current);
+        alice_pay_mortage(alice, &date_current);
+        bills(alice, &date_current);
+        deposit(alice, &date_current);
         estate_cost_rise(alice, &date_current);
 
 
-        add_salary(bob, &date_current);
-        pay_bills(bob, &date_current);
-        pay_rent(bob, &date_current);
+        bob_salary(bob, &date_current);
+        bills(bob, &date_current);
+        rent(bob, &date_current);
         bob_car(bob, &date_current);
-        add_deposit(bob, &date_current);
+        deposit(bob, &date_current);
 
-        deposit_growth(bob, &date_current);
-        index_salary(bob, &date_current);
-        bills_inflation(bob, &date_current);
-        rent_rise(bob, &date_current);
-
-
-        date_increment(&date_current);
+        date_month_increment(&date_current);
     }
 }
 
