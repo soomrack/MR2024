@@ -138,6 +138,7 @@ void Simulation( const int start_year, const int start_month)
         Bob_others_expences(month);
         Bob_accommodation_payment(month);
         Bob_deposit();
+        Bob_incident(2035,1)
        
 
         month ++;
@@ -160,7 +161,7 @@ int main()
   Alice_init();
   Bob_init();
 
-  Bob_incident(2035,1);
+  
 
   Simulation(2024,9);
 
