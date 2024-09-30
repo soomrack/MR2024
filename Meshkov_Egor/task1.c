@@ -172,7 +172,7 @@ void increase_deposit_Alice(Mortgage *Alice, const Input_Data *common_data) {
 }
 
 
-void inflation_of_car_Alice(Input_Data *common_data, Mortgage *Alice, Data_of_Car *car, const int now_month) {
+void inflation_of_car(Input_Data *common_data, Data_of_Car *car, const int now_month) {
 
 	car->car_price = car->car_price * (1 + 0.08); //accounting inflation of car
 
@@ -200,7 +200,7 @@ double capital_of_Alice(Mortgage *Alice, Input_Data *common_data, Data_of_Car *c
 			++count_of_car;
 		}
 
-		inflation_of_car_Alice(common_data, Alice, car, now_month);
+		inflation_of_car(common_data, car, now_month);
 
 		accounting_inflation_for_alice(common_data, Alice, &now_year, now_month);
 	}
@@ -231,17 +231,6 @@ void increase_deposit_Bob(Deposit *Bob, const Input_Data *common_data) {
 }
 
 
-void inflation_of_car_Bob(Input_Data *common_data, Deposit *Bob, Data_of_Car *car, const int now_month) {
-
-	car->car_price = car->car_price * (1 + 0.08); //accounting inflation of car
-
-	if(now_month % 12 == 0) 
-		car->maintenance = car->maintenance * (1 + 0.1); //maintenance is also on the rise
-
-	return;
-}
-
-
 double capital_of_Bob(Deposit *Bob, Input_Data *common_data, Data_of_Car *car) {
 	int now_year = common_data->initial_year;
 	int count_of_car = 0;
@@ -259,7 +248,7 @@ double capital_of_Bob(Deposit *Bob, Input_Data *common_data, Data_of_Car *car) {
 			++count_of_car;
 		}
 
-		inflation_of_car_Bob(common_data, Bob, car, now_month);
+		inflation_of_car(common_data, car, now_month);
 
 		accounting_inflation_for_Bob(common_data, Bob, &now_year, now_month);
 	}
@@ -298,15 +287,16 @@ int main() {
 	Input_Data common_data;
 	Mortgage Alice;
 	Deposit Bob;
-	Data_of_Car car;
+	Data_of_Car car_Alice, car_Bob;
 
 	common_data_init(&common_data);
 	mortgage_init(&Alice, &common_data);
 	deposit_init(&Bob);
-	car_init(&car);
+	car_init(&car_Alice);
+	car_init(&car_Bob);
 
-	int Alice_capital = (int)capital_of_Alice(&Alice, &common_data, &car);
-	int Bob_capital = (int)capital_of_Bob(&Bob, &common_data, &car);
+	int Alice_capital = (int)capital_of_Alice(&Alice, &common_data, &car_Alice);
+	int Bob_capital = (int)capital_of_Bob(&Bob, &common_data, &car_Bob);
 
 	result(Alice_capital, Bob_capital);
 	
