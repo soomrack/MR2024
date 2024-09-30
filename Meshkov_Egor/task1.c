@@ -3,22 +3,22 @@
 #include <math.h>
 
 
-typedef struct Input_data {
+typedef struct Input_Data {
   int years;
-  //now_month is the count of months since 0 year
-  int now_month;
+  int initial_month;
+  int initial_year;
   int total_expenses;
   double deposit_percentage;
-} Input_data;
+} Input_Data;
 
 
 //An additional goal is to buy a car
-typedef struct Data_of_car {
+typedef struct Data_of_Car {
 	double car_price; 
 	int maintenance;
 	int max_count_of_car;
 	int real_count_of_car;
-} Data_of_car;
+} Data_of_Car;
 
 
 typedef struct Mortgage {
@@ -48,17 +48,18 @@ double payment(const Mortgage *Alice, const int years) {
 }
 
 
-void data_init(Input_data *Data) {
+void data_init(Input_Data *Data) {
 	
+	Data->initial_year = 2024;
+	Data->initial_month = 9;
 	Data->years = 30;
-	Data->now_month = 2024 * 12 /*initial year is 2024*/ + 9 /*initial year is Sentember*/;
 	Data->total_expenses = 20 * 1000 /*food*/ + 15 * 1000 /*public utilities*/ + 15 * 1000 /*personal expenses*/;
 	Data->deposit_percentage = 0.2 / 12;
 
 	return;
 }
 
-void car_init(Data_of_car *Car) {
+void car_init(Data_of_Car *Car) {
 
 	Car->car_price = 1.5 * 1000 * 1000; 
 	Car->max_count_of_car = 1;
@@ -68,7 +69,7 @@ void car_init(Data_of_car *Car) {
 	return;
 }
 
-void mortgage_init(Mortgage *Alice, Input_data *Data) {
+void mortgage_init(Mortgage *Alice, Input_Data *Data) {
 
 	Alice->wages = 200 * 1000;
 	Alice->initial_payment = 1000 * 1000;
@@ -128,7 +129,7 @@ int check_capital_for_car(const double deposit, const double car_price ) {
 }
 
 
-void dream_purchase_car_for_Alice(Input_data *Data, Mortgage *Alice, Data_of_car *Car) {
+void dream_purchase_car_for_Alice(Input_Data *Data, Mortgage *Alice, Data_of_Car *Car) {
 	if((Car->real_count_of_car < Car->max_count_of_car) && check_capital_for_car(Alice->deposit, Car->car_price)) {
 		Alice->deposit -= Car->car_price;
 		Data->total_expenses += Car->maintenance;
@@ -139,7 +140,7 @@ void dream_purchase_car_for_Alice(Input_data *Data, Mortgage *Alice, Data_of_car
 }
 
 
-void dream_purchase_car_for_Bob(Input_data *Data, Deposit *Bob, Data_of_car *Car) {
+void dream_purchase_car_for_Bob(Input_Data *Data, Deposit *Bob, Data_of_Car *Car) {
 	if((Car->real_count_of_car < Car->max_count_of_car) && check_capital_for_car(Bob->deposit, Car->car_price)) {
 		Bob->deposit -= Car->car_price;
 		Data->total_expenses += Car->maintenance;
@@ -150,61 +151,111 @@ void dream_purchase_car_for_Bob(Input_data *Data, Deposit *Bob, Data_of_car *Car
 }
 
 
-double capital_of_mortgage(Mortgage *Alice, Input_data *Data, Data_of_car *Car) {
+void alice_increase(Input_Data *Data, Mortgage *Alice, int *now_year, const int month) {
+	
+	if((month - Data->initial_month) % 12 == 0) {
+		++*now_year;
+		Alice->wages = Alice->wages * (1 + 0.08);
+		Data->total_expenses = Data->total_expenses * (1 + 0.08);
+		Alice->apartment_price = Alice->apartment_price * (1 + 0.08);
+	}
 
-	for(int i = Data->now_month; i < Data->now_month + Data->years * 12; ++i) {
+	return;
+}
 
-		if(check_conditions_mortgage(Alice, Data->total_expenses, i / 12, i % 12) == 0)
+
+void deposit_Alice(Mortgage *Alice, const Input_Data *Data) {
+
+	Alice->deposit = Alice->deposit * (1 + Data->deposit_percentage);
+	Alice->deposit += Alice->wages - (Alice->pay + Data->total_expenses);
+	
+	return;
+}
+
+
+void buy_car_Alice(Input_Data *Data, Mortgage *Alice, Data_of_Car *Car, const int month) {
+	dream_purchase_car_for_Alice(Data, Alice, Car);
+	
+	if((month - Data->initial_month) % 12 == 0)
+		Car->car_price = Car->car_price * (1 + 0.08);
+
+	return;
+}
+
+
+double capital_of_Alice(Mortgage *Alice, Input_Data *Data, Data_of_Car *Car) {
+	int now_year = Data->initial_year;
+
+	for(int month = Data->initial_month; month < Data->years * 12 + Data->initial_month; ++month) {
+
+		if(check_conditions_mortgage(Alice, Data->total_expenses, now_year, month) == 0)
 			return 0;
 
-		Alice->deposit = Alice->deposit * (1 + Data->deposit_percentage);
-		Alice->deposit += Alice->wages - (Alice->pay + Data->total_expenses);
+		deposit_Alice(Alice, Data);
 		
 		//It`s more profitable to buy a car after the interest on the deposit
-		dream_purchase_car_for_Alice(Data, Alice, Car);
+		buy_car_Alice(Data, Alice, Car, month);
 
-		if((i - Data->now_month) % 12 == 0) {
-		
-			Alice->wages = Alice->wages * (1 + 0.08);
-			Data->total_expenses = Data->total_expenses * (1 + 0.08);
-			Alice->apartment_price = Alice->apartment_price * (1 + 0.08);
-			//The price of car is subject to inflation
-			Car->car_price = Car->car_price * (1 + 0.08);
-		}
+		alice_increase(Data, Alice, &now_year, month);
 	}
 
 	return round(Alice->deposit + Alice->apartment_price + Car->car_price);
 }
 
 
-double capital_of_deposit(Deposit *Bob, Input_data *Data, Data_of_car *Car) {
+void Bob_increase(Input_Data *Data, Deposit *Bob, int *now_year, const int month) {
 	
-	for(int i = Data->now_month; i < Data->now_month + Data->years * 12; ++i) {
+	if((month - Data->initial_month) % 12 == 0) {
+		++*now_year;
+		Bob->wages = Bob->wages * (1 + 0.08);
+		Bob->rent = Bob->rent * (1 + 0.08);
+		Data->total_expenses = Data->total_expenses * (1 + 0.08);
+	}
+
+	return;
+}
+
+
+void deposit_Bob(Deposit *Bob, const Input_Data *Data) {
+
+	Bob->deposit = Bob->deposit * (1 + Data->deposit_percentage);
+	Bob->deposit += Bob->wages - (Bob->rent + Data->total_expenses);
+	
+	return;
+}
+
+
+void buy_car_Bob(Input_Data *Data, Deposit *Bob, Data_of_Car *Car, const int month) {
+	dream_purchase_car_for_Bob(Data, Bob, Car);
+	
+	if((month - Data->initial_month) % 12 == 0)
+		Car->car_price = Car->car_price * (1 + 0.08);
+
+	return;
+}
+
+
+double capital_of_Bob(Deposit *Bob, Input_Data *Data, Data_of_Car *Car) {
+	int now_year = Data->initial_year;
+
+	for(int month = Data->initial_month; month < Data->initial_month + Data->years * 12; ++month) {
 		
-		if(check_conditions_deposit(Bob, Data->total_expenses, i / 12, i % 12) == 0)
+		if(check_conditions_deposit(Bob, Data->total_expenses, now_year, month) == 0)
 			return 0;
 		
-		Bob->deposit = Bob->deposit * (1 + Data->deposit_percentage);
-		Bob->deposit += Bob->wages - (Bob->rent + Data->total_expenses);
+		deposit_Bob(Bob, Data);
 
 		//It`s more profitable to buy a car after the interest on the deposit
-		dream_purchase_car_for_Bob(Data, Bob, Car);
+		buy_car_Bob(Data, Bob, Car, month);
 
-		if((i - Data->now_month) % 12 == 0) {
-			
-			Bob->wages = Bob->wages * (1 + 0.08);
-			Bob->rent = Bob->rent * (1 + 0.08);
-			Data->total_expenses = Data->total_expenses * (1 + 0.08);
-			//The price of car is subject to inflation
-			Car->car_price = Car->car_price * (1 + 0.08);
-		}
+		Bob_increase(Data, Bob, &now_year, month);
 	}
 
 	return round(Bob->deposit+Car->car_price);
 }
 
 
-void result(const double Alice_capital, const double Bob_capital) {
+void result(const int Alice_capital, const int Bob_capital) {
 
 	if(!Alice_capital) {
 		printf("Bob`s strategy is the only option under these conditions\n");
@@ -231,18 +282,20 @@ void result(const double Alice_capital, const double Bob_capital) {
 
 int main() {
 	
-	Input_data Data;
+	Input_Data Data;
 	Mortgage Alice;
 	Deposit Bob;
-	Data_of_car Car;
+	Data_of_Car Car;
 
 	data_init(&Data);
 	mortgage_init(&Alice, &Data);
 	deposit_init(&Bob);
 	car_init(&Car);
 
-	double Alice_capital = capital_of_mortgage(&Alice, &Data, &Car);
-	double Bob_capital = capital_of_deposit(&Bob, &Data, &Car);
+	int Alice_capital = (int)capital_of_Alice(&Alice, &Data, &Car);
+	car_init(&Car); //Set initial values of Car
+	data_init(&Data); //Set initial values fo Data
+	int Bob_capital = (int)capital_of_Bob(&Bob, &Data, &Car);
 
 	result(Alice_capital, Bob_capital);
 	
