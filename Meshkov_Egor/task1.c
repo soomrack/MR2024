@@ -293,7 +293,8 @@ int main() {
 	car_init(&Car);
 
 	int Alice_capital = (int)capital_of_Alice(&Alice, &Data, &Car);
-	car_init(&Car); //Update data of car for Bob
+	car_init(&Car); //Set initial values of Car
+	data_init(&Data); //Set initial values fo Data
 	int Bob_capital = (int)capital_of_Bob(&Bob, &Data, &Car);
 
 	result(Alice_capital, Bob_capital);
