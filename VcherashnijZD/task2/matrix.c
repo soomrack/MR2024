@@ -322,6 +322,7 @@ Matrix matrix_exp(const Matrix matrix){
 }
 
 void free_mat(Matrix *matrix) {
+    if (matrix == NULL) rerurn;
     free(matrix->item);
     free(matrix->values);
 }
