@@ -82,7 +82,7 @@ void Alice_deposite(const int year, const int month)  // проценты по �
 void Alice_expenses(const int year, const int month)  //  расходы Алисы
 {
     if (month == 1) {
-		Alice.wastes += Alice.wastes * INFLATION;
+	    Alice.wastes += Alice.wastes * INFLATION;
 	}
 	Alice.account -= Alice.monthly_payment;
 
@@ -152,7 +152,7 @@ void Bob_holiday(const int year, const int month)  // нюанс
     }
 
     if (month == 6 || month == 7 || month == 8) {
-		Bob.account -= Bob.yacht;
+	    Bob.account -= Bob.yacht;
 	}
 }
 
