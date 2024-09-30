@@ -4,6 +4,7 @@
 const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
+const int medical_incom_tax = 120 * 1000;
 
 const double TAX_DEDUCTION = 13.0;
 const double INFLATION = 8.0;  // проценты
@@ -18,7 +19,6 @@ struct Person {
     Money big_teeth_expenses;
     Money half_year_teeth_expenses;
     Money rent;
-    Money income_tax_year;
     Money medical_expenses;
 } bob, alice;
 
@@ -79,7 +79,6 @@ void bob_init()
     bob.big_teeth_expenses = 70 * 1000;
     bob.half_year_teeth_expenses = 25 * 1000;
     bob.rent = 30 * 1000;
-    bob.income_tax_year = bob.salary * (TAX_DEDUCTION / 100.0) * 12;
     bob.medical_expenses = 0;
 }
 
@@ -137,10 +136,10 @@ void bob_teeth_expenses(const int month, const int year)
         bob.medical_expenses += bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 
-    if (bob.medical_expenses <= bob.income_tax_year) {
+    if (bob.medical_expenses <= medical_incom_tax) {
         bob.bank_account += bob.medical_expenses * (TAX_DEDUCTION * 100);
     }
-    else bob.bank_account += bob.income_tax_year;
+    else bob.bank_account += medical_incom_tax;
 
     bob.medical_expenses = 0;
 }
