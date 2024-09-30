@@ -130,7 +130,7 @@ void teeth_expenses(const int month, const int year)
 
     if (year > 2028 && (month == 9 || month == 3)) {
         bob.bank_account -= bob.half_year_teeth_expenses;
-        bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+        bob.bank_account += bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 }
 
