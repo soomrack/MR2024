@@ -9,9 +9,15 @@ Bob копит на квартиру и живет в съемной - ~30.000 �
 Зарплата обоих составляет ~200.000 Р в месяц
 Учитывать базовые потребности типа еды, комуналки, 
 Все цены подвержены инфляции в 8% в год, а зарплата такому же индексированию
+
+Дополнительное условие:
+Alice и Bob получают годовые премии
+Bob получает дополнительно квартальные премии
+Bob устраивает вечеринку каждый год и тратит 50.000 Р с инфляцией
 */
 
-typedef long long int Money;
+
+typedef long long int Money; //RUB
 
 const int START_YEAR = 2024;
 const int START_MONTH = 9;
@@ -32,6 +38,7 @@ struct Person {
     Money life_cost;
     Money flat_price;
     Money monthly_rent;
+    Money newyear_party;
     struct Mortgage mortgage;
     double deposit_rate;
     double inflation_index;
@@ -52,7 +59,7 @@ void alice_init()
     alice.mortgage.sum = 15 * 1000 * 1000;
     alice.mortgage.first_pay = 1000 * 1000;
     alice.mortgage.rate = 0.17;
-    alice.mortgage.monthly_payments = 200*1000; // source: https://calcus.ru/kalkulyator-ipoteki?input=eyJjdXJyZW5jeSI6IlJVQiIsInR5cGUiOiIxIiwiY29zdCI6IjE1MDAwMDAwIiwic3RhcnRfc3VtIjoiMTAwMDAwMCIsInN0YXJ0X3N1bV90eXBlIjoiMSIsInBlcmlvZCI6IjMwIiwicGVyaW9kX3R5cGUiOiJZIiwicGVyY2VudCI6IjE3IiwicGF5bWVudF90eXBlIjoiMSJ9
+    alice.mortgage.monthly_payments = 200 * 1000; // source: https://calcus.ru/kalkulyator-ipoteki?input=eyJjdXJyZW5jeSI6IlJVQiIsInR5cGUiOiIxIiwiY29zdCI6IjE1MDAwMDAwIiwic3RhcnRfc3VtIjoiMTAwMDAwMCIsInN0YXJ0X3N1bV90eXBlIjoiMSIsInBlcmlvZCI6IjMwIiwicGVyaW9kX3R5cGUiOiJZIiwicGVyY2VudCI6IjE3IiwicGF5bWVudF90eXBlIjoiMSJ9
     alice.account -= alice.mortgage.first_pay;
     alice.flat_price = alice.mortgage.sum;
 }
@@ -64,6 +71,14 @@ void alice_salary(const int month)
         alice.salary*=(1. + alice.inflation_index);
     }
     alice.account += alice.salary;
+}
+
+
+void alice_year_bonus(const int month)
+{
+    if(month == 12){
+        alice.account += alice.salary;
+    }
 }
 
 
@@ -108,6 +123,7 @@ void bob_init()
     bob.account = 1 * 1000 * 1000;
     bob.salary = 200 * 1000;
     bob.life_cost = 50 * 1000;
+    bob.newyear_party = 50 * 1000;
     bob.deposit_rate = 0.2;
     bob.inflation_index = 0.08;
     bob.monthly_rent = 36*1000; // source: https://www.avito.ru/sankt-peterburg/kvartiry/1-k._kvartira_31_m_55_et._4269985596
@@ -120,6 +136,22 @@ void bob_salary (const int month)
         bob.salary *= (1. + bob.inflation_index);
     }
     bob.account += bob.salary;
+}
+
+
+void bob_quarterly_bonus(const int month)
+{
+    if(month == 1 || month == 4 || month == 7 || month == 10){
+        bob.account += 0.5 * bob.salary;
+    }
+}
+
+
+void bob_year_bonus(const int month)
+{
+    if(month == 12){
+        bob.account += bob.salary;
+    }
 }
 
 
@@ -140,6 +172,17 @@ void bob_life_cost(const int month)
     }
     
     bob.account -= bob.life_cost;
+}
+
+
+void bob_newyear_party(const int month, const int year)
+{
+    if (month == 12){
+        if (year != START_YEAR){
+            bob.newyear_party *= (1. + bob.inflation_index);
+        }
+        bob.account -= bob.newyear_party;
+    }
 }
 
 
@@ -178,13 +221,17 @@ void simulation ()
     while(!((year == START_YEAR + PERIOD) && (month == START_MONTH + 1))) {
         alice_salary(month);
         alice_mortgage(month);
+        alice_year_bonus(month);
         alice_life_cost(month);
         alice_flat_price(month);
         alice_deposit();
         
         bob_salary(month);
+        bob_quarterly_bonus(month);
+        bob_year_bonus(month);
         bob_rent(month);
         bob_life_cost(month);
+        bob_newyear_party(month,year);
         bob_deposit();
 
         month++;
