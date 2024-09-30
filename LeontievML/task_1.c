@@ -12,10 +12,14 @@ const float INFLIATION = 1.08;
 const float INDEXATION = 1.04;
 const float DEPOSIT_RATE = 1.1;
 
+int HUMSTER_COST = 2 * 1000 * 100;
+int CAT_COST = 5 * 1000 * 100;
+int TURTLE_COST = 7 * 1000 * 100;
+
 typedef long long int Money; // копейки
 
-struct Person
-{
+
+struct Person {
     unsigned long long int summ; // сумма процентов и стоимости квартиры по ипотеке
     unsigned long int depozit;   // деньги на вкладе
     Money salary;
@@ -28,8 +32,10 @@ struct Person
     Money rent;
 };
 
+
 struct Person alice;
 struct Person bob;
+
 
 void alice_init()
 {
@@ -44,6 +50,7 @@ void alice_init()
     alice.cost_home = PRICE_HOME;
 }
 
+
 void bob_init()
 {
     bob.depozit = BOB_CAPITAL;
@@ -56,6 +63,7 @@ void bob_init()
     bob.rent = 50 * 000;
 }
 
+
 void alice_salary(const int month)
 {
     if (month == 1) {
@@ -63,6 +71,7 @@ void alice_salary(const int month)
         alice.account += alice.salary;
     }
 }
+
 
 void bob_salary(const int month)
 {
@@ -72,6 +81,7 @@ void bob_salary(const int month)
     }
 }
 
+
 void alice_expences(const int month)
 {
     if (month == 1) {
@@ -80,10 +90,10 @@ void alice_expences(const int month)
         alice.cost_transport *= INFLIATION;
         alice.cost_services *= INFLIATION;
     }
-
     alice.account -= (alice.cost_food + alice.cost_entertainmants 
         + alice.cost_transport + alice.cost_services);
 }
+
 
 void bob_expences(const int month)
 {
@@ -94,9 +104,10 @@ void bob_expences(const int month)
         bob.cost_services *= INFLIATION;
         bob.rent *= INFLIATION;
     }
-
-    bob.account -= (bob.cost_food + bob.cost_entertainmants + bob.cost_transport + bob.cost_services + bob.rent);
+    bob.account -= (bob.cost_food + bob.cost_entertainmants 
+        + bob.cost_transport + bob.cost_services + bob.rent);
 }
+
 
 void alice_depozit()
 {
@@ -105,12 +116,14 @@ void alice_depozit()
     alice.depozit += (alice.account * DEPOSIT_RATE / 12);
 }
 
+
 void bob_depozit()
 {
     bob.depozit += bob.account;
     bob.account = 0;
     bob.depozit += (bob.account * DEPOSIT_RATE / 12);
 }
+
 
 void alice_mortgage(const int month)
 {
@@ -121,23 +134,38 @@ void alice_mortgage(const int month)
     if (month == 1) alice.cost_home *= INFLIATION;
 }
 
-void bob_pets(const int year)
+
+void bob_pets(const int year, const int month)
 {
-    if (year <= 2026) bob.account -= 2 * 1000; // Боб завел хомяка
-    if (year <= 2030 && year > 2026) bob.account -= 5 * 1000; // Боб завел кошку
-    if (year > 2030) bob.account -= 7 * 1000; // Боб завел черепашку
+    if ((year > 2024 || (year == 2024 && month >= 9)) && // Боб завел хомяка
+        (year < 2026 || (year == 2026 && month <= 8))) {
+        bob.account -= HUMSTER_COST;
+    }
+    if ((year > 2026 || (year == 2026 && month >= 9)) && // Боб завел кота
+        (year < 2030 || (year == 2030 && month <= 8))) {
+        bob.account -= CAT_COST;
+    }
+    if (year > 2030 || (year == 2030 && month >= 9)) { // Боб завел черепашку
+        bob.account -= TURTLE_COST;
+    }
+    if (month == 1) {
+        HUMSTER_COST *= INFLIATION;
+        CAT_COST *= INFLIATION;
+        TURTLE_COST *= INFLIATION;
+    }
 }
+
 
 void print()
 {
     printf("Alice's capital = %llu kopeek\n", alice.depozit + alice.cost_home);
     printf("Bob's capital = %llu kopeek\n", bob.depozit);
-
     if ((alice.depozit + alice.cost_home) > bob.depozit)
         printf("An Alice's stratagy is more succesful\n");
     else
         printf("A Bob's stratagy is more succesful\n");
 }
+
 
 void simulation()
 {
@@ -164,8 +192,8 @@ void simulation()
     }
 }
 
-int main()  
-{
+
+int main() {
     alice_init();
     bob_init();
 
