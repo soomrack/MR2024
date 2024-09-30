@@ -118,7 +118,7 @@ void Bob_deposite(const int year, const int month)  // проценты по в�
 void Bob_expenses(const int year, const int month)  //  расходы Боба
 {
     if (month == 1) {
-		Bob.wastes += Bob.wastes * INFLATION;
+	Bob.wastes += Bob.wastes * INFLATION;
         Bob.rent += Bob.rent * INFLATION; 
 	}
 	Bob.account -= Bob.monthly_payment;
