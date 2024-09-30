@@ -18,6 +18,8 @@ struct Person {
     Money big_teeth_expenses;
     Money half_year_teeth_expenses;
     Money rent;
+    Money income_tax_year;
+    Money medical_expenses;
 } bob, alice;
 
 
@@ -77,6 +79,8 @@ void bob_init()
     bob.big_teeth_expenses = 70 * 1000;
     bob.half_year_teeth_expenses = 25 * 1000;
     bob.rent = 30 * 1000;
+    bob.income_tax_year = bob.salary * (TAX_DEDUCTION / 100.0) * 12;
+    bob.medical_expenses = 0;
 }
 
 
@@ -123,23 +127,22 @@ void bob_expenses(const int month, const int year)
 
 void bob_teeth_expenses(const int month, const int year)
 {
-    static Money expenses = 0;
-
     if (year == 2028 && (month == 4 || month == 6)) {
         bob.bank_account -=  bob.big_teeth_expenses;
-        expenses +=  bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
+        bob.medical_expenses +=  bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 
     if (year > 2028 && (month == 3 || month == 9)) {
         bob.bank_account -= bob.half_year_teeth_expenses;
-        expenses += bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+        bob.medical_expenses += bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 
-    if (expenses <= 100 * 1000) {
-        bob.bank_account += expenses * (TAX_DEDUCTION * 100);
+    if (bob.medical_expenses <= bob.income_tax_year) {
+        bob.bank_account += bob.medical_expenses * (TAX_DEDUCTION * 100);
     }
+    else bob.bank_account += bob.income_tax_year;
 
-    expenses = 0;
+    bob.medical_expenses = 0;
 }
 
 
