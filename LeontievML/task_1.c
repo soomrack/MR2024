@@ -87,9 +87,8 @@ void alice_account()
 
 void bob_account()
 {
-    alice.account += (alice.account * DEPOSIT_RATE / 12);
-
     bob.account += (bob.account * DEPOSIT_RATE / 12);
+    
     bob.capital += bob.salary;
     bob.capital -= (bob.cost_food + bob.cost_entertainmants + bob.cost_transport + bob.cost_services + bob.rent);
     bob.account += bob.capital;
