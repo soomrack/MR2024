@@ -2,8 +2,8 @@
 #include <math.h>
 #include <stdbool.h>
 typedef unsigned long long int Money;  
-int SIMULATION_TIME=30;
-int Month_Point=9;
+int SIMULATION_TIME = 30;
+int Month_Point = 9;
 //Общие переменные
 struct Person
     {
@@ -29,15 +29,15 @@ void Alice_Data()
     Alice.Credit = 15*pow(10,9);
     Alice.Rate = 20;
     Alice.Rate_Deposit = 12;
-    Alice.Expense = 30*1000;
+    Alice.Expense = 30 * 1000;
     Alice.Purpose = 0;
     Alice.Inflation = 8;
     Alice.Credit = Alice.Credit - Alice.Balance;
     Alice.Balance = 0;
-    Alice.Rate = 1 + Alice.Rate/(100*12);
-    Alice.Rate_Deposit = 1 + Alice.Rate_Deposit/(100*12);
-    Alice.Inflation = Alice.Inflation/(100*12); // 
-    Alice.Rent = Alice.Credit*(((Alice.Rate - 1)*(pow((Alice.Rate),(SIMULATION_TIME)*12)))/(pow((Alice.Rate),(SIMULATION_TIME)*12) - 1));
+    Alice.Rate = 1 + Alice.Rate / (100*12);
+    Alice.Rate_Deposit = 1 + Alice.Rate_Deposit / (100*12);
+    Alice.Inflation = Alice.Inflation / (100*12); // 
+    Alice.Rent = Alice.Credit * (((Alice.Rate - 1)*(pow((Alice.Rate),(SIMULATION_TIME)*12)))/(pow((Alice.Rate),(SIMULATION_TIME)*12) - 1));
 
 }
 
@@ -48,12 +48,12 @@ void Bob_Data()
     Bob.Credit = 0;
     Bob.Rate = 0;
     Alice.Rate_Deposit = 12;
-    Bob.Expense = 30*1000;
-    Bob.Rent = 30*1000;
-    Bob.Purpose = 15*pow(10,9);
+    Bob.Expense = 30 * 1000;
+    Bob.Rent = 30 * 1000;
+    Bob.Purpose = 15 * pow(10,9);
     Bob.Inflation = 8;
-    Bob.Inflation = Bob.Inflation/(100*12);
-    Bob.Rate_Deposit = 1+Bob.Rate_Deposit/(100*12);
+    Bob.Inflation = Bob.Inflation / (100*12);
+    Bob.Rate_Deposit = 1 + Bob.Rate_Deposit / (100*12);
 }
 
 
