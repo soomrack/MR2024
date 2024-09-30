@@ -1,51 +1,55 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include "malloc.h"
-#include <stdio.h>
-#include <math.h>
+#include <stdlib.h>
 
+// remember NTSTATUS from WinNT and drivers?
+typedef enum STATUS {
+    OK,
+    ERR_MALLOC,
+    ERR_DET,
+    ERR_PWR,
+    ERR_SIZE
+} STATUS;
 
-typedef struct Matrix{
-    unsigned int cols;
-    unsigned int rows;
+typedef struct Matrix {
+    size_t cols;
+    size_t rows;
     double* values;
-    double** item;
 } Matrix;
 
-extern Matrix EMPTY;  // return if error and in some other cases
+extern Matrix EMPTY;
 
-Matrix create_zero_matrix(unsigned int rows, unsigned int cols);
+STATUS matrix_alloc(const size_t rows, const size_t cols, Matrix** ret);
 
-Matrix create_one_matrix(unsigned int rows, unsigned int cols);
+STATUS matrix_identity(Matrix* matrix);
 
-void fill_matrix_val(Matrix *matrix, const double* value);
+STATUS matrix_fill_val(Matrix *matrix, const double* value);
 
-Matrix copy_mat(Matrix matrix);
+STATUS matrix_clone(Matrix* matrix, Matrix** ret);
 
-Matrix matrix_add(Matrix fst_matx, Matrix snd_matx);
+STATUS matrix_add(Matrix* matA, Matrix* matB);
 
-Matrix matrix_subt(Matrix fst_matx, Matrix snd_matx);
+STATUS matrix_subt(Matrix* matA, Matrix* matB);
 
-Matrix matrix_mult(Matrix fst_matx, Matrix snd_matx);
+STATUS matrix_mult(Matrix* matA, Matrix* matB, Matrix** ret);
 
-Matrix matrix_mult_by_num(double a, Matrix matrix);
+STATUS matrix_mult_by_num(const double a, Matrix* matrix);
 
-void matrix_change_rows(Matrix *matrix, int fst_row, int snd_row);
+STATUS matrix_change_rows(Matrix *matrix, const size_t rowA, const size_t rowB);
 
-double matrix_det(Matrix matrix);
+STATUS matrix_det(Matrix* matrix, double* ret);
 
-Matrix matrix_pow(Matrix matrix, int power);
+STATUS matrix_pow(Matrix* matrix, const int power, Matrix** ret); // only support simple power
 
-double check_max_dif(Matrix fst_mat, Matrix snd_mat);
+STATUS matrix_check_max_diff(Matrix* matA, Matrix* matB, double* ret);
 
-Matrix matrix_exp(Matrix matrix);
+STATUS matrix_exp(Matrix* matrix, Matrix** ret);
 
-void free_mat(Matrix *matrix);
+STATUS matrix_equals(Matrix* matA, Matrix* matB, const double accuracy, int* res);
 
-void print_matx(Matrix matrix);
+void matrix_free(Matrix* matrix);
 
-void print_items(Matrix matrix);
-
+void matrix_print(Matrix* matrix);
 
 #endif //MATRIX_H
