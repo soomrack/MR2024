@@ -8,7 +8,7 @@ typedef long long int Money;
 const double inflation = 0.01;
 
 typedef struct Person {
-    Money bank;
+	Money bank;
 	Money salary;
 	Money home;
 	Money downplayment;
