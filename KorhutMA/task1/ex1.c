@@ -24,8 +24,8 @@ typedef struct Person
     char name[6];
 } Person;
 
-struct Person alice;
-struct Person bob;
+Person alice;
+Person bob;
 
 void alice_init()
 {
@@ -43,6 +43,7 @@ void alice_init()
     };
     strcpy(alice.name, "Alice");
 }
+
 void bob_init() 
 {
     bob = (Person){
@@ -55,9 +56,8 @@ void bob_init()
         .utility_expenses = 8000 * 100,
         .other_expenses = 17000 * 100,
         .deposit_rate = 0.2,
-        .rent = 30 * 1000 * 100;
-    }
-    strcpy(bob.name, "Bob");
+        .rent = 30 * 1000 * 100
+    };
 };
 
 void alice_income() 
@@ -84,7 +84,7 @@ void alice_home(const int year, const int month)
 {
     if (year == 2024 && month == 9)
     {
-        alice.bank - alice.downplayment;
+        alice.bank -= alice.downplayment;
     }
     alice.bank -= alice.mortgage_pay;
     alice.mortgage_pay += (Money)(alice.mortgage_pay * inflation / 12.0);
