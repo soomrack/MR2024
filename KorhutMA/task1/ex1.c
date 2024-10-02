@@ -27,6 +27,7 @@ typedef struct Person
 Person alice;
 Person bob;
 
+
 void alice_init()
 {
     alice = (Person){
@@ -44,6 +45,7 @@ void alice_init()
     strcpy(alice.name, "Alice");
 }
 
+
 void bob_init() 
 {
     bob = (Person){
@@ -60,10 +62,12 @@ void bob_init()
     };
 };
 
-void alice_income() 
+
+void alice_deposit() 
 {
     alice.bank += (Money)(alice.bank * alice.deposit_rate / 12.0);
 };
+
 
 void alice_salary(const int year, const int month) 
 {
@@ -74,21 +78,21 @@ void alice_salary(const int year, const int month)
     if (year == 2027 && (month == 10 || month == 11)) {
 
     }
-
     else {
         alice.bank += alice.salary;
     }
 };
 
+
 void alice_home(const int year, const int month) 
 {
-    if (year == 2024 && month == 9)
-    {
+    if (year == 2024 && month == 9) {
         alice.bank -= alice.downplayment;
     }
     alice.bank -= alice.mortgage_pay;
     alice.mortgage_pay += (Money)(alice.mortgage_pay * inflation / 12.0);
 };
+
 
 void alice_expenses() 
 {
@@ -99,16 +103,19 @@ void alice_expenses()
     alice.other_expenses += (Money)(alice.other_expenses * inflation);
 };
 
+
 void alice_home_index(const int month) 
 {
     if (month == 12)
         alice.home += (Money)(alice.home * (inflation));
 };
 
-void bob_income() 
+
+void bob_deposit() 
 {
     bob.bank += (Money)(bob.bank * bob.deposit_rate / 12.0);
 }
+
 
 void bob_salary(const int year, const int month) 
 {
@@ -117,10 +124,12 @@ void bob_salary(const int year, const int month)
     bob.bank += bob.salary;
 }
 
+
 void bob_rent() 
 {
     bob.bank -= bob.rent;
 }
+
 
 void bob_expenses() 
 {
@@ -130,6 +139,7 @@ void bob_expenses()
     bob.utility_expenses += (Money)(bob.utility_expenses * inflation);
     bob.other_expenses += (Money)(bob.other_expenses * inflation);
 };
+
 
 void simulation(const int start_month, const int start_year) 
 {
@@ -142,14 +152,14 @@ void simulation(const int start_month, const int start_year)
         alice_salary(year, month);
         alice_home(year, month);
         alice_expenses();
-        alice_income();
+        alice_deposit();
         alice_home_index(month);
 
         bob_salary(year, month);
         bob_rent();
         bob_expenses();
         bob_rent();
-        bob_income();
+        bob_deposit();
 
         ++month;
 
@@ -160,11 +170,13 @@ void simulation(const int start_month, const int start_year)
     }
 };
 
+
 void print_person(const Person person) 
 {
     printf("%s:\n", person.name);
     printf("  bank = %lld rub\n", (Money)(person.bank / 100));
 };
+
 
 void results() 
 {
@@ -178,6 +190,7 @@ void results()
         printf("\nDraw!\n");
     }
 }
+
 
 int main() 
 {
