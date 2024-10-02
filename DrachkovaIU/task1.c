@@ -59,7 +59,7 @@ void alice_init()
     alice.count -= alice.mortgage.first_pay;
 
     alice.house_price = alice.mortgage.sum;
-    alice.house_tax = 0.000001;          //ПРОВЕРИТЬ
+    alice.house_tax = 0.001;          //Налог на имущество
     alice.utilities = 4 * 1000 * 100;  //Коммунальные услуги
 
     alice.food_cost = 15 * 1000 * 100;
