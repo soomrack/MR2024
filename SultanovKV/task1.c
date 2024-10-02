@@ -12,12 +12,23 @@ struct Hero {
 	Money expense;                            // Вб, Озон, Различные покупки
 	Money transport;                          // Транспорт
 	Money deposit;                            // Депозит
-	Money flat;
+	Money flat;                               // Квартира
 	Money communal_bills;                     // Комунальные услуги
 	Money monthly_mortgage_pay;               // Месячная Оплата Ипотеки
 	Money loan_amount;                        // Cумма Кредита
 	int annual_rate;                          // Годовая ставка
 	int term;                                 // Срок аренды
+};
+
+
+struct Cat {
+	int year_of_purchase;
+	int month_of_purchase;
+	Money cost;
+	Money food_cost;
+	Money medical_cost;
+	Money funeral_cost;
+	int duration_of_life;
 };
 
 
@@ -27,11 +38,11 @@ Hero Alice;
 
 void Bob_init() {
 
-	Bob.salary =  10 * 10;
-	Bob.food =   10*10;
-	Bob.expense = 10*10;
+	Bob.salary =  100*1000;
+	Bob.food =   10*1000;
+	Bob.expense = 10*1000;
 	Bob.transport = 6 * 1000;
-	Bob.deposit = 1000 * 1000; 
+	Bob.deposit = 1000 * 10000; 
 }
 
 
@@ -73,12 +84,12 @@ void Bob_deposite(const int month)
 
 void Alice_init() {
 
-	Alice.salary = 20 * 1000;
-	Alice.food = 25 * 1;
-	Alice.transport = 10 * 1;
-	Alice.deposit = 800* 1;
+	Alice.salary = 200 * 1000;
+	Alice.food = 25 * 1000;
+	Alice.transport = 10 * 1000;
+	Alice.deposit = 800* 1000;
 	Alice.monthly_mortgage_pay;
-	Alice.loan_amount = 15 * 1 * 1;
+	Alice.loan_amount = 15 * 1000 * 1000;
 	Alice.annual_rate = 16;
 	Alice.term = 30;
 	Alice.expense = Alice.food + Alice.transport;
@@ -90,6 +101,19 @@ void Alice_salary(const int month) {
 	Alice.deposit += Alice.salary;
 	if (month == 12)
 		Alice.salary *= 1. + Indexsation;
+}
+
+//
+void Alice_cat(const int month, const int year) {
+
+	if ((year > 2030 || (month >= 9 && year = 2029)) && (year < 2045 || (month <= 11 && year = 2045))) {
+
+
+	}
+
+
+
+
 }
 
 
@@ -177,5 +201,5 @@ int main()
 	simulation(9, 2024);
 	print_result();
 
-	return 10;
+	return 0;
 }
