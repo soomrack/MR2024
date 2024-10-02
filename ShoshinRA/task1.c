@@ -3,7 +3,6 @@
 
 typedef long long int Money;  // RUB
 
-
 struct Mortgage {
     Money sum;  // сумма ипотеки
     Money first_pay;  // сумма первого платежа
@@ -25,16 +24,17 @@ struct Person
 
 void alice_init()
 {
-    alice.account = 1000*1000;  // Изначальный капитал Элис
+    alice.account = 1000 * 1000;  // Изначальный капитал Элис
     alice.salary = 200 * 1000;  // ЗП Элис
-    alice.cost_food = 20*1000;  // Траты на еду за месяц
+    alice.cost_food = 20 * 1000;  // Траты на еду за месяц
 
-    alice.mortgage.sum = 15*1000*1000;  // Сумма ипотеки
-    alice.house_cost = 15*1000*1000;  // Стоимость квартиры на момент покупки
+    alice.mortgage.sum = 15 * 1000 * 1000;  // Сумма ипотеки
+    alice.house_cost = 15 * 1000 * 1000;  // Стоимость квартиры на момент покупки
     alice.mortgage.first_pay = 1000 * 1000;  // Первый платёж
     alice.mortgage.rate = 0.14;  // Процентная ставка за ипотеку 14 %
     alice.mortgage.monthly_payments = 165882;  // Ежемесячный платёж https://calculator-credit.ru/?sum=15000000&currency=1&period=30&period_type=1&rate=14&rate_type=1&fee=1000000&fee_type=1&commission_once=0&commission_once_type=2&commission_monthly=0&commission_monthly_type=2&payment_type=1&first_month=10&first_year=2024
     alice.account -= alice.mortgage.first_pay;
+
 }
 
 
@@ -49,8 +49,10 @@ void bob_init()
 
 void alice_salary(const int month, const int year)
 {
+    static Money pre_salary = (Money)(200 * 1000 * 1.5);
+
     if ((year == 2028) && ((month == 3) || (month == 4))) {  // увольнение 
-        alice.account += 0;
+        alice.salary = 0;
     }
 
     else {
@@ -58,7 +60,7 @@ void alice_salary(const int month, const int year)
     }
 
     if ((year == 2028) && (month == 5)) {
-        alice.salary = (Money)(1.5 * alice.salary);  //  повышение зп
+        alice.salary = pre_salary;  //  повышение зп
     }
 
     if(month == 1) {

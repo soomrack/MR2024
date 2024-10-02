@@ -20,6 +20,7 @@ typedef struct
     Money utility_expenses;
     Money pay_for_flat;
     Money property;          // Стоимость имущества
+    Money car_expenses;
 } Person;
 
 
@@ -35,9 +36,23 @@ typedef struct
 } Mortgage;
 
 
+typedef struct
+{
+    char name[50];
+    Money cost;
+    Money gas_per_month_cost;
+    Money utility_cost;       //  ТО два раза в год
+    Money car_tax;
+    Money washing_per_month_cost;
+    int year_of_buy;
+    int month_of_buy;
+} Car;
+
+
 Person bob;      // Снимает квартиру
 Person alice;    // Выплачивает ипотеку за квартиру
 Mortgage alice_mortgage;
+Car bob_car_chepyrka;
 
 
 Money calculate_mortgage_pay(Mortgage mortgage)
@@ -101,6 +116,18 @@ void alice_buying_flat()
 }
 
 
+void bob_car_init(const int year_of_buy, const  int month_of_buy)
+{
+    bob_car_chepyrka.cost = 1.3 * 1000 * 1000;
+    bob_car_chepyrka.gas_per_month_cost = 27 * 1000;
+    bob_car_chepyrka.utility_cost = 20 * 1000;
+    bob_car_chepyrka.month_of_buy = month_of_buy;
+    bob_car_chepyrka.year_of_buy = year_of_buy;
+    bob_car_chepyrka.car_tax = 40 * 1000;
+    bob_car_chepyrka.washing_per_month_cost = 4000;
+}
+
+
 void bob_salary(const int month)
 {
     bob.money_on_bank_account += bob.salary;
@@ -126,7 +153,7 @@ void alice_salary(const int month, const int year)
 void bob_paying_expenses(const int month)
 {
     bob.money_on_bank_account -= 
-        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat);
+        (bob.food_expenses + bob.personal_expenses + bob.utility_expenses + bob.pay_for_flat + bob.car_expenses);
 
     if (month == 12) {
         bob.food_expenses *= (1. + INFLATION_RATE);
@@ -180,6 +207,36 @@ void alice_deposit_increasing()
 }
 
 
+void bob_car_expenses(const int current_year, const int current_month)
+{
+    static int is_car = 0;
+    
+    if (current_year == 2029 && current_month == 7) {
+        bob_car_init(current_year, current_month);
+        bob.deposit -= bob_car_chepyrka.cost;
+        is_car = 1;
+    }
+    
+    if (is_car) {
+        bob.money_on_bank_account -= (bob_car_chepyrka.gas_per_month_cost + bob_car_chepyrka.washing_per_month_cost);
+
+        if (current_month == bob_car_chepyrka.month_of_buy + 6 || current_month == bob_car_chepyrka.month_of_buy) {
+            bob.money_on_bank_account -= bob_car_chepyrka.utility_cost;
+        }
+
+        if (current_year > 2029 && current_month == 12) {
+            bob.money_on_bank_account -= bob_car_chepyrka.car_tax;
+
+            bob_car_chepyrka.car_tax *= (1. + INFLATION_RATE);
+            bob_car_chepyrka.gas_per_month_cost *= (1. + INFLATION_RATE);
+            bob_car_chepyrka.utility_cost *= (1. + INFLATION_RATE);
+            bob_car_chepyrka.washing_per_month_cost *= (1. + INFLATION_RATE);
+            bob_car_chepyrka.cost *= (1. + INFLATION_RATE);
+        }   
+    }   
+}
+
+
 void simulation(int start_year, int start_month, int years_to_simulate)
 {
     int current_year = start_year;
@@ -190,6 +247,7 @@ void simulation(int start_year, int start_month, int years_to_simulate)
     
         bob_salary(current_month);
         bob_paying_expenses(current_month);
+         bob_car_expenses(current_year, current_month);
         bob_deposit_increasing();
         
         alice_salary(current_month, current_year);
@@ -197,8 +255,7 @@ void simulation(int start_year, int start_month, int years_to_simulate)
         alice_paying_mortgage(current_year, current_month);
         alice_deposit_increasing();
         
-        current_month += 1;
-
+        current_month ++;
         if (current_month == 13) {
             current_year++;
             current_month = 1;
@@ -209,8 +266,8 @@ void simulation(int start_year, int start_month, int years_to_simulate)
 
 void printing_results()
 {
-    printf("Капитал Боба: %lld руб, капитал Элис: %lld руб и имущество на %lld руб", 
-            bob.deposit, alice.deposit, alice.property);
+    printf("Капитал Боба: %lld руб и имущество на %lld руб, капитал Элис: %lld руб и имущество на %lld руб", 
+            bob.deposit, bob_car_chepyrka.cost, alice.deposit, alice.property);
 }
 
 

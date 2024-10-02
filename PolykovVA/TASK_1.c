@@ -42,7 +42,7 @@ typedef struct {
 Person bob;
 Person alice;
 Mortgage alice_mortgage;
-Car gelic;
+Car bob_gelic;
 
 Cash calculate_mortgage_pay(Mortgage mortgage) {
     int number_of_months = mortgage.duration_years * 12;
@@ -85,13 +85,13 @@ void alice_init() {
 }
 
 void gelic_init() {
-    gelic.cost = 30 * 1000 * 1000; // Car cost in rubles
-    gelic.benzin_per_month_cost = 50 * 100; 
-    gelic.utility_cost = 50 * 1000; 
-    gelic.car_tax = 30 * 1000; 
-    gelic.washing_per_month_cost = 1 * 1000; 
-    gelic.year_of_purchasing = 2038;
-    gelic.month_of_purchasing = 7;
+    bob_gelic.cost = 30 * 1000 * 1000; // Car cost in rubles
+    bob_gelic.benzin_per_month_cost = 50 * 100; // Monthly fuel cost
+    bob_gelic.utility_cost = 5 * 1000; // Monthly utility cost
+    bob_gelic.car_tax = 3 * 1000; // Car tax
+    bob_gelic.washing_per_month_cost = 1 * 1000; // Car washing cost
+    bob_gelic.year_of_purchasing = 2038;
+    bob_gelic.month_of_purchasing = 7;
 }
 
 void bob_salary(const int month) {
@@ -121,27 +121,23 @@ void bob_expense(const int month) {
     }
 }
 
-void bob_disaster(const int month, const int year) {
-    if (month == gelic.month_of_purchasing && year == gelic.year_of_purchasing) {
-        bob.deposit -= gelic.cost;  
+
+
+void bob_car(const int year, const int month) {
+    if (month == bob_gelic.month_of_purchasing && year == bob_gelic.year_of_purchasing) {
+        bob.deposit -= bob_gelic.cost;  // Gelic car purchase
     }
-}
+    if (year > bob_gelic.year_of_purchasing ||
+        (year == bob_gelic.year_of_purchasing && month >= bob_gelic.month_of_purchasing)) {
 
-void bob_car_annual_expense(const int year, const int month) {
-    if (year > gelic.year_of_purchasing ||
-        (year == gelic.year_of_purchasing && month > gelic.month_of_purchasing)) {
-       
-        Cash total_car_expense = (gelic.benzin_per_month_cost + gelic.washing_per_month_cost) * 12
-            + gelic.car_tax + gelic.utility_cost;
+        bob.deposit -= bob_gelic.benzin_per_month_cost + bob_gelic.washing_per_month_cost
+            + bob_gelic.utility_cost;
 
-        if (month == 12) {  
-            bob.deposit -= total_car_expense;
-        }
         if (month == 12) {
-            gelic.benzin_per_month_cost *= 1. + INFLATION_RATE;
-            gelic.washing_per_month_cost *= 1. + INFLATION_RATE;
-            gelic.car_tax *= 1. + INFLATION_RATE;
-            gelic.utility_cost *= 1. + INFLATION_RATE;
+            bob.deposit -= bob_gelic.car_tax;
+            bob_gelic.benzin_per_month_cost *= 1. + INFLATION_RATE;
+            bob_gelic.washing_per_month_cost *= 1. + INFLATION_RATE;
+            bob_gelic.utility_cost *= 1. + INFLATION_RATE;
         }
     }
 }
@@ -199,8 +195,7 @@ void simulation(int start_year, int start_month, int years_to_simulate) {
         bob_expense(current_month);
         bob_flat(current_month);
         bob_deposit(current_month);
-        bob_disaster(current_month, current_year);
-        bob_car_annual_expense(current_year, current_month);
+        bob_car(current_year, current_month);
 
         alice_salary(current_month);
         alice_expense(current_month);
@@ -209,7 +204,6 @@ void simulation(int start_year, int start_month, int years_to_simulate) {
         alice_mortgage_monthly_pay();
 
         current_month += 1;
-
         if (current_month == 13) {
             current_year++;
             current_month = 1;
@@ -217,10 +211,12 @@ void simulation(int start_year, int start_month, int years_to_simulate) {
     }
 }
 
+
 void print_result() {
     printf("Bob capital = %lli Rub\n", (Cash)(bob.deposit));
     printf("Alice capital = %lli Rub\n", (Cash)(alice.deposit));
 }
+
 
 int main() {
     alice_init();

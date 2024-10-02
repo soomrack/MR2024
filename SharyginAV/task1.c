@@ -4,6 +4,7 @@
 const int YEAR_START = 2024;
 const int MONTH_START = 9;
 const int DURATION = 30;
+const int medical_incom_tax = 120 * 1000;
 
 const double TAX_DEDUCTION = 13.0;
 const double INFLATION = 8.0;  // проценты
@@ -18,6 +19,7 @@ struct Person {
     Money big_teeth_expenses;
     Money half_year_teeth_expenses;
     Money rent;
+    Money medical_expenses;
 } bob, alice;
 
 
@@ -77,6 +79,7 @@ void bob_init()
     bob.big_teeth_expenses = 70 * 1000;
     bob.half_year_teeth_expenses = 25 * 1000;
     bob.rent = 30 * 1000;
+    bob.medical_expenses = 0;
 }
 
 
@@ -121,17 +124,24 @@ void bob_expenses(const int month, const int year)
 }
 
 
-void teeth_expenses(const int month, const int year)
+void bob_teeth_expenses(const int month, const int year)
 {
     if (year == 2028 && (month == 4 || month == 6)) {
         bob.bank_account -=  bob.big_teeth_expenses;
-        bob.bank_account +=  bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
+        bob.medical_expenses +=  bob.big_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
 
-    if (year > 2028 && (month == 9 || month == 3)) {
+    if (year > 2028 && (month == 3 || month == 9)) {
         bob.bank_account -= bob.half_year_teeth_expenses;
-        bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
+        bob.medical_expenses += bob.half_year_teeth_expenses * (TAX_DEDUCTION / 100.0);
     }
+
+    if (bob.medical_expenses <= medical_incom_tax) {
+        bob.bank_account += bob.medical_expenses * (TAX_DEDUCTION * 100);
+    }
+    else bob.bank_account += medical_incom_tax;
+
+    bob.medical_expenses = 0;
 }
 
 
@@ -146,7 +156,7 @@ void alice_expenses(const int month)
 }
 
 
-void house_price_increase(const int month)
+void alice_house_price_increase(const int month)
 {
     if (month == 12) {
         mortgage.apartment_cost *= 1 + INFLATION / 100;
@@ -172,16 +182,15 @@ void simulation(int year, int month)
         
         bob_salary(month);
         bob_expenses(month, year);
-        teeth_expenses(month, year);
+        bob_teeth_expenses(month, year);
         bob_dep();
 
         alice_salary(month);
         alice_expenses(month);
-        house_price_increase(month);
+        alice_house_price_increase(month);
         alice_dep();
 
         ++month;
-        
         if (month == 13) {
             month = 1;
             ++year;
