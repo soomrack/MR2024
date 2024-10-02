@@ -3,22 +3,19 @@
 typedef long long int Money; //коп.
 const double INFLATION = 1.09;
 
-typedef struct 
-{
+typedef struct  {
     Money sum;
     Money first_pay;
     Money monthly_payment;
     double rate;
 } Mortgage;
 
-typedef struct 
-{
+typedef struct  {
     Money pledge;
     Money monthly_chek;
 } Rent;
 
-typedef struct 
-{
+typedef struct  {
     Money price;
     Money petrol;
     Money technical;
@@ -26,8 +23,7 @@ typedef struct
     double tax; 
 } Car;
 
-typedef struct 
-{
+typedef struct  {
     Money salary;
     Money count;
 
@@ -70,7 +66,6 @@ void alice_init()
     
     alice.deposit_rate = 0.2;
     alice.inflation_rate = 0.09;
-
 }
 
 
