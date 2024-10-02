@@ -5,8 +5,8 @@
 unsigned long int start_balance = 1000000;
 unsigned long int salary = 200000; 
 
-int mortage_duration = 30;
-int mortage_rate = 16;
+int mortgage_duration = 30;
+int mortgage_rate = 16;
 
 int start_year = 2024;
 int start_month = 9;
@@ -14,7 +14,15 @@ int start_month = 9;
 unsigned long int appartment_cost = 13000000;
 unsigned long int appartment_rent = 30000;
 
-unsigned long int base_deposit = 0; 
+int cat_month_cost = 1500;
+int cat_doctor_cost = 3000;
+int cat_life_expectancy = 16;
+int cat_funiral_cost = 12000;
+
+unsigned long int dacha_year_cost = 60000;
+unsigned long int vegetables_cost = 25000;
+
+unsigned long int base_deposit = 0;
 
 int deposit_rate = 20;
 int inflation_rate = 9; 
@@ -23,94 +31,129 @@ unsigned long int personal_cost = 15000;
 unsigned long int food_cost = 20000; 
 unsigned long int service_cost = 6000; 
 
-typedef struct
-{
+
+typedef struct {
     int start_year;
     int start_month;
     int end_year;
     int end_month;
     int current_year;
     int current_month;
-} datesType;
+    int cat_end_year;
+} Dates;
 
-typedef struct 
-{
+typedef struct  {
     int cost;
     int period;
     int rate;
     int payment;
-} mortageType;
+} Mortgage;
 
-typedef struct 
-{
+typedef struct  {
     long value;
     int rate;
-} depositType;
+} Deposit;
 
-typedef struct
-{
+typedef struct {
     char name[20];
     long capital;
     int salary;
-    depositType deposit;
-} personType;
+    Deposit deposit;
+} Person;
 
-double percent(int value) {
-    return value / 100.0;
-}
 
-void calculate_motrtage_payment(mortageType* m) {
-    float monthly_rate = percent(m->rate) / 12;
+void calculate_motrtage_payment(Mortgage* m) {
+    float monthly_rate = (m->rate / 100.0) / 12;
     float total_rate = pow(1 + monthly_rate, m->period * 12);
     m->payment = m->cost * monthly_rate * total_rate / (total_rate - 1);
 }
 
+
 void life_inflation() {
-    appartment_cost *= 1 + percent(inflation_rate);
-    appartment_rent *= 1 + percent(inflation_rate);
-    food_cost *= 1 + percent(inflation_rate);
-    service_cost *= 1 + percent(inflation_rate);
-    personal_cost *= 1 + percent(inflation_rate);
+    appartment_cost *= 1 + (inflation_rate / 100.0);
+    appartment_rent *= 1 + (inflation_rate / 100.0);
+    food_cost *= 1 + (inflation_rate / 100.0);
+    service_cost *= 1 + (inflation_rate / 100.0);
+    personal_cost *= 1 + (inflation_rate / 100.0);
+    cat_month_cost *= 1 + (inflation_rate / 100.0);
+    cat_doctor_cost *= 1 + (inflation_rate / 100.0);
+    vegetables_cost *= 1 + (inflation_rate / 100.0);
+    dacha_year_cost *= 1 + (inflation_rate / 100.0);
+    cat_funiral_cost *= 1 + (inflation_rate / 100.0);
 }
 
-void salary_inflation(personType* p) {
-    p->salary *= 1 + percent(inflation_rate);
+
+void salary_inflation(Person* p) {
+    p->salary *= 1 + (inflation_rate / 100.0);
 }
 
-void recieve_salary(personType* p) {
+
+void recieve_salary(Person* p) {
     p->capital += p->salary;
 }
 
-void pay_mortgage(personType* p, mortageType* m) {
+
+void pay_mortgage(Person* p, Mortgage* m) {
     p->capital -= m->payment;
 }
 
-void pay_rent(personType* p) {
+
+void pay_rent(Person* p) {
     p->capital -= appartment_rent;
 }
 
-void pay_bills(personType* p) {
+
+void pay_bills(Person* p) {
     p->capital -= (food_cost + service_cost + personal_cost);
 }
 
-void increase_deposit(personType* p) {
+
+void pay_dacha(Person* p) {
+    p->capital -= dacha_year_cost;
+}
+
+void vegetables_sell(Person* p) {
+    p->capital += vegetables_cost;
+}
+
+
+void cat_expenses(Person* p) {
+    p->capital -= cat_month_cost;
+}
+
+
+void cat_doctor_expenses(Person* p) {
+    p->capital -= cat_doctor_cost;
+}
+
+
+void cat_funiral_expenses(Person* p) {
+    p->capital -= cat_funiral_cost;
+}
+
+
+void increase_deposit(Person* p) {
     p->deposit.value += p->capital;
-    p->deposit.value *= 1 + percent(p->deposit.rate) / 12;
+    p->deposit.value *= 1 + (p->deposit.rate / 100.0) / 12;
     p->capital = 0;
 }
 
-void show_capital(personType* p) {
+
+void show_capital(Person* p) {
     printf("%s\n", p->name);
     printf(" Balance is %.ld rub\n", p->capital);
 }
 
-void show_date(datesType* d) {
+
+void show_date(Dates* d) {
     printf("Current year is %d\n", d->current_year);
     printf("Current month is %d\n", d->current_month);
 }
 
-datesType init_dates(int start_year, int start_month, int duration) {
+
+Dates init_dates(int start_year, int start_month, int duration, int cat_life_expectancy) {
     int end_year = start_year + duration;
+    int cat_end_year = start_year + cat_life_expectancy;
     int end_month = 12;
 
     if (start_month - 1 == 0) {
@@ -120,65 +163,83 @@ datesType init_dates(int start_year, int start_month, int duration) {
         end_month = start_month - 1;
     }
 
-    datesType result = {start_year, start_month, end_year, end_month, start_year, start_month};
+    Dates result = {start_year, start_month, end_year, end_month, start_year, start_month, cat_end_year};
     return result;
 }
 
-void move_to_next_year(datesType* d) {
+
+void move_to_next_year(Dates* d) {
     d->current_year++;
     d->current_month = 1;
 }
 
-void move_to_next_month(datesType* d) {
+
+void move_to_next_month(Dates* d) {
     d->current_month++;
 }
 
-void calculate_capital(personType* p, long components[], int components_count) {
+
+void calculate_capital(Person* p, long components[], int components_count) {
     for (int i = 0; i < components_count; i++) {
         p->capital += components[i];
     }
 }
 
+
 struct Simulation {
-    personType alice;
-    personType bob;
-    mortageType mortage;
-    datesType dates;
+    Person alice;
+    Person bob;
+    Mortgage mortgage;
+    Dates dates;
 };
+
 
 struct Simulation init_simulation() {
     setlocale(LC_NUMERIC, "");
 
-    depositType deposit = {base_deposit, deposit_rate};
-    personType alice = {"Alice", start_balance, salary, deposit};
-    personType bob = {"Bob", start_balance, salary, deposit};
-    datesType dates = init_dates(start_year, start_month, mortage_duration);
+    Deposit deposit = {base_deposit, deposit_rate};
+    Person alice = {"Alice", start_balance, salary, deposit};
+    Person bob = {"Bob", start_balance, salary, deposit};
+    Dates dates = init_dates(start_year, start_month, mortgage_duration, cat_life_expectancy);
 
-    mortageType mortage = {appartment_cost, mortage_duration, mortage_rate};
+    Mortgage mortgage = {appartment_cost, mortgage_duration, mortgage_rate};
 
-    calculate_motrtage_payment(&mortage);
+    calculate_motrtage_payment(&mortgage);
 
-    struct Simulation result = {alice, bob, mortage, dates};
+    struct Simulation result = {alice, bob, mortgage, dates};
     return result;
 }
 
+
 void run_simulation(struct Simulation simulation) {
-    while (simulation.dates.current_year <= simulation.dates.end_year) {
+    while (simulation.dates.current_year <= simulation.dates.end_year && !(simulation.dates.current_year == simulation.dates.end_year && simulation.dates.current_month == simulation.dates.end_month)) {
         recieve_salary(&simulation.alice);
-        recieve_salary(&simulation.bob);
-
         pay_bills(&simulation.alice);
-        pay_bills(&simulation.bob);
-        
-        pay_mortgage(&simulation.alice, &simulation.mortage);
-        pay_rent(&simulation.bob);
-
+        pay_mortgage(&simulation.alice, &simulation.mortgage);
         increase_deposit(&simulation.alice);
+
+        pay_dacha(&simulation.alice);
+        if (simulation.dates.current_month >= 6 && simulation.dates.current_year <= 8) {
+            vegetables_sell(&simulation.alice);
+        }
+
+
+        recieve_salary(&simulation.bob);
+        pay_bills(&simulation.bob);
+        pay_rent(&simulation.bob);
         increase_deposit(&simulation.bob);
 
-        if (simulation.dates.current_year == simulation.dates.end_year && simulation.dates.current_month == simulation.dates.end_month) {
-            break;
-        } else if (simulation.dates.current_month == 12) {
+        if (simulation.dates.current_year <= simulation.dates.cat_end_year) {
+            cat_expenses(&simulation.bob);
+            if (simulation.dates.current_month == 11) {
+                cat_doctor_expenses(&simulation.bob);
+            }
+            if (simulation.dates.current_year == simulation.dates.cat_end_year) {
+            cat_funiral_expenses(&simulation.bob);
+            }
+        }
+
+        if (simulation.dates.current_month == 12) {
             salary_inflation(&simulation.alice);
             salary_inflation(&simulation.bob);
             life_inflation();
@@ -194,6 +255,7 @@ void run_simulation(struct Simulation simulation) {
     show_capital(&simulation.alice);
     show_capital(&simulation.bob);
 }
+
 
 int main() {
     struct Simulation simulation = init_simulation();
