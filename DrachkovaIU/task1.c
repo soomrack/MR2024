@@ -41,7 +41,6 @@ typedef struct  {
     double inflation_rate;
 } Person; 
 
-
 Person alice;
 Person bob;
 
@@ -133,18 +132,18 @@ void bob_init()
     bob.count = 1000 * 1000 *100;
 
     bob.rent.pledge = 30 * 1000 * 100;
-    bob.rent.monthly_chek = 37 * 1000 * 100;              //Аренда + комуналка сразу в счёт за квартиру
+    bob.rent.monthly_chek = 37 * 1000 * 100;            //Аренда + комуналка сразу в счёт за квартиру
     bob.count -= bob.rent.pledge;
-    bob.utilities = 4 * 1000 * 100;                       //Коммунальные услуги
+    bob.utilities = 4 * 1000 * 100;                     //Коммунальные услуги
 
     bob.food_cost = 18 * 1000 * 100;
-    bob.selth_expenses = 5 * 1000 * 100;                  //Оплата бытовых покупок, одежды и пр.
+    bob.selth_expenses = 5 * 1000 * 100;                //Оплата бытовых покупок, одежды и пр.
 
     bob.car.price = 2 * 1000 * 1000 * 100;
     bob.car.petrol = 15 * 1000 * 100;
-    bob.car.technical = 10 * 1000 * 100;                  //Техническое обслуживание машины
-    bob.car.insurance = 7 * 1000 * 100;                   //Страховка
-    bob.car.tax = 8 * 1000 * 100;                         //Налог на машину
+    bob.car.technical = 10 * 1000 * 100;                //Техническое обслуживание машины
+    bob.car.insurance = 7 * 1000 * 100;                 //Страховка
+    bob.car.tax = 8 * 1000 * 100;                       //Налог на машину
 
     bob.deposit_rate = 0.2;
     bob.inflation_rate = 0.09;
@@ -154,7 +153,7 @@ void bob_init()
 void bob_salary(const int month)
 {
     if(month == 1){
-        bob.salary *= 1.07;                              //Индексация зп
+        bob.salary *= 1.07;                             //Индексация зп
     }
     
     bob.count += bob.salary;
