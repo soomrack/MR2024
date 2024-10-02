@@ -147,8 +147,7 @@ void simulation(const int start_month, const int start_year)
     int month = start_month;
     alice.bank = 0;
 
-    while (!(year == (start_year + 30) && month == start_month)) 
-    {
+    while (!(year == (start_year + 30) && month == start_month)) {
         alice_salary(year, month);
         alice_home(year, month);
         alice_expenses();
