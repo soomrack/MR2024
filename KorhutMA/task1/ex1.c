@@ -8,13 +8,11 @@ typedef long long int Money; //kopeek
 
 const double inflation = 0.01;
 
-typedef struct Person 
+typedef struct Person
 {
     Money bank;
     Money salary;
     Money home;
-    Money downplayment;
-    Money mortgage_pay;
     Money food_expenses;
     Money utility_expenses;
     Money other_expenses;
@@ -28,14 +26,21 @@ Person alice;
 Person bob;
 
 
+typedef struct Credit
+{
+    Money downplayment;
+    Money mortgage_pay;
+} Credit;
+
+Credit alice_credit;
+
+
 void alice_init()
 {
     alice = (Person){
         .bank = 1000 * 1000 * 100,
         .salary = 250 * 1000 * 100,
         .home = 13 * 1000 * 1000 * 100,
-        .downplayment = 1000 * 1000 * 100,
-        .mortgage_pay = 16137084, // взят из calcus.ru
         .food_expenses = 15 * 1000 * 100,
         .utility_expenses = 8000 * 100,
         .other_expenses = 17000 * 100,
@@ -46,30 +51,38 @@ void alice_init()
 }
 
 
-void bob_init() 
+void bob_init()
 {
     bob = (Person){
         .bank = 1000 * 1000 * 100,
         .salary = 250 * 1000 * 100,
         .home = 0,
-        .downplayment = 0,
-        .mortgage_pay = 0,
         .food_expenses = 15000 * 100,
         .utility_expenses = 8000 * 100,
         .other_expenses = 17000 * 100,
         .deposit_rate = 0.2,
         .rent = 30 * 1000 * 100
     };
+    strcpy(bob.name, "Bob");
 };
 
 
-void alice_deposit() 
+void creedit_init()
+{
+    alice_credit = (Credit){
+        .downplayment = 1000 * 1000 * 100,
+        .mortgage_pay = 16137084, // взят из calcus.ru
+    };
+};
+
+
+void alice_deposit()
 {
     alice.bank += (Money)(alice.bank * alice.deposit_rate / 12.0);
 };
 
 
-void alice_salary(const int year, const int month) 
+void alice_salary(const int year, const int month)
 {
     if (month == 12) {
         alice.salary += (Money)(alice.salary * inflation);
@@ -84,17 +97,17 @@ void alice_salary(const int year, const int month)
 };
 
 
-void alice_home(const int year, const int month) 
+void alice_home(const int year, const int month)
 {
     if (year == 2024 && month == 9) {
-        alice.bank -= alice.downplayment;
+        alice.bank -= alice_credit.downplayment;
     }
-    alice.bank -= alice.mortgage_pay;
-    alice.mortgage_pay += (Money)(alice.mortgage_pay * inflation / 12.0);
+    alice.bank -= alice_credit.mortgage_pay;
+    alice_credit.mortgage_pay += (Money)(alice_credit.mortgage_pay * inflation / 12.0);
 };
 
 
-void alice_expenses() 
+void alice_expenses()
 {
     alice.bank -=
         (alice.food_expenses + alice.utility_expenses + alice.other_expenses);
@@ -104,34 +117,34 @@ void alice_expenses()
 };
 
 
-void alice_home_index(const int month) 
+void alice_home_index(const int month)
 {
     if (month == 12)
         alice.home += (Money)(alice.home * (inflation));
 };
 
 
-void bob_deposit() 
+void bob_deposit()
 {
     bob.bank += (Money)(bob.bank * bob.deposit_rate / 12.0);
 }
 
 
-void bob_salary(const int year, const int month) 
+void bob_salary(const int year, const int month)
 {
     if (month == 12)
-    bob.salary += (Money)(bob.salary * inflation);
+        bob.salary += (Money)(bob.salary * inflation);
     bob.bank += bob.salary;
 }
 
 
-void bob_rent() 
+void bob_rent()
 {
     bob.bank -= bob.rent;
 }
 
 
-void bob_expenses() 
+void bob_expenses()
 {
     bob.bank -=
         (bob.food_expenses + bob.utility_expenses + bob.other_expenses);
@@ -141,7 +154,7 @@ void bob_expenses()
 };
 
 
-void simulation(const int start_month, const int start_year) 
+void simulation(const int start_month, const int start_year)
 {
     int year = start_year;
     int month = start_month;
@@ -170,14 +183,14 @@ void simulation(const int start_month, const int start_year)
 };
 
 
-void print_person(const Person person) 
+void print_person(const Person person)
 {
     printf("%s:\n", person.name);
     printf("  bank = %lld rub\n", (Money)(person.bank / 100));
 };
 
 
-void results() 
+void results()
 {
     if (alice.bank + alice.home > bob.bank) {
         printf("\nAlice won!\n");
@@ -191,10 +204,11 @@ void results()
 }
 
 
-int main() 
+int main()
 {
     alice_init();
     bob_init();
+    creedit_init();
 
     simulation(9, 2024);
 
