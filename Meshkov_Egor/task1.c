@@ -344,7 +344,7 @@ Money simulation_Bob(Person *Bob) {
 			return 0;
 
 		update_deposit_for_Bob(Bob);
-		/*if(is_date_buy_car(&date_current, &date_purchase))
+		/*if(is_date_buy_car(&date_current, &date_purchase)) 
 			try_to_buy_car_for_Bob(Bob, &date_purchase);*/
 
 		inflation_for_Bob(Bob);
