@@ -526,7 +526,7 @@ void reverseMatrix(Matrix *matrix, Matrix *reverse_matrix)
 }
 
 
-// Function to solve matrix equation A * X = B
+// Function to solve matrix equation A * X = B 
 Matrix solveMatrixEquation(Matrix matrixA, Matrix matrixB)
 {
   Matrix reverse_MatrixA = mallocMatrix(matrixA.rows, matrixA.cols);
