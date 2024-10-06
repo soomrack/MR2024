@@ -128,6 +128,8 @@ void bob_car_init(const int year_of_purchasing, const  int month_of_purchasing)
     bob_car.year_of_purchasing = year_of_purchasing;
     bob_car.car_tax = 40 * 1000;
     bob_car.washing_per_month_cost = 4000;
+
+    bob.deposit -= bob_car.cost;
 }
 
 
