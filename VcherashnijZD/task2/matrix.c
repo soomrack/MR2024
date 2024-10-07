@@ -124,61 +124,73 @@ STATUS matrix_mult_by_num(Matrix matrix, const double a) {
     return OK;
 }
 
-// TODO
+
 STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
     if (rowA >= matrix.rows || rowB >= matrix.rows) {
         return ERR_SIZE;
     }
-    for (size_t j = 0; j < matrix.cols; ++j) {
-        double temp = matrix.values[rowA * matrix.cols + j];
-        matrix.values[rowA * matrix.cols + j] = matrix.values[rowB * matrix.cols + j];
-        matrix.values[rowB * matrix.cols + j] = temp;
-    }
+
+    // Calculate the starting addresses of the rows
+    double* row_a_ptr = matrix.values + rowA * matrix.cols;
+    double* row_b_ptr = matrix.values + rowB * matrix.cols;
+
+    // Use memcpy to swap the rows efficiently
+    memcpy(row_a_ptr, row_b_ptr, matrix.cols * sizeof(double));
+    memcpy(row_b_ptr, row_a_ptr, matrix.cols * sizeof(double)); 
+
     return OK;
 }
 
 
 STATUS matrix_det(double* ret, Matrix matrix) {
-    if (matrix.rows != matrix.cols)
+    if (matrix.rows != matrix.cols) {
         return ERR_SIZE;
+    }
+
     if (matrix.rows == 1) {
         *ret = matrix.values[0];
         return OK;
     }
+
     if (matrix.rows == 2) {
         *ret = matrix.values[0] * matrix.values[3] - matrix.values[1] * matrix.values[2];
         return OK;
     }
+
     double det = 0.0;
-    Matrix submatrix;
-    STATUS status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
-    if (status != OK)
-        return status;
-    for (size_t excludedCol = 0; excludedCol < matrix.cols; ++excludedCol) {
-        size_t subRow = 0;
+    for (size_t i = 0; i < matrix.cols; ++i) {
+        Matrix submatrix;
+        STATUS status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
+        if (status != OK) {
+            return status;
+        }
+
+        size_t sub_row = 0;
         for (size_t row = 1; row < matrix.rows; ++row) {
-            size_t subCol = 0;
+            size_t sub_col = 0;
             for (size_t col = 0; col < matrix.cols; ++col) {
-                if (col != excludedCol) {
-                    submatrix.values[subRow * (matrix.cols - 1) + subCol] = matrix.values[row * matrix.cols + col];
-                    subCol++;
+                if (col != i) {
+                    submatrix.values[sub_row * (matrix.cols - 1) + sub_col] = matrix.values[row * matrix.cols + col];
+                    sub_col++;
                 }
             }
-            subRow++;
+            sub_row++;
         }
-        double subDet;
-        status = matrix_det(&subDet, submatrix);
+
+        double sub_det;
+        status = matrix_det(&sub_det, submatrix);
         if (status != OK) {
             matrix_free(&submatrix);
             return status;
         }
-        det += (excludedCol % 2 ? -1 : 1) * matrix.values[excludedCol] * subDet;
+
+        det += (i % 2 == 0 ? 1 : -1) * matrix.values[i] * sub_det;
         matrix_free(&submatrix);
     }
+
     *ret = det;
     return OK;
 }
-
 
 
 // TODO only support simple power

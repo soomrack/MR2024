@@ -266,7 +266,6 @@ int main() {
     printf("Test equals\n");
     test_matrix_equals();
 
-    printf("All tests passed!\n");
     return 0;
 }
 
