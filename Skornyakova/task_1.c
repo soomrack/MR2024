@@ -41,6 +41,7 @@ void Alice_init ()
     Alice.mortgage.monthly_payment = 178209; // посчитан на сайте https://www.banki.ru/services/calculators/hypothec/
 } 
 
+
 void Bob_init() 
 {
     Bob.wallet = 0; 
@@ -51,6 +52,7 @@ void Bob_init()
     Bob.apartment_payment = 30 * 1000;  
 }
 
+
 void Alice_salary(const int month)
 {
   Alice.wallet += Alice.salary;
@@ -58,12 +60,26 @@ void Alice_salary(const int month)
     Alice.salary *= 1.08;
 }
 
-void Bob_salary( const int month)
+
+void Bob_salary( const int month, const int year)
 {
   Bob.wallet += Bob.salary;
    if (month == 12)
    Bob.salary *= 1.08; 
-}
+  
+  int incident_year = 2025;
+  int end_year =  incident_year + 1;//в каком году  Боб выйдет на работу
+  int end_month = 9;
+  static Money memory;
+  memory = Bob.salary;
+  if ((year == incident_year)&&(month == end_month)) {
+    Bob.salary = 0;
+  }
+  if ((year == end_year) && (month == end_month)){
+   Bob.salary = memory *2;  
+  } 
+} 
+
 
 void Alice_others_expences( const int month) 
 {
@@ -109,24 +125,15 @@ void Bob_deposit()
 {
   Bob.deposit += Bob.wallet ;
   Bob.wallet = 0;
+  if (Bob.deposit > 0)
   Bob.deposit *= 1.0167;
 }
 
-void Bob_incident(const int now_year, const int year, const int duration)
-{
-    if ( now_year == year) {
-    Money memory = Bob.salary;
-    int end_year = year + duration;
-    while (!(year == end_year)) {
-        Bob.salary = 0;
-    }
-    Bob.salary = memory*2;
-    }
-} 
+
 
 void Simulation( const int start_year, const int start_month)
 {
-    int end_year = start_year + 25;
+    int end_year = start_year + 30;
     int month = start_month;
     int year = start_year;
     while( !((year == end_year) && (month == start_month ))) {
@@ -136,11 +143,11 @@ void Simulation( const int start_year, const int start_month)
         Alice_deposit();
         Alice_flat_price(month);
 
-        Bob_salary(month);
+        Bob_salary(month,year);
         Bob_others_expences(month);
         Bob_accommodation_payment(month);
         Bob_deposit();
-        Bob_incident(year,2035,1)
+        
        
 
         month ++;
@@ -160,6 +167,7 @@ void person_printf()
 
 int main()
 {
+  
   Alice_init();
   Bob_init();
 
