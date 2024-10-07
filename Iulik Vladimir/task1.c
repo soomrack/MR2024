@@ -41,6 +41,10 @@ void alice_init()
     alice.utility_expenses = 8 * 1000 * 100;
     alice.other_expenses = 17 * 1000 * 100;
     alice.deposit = 0;
+
+    //  вносим за Алису первоначальный платеж и обнуляем её банк
+    IPOTEKA_AMOUNT = alice.capital;
+    alice.capital = 0;
 }
 
 
@@ -54,6 +58,10 @@ void bob_init()
     bob.other_expenses = 17 * 1000 * 100;
     bob.rent = 30 * 1000 * 100;
     bob.deposit = 0;
+
+    //  вносим депозит в банк за Боба
+    bob.deposit = bob.capital;
+    bob.capital -= bob.deposit;
 }
 
 
@@ -159,14 +167,6 @@ void print_coclusion(const Money bob_loot, const Money alice_loot)
 void simulation(int month, int year)
 {
     int end_year = year + 30;
-
-    //  вносим за Алису первоначальный платеж и обнуляем её банк
-    IPOTEKA_AMOUNT = alice.capital;
-    alice.capital = 0;
-
-    //  вносим депозит в банк за Боба
-    bob.deposit = bob.capital;
-    bob.capital -= bob.deposit;
 
     while (!((year == end_year) && (month == MONTH))) {
         alice_salary(month);
