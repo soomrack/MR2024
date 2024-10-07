@@ -319,3 +319,226 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
     return OK;
 }
 
+
+STATUS matrix_lsolve_base(Matrix* ret, const Matrix a, const Matrix b) {
+    if (a.rows != a.cols || a.rows != b.rows) {
+        return ERR_SIZE;
+    }
+
+    double det_a;
+    STATUS status = matrix_det(&det_a, a);
+    if (status != OK || fabs(det_a) < 1e-6) {
+        return ERR_DET;
+    }
+
+    Matrix inv_a;
+    status = matrix_alloc(&inv_a, a.rows, a.cols);
+    if (status != OK) {
+        return status;
+    }
+
+    for (size_t i = 0; i < a.rows; ++i) {
+        for (size_t j = 0; j < a.cols; ++j) {
+            Matrix submatrix;
+            status = matrix_alloc(&submatrix, a.rows - 1, a.cols - 1);
+            if (status != OK) {
+                matrix_free(&inv_a);
+                return status;
+            }
+
+            size_t sub_row = 0;
+            for (size_t row = 0; row < a.rows; ++row) {
+                size_t sub_col = 0;
+                for (size_t col = 0; col < a.cols; ++col) {
+                    if (row != i && col != j) {
+                        submatrix.values[sub_row * (a.cols - 1) + sub_col] = a.values[row * a.cols + col];
+                        sub_col++;
+                    }
+                }
+                if (row != i) {
+                    sub_row++;
+                }
+            }
+
+            double sub_det;
+            status = matrix_det(&sub_det, submatrix);
+            if (status != OK) {
+                matrix_free(&inv_a);
+                matrix_free(&submatrix);
+                return status;
+            }
+
+            inv_a.values[i * a.cols + j] = ((i + j) % 2 == 0 ? 1 : -1) * sub_det / det_a;
+            matrix_free(&submatrix);
+        }
+    }
+
+    status = matrix_mult(ret, inv_a, b);
+    if (status != OK) {
+        matrix_free(&inv_a);
+        return status;
+    }
+
+    matrix_free(&inv_a);
+    return OK;
+}
+
+
+STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
+    if (a.rows != a.cols || a.rows != b.rows) {
+        return ERR_SIZE;
+    }
+
+    double det_a;
+    STATUS status = matrix_det(&det_a, a);
+    if (status != OK || fabs(det_a) < 1e-6) {
+        return ERR_DET;
+    }
+
+    status = matrix_alloc(ret, a.rows, 1);
+    if (status != OK) {
+        return status;
+    }
+
+    for (size_t i = 0; i < a.rows; ++i) {
+        Matrix submatrix;
+        status = matrix_alloc(&submatrix, a.rows, a.cols);
+        if (status != OK) {
+            matrix_free(ret);
+            return status;
+        }
+
+        memcpy(submatrix.values, a.values, a.rows * a.cols * sizeof(double));
+
+        for (size_t j = 0; j < a.rows; ++j) {
+            submatrix.values[j * a.cols + i] = b.values[j];
+        }
+
+        double det_bi;
+        status = matrix_det(&det_bi, submatrix);
+        if (status != OK) {
+            matrix_free(&submatrix);
+            matrix_free(ret);
+            return status;
+        }
+
+        ret->values[i] = det_bi / det_a;
+        matrix_free(&submatrix);
+    }
+
+    return OK;
+}
+
+
+static double dot_product(const double* v1, const double* v2, size_t size) {
+    double sum = 0.0;
+    for (size_t i = 0; i < size; ++i) {
+        sum += v1[i] * v2[i];
+    }
+    return sum;
+}
+
+
+STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
+    if (a.rows != a.cols || a.rows != b.rows) {
+        return ERR_SIZE;
+    }
+
+    Matrix x = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
+    if (x.values == NULL) {
+        return ERR_MALLOC;
+    }
+    for (size_t i = 0; i < a.rows; ++i) {
+        x.values[i] = 0.0;
+    }
+
+    Matrix r = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
+    if (r.values == NULL) {
+        free(x.values);
+        return ERR_MALLOC;
+    }
+    Matrix r_prev = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
+    if (r_prev.values == NULL) {
+        free(x.values);
+        free(r.values);
+        return ERR_MALLOC;
+    }
+    Matrix p = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
+    if (p.values == NULL) {
+        free(x.values);
+        free(r.values);
+        free(r_prev.values);
+        return ERR_MALLOC;
+    }
+
+    STATUS status = matrix_mult(&r, a, x);
+    if (status != OK) {
+        matrix_free(&x);
+        matrix_free(&r);
+        matrix_free(&r_prev);
+        matrix_free(&p);
+        return status;
+    }
+    status = matrix_subt(r, b);
+    if (status != OK) {
+        matrix_free(&x);
+        matrix_free(&r);
+        matrix_free(&r_prev);
+        matrix_free(&p);
+        return status;
+    }
+
+    memcpy(p.values, r.values, a.rows * sizeof(double));
+
+    double tolerance = 1e-6;
+    int max_iterations = 100;
+    int iteration = 0;
+
+    while (iteration < max_iterations) {
+        memcpy(r_prev.values, r.values, a.rows * sizeof(double));
+
+        double alpha = 0.0;
+        status = matrix_mult(&r_prev, a, p);
+        if (status != OK) {
+            matrix_free(&x);
+            matrix_free(&r);
+            matrix_free(&r_prev);
+            matrix_free(&p);
+            return status;
+        }
+        alpha = dot_product(r.values, r.values, a.rows) / dot_product(r_prev.values, p.values, a.rows);
+
+        for (size_t i = 0; i < a.rows; ++i) {
+            x.values[i] += alpha * p.values[i];
+            r.values[i] -= alpha * r_prev.values[i];
+        }
+
+        if (dot_product(r.values, r.values, a.rows) < tolerance) {
+            break;
+        }
+
+        double beta = dot_product(r.values, r.values, a.rows) / dot_product(r_prev.values, r_prev.values, a.rows);
+
+        for (size_t i = 0; i < a.rows; ++i) {
+            p.values[i] = r.values[i] + beta * p.values[i];
+        }
+
+        iteration++;
+    }
+
+    status = matrix_clone(ret, x);
+    if (status != OK) {
+        matrix_free(&x);
+        matrix_free(&r);
+        matrix_free(&r_prev);
+        matrix_free(&p);
+        return status;
+    }
+
+    matrix_free(&x);
+    matrix_free(&r);
+    matrix_free(&r_prev);
+    matrix_free(&p);
+    return OK;
+}
+

@@ -265,6 +265,33 @@ void test_matrix_equals() {
 }
 
 
+void test_matrix_lsolve_comparison() {
+    Matrix a = generate_random_matrix(3, 3);
+    Matrix b = generate_random_matrix(3, 1);
+
+    Matrix result_base;
+    STATUS status = matrix_lsolve_base(&result_base, a, b);
+    ASSERT_STATUS_OK(status);
+    Matrix result_lsolve;
+    status = matrix_lsolve(&result_lsolve, a, b);
+    ASSERT_STATUS_OK(status);
+    printf("Work!");
+    Matrix result_cg;
+    status = matrix_lsolve_cg(&result_cg, a, b);
+    ASSERT_STATUS_OK(status);
+
+    // TODO compare
+    matrix_print(result_base);
+    matrix_print(result_lsolve);
+    matrix_print(result_cg);
+    matrix_free(&a);
+    matrix_free(&b);
+    matrix_free(&result_base);
+    matrix_free(&result_lsolve);
+    matrix_free(&result_cg);
+}
+
+
 int main() {
     srand(time(NULL)); // Initialize random seed
     printf("Test identity\n");
@@ -291,9 +318,11 @@ int main() {
     test_matrix_check_max_diff();
     printf("Test exp\n");
     test_matrix_exp();
+    printf("Test lsolve\n");
+    test_matrix_lsolve_comparison(); 
     printf("Test equals\n");
-    test_matrix_equals();
-
+    test_matrix_equals();   
+    
     return 0;
 }
 

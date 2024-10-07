@@ -39,5 +39,8 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power);
 STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB);
 STATUS matrix_exp(Matrix* ret, const Matrix matrix);
 
+STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b);
+STATUS matrix_lsolve_base(Matrix* ret, const Matrix a, const Matrix b);
+STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b);
 
 #endif //MATRIX_H
