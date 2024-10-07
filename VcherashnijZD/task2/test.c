@@ -289,7 +289,7 @@ void test_matrix_lsolve_comparison() {
 
 
 int main() {
-    srand(time(NULL)); // Initialize random seed
+    srand(time(NULL));
     printf("Test identity\n");
     test_matrix_identity();
     printf("Test fill val\n");

@@ -216,7 +216,7 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
 
     // Optimized loop using binary exponentiation
     for (int i = 1; i < power; i <<= 1) {
-        if (power & i) { // If the current bit is set in 'power'
+        if (power & i) {  // If the current bit is set in 'power'
             Matrix temp;
             status = matrix_mult(&temp, *ret, matrix);
             if (status != OK) {
@@ -227,7 +227,7 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
             *ret = temp;
         }
         Matrix temp;
-        status = matrix_mult(&temp, *ret, *ret); // Square
+        status = matrix_mult(&temp, *ret, *ret);  // Square
         if (status != OK) {
             matrix_free(ret);
             return status;
