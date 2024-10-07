@@ -320,85 +320,18 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
 }
 
 
-STATUS matrix_lsolve_base(Matrix* ret, const Matrix a, const Matrix b) {
-    if (a.rows != a.cols || a.rows != b.rows) {
-        return ERR_SIZE;
-    }
-
-    double det_a;
-    STATUS status = matrix_det(&det_a, a);
-    if (status != OK || fabs(det_a) < 1e-6) {
-        return ERR_DET;
-    }
-
-    Matrix inv_a;
-    status = matrix_alloc(&inv_a, a.rows, a.cols);
-    if (status != OK) {
-        return status;
-    }
-
-    for (size_t i = 0; i < a.rows; ++i) {
-        for (size_t j = 0; j < a.cols; ++j) {
-            Matrix submatrix;
-            status = matrix_alloc(&submatrix, a.rows - 1, a.cols - 1);
-            if (status != OK) {
-                matrix_free(&inv_a);
-                return status;
-            }
-
-            size_t sub_row = 0;
-            for (size_t row = 0; row < a.rows; ++row) {
-                size_t sub_col = 0;
-                for (size_t col = 0; col < a.cols; ++col) {
-                    if (row != i && col != j) {
-                        submatrix.values[sub_row * (a.cols - 1) + sub_col] = a.values[row * a.cols + col];
-                        sub_col++;
-                    }
-                }
-                if (row != i) {
-                    sub_row++;
-                }
-            }
-
-            double sub_det;
-            status = matrix_det(&sub_det, submatrix);
-            if (status != OK) {
-                matrix_free(&inv_a);
-                matrix_free(&submatrix);
-                return status;
-            }
-
-            inv_a.values[i * a.cols + j] = ((i + j) % 2 == 0 ? 1 : -1) * sub_det / det_a;
-            matrix_free(&submatrix);
-        }
-    }
-
-    status = matrix_mult(ret, inv_a, b);
-    if (status != OK) {
-        matrix_free(&inv_a);
-        return status;
-    }
-
-    matrix_free(&inv_a);
-    return OK;
-}
-
-
 STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
-    if (a.rows != a.cols || a.rows != b.rows) {
+    if (a.rows != a.cols || a.rows != b.rows)
         return ERR_SIZE;
-    }
 
     double det_a;
     STATUS status = matrix_det(&det_a, a);
-    if (status != OK || fabs(det_a) < 1e-6) {
+    if (status != OK || fabs(det_a) < 1e-6)
         return ERR_DET;
-    }
 
     status = matrix_alloc(ret, a.rows, 1);
-    if (status != OK) {
+    if (status != OK)
         return status;
-    }
 
     for (size_t i = 0; i < a.rows; ++i) {
         Matrix submatrix;
@@ -409,7 +342,6 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
         }
 
         memcpy(submatrix.values, a.values, a.rows * a.cols * sizeof(double));
-
         for (size_t j = 0; j < a.rows; ++j) {
             submatrix.values[j * a.cols + i] = b.values[j];
         }
@@ -422,7 +354,7 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
             return status;
         }
 
-        ret->values[i] = det_bi / det_a;
+        ret->values[i] = -det_bi / det_a;
         matrix_free(&submatrix);
     }
 
@@ -444,34 +376,38 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
         return ERR_SIZE;
     }
 
-    Matrix x = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
-    if (x.values == NULL) {
-        return ERR_MALLOC;
+    Matrix x;
+    STATUS status = matrix_alloc(&x, a.rows, 1);
+    if (status != OK) {
+        return status;
     }
-    for (size_t i = 0; i < a.rows; ++i) {
-        x.values[i] = 0.0;
+    memset(x.values, 0, sizeof(double) * x.rows);
+
+    Matrix r;
+    status = matrix_alloc(&r, a.rows, 1);
+    if (status != OK) {
+        matrix_free(&x);
+        return status;
     }
 
-    Matrix r = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
-    if (r.values == NULL) {
-        free(x.values);
-        return ERR_MALLOC;
-    }
-    Matrix r_prev = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
-    if (r_prev.values == NULL) {
-        free(x.values);
-        free(r.values);
-        return ERR_MALLOC;
-    }
-    Matrix p = { .rows = a.rows, .cols = 1, .values = malloc(a.rows * sizeof(double)) };
-    if (p.values == NULL) {
-        free(x.values);
-        free(r.values);
-        free(r_prev.values);
-        return ERR_MALLOC;
+    Matrix r_prev;
+    status = matrix_alloc(&r_prev, a.rows, 1);
+    if (status != OK) {
+        matrix_free(&x);
+        matrix_free(&r);
+        return status;
     }
 
-    STATUS status = matrix_mult(&r, a, x);
+    Matrix p;
+    status = matrix_alloc(&p, a.rows, 1);
+    if (status != OK) {
+        matrix_free(&x);
+        matrix_free(&r);
+        matrix_free(&r_prev);
+        return status;
+    }
+
+    status = matrix_mult(&r, a, x);
     if (status != OK) {
         matrix_free(&x);
         matrix_free(&r);
@@ -491,7 +427,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
     memcpy(p.values, r.values, a.rows * sizeof(double));
 
     double tolerance = 1e-6;
-    int max_iterations = 100;
+    int max_iterations = 100; 
     int iteration = 0;
 
     while (iteration < max_iterations) {

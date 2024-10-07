@@ -270,24 +270,20 @@ void test_matrix_lsolve_comparison() {
     Matrix b = generate_random_matrix(3, 1);
 
     Matrix result_base;
-    STATUS status = matrix_lsolve_base(&result_base, a, b);
+    STATUS status = matrix_lsolve(&result_base, a, b);
     ASSERT_STATUS_OK(status);
-    Matrix result_lsolve;
-    status = matrix_lsolve(&result_lsolve, a, b);
-    ASSERT_STATUS_OK(status);
-    printf("Work!");
     Matrix result_cg;
     status = matrix_lsolve_cg(&result_cg, a, b);
     ASSERT_STATUS_OK(status);
 
-    // TODO compare
-    matrix_print(result_base);
-    matrix_print(result_lsolve);
-    matrix_print(result_cg);
+    // Depend on matrix it can fail!
+    ASSERT_MATRIX_EQ(&result_base, &result_cg, EQUAL_TEST_ACCURACY);
+
+    //matrix_print(result_base);
+    //matrix_print(result_cg);
     matrix_free(&a);
     matrix_free(&b);
     matrix_free(&result_base);
-    matrix_free(&result_lsolve);
     matrix_free(&result_cg);
 }
 
