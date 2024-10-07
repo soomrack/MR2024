@@ -66,10 +66,9 @@ STATUS matrix_equals(int* res, const Matrix matA, const Matrix matB, const doubl
 
 
 void matrix_free(Matrix* matrix) {
-    if (matrix->values != NULL) {
-        free(matrix->values);
-        matrix->values = NULL;
-    }
+    if (matrix == NULL) return;
+    free(matrix->values);
+    matrix->values = NULL;
     matrix->rows = 0;
     matrix->cols = 0;
 }
@@ -78,7 +77,7 @@ void matrix_free(Matrix* matrix) {
 void matrix_print(const Matrix matrix) {
     for (size_t row = 0; row < matrix.rows; ++row) {
         for (size_t col = 0; col < matrix.cols; ++col)
-            printf("%f ", matrix.values[row * matrix.cols + col]);
+            printf("%lf ", matrix.values[row * matrix.cols + col]);
         printf("\n");
     }
 }
@@ -216,7 +215,7 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
 
     // Optimized loop using binary exponentiation
     for (int i = 1; i < power; i <<= 1) {
-        if (power & i) { // If the current bit is set in 'power'
+        if (power & i) {  // If the current bit is set in 'power'
             Matrix temp;
             status = matrix_mult(&temp, *ret, matrix);
             if (status != OK) {
@@ -227,7 +226,7 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
             *ret = temp;
         }
         Matrix temp;
-        status = matrix_mult(&temp, *ret, *ret); // Square
+        status = matrix_mult(&temp, *ret, *ret);  // Square
         if (status != OK) {
             matrix_free(ret);
             return status;
