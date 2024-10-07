@@ -69,21 +69,25 @@ void alice_init(Cash salary, Cash capital, Cash flatPay, Cash monthSpending, sho
     alice.unexpectedSpendingPP = unexpectedSpanding;
 }
 
+
 void alice_salary_incom()
 {
-    alice.capital += alice.salary;
     if (((date.year - firstYear) % 9)  == 0) alice.salary *= 1.08;  // условие, что алиса раз в 9 лет находит новую работу
-}                                                                   // с зп на 8% больше
+    if (date.monthNumber == 1) alice.salary *= (1 + infl);          // с зп на 8% больше
+    alice.capital += alice.salary;
+}                                                                   
 
 
 void alice_month_spending()
-{        
-    alice.capital -= (Cash) alice.monthSpending*(1 + (rand() % alice.unexpectedSpendingPP) / 100);
+{
+    if (date.monthNumber == 1) alice.monthSpending *= (1 + infl);
+    alice.capital -= (Cash) alice.monthSpending * (1 + (rand() % alice.unexpectedSpendingPP) / 100);
 }
 
 
 void alice_flat_pay()
 {
+    if (date.monthNumber == 1) alice.flatPay *= (1 + infl);
     alice.capital -= alice.flatPay;
 }
 
@@ -91,16 +95,6 @@ void alice_flat_pay()
 void alice_flat_inflation_income()// разнице стоимости квартиры в год покупке и в конце рассматриваемого периода, появившаяся из-за инфляции
 {
     alice.capital += (aliceFlatCost * pow((1 + infl), period)) - aliceFlatCost;
-}
-
-
-void alice_inflation()
-{
-    if (date.monthNumber == 1){
-        alice.salary *= (1 + infl);
-        alice.flatPay *= (1 + infl);
-        alice.monthSpending *= (1 + infl);
-    }
 }
 
 
@@ -121,32 +115,25 @@ void bob_init(Cash salary, Cash capital, Cash flatPay, Cash monthSpending, short
 
 
 void bob_salary_incom()
-{
+{    
     if ((date.year == 2038) && (date.monthNumber == 3)) bob.salary = 0;                // условие, что боб в 2038 году в марте потерял работу
     if ((date.year == 2038) && (date.monthNumber == 5)) bob.salary = 320 * 1000 * 100; // на 2 месяц, но потом нашел новую с зп 320 тыс
+    if (date.monthNumber == 1) bob.salary *= (1 + infl);
     bob.capital += bob.salary;
 }
 
 
 void bob_flat_pay()
 {
+    if (date.monthNumber == 1) bob.flatPay *= (1 + infl);
     bob.capital -= bob.flatPay;
 }
 
 
 void bob_month_spending()
 {
+    if (date.monthNumber == 1) bob.monthSpanding *= (1 + infl);
     bob.capital -= (Cash) bob.monthSpending*(1 + (rand() % bob.unexpectedSpendingPP) / 100);
-}
-
-
-void bob_inflation()
-{
-    if (date.monthNumber == 1){
-        bob.salary *= (1 + infl);
-        bob.flatPay *= (1 + infl);
-        bob.monthSpending *= (1 + infl);
-    }
 }
 
 
@@ -183,10 +170,7 @@ void simulation()
         bob_month_spending();
 
         alice_deposit();
-        bob_deposit();
-
-        alice_inflation();
-        bob_inflation();            
+        bob_deposit();          
     }
     alice_flat_inflation_income();
 
