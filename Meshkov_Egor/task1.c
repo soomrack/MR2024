@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-typedef long long int Money; //RUB
+typedef long long int Money;  // RUB
 
 
 typedef struct {
@@ -38,10 +38,10 @@ typedef struct {
 } Person;
 
 
-const double inflation = 0.08 / 12;
-const double indexcation = 0.08 / 12; 
-const Money starting_capital = 1000 * 1000;
-const int duration = 30; // years
+const double INFLATION = 0.08 / 12;
+const double INDEXCATION = 0.08 / 12; 
+const Money STARTING_CAPITAL = 1000 * 1000;
+const int DURATION = 30;  // years
 
 
 void Alice_init(Person *Alice) {
@@ -73,7 +73,7 @@ void Bob_init(Person *Bob) {
 		.money_cash = 0,
 		.expenses = 20 * 1000 /*food*/ + 15 * 1000 /*public utilities*/ + 15 * 1000 /*personal expenses*/,
 		.rent = 30 * 1000,
-		.deposit = starting_capital,
+		.deposit = STARTING_CAPITAL,
 		.deposit_percentage = 0.2 / 12,
 
 		.mortgage = {
@@ -93,8 +93,8 @@ void Bob_init(Person *Bob) {
 double mortgage_payment(const Person *Alice) {
 
 	double monthly_rate = Alice->mortgage.rate / 12;
-	double total_rate = pow((1 + monthly_rate), 12 * duration);
-	double pay = (Alice->mortgage.flat_cost - starting_capital) * monthly_rate * total_rate / (total_rate - 1);
+	double total_rate = pow((1 + monthly_rate), 12 * DURATION);
+	double pay = (Alice->mortgage.flat_cost - STARTING_CAPITAL) * monthly_rate * total_rate / (total_rate - 1);
 
 	return pay;
 }
@@ -181,49 +181,48 @@ void update_deposit_for_Bob(Person *Bob) {
 
 
 void result(const Money Alice_capital, const Money Bob_capital) {
-
-	if(!Alice_capital) {
-		printf("Bob`s strategy is the only option under these conditions\n");
-		return;
-	}
-
-	if(!Bob_capital) {
-		printf("Alice`s strategy is the only option under these conditions\n");
-		return;
-	}
-
-	if(Alice_capital > Bob_capital) {
+    if(Alice_capital > Bob_capital) {
 		printf("Alice`s strategy is more profitable\n");
 		return;
 	} else if(Bob_capital > Alice_capital) {
 		printf("Bob`s strategy is more profitable\n");
 		return;
-	} else {
+	} else if(!Alice_capital && !Bob_capital){
 		printf("Both strategies are equivalent\n");
 		return;
-	}
+	} else if(!Alice_capital) {
+		printf("Bob`s strategy is the only option under these conditions\n");
+		return;
+	} else if(!Bob_capital) {
+		printf("Alice`s strategy is the only option under these conditions\n");
+		return;
+	} 
 }
 
 
 void indexcation_salary_for_Alice(Person *Alice) {
-	Alice->salary = Alice->salary * (1 + indexcation);
+	Alice->salary = Alice->salary * (1 + INDEXCATION);
 }
 
 
 void indexcation_salary_for_Bob(Person *Bob) {
-	Bob->salary = Bob->salary * (1 + indexcation);
+	Bob->salary = Bob->salary * (1 + INDEXCATION);
 }
 
 
-void inflation_for_Alice(Person *Alice) {
-	Alice->mortgage.flat_cost = Alice->mortgage.flat_cost * (1 + inflation);
-	Alice->expenses = Alice->expenses * (1 + inflation);
+void inflation_expenses_for_Alice(Person *Alice) {
+	Alice->expenses = Alice->expenses * (1 + INFLATION);
 }
 
 
-void inflation_for_Bob(Person *Bob) {
-	Bob->rent = Bob->rent * (1 + inflation);
-	Bob->expenses = Bob->expenses * (1 + inflation);
+void inflation_flat_cost(Person *Alice) {
+    Alice->mortgage.flat_cost = Alice->mortgage.flat_cost * (1 + INFLATION);
+}
+
+
+void inflation_expenses_for_Bob(Person *Bob) {
+	Bob->rent = Bob->rent * (1 + INFLATION);
+	Bob->expenses = Bob->expenses * (1 + INFLATION);
 }
 
 
@@ -236,14 +235,14 @@ void time_update(Date *date_current) {
 
 
 void inflation_car_for_Alice(Person *Alice) {
-	Alice->car.car_price = Alice->car.car_price * (1 + inflation);
-	Alice->car.maintenance = Alice->car.maintenance * (1 + inflation + 0.05 /*increase transport tax*/);
+	Alice->car.car_price = Alice->car.car_price * (1 + INFLATION);
+	Alice->car.maintenance = Alice->car.maintenance * (1 + INFLATION + 0.05 /*increase transport tax*/);
 }
 
 
 void inflation_car_for_Bob(Person *Bob) {
-	Bob->car.car_price = Bob->car.car_price * (1 + inflation);
-	Bob->car.maintenance = Bob->car.maintenance * (1 + inflation + 0.05 /*increase transport tax*/);
+	Bob->car.car_price = Bob->car.car_price * (1 + INFLATION);
+	Bob->car.maintenance = Bob->car.maintenance * (1 + INFLATION + 0.05 /*increase transport tax*/);
 }
 
 
@@ -252,37 +251,37 @@ int is_have_car(const Car *car) {
 }
 
 
-int is_date_buy_car(Date *date_current, Date *date_purchase) {
-	return (date_current->year == date_purchase->year) && (date_current->month == date_purchase->month);
+int is_date_buy_car(Date *date_current, Date *date_purchase_car_car) {
+	return (date_current->year == date_purchase_car_car->year) && (date_current->month == date_purchase_car_car->month);
 }
 
 
-void error_to_buy_car_for_Alice(Date *date_purchase) {
-	printf("Alice couldn`t have a car in the %d month of %d year\n", date_purchase->month, date_purchase->year);
+void error_to_buy_car_for_Alice(Date *date_purchase_car_car) {
+	printf("Alice couldn`t have a car in the %d month of %d year\n", date_purchase_car_car->month, date_purchase_car_car->year);
 }
 
 
-void try_to_buy_car_for_Alice(Person *Alice, Date *date_purchase) {
+void try_to_buy_car_for_Alice(Person *Alice, Date *date_purchase_car_car) {
 	if(Alice->deposit > Alice->car.car_price) {
 		Alice->deposit -= Alice->car.car_price;
 		++Alice->car.count_of_car;
 	} else {
-		error_to_buy_car_for_Alice(date_purchase);
+		error_to_buy_car_for_Alice(date_purchase_car_car);
 	}
 }
 
 
-void error_to_buy_car_for_Bob(Date *date_purchase) {
-	printf("Bob couldn`t have a car in the %d month of %d year\n", date_purchase->month, date_purchase->year);
+void error_to_buy_car_for_Bob(Date *date_purchase_car) {
+	printf("Bob couldn`t have a car in the %d month of %d year\n", date_purchase_car->month, date_purchase_car->year);
 }
 
 
-void try_to_buy_car_for_Bob(Person *Bob, Date *date_purchase) {
+void try_to_buy_car_for_Bob(Person *Bob, Date *date_purchase_car) {
 	if(Bob->deposit > Bob->car.car_price) {
 		Bob->deposit -= Bob->car.car_price;
 		++Bob->car.count_of_car;
 	} else {
-		error_to_buy_car_for_Bob(date_purchase);
+		error_to_buy_car_for_Bob(date_purchase_car);
 	}
 }
 
@@ -297,30 +296,70 @@ void money_cash_after_servicing_Bob_car(Person *Bob) {
 }
 
 
+void salary_Alice(Person *Alice, Money *Alice_payment) {
+    money_cash_for_Alice(Alice, Alice_payment);
+    
+    if(is_have_car(&Alice->car)) {
+        money_cash_after_servicing_Alice_car(Alice);
+    }
+
+    indexcation_salary_for_Alice(Alice);
+
+    inflation_expenses_for_Alice(Alice);
+}
+
+
+void car_Alice(Person *Alice, Date *date_current, Date *date_purchase_car) {
+
+    if(is_date_buy_car(date_current, date_purchase_car))
+		try_to_buy_car_for_Alice(Alice, date_purchase_car);
+
+	inflation_car_for_Alice(Alice);
+}
+
+
+void salary_Bob(Person *Bob) {
+    money_cash_for_Bob(Bob);
+    
+    if(is_have_car(&Bob->car)) {
+        money_cash_after_servicing_Bob_car(Bob);
+    }
+
+    indexcation_salary_for_Bob(Bob);
+
+    inflation_expenses_for_Bob(Bob);
+}
+
+
+void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
+    if(is_date_buy_car(date_current, date_purchase_car))
+		try_to_buy_car_for_Bob(Bob, date_purchase_car);
+
+	inflation_car_for_Bob(Bob);
+}
+
+
 Money simulation_Alice(Person *Alice) {
 
-	Date date_current = {.month = 9, .year = 2024}; //starting date
-	Date date_end = date_current;
-	date_end.year += duration;
-	Date date_purchase = {.month = 7, .year = 2030}; //date of car purchase
+	Date date_current = {.month = 9, .year = 2024};
+    Date date_end = date_current;
+	date_end.year += DURATION;
+	Date date_purchase_car = {.month = 7, .year = 2030};
 
 	Money Alice_payment = mortgage_payment(Alice);
 
 	while(!is_date_equal(&date_current, &date_end)) {
-		money_cash_for_Alice(Alice, &Alice_payment);
-		/*if(is_have_car(&Alice->car))
-			money_cash_after_servicing_Alice_car(Alice);*/
+		salary_Alice(Alice, &Alice_payment);
 
-		if(!check_bankruptcy_Alice(Alice, &date_current)) 
-			return 0;
+		if(!check_bankruptcy_Alice(Alice, &date_current)) {
+            return 0;
+        }
 
 		update_deposit_for_Alice(Alice);
-		/*if(is_date_buy_car(&date_current, &date_purchase))
-			try_to_buy_car_for_Alice(Alice, &date_purchase);*/
 
-		inflation_for_Alice(Alice);
-		/*inflation_car_for_Alice(Alice);*/
-		indexcation_salary_for_Alice(Alice);
+        car_Alice(Alice, &date_current, &date_purchase_car);
+
+		inflation_flat_cost(Alice);
 
 		time_update(&date_current);
 	}
@@ -332,24 +371,19 @@ Money simulation_Bob(Person *Bob) {
 
 	Date date_current = {.month = 9, .year = 2024}; //starting date
 	Date date_end = date_current;
-	date_end.year += duration;
-	Date date_purchase = {.month = 7, .year = 2030}; //date of car purchase
+	date_end.year += DURATION;
+	Date date_purchase_car_car = {.month = 7, .year = 2030}; //date of car purchase
 
 	while(!is_date_equal(&date_current, &date_end)) {
-		money_cash_for_Bob(Bob);
-		/*if(is_have_car(&Bob->car))
-			money_cash_after_servicing_Bob_car(Bob);*/
+		salary_Bob(Bob);
 
-		if(!check_bankruptcy_Bob(Bob, &date_current)) 
-			return 0;
+		if(!check_bankruptcy_Bob(Bob, &date_current)) {
+            return 0;
+        }
 
 		update_deposit_for_Bob(Bob);
-		/*if(is_date_buy_car(&date_current, &date_purchase)) 
-			try_to_buy_car_for_Bob(Bob, &date_purchase);*/
 
-		inflation_for_Bob(Bob);
-		//inflation_car_for_Bob(Bob);
-		indexcation_salary_for_Bob(Bob);
+		car_Bob(Bob, &date_current, &date_purchase_car_car);
 
 		time_update(&date_current);
 	}
@@ -365,8 +399,6 @@ int main() {
 	Bob_init(&Bob);
 
 	result(simulation_Alice(&Alice), simulation_Bob(&Bob));
-
-	printf("%lld %lld\n", Bob.car.car_price, Bob.deposit);
 
 	return 1;
 }

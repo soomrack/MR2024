@@ -120,7 +120,7 @@ void bob_salary(const int month, const int year)
     if (month == 12) {
         bob.salary *= 1.08;
     }
-    else if (year == 2030) {
+    if ((year == 2030) && (month == 1)) {
       bob.salary = 300 * 1000;
     }
 }
@@ -168,6 +168,7 @@ void bob_buy_a_cat(const int month, const int year)
 {
     if ((year == 2030) && (month == 3)) {
        bob.account -= bob.cat;
+       bob.expenses += 7*1000;
     }
 }
 
