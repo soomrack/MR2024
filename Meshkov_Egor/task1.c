@@ -369,10 +369,10 @@ return (Money)round(Alice->mortgage.flat_cost + Alice->deposit + Alice->car.car_
 
 Money simulation_Bob(Person *Bob) {
 
-    Date date_current = {.month = 9, .year = 2024}; //starting date
+    Date date_current = {.month = 9, .year = 2024};
     Date date_end = date_current;
     date_end.year += DURATION;
-    Date date_purchase_car_car = {.month = 7, .year = 2030}; //date of car purchase
+    Date date_purchase_car_car = {.month = 7, .year = 2030};
 
     while(!is_date_equal(&date_current, &date_end)) {
         salary_Bob(Bob);
