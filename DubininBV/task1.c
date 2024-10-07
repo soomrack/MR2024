@@ -21,8 +21,6 @@ Cash mortgage_calculation(Cash creditSumm, float rate, short duration)
 }
 
 
-
-
 typedef struct Date
 {
     short monthNumber;
