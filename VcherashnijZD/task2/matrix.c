@@ -134,7 +134,6 @@ STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
     double* row_a_ptr = matrix.values + rowA * matrix.cols;
     double* row_b_ptr = matrix.values + rowB * matrix.cols;
 
-    // Use memcpy to swap the rows efficiently
     memcpy(row_a_ptr, row_b_ptr, matrix.cols * sizeof(double));
     memcpy(row_b_ptr, row_a_ptr, matrix.cols * sizeof(double)); 
 
@@ -193,41 +192,50 @@ STATUS matrix_det(double* ret, Matrix matrix) {
 }
 
 
-// TODO only support simple power
 STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
     if (power < 0) {
         return ERR_PWR;
     }
+
     if (power == 0) {
-        Matrix result;
-        STATUS status = matrix_alloc(&result, matrix.rows, matrix.cols);
+        STATUS status = matrix_alloc(ret, matrix.rows, matrix.cols);
         if (status != OK) {
             return status;
         }
-        status = matrix_identity(result);
+        status = matrix_identity(*ret);
         if (status != OK) {
-            matrix_free(&result);
             return status;
         }
-        *ret = result;
         return OK;
     }
-    Matrix result;
-    STATUS status = matrix_clone(&result, matrix);
+
+    STATUS status = matrix_clone(ret, matrix);
     if (status != OK) {
         return status;
     }
-    for (int i = 1; i < power; ++i) {
+
+    // Optimized loop using binary exponentiation
+    for (int i = 1; i < power; i <<= 1) {
+        if (power & i) { // If the current bit is set in 'power'
+            Matrix temp;
+            status = matrix_mult(&temp, *ret, matrix);
+            if (status != OK) {
+                matrix_free(ret);
+                return status;
+            }
+            matrix_free(ret);
+            *ret = temp;
+        }
         Matrix temp;
-        status = matrix_mult(&temp, result, matrix);
+        status = matrix_mult(&temp, *ret, *ret); // Square
         if (status != OK) {
-            matrix_free(&result);
+            matrix_free(ret);
             return status;
         }
-        matrix_free(&result);
-        result = temp;
+        matrix_free(ret);
+        *ret = temp;
     }
-    *ret = result;
+
     return OK;
 }
 
