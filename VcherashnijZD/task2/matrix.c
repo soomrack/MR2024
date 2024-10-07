@@ -462,6 +462,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
         iteration++;
     }
 
+    STATUS ret_status = dot_product(r.values, r.values, a.rows) >= tolerance ? ERR_ITER : OK;
     status = matrix_clone(ret, x);
     if (status != OK) {
         matrix_free(&x);
@@ -475,6 +476,6 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
     matrix_free(&r);
     matrix_free(&r_prev);
     matrix_free(&p);
-    return OK;
+    return ret_status;
 }
 

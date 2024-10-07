@@ -9,7 +9,8 @@ typedef enum STATUS {
     ERR_OVERFLOW,
     ERR_DET,
     ERR_PWR,
-    ERR_SIZE
+    ERR_SIZE,
+    ERR_ITER
 } STATUS;
 
 typedef struct Matrix {

@@ -24,9 +24,9 @@ typedef struct Hero
 Hero midas;  //Мидас выбрал не заморачиваться и взять Ипотеку
 Hero arno;
 
-
-int month = 12;
-int year = 2050;
+const int CURRENT_YEAR = 2024;
+const int MONTH = 12;
+const int FINAL_YEAR = 2054;
 
 
 void _init_midas()  //Инициализация переменных Мидаса
@@ -83,22 +83,30 @@ void indexation(Hero* hero) //Индексация зарплат и преми�
 }
 
 
-void simulation(Hero* hero)   // симмулиция 30 лет
+void simulation(Hero* hero, int current_month, int final_year)   // симмулиция 30 лет
 {
-    for (int current_year = 2020; current_year < year; current_year++){
-        for (int i = 0; i < month; i++) {
-            hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
-            hero->balance += hero->salary;
-            hero->balance -= hero->food_payment;
-            hero->balance -= hero->comunal_payment;
-            hero->balance -= hero->another_payment;  
-            hero->balance -= hero->ipotek_payment;
-        }
-        hero -> balance += hero -> salary_bonus;
-        hero -> balance -= hero -> vacation_cost;
+    int current_year = CURRENT_YEAR;
+    int final_month = current_month;
+    while (current_year < final_year || current_month < final_month){
+        hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
+        hero->balance += hero->salary;
+        hero->balance -= hero->food_payment;
+        hero->balance -= hero->comunal_payment;
+        hero->balance -= hero->another_payment;  
+        hero->balance -= hero->ipotek_payment;
+        current_month += 1;
+        if (current_month >= 13){
+            current_month = 1;
+            current_year += 1;
 
-        cost_inflation(&*hero);
-        indexation(&*hero);
+            hero -> balance += hero -> salary_bonus;
+            hero -> balance -= hero -> vacation_cost;
+
+            cost_inflation(&*hero);
+            indexation(&*hero);
+        }
+        
+       
     }
 }
 
@@ -108,9 +116,8 @@ int main()
     _init_midas();
     _init_arno();
 
-
-    simulation(&midas);
-    simulation(&arno);
+    simulation(&midas, 9, 2054);
+    simulation(&arno, 9, 2054);
 
     printf("midas balance %lld\n", (midas.balance + midas.ipotek) / 100);
     printf("arno balance %lld\n", arno.balance / 100);
