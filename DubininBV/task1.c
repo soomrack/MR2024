@@ -21,8 +21,6 @@ Cash mortgage_calculation(Cash creditSumm, float rate, short duration)
 }
 
 
-
-
 typedef struct Date
 {
     short monthNumber;
@@ -124,9 +122,9 @@ void bob_init(Cash salary, Cash capital, Cash flatPay, Cash monthSpending, short
 
 void bob_salary_incom()
 {
-    bob.capital += bob.salary;
     if ((date.year == 2038) && (date.monthNumber == 3)) bob.salary = 0;                // условие, что боб в 2038 году в марте потерял работу
     if ((date.year == 2038) && (date.monthNumber == 5)) bob.salary = 320 * 1000 * 100; // на 2 месяц, но потом нашел новую с зп 320 тыс
+    bob.capital += bob.salary;
 }
 
 
