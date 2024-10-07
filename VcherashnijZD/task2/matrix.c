@@ -320,30 +320,30 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
 }
 
 
-STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
-    if (a.rows != a.cols || a.rows != b.rows)
+STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
+    if (matA.rows != matA.cols || matA.rows != matB.rows)
         return ERR_SIZE;
 
     double det_a;
-    STATUS status = matrix_det(&det_a, a);
+    STATUS status = matrix_det(&det_a, matA);
     if (status != OK || fabs(det_a) < 1e-6)
         return ERR_DET;
 
-    status = matrix_alloc(ret, a.rows, 1);
+    status = matrix_alloc(ret, matA.rows, 1);
     if (status != OK)
         return status;
 
-    for (size_t i = 0; i < a.rows; ++i) {
+    for (size_t col = 0; col < matA.rows; ++col) {
         Matrix submatrix;
-        status = matrix_alloc(&submatrix, a.rows, a.cols);
+        status = matrix_alloc(&submatrix, matA.rows, matA.cols);
         if (status != OK) {
             matrix_free(ret);
             return status;
         }
 
-        memcpy(submatrix.values, a.values, a.rows * a.cols * sizeof(double));
-        for (size_t j = 0; j < a.rows; ++j) {
-            submatrix.values[j * a.cols + i] = b.values[j];
+        memcpy(submatrix.values, matA.values, matA.rows * matA.cols * sizeof(double));
+        for (size_t row = 0; row < matA.rows; ++row) {
+            submatrix.values[row * matA.cols + col] = matB.values[row];
         }
 
         double det_bi;
@@ -354,7 +354,7 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix a, const Matrix b) {
             return status;
         }
 
-        ret->values[i] = -det_bi / det_a;
+        ret->values[col] = -det_bi / det_a;
         matrix_free(&submatrix);
     }
 
@@ -371,27 +371,27 @@ static double dot_product(const double* v1, const double* v2, size_t size) {
 }
 
 
-STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
-    if (a.rows != a.cols || a.rows != b.rows) {
+STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
+    if (matA.rows != matA.cols || matA.rows != matB.rows) {
         return ERR_SIZE;
     }
 
     Matrix x;
-    STATUS status = matrix_alloc(&x, a.rows, 1);
+    STATUS status = matrix_alloc(&x, matA.rows, 1);
     if (status != OK) {
         return status;
     }
     memset(x.values, 0, sizeof(double) * x.rows);
 
     Matrix r;
-    status = matrix_alloc(&r, a.rows, 1);
+    status = matrix_alloc(&r, matA.rows, 1);
     if (status != OK) {
         matrix_free(&x);
         return status;
     }
 
     Matrix r_prev;
-    status = matrix_alloc(&r_prev, a.rows, 1);
+    status = matrix_alloc(&r_prev, matA.rows, 1);
     if (status != OK) {
         matrix_free(&x);
         matrix_free(&r);
@@ -399,7 +399,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
     }
 
     Matrix p;
-    status = matrix_alloc(&p, a.rows, 1);
+    status = matrix_alloc(&p, matA.rows, 1);
     if (status != OK) {
         matrix_free(&x);
         matrix_free(&r);
@@ -407,7 +407,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
         return status;
     }
 
-    status = matrix_mult(&r, a, x);
+    status = matrix_mult(&r, matA, x);
     if (status != OK) {
         matrix_free(&x);
         matrix_free(&r);
@@ -415,7 +415,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
         matrix_free(&p);
         return status;
     }
-    status = matrix_subt(r, b);
+    status = matrix_subt(r, matB);
     if (status != OK) {
         matrix_free(&x);
         matrix_free(&r);
@@ -424,17 +424,17 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
         return status;
     }
 
-    memcpy(p.values, r.values, a.rows * sizeof(double));
+    memcpy(p.values, r.values, matA.rows * sizeof(double));
 
     double tolerance = 1e-6;
     int max_iterations = 100; 
     int iteration = 0;
 
     while (iteration < max_iterations) {
-        memcpy(r_prev.values, r.values, a.rows * sizeof(double));
+        memcpy(r_prev.values, r.values, matA.rows * sizeof(double));
 
         double alpha = 0.0;
-        status = matrix_mult(&r_prev, a, p);
+        status = matrix_mult(&r_prev, matA, p);
         if (status != OK) {
             matrix_free(&x);
             matrix_free(&r);
@@ -442,27 +442,27 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix a, const Matrix b) {
             matrix_free(&p);
             return status;
         }
-        alpha = dot_product(r.values, r.values, a.rows) / dot_product(r_prev.values, p.values, a.rows);
+        alpha = dot_product(r.values, r.values, matA.rows) / dot_product(r_prev.values, p.values, matA.rows);
 
-        for (size_t i = 0; i < a.rows; ++i) {
+        for (size_t i = 0; i < matA.rows; ++i) {
             x.values[i] += alpha * p.values[i];
             r.values[i] -= alpha * r_prev.values[i];
         }
 
-        if (dot_product(r.values, r.values, a.rows) < tolerance) {
+        if (dot_product(r.values, r.values, matA.rows) < tolerance) {
             break;
         }
 
-        double beta = dot_product(r.values, r.values, a.rows) / dot_product(r_prev.values, r_prev.values, a.rows);
+        double beta = dot_product(r.values, r.values, matA.rows) / dot_product(r_prev.values, r_prev.values, matA.rows);
 
-        for (size_t i = 0; i < a.rows; ++i) {
+        for (size_t i = 0; i < matA.rows; ++i) {
             p.values[i] = r.values[i] + beta * p.values[i];
         }
 
         iteration++;
     }
 
-    STATUS ret_status = dot_product(r.values, r.values, a.rows) >= tolerance ? ERR_ITER : OK;
+    STATUS ret_status = dot_product(r.values, r.values, matA.rows) >= tolerance ? ERR_ITER : OK;
     status = matrix_clone(ret, x);
     if (status != OK) {
         matrix_free(&x);
