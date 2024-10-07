@@ -246,11 +246,6 @@ void inflation_car_for_Bob(Person *Bob) {
 }
 
 
-int is_have_car(const Car *car) {
-    return (car->count_of_car == 1) ? 1 : 0;
-}
-
-
 int is_date_buy_car(Date *date_current, Date *date_purchase_car_car) {
     return (date_current->year == date_purchase_car_car->year) && (date_current->month == date_purchase_car_car->month);
 }
@@ -298,10 +293,6 @@ void money_cash_after_servicing_Bob_car(Person *Bob) {
 
 void salary_Alice(Person *Alice, Money *Alice_payment) {
     money_cash_for_Alice(Alice, Alice_payment);
-    
-    if(is_have_car(&Alice->car)) {
-        money_cash_after_servicing_Alice_car(Alice);
-    }
 
     indexcation_salary_for_Alice(Alice);
 
@@ -311,8 +302,13 @@ void salary_Alice(Person *Alice, Money *Alice_payment) {
 
 void car_Alice(Person *Alice, Date *date_current, Date *date_purchase_car) {
 
-    if(is_date_buy_car(date_current, date_purchase_car))
+    if(is_date_buy_car(date_current, date_purchase_car)) {
         try_to_buy_car_for_Alice(Alice, date_purchase_car);
+    }
+
+    if(Alice->car.count_of_car == 1) {
+        money_cash_after_servicing_Alice_car(Alice);
+    }
 
     inflation_car_for_Alice(Alice);
 }
@@ -320,10 +316,6 @@ void car_Alice(Person *Alice, Date *date_current, Date *date_purchase_car) {
 
 void salary_Bob(Person *Bob) {
     money_cash_for_Bob(Bob);
-    
-    if(is_have_car(&Bob->car)) {
-        money_cash_after_servicing_Bob_car(Bob);
-    }
 
     indexcation_salary_for_Bob(Bob);
 
@@ -332,8 +324,13 @@ void salary_Bob(Person *Bob) {
 
 
 void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
-    if(is_date_buy_car(date_current, date_purchase_car))
+    if(is_date_buy_car(date_current, date_purchase_car)) {
         try_to_buy_car_for_Bob(Bob, date_purchase_car);
+    }
+
+    if(Bob->car.count_of_car == 1) {
+        money_cash_after_servicing_Bob_car(Bob);
+    }
 
     inflation_car_for_Bob(Bob);
 }
@@ -350,17 +347,12 @@ Money simulation_Alice(Person *Alice) {
 
     while(!is_date_equal(&date_current, &date_end)) {
         salary_Alice(Alice, &Alice_payment);
-
+        car_Alice(Alice, &date_current, &date_purchase_car);
+        update_deposit_for_Alice(Alice);
         if(!check_bankruptcy_Alice(Alice, &date_current)) {
             return 0;
         }
-
-        update_deposit_for_Alice(Alice);
-
-        car_Alice(Alice, &date_current, &date_purchase_car);
-
         inflation_flat_cost(Alice);
-
         time_update(&date_current);
     }
 
@@ -376,15 +368,11 @@ Money simulation_Bob(Person *Bob) {
 
     while(!is_date_equal(&date_current, &date_end)) {
         salary_Bob(Bob);
-
+        update_deposit_for_Bob(Bob);
+        car_Bob(Bob, &date_current, &date_purchase_car_car);
         if(!check_bankruptcy_Bob(Bob, &date_current)) {
             return 0;
         }
-
-        update_deposit_for_Bob(Bob);
-
-        car_Bob(Bob, &date_current, &date_purchase_car_car);
-
         time_update(&date_current);
     }
 
