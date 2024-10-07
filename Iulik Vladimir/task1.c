@@ -57,6 +57,7 @@ void bob_init()
     bob.deposit = 0;
 }
 
+
 void alice_salary(const int month)
 {
     alice.capital += alice.salary;
@@ -65,6 +66,7 @@ void alice_salary(const int month)
         alice.salary += alice.salary * INFLATION;
     }
 }
+
 
 void alice_expenses(const int month)
 {
@@ -77,6 +79,7 @@ void alice_expenses(const int month)
     }
 }
 
+
 void alice_ipoteka_pay(const int month)
 {
     alice.capital -= alice.month_payment;
@@ -86,6 +89,7 @@ void alice_ipoteka_pay(const int month)
         alice.home_cost += alice.home_cost * INFLATION;
     }
 }
+
 
 void alice_deposit_accrual(const int month, Money capital)
 {
@@ -107,6 +111,7 @@ void bob_salary(const int month)
     }
 }
     
+
 void bob_expenses(const int month)
 {
     bob.capital -= (bob.food_expenses + bob.utility_expenses + bob.other_expenses);
@@ -118,6 +123,7 @@ void bob_expenses(const int month)
     }
 }
 
+
 void bob_rent_pay(const int month)
 {
     bob.capital -= bob.rent;
@@ -126,6 +132,7 @@ void bob_rent_pay(const int month)
         bob.rent += bob.rent * INFLATION;
     }
 }
+
 
 void bob_deposit_accrual(const int month, Money capital)
 {
@@ -166,11 +173,11 @@ void simulation(int month, int year)
 {
     int end_year = year + 30;
 
-    // вносим за Алису первоначальный платеж и обнуляем её банк
+    //  вносим за Алису первоначальный платеж и обнуляем её банк
     IPOTEKA_AMOUNT = alice.capital;
     alice.capital = 0;
 
-    // вносим депозит в банк за Боба
+    //  вносим депозит в банк за Боба
     bob.deposit = bob.capital;
     bob.capital -= bob.deposit;
 
@@ -196,6 +203,7 @@ void simulation(int month, int year)
 
     print_coclusion(bob.capital + bob.deposit, alice.capital + alice.home_cost + alice.deposit);
 }
+
 
 int main()
 {
