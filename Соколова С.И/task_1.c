@@ -119,11 +119,10 @@ void bob_expenses_pay(const int month, const int year) {
       bob.expenses *= 1.08;
    }
 }
-void bob_account(const int month, const int year) {;
+void bob_account(const int month, const int year) {
 
-   if (month == 12) {
-      bob.account *= 1.2; // + 20% годовых на остаток на вкладе
-   }
+      bob.account *= 1+0.2/12; // + 20% годовых на остаток на вкладе
+   
 }
 
 void bob_rent(const int month, const int year) {
