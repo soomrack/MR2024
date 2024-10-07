@@ -170,9 +170,7 @@ int main()
   
   Alice_init();
   Bob_init();
-
-  
-
+ 
   Simulation(2024,9);
 
   person_printf();
