@@ -303,8 +303,6 @@ void salary_Alice(Person *Alice, Money *Alice_payment) {
     money_cash_for_Alice(Alice, Alice_payment);
 
     indexcation_salary_for_Alice(Alice);
-
-    inflation_expenses_for_Alice(Alice);
 }
 
 
@@ -343,10 +341,11 @@ void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
 
 
 void important_dates_init(Important_dates *dates) {
-    Date date_current = {.month = 9, .year = 2024};
-    Date date_end = date_current;
-    date_end.year += DURATION;
-    Date date_purchase_car = {.month = 7, .year = 2030};
+    *dates = (Important_dates){
+        .current_simulation_date = {.month = 9, .year = 2024},
+        .end_simulation_date = {.month = 9, .year = 2024 + DURATION},
+        .purchase_car_date = {.month = 7, .year = 2030},
+    };
 }
 
 
