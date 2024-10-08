@@ -12,9 +12,9 @@ typedef struct {
 
 
 typedef struct {
-	Date current_simulation_date;
-	Date end_simulation_date;
-	Date purchase_car_date;
+    Date current_simulation_date;
+    Date end_simulation_date;
+    Date purchase_car_date;
 } Important_dates;
 
 
@@ -343,7 +343,7 @@ void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
 
 
 void important_dates_init(Important_dates *dates) {
-	Date date_current = {.month = 9, .year = 2024};
+    Date date_current = {.month = 9, .year = 2024};
     Date date_end = date_current;
     date_end.year += DURATION;
     Date date_purchase_car = {.month = 7, .year = 2030};
@@ -353,7 +353,7 @@ void important_dates_init(Important_dates *dates) {
 Money simulation_Alice(Person *Alice) {
 
     Important_dates dates;
-	important_dates_init(&dates);
+    important_dates_init(&dates);
 
     Money Alice_payment = mortgage_payment(Alice);
 
@@ -378,7 +378,7 @@ return (Money)round(Alice->mortgage.flat_cost + Alice->deposit + Alice->car.car_
 Money simulation_Bob(Person *Bob) {
 
     Important_dates dates;
-	important_dates_init(&dates);
+    important_dates_init(&dates);
 
     while(!is_date_equal(&dates.current_simulation_date, &dates.end_simulation_date)) {
         salary_Bob(Bob);
