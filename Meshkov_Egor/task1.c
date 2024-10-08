@@ -12,6 +12,14 @@ typedef struct {
 
 
 typedef struct {
+	Date current_simulation_date;
+	Date end_simulation_date;
+	Date purchase_car_date;
+} Important_dates;
+
+
+
+typedef struct {
     Money flat_cost;
     double rate; 
 } Mortgage;
@@ -318,8 +326,6 @@ void salary_Bob(Person *Bob) {
     money_cash_for_Bob(Bob);
 
     indexcation_salary_for_Bob(Bob);
-
-    inflation_expenses_for_Bob(Bob);
 }
 
 
@@ -336,24 +342,34 @@ void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
 }
 
 
-Money simulation_Alice(Person *Alice) {
-
-    Date date_current = {.month = 9, .year = 2024};
+void important_dates_init(Important_dates *dates) {
+	Date date_current = {.month = 9, .year = 2024};
     Date date_end = date_current;
     date_end.year += DURATION;
     Date date_purchase_car = {.month = 7, .year = 2030};
+}
+
+
+Money simulation_Alice(Person *Alice) {
+
+    Important_dates dates;
+	important_dates_init(&dates);
 
     Money Alice_payment = mortgage_payment(Alice);
 
-    while(!is_date_equal(&date_current, &date_end)) {
+    while(!is_date_equal(&dates.current_simulation_date, &dates.end_simulation_date)) {
         salary_Alice(Alice, &Alice_payment);
-        car_Alice(Alice, &date_current, &date_purchase_car);
+        car_Alice(Alice, &dates.current_simulation_date, &dates.purchase_car_date);
         update_deposit_for_Alice(Alice);
-        if(!check_bankruptcy_Alice(Alice, &date_current)) {
+        
+        if(!check_bankruptcy_Alice(Alice, &dates.current_simulation_date)) {
             return 0;
         }
+
+        inflation_expenses_for_Alice(Alice);
         inflation_flat_cost(Alice);
-        time_update(&date_current);
+
+        time_update(&dates.current_simulation_date);
     }
 
 return (Money)round(Alice->mortgage.flat_cost + Alice->deposit + Alice->car.car_price);
@@ -361,19 +377,21 @@ return (Money)round(Alice->mortgage.flat_cost + Alice->deposit + Alice->car.car_
 
 Money simulation_Bob(Person *Bob) {
 
-    Date date_current = {.month = 9, .year = 2024};
-    Date date_end = date_current;
-    date_end.year += DURATION;
-    Date date_purchase_car_car = {.month = 7, .year = 2030};
+    Important_dates dates;
+	important_dates_init(&dates);
 
-    while(!is_date_equal(&date_current, &date_end)) {
+    while(!is_date_equal(&dates.current_simulation_date, &dates.end_simulation_date)) {
         salary_Bob(Bob);
         update_deposit_for_Bob(Bob);
-        car_Bob(Bob, &date_current, &date_purchase_car_car);
-        if(!check_bankruptcy_Bob(Bob, &date_current)) {
+        car_Bob(Bob, &dates.current_simulation_date, &dates.purchase_car_date);
+
+        if(!check_bankruptcy_Bob(Bob, &dates.current_simulation_date)) {
             return 0;
         }
-        time_update(&date_current);
+        
+        inflation_expenses_for_Bob(Bob);
+
+        time_update(&dates.current_simulation_date);
     }
 
     return (Money)round(Bob->deposit + Bob->car.car_price);
