@@ -33,6 +33,7 @@ typedef struct {
 
 
 typedef struct {
+    char name[5];
     Money salary;
     Money expenses;
     Money rent;
@@ -54,6 +55,7 @@ const int DURATION = 30;  // years
 
 void Alice_init(Person *Alice) {
     *Alice = (Person){
+        .name = "Alice",
         .salary = 200 * 1000,
         .money_cash = 0,
         .expenses = 20 * 1000 /*food*/ + 15 * 1000 /*public utilities*/ + 15 * 1000 /*personal expenses*/,
@@ -77,6 +79,7 @@ void Alice_init(Person *Alice) {
 
 void Bob_init(Person *Bob) {
     *Bob = (Person){
+        .name = "Bob",
         .salary = 200 * 1000,
         .money_cash = 0,
         .expenses = 20 * 1000 /*food*/ + 15 * 1000 /*public utilities*/ + 15 * 1000 /*personal expenses*/,
@@ -114,77 +117,40 @@ int is_date_equal(const Date *date_current, const Date *date_end) {
 }
 
 
-void money_cash_for_Alice(Person *Alice, const Money *Alice_payment) {
-    Alice->money_cash = Alice->salary - (Alice->expenses + *Alice_payment);
+void money_cash(Person *person, const Money *payment) {
+    person->money_cash = person->salary - (person->expenses + *payment);
 }
 
 
-int Alice_is_bankrupt(const Date *date_current) {
-    printf("Alice became bankrupt in the %dth month of %d year\n", date_current->month, date_current->year);
+int person_is_bankrupt(const Date *date_current, char name[5]) {
+    printf("%s became bankrupt in the %dth month of %d year\n", name, date_current->month, date_current->year);
     return 0;
 }
 
 
-int check_payment_by_Alice_deposit(Person *Alice, const Date *date_current) {
-    if(Alice->deposit - abs(Alice->money_cash) > 0) {
-        Alice->deposit -= Alice->money_cash;
+int check_payment_by_deposit(Person *person, const Date *date_current) {
+    if(person->deposit - abs(person->money_cash) > 0) {
+        person->deposit -= person->money_cash;
     } else {
-        return Alice_is_bankrupt(date_current);
+        return person_is_bankrupt(date_current, person->name);
     }
 
     return 1;
 }
 
 
-int check_bankruptcy_Alice(Person *Alice, const Date *date_current) {
-    if(Alice->money_cash < 0) {
-        return check_payment_by_Alice_deposit(Alice, date_current);
+int check_bankruptcy(Person *person, const Date *date_current) {
+    if(person->money_cash < 0) {
+        return check_payment_by_deposit(person, date_current);
     }
 
     return 1;
 } 
 
 
-int Bob_is_bankrupt(const Date *date_current) {
-    printf("Bob became bankrupt in the %dth month of %d year\n", date_current->month, date_current->year);
-    return 0;
-}
-
-
-int check_payment_by_Bob_deposit(Person *Bob, const Date *date_current) {
-    if(Bob->deposit - abs(Bob->money_cash) > 0) {
-        Bob->deposit -= Bob->money_cash;
-    } else {
-        return Bob_is_bankrupt(date_current);
-    }
-
-    return 1;
-}
-
-
-int check_bankruptcy_Bob(Person *Bob, const Date *date_current) {
-    if(Bob->money_cash < 0) {
-        return check_payment_by_Bob_deposit(Bob, date_current);
-    }
-
-    return 1;
-} 
-
-
-void money_cash_for_Bob(Person *Bob) {
-    Bob->money_cash = Bob->salary - (Bob->expenses + Bob->rent);
-}
-
-
-void update_deposit_for_Alice(Person *Alice) {
-    Alice->deposit = (Money)round(Alice->deposit * (1 + Alice->deposit_percentage));
-    Alice->deposit += Alice->money_cash;
-}
-
-
-void update_deposit_for_Bob(Person *Bob) {
-    Bob->deposit = (Money)round(Bob->deposit * (1 + Bob->deposit_percentage));
-    Bob->deposit += Bob->money_cash; 
+void update_deposit(Person *person) {
+    person->deposit = (Money)round(person->deposit * (1 + person->deposit_percentage));
+    person->deposit += person->money_cash;
 }
 
 
@@ -208,13 +174,8 @@ void result(const Money Alice_capital, const Money Bob_capital) {
 }
 
 
-void indexcation_salary_for_Alice(Person *Alice) {
-    Alice->salary = Alice->salary * (1 + INDEXCATION);
-}
-
-
-void indexcation_salary_for_Bob(Person *Bob) {
-    Bob->salary = Bob->salary * (1 + INDEXCATION);
+void indexcation_salary(Person *person) {
+    person->salary = person->salary * (1 + INDEXCATION);
 }
 
 
@@ -223,8 +184,8 @@ void inflation_expenses_for_Alice(Person *Alice) {
 }
 
 
-void inflation_flat_cost(Person *Alice) {
-    Alice->mortgage.flat_cost = Alice->mortgage.flat_cost * (1 + INFLATION);
+void inflation_flat_cost(Person *person) {
+    person->mortgage.flat_cost = person->mortgage.flat_cost * (1 + INFLATION);
 }
 
 
@@ -235,108 +196,68 @@ void inflation_expenses_for_Bob(Person *Bob) {
 
 
 void time_update(Date *date_current) {
-    if(date_current->month++ == 13) {
+    if(++date_current->month == 13) {
         ++date_current->year;
         date_current->month = 1;
     }
 }
 
 
-void inflation_car_for_Alice(Person *Alice) {
-    Alice->car.car_price = Alice->car.car_price * (1 + INFLATION);
-    Alice->car.maintenance = Alice->car.maintenance * (1 + INFLATION + 0.05 /*increase transport tax*/);
+void inflation_car(Person *person) {
+    person->car.car_price = person->car.car_price * (1 + INFLATION);
+    person->car.maintenance = person->car.maintenance * (1 + INFLATION + 0.05 /*increase transport tax*/);
 }
 
 
-void inflation_car_for_Bob(Person *Bob) {
-    Bob->car.car_price = Bob->car.car_price * (1 + INFLATION);
-    Bob->car.maintenance = Bob->car.maintenance * (1 + INFLATION + 0.05 /*increase transport tax*/);
+int is_date_buy_car(Date *date_current, Date *purchase_car_date_car) {
+    return (date_current->year == purchase_car_date_car->year) && (date_current->month == purchase_car_date_car->month);
 }
 
 
-int is_date_buy_car(Date *date_current, Date *date_purchase_car_car) {
-    return (date_current->year == date_purchase_car_car->year) && (date_current->month == date_purchase_car_car->month);
+void error_to_buy_car(Date *purchase_car_date, char name[5]) {
+    printf("%s couldn`t have a car in the %d month of %d year\n", name, purchase_car_date->month, purchase_car_date->year);
 }
 
 
-void error_to_buy_car_for_Alice(Date *date_purchase_car_car) {
-    printf("Alice couldn`t have a car in the %d month of %d year\n", date_purchase_car_car->month, date_purchase_car_car->year);
-}
-
-
-void try_to_buy_car_for_Alice(Person *Alice, Date *date_purchase_car_car) {
-    if(Alice->deposit > Alice->car.car_price) {
-        Alice->deposit -= Alice->car.car_price;
-        ++Alice->car.count_of_car;
+void try_to_buy_car(Person *person, Date *purchase_car_date_car) {
+    if(person->deposit > person->car.car_price) {
+        person->deposit -= person->car.car_price;
+        ++person->car.count_of_car;
     } else {
-        error_to_buy_car_for_Alice(date_purchase_car_car);
+        error_to_buy_car(purchase_car_date_car, person->name);
     }
 }
 
 
-void error_to_buy_car_for_Bob(Date *date_purchase_car) {
-    printf("Bob couldn`t have a car in the %d month of %d year\n", date_purchase_car->month, date_purchase_car->year);
-}
-
-
-void try_to_buy_car_for_Bob(Person *Bob, Date *date_purchase_car) {
-    if(Bob->deposit > Bob->car.car_price) {
-        Bob->deposit -= Bob->car.car_price;
-        ++Bob->car.count_of_car;
-    } else {
-        error_to_buy_car_for_Bob(date_purchase_car);
-    }
-}
-
-
-void money_cash_after_servicing_Alice_car(Person *Alice) {
-    Alice->money_cash -= Alice->car.maintenance;
-}
-
-
-void money_cash_after_servicing_Bob_car(Person *Bob) {
-    Bob->money_cash -= Bob->car.maintenance;
+void money_cash_after_servicing_car(Person *person) {
+    person->money_cash -= person->car.maintenance;
 }
 
 
 void salary_Alice(Person *Alice, Money *Alice_payment) {
-    money_cash_for_Alice(Alice, Alice_payment);
+    money_cash(Alice, Alice_payment);
 
-    indexcation_salary_for_Alice(Alice);
-}
-
-
-void car_Alice(Person *Alice, Date *date_current, Date *date_purchase_car) {
-
-    if(is_date_buy_car(date_current, date_purchase_car)) {
-        try_to_buy_car_for_Alice(Alice, date_purchase_car);
-    }
-
-    if(Alice->car.count_of_car == 1) {
-        money_cash_after_servicing_Alice_car(Alice);
-    }
-
-    inflation_car_for_Alice(Alice);
+    indexcation_salary(Alice);
 }
 
 
 void salary_Bob(Person *Bob) {
-    money_cash_for_Bob(Bob);
+    money_cash(Bob, &Bob->rent);
 
-    indexcation_salary_for_Bob(Bob);
+    indexcation_salary(Bob);
 }
 
 
-void car_Bob(Person *Bob, Date *date_current, Date *date_purchase_car) {
-    if(is_date_buy_car(date_current, date_purchase_car)) {
-        try_to_buy_car_for_Bob(Bob, date_purchase_car);
+void car(Person *person, Date *date_current, Date *purchase_car_date) {
+    if(is_date_buy_car(date_current, purchase_car_date)) {
+        try_to_buy_car(person, purchase_car_date);
     }
 
-    if(Bob->car.count_of_car == 1) {
-        money_cash_after_servicing_Bob_car(Bob);
+    if(person->car.count_of_car == 1) {
+        money_cash_after_servicing_car(person);
     }
 
-    inflation_car_for_Bob(Bob);
+    inflation_car(person);
 }
 
 
@@ -358,10 +279,10 @@ Money simulation_Alice(Person *Alice) {
 
     while(!is_date_equal(&dates.current_simulation_date, &dates.end_simulation_date)) {
         salary_Alice(Alice, &Alice_payment);
-        car_Alice(Alice, &dates.current_simulation_date, &dates.purchase_car_date);
-        update_deposit_for_Alice(Alice);
+        car(Alice, &dates.current_simulation_date, &dates.purchase_car_date);
+        update_deposit(Alice);
         
-        if(!check_bankruptcy_Alice(Alice, &dates.current_simulation_date)) {
+        if(!check_bankruptcy(Alice, &dates.current_simulation_date)) {
             return 0;
         }
 
@@ -381,10 +302,10 @@ Money simulation_Bob(Person *Bob) {
 
     while(!is_date_equal(&dates.current_simulation_date, &dates.end_simulation_date)) {
         salary_Bob(Bob);
-        update_deposit_for_Bob(Bob);
-        car_Bob(Bob, &dates.current_simulation_date, &dates.purchase_car_date);
+        car(Bob, &dates.current_simulation_date, &dates.purchase_car_date);
+        update_deposit(Bob);
 
-        if(!check_bankruptcy_Bob(Bob, &dates.current_simulation_date)) {
+        if(!check_bankruptcy(Bob, &dates.current_simulation_date)) {
             return 0;
         }
         
@@ -393,7 +314,7 @@ Money simulation_Bob(Person *Bob) {
         time_update(&dates.current_simulation_date);
     }
 
-    return (Money)round(Bob->deposit + Bob->car.car_price);
+    return (Money)round(Bob->deposit + Bob->car.car_price);         
 }
 
 
