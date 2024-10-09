@@ -1,35 +1,35 @@
 #include <stdio.h>
 
 
-typedef long long int Money;
+typedef long long int Money;  //Тип данных для денежных переменных
 
 
 typedef struct Hero
 {
-    Money balance;
+    Money balance;   // Количество денег на счету
     Money salary;
-    Money salary_bonus;
-    Money ipotek;
-    Money food_payment;
-    Money comunal_payment;
+    Money salary_bonus;  // Премия в конце года
+    Money ipotek;       // Перменная для сравнения стоимости ипотеки через 30 лет
+    Money food_payment; // Ежемесечные траты за еду
+    Money comunal_payment;   // Траты на комунальные услуги
     Money another_payment; //Траты на одежду, медикаменты и прочее
-    Money vacation_cost;
-    Money ipotek_payment;
+    Money vacation_cost;    // Ежегодные траты на отпуск
+    Money ipotek_payment;  // Ежемесечная плата за ипотеку
     double deposite_percent;
     double inflation;
     double indexation;
 } Hero;
 
 
-Hero midas;
+Hero midas;  //Мидас выбрал не заморачиваться и взять Ипотеку
 Hero arno;
 
+const int CURRENT_YEAR = 2024;
+const int MONTH = 12;
+const int FINAL_YEAR = 2054;
 
-int month = 12;
-int year = 2050;
 
-
-void _init_midas()
+void _init_midas()  //Инициализация переменных Мидаса
 {
     midas = (Hero){   
         .balance = 0,
@@ -48,7 +48,7 @@ void _init_midas()
 }
 
 
-void _init_arno()
+void _init_arno()  //Инициализация Арно 
 {
     arno = (Hero){
         .balance = 1000 * 1000 * 100,
@@ -66,7 +66,7 @@ void _init_arno()
 }
 
 
-void cost_inflation(Hero* hero)
+void cost_inflation(Hero* hero)  //Инфляция цен
 {
     hero -> food_payment += (Money)(hero -> food_payment * hero -> inflation);
     hero -> comunal_payment += (Money)(hero -> comunal_payment * hero -> inflation); 
@@ -76,29 +76,37 @@ void cost_inflation(Hero* hero)
 }
 
 
-void indexation(Hero* hero)
+void indexation(Hero* hero) //Индексация зарплат и премий
 {
     hero -> salary += (Money)(hero -> salary * hero -> indexation);
     hero -> salary_bonus += (Money)(hero -> salary_bonus * hero -> indexation);
 }
 
 
-void simulation(Hero* hero)
+void simulation(Hero* hero, int current_month, int final_year)   // симмулиция 30 лет
 {
-    for (int current_year = 2020; current_year < year; current_year++){
-        for (int i = 0; i < month; i++) {
-            hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
-            hero->balance += hero->salary;
-            hero->balance -= hero->food_payment;
-            hero->balance -= hero->comunal_payment;
-            hero->balance -= hero->another_payment;  
-            hero->balance -= hero->ipotek_payment;
-        }
-        hero -> balance += hero -> salary_bonus;
-        hero -> balance -= hero -> vacation_cost;
+    int current_year = CURRENT_YEAR;
+    int final_month = current_month;
+    while (current_year < final_year || current_month < final_month){
+        hero->balance += (Money)((double)(hero->balance) * (hero->deposite_percent / 12));
+        hero->balance += hero->salary;
+        hero->balance -= hero->food_payment;
+        hero->balance -= hero->comunal_payment;
+        hero->balance -= hero->another_payment;  
+        hero->balance -= hero->ipotek_payment;
+        current_month += 1;
+        if (current_month >= 13){
+            current_month = 1;
+            current_year += 1;
 
-        cost_inflation(&*hero);
-        indexation(&*hero);
+            hero -> balance += hero -> salary_bonus;
+            hero -> balance -= hero -> vacation_cost;
+
+            cost_inflation(&*hero);
+            indexation(&*hero);
+        }
+        
+       
     }
 }
 
@@ -108,16 +116,12 @@ int main()
     _init_midas();
     _init_arno();
 
-    printf("midas balance %lld\n", midas.balance / 100);
-    printf("arno balance %lld\n", arno.balance / 100);
-    printf("\n");
-
-    simulation(&midas);
-    simulation(&arno);
+    simulation(&midas, 9, 2054);
+    simulation(&arno, 9, 2054);
 
     printf("midas balance %lld\n", (midas.balance + midas.ipotek) / 100);
     printf("arno balance %lld\n", arno.balance / 100);
-    printf("house cost %lld\n", (midas.ipotek) / 100);
+    printf("house cost %lld\n", (midas.ipotek) / 100);  //Цена квартиры спустя 30 лет
     printf("\n");
     return 1;
 }

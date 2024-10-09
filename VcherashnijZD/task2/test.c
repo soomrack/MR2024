@@ -35,6 +35,7 @@
 #define MAX_VALUE 100
 double EQUAL_TEST_ACCURACY = 1e-4;
 
+
 Matrix generate_random_matrix(size_t rows, size_t cols) {
     Matrix matrix;
     STATUS status = matrix_alloc(&matrix, rows, cols);
@@ -46,6 +47,7 @@ Matrix generate_random_matrix(size_t rows, size_t cols) {
         matrix.values[i] = (double)rand() / RAND_MAX * MAX_VALUE;
     return matrix;
 }
+
 
 void test_matrix_identity() {
     Matrix matrix;
@@ -60,6 +62,7 @@ void test_matrix_identity() {
     }), EQUAL_TEST_ACCURACY);
     matrix_free(&matrix);
 }
+
 
 void test_matrix_fill_val() {
     Matrix matrix;
@@ -76,6 +79,7 @@ void test_matrix_fill_val() {
     matrix_free(&matrix);
 }
 
+
 void test_matrix_clone() {
     Matrix original = generate_random_matrix(2, 3);
     Matrix clone;
@@ -85,6 +89,7 @@ void test_matrix_clone() {
     matrix_free(&original);
     matrix_free(&clone);
 }
+
 
 void test_matrix_add() {
     Matrix matA = generate_random_matrix(3, 3);
@@ -101,6 +106,7 @@ void test_matrix_add() {
     matrix_free(&expected);
 }
 
+
 void test_matrix_subt() {
     Matrix matA = generate_random_matrix(3, 3);
     Matrix matB = generate_random_matrix(3, 3);
@@ -116,6 +122,7 @@ void test_matrix_subt() {
     matrix_free(&expected);
 }
 
+
 void test_matrix_mult() {
     Matrix matA = generate_random_matrix(2, 3);
     Matrix matB = generate_random_matrix(3, 2);
@@ -123,9 +130,22 @@ void test_matrix_mult() {
     STATUS status = matrix_mult(&result, matA, matB);
     ASSERT_STATUS_OK(status);
 
-    Matrix expected = generate_random_matrix(2, 2);
+    // Calculate expected result correctly:
+    Matrix expected = {
+        .rows = 2,
+        .cols = 2,
+        .values = malloc(sizeof(double) * 4) 
+    };
+    if (expected.values == NULL) {
+        printf("Test failed: Memory allocation error for 'expected'.\n");
+        matrix_free(&matA);
+        matrix_free(&matB);
+        matrix_free(&result);
+        return;
+    }
     for (size_t i = 0; i < 2; i++) {
         for (size_t j = 0; j < 2; j++) {
+            expected.values[i * 2 + j] = 0.0; // Initialize to zero
             for (size_t k = 0; k < 3; k++) {
                 expected.values[i * 2 + j] += matA.values[i * 3 + k] * matB.values[k * 2 + j];
             }
@@ -137,8 +157,9 @@ void test_matrix_mult() {
     matrix_free(&matA);
     matrix_free(&matB);
     matrix_free(&result);
-    matrix_free(&expected);
+    free(expected.values);
 }
+
 
 void test_matrix_mult_by_num() {
     Matrix mat = generate_random_matrix(2, 3);
@@ -154,6 +175,7 @@ void test_matrix_mult_by_num() {
     matrix_free(&expected);
 }
 
+
 void test_matrix_change_rows() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix expected = generate_random_matrix(3, 3);
@@ -164,6 +186,7 @@ void test_matrix_change_rows() {
     matrix_free(&mat);
     matrix_free(&expected);
 }
+
 
 void test_matrix_det() {
     Matrix mat = generate_random_matrix(3, 3);
@@ -180,6 +203,7 @@ void test_matrix_det() {
     matrix_free(&mat);
 }
 
+
 void test_matrix_pow() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix result;
@@ -188,6 +212,7 @@ void test_matrix_pow() {
     matrix_free(&mat);
     matrix_free(&result);
 }
+
 
 void test_matrix_check_max_diff() {
     Matrix matA = generate_random_matrix(3, 3);
@@ -206,6 +231,7 @@ void test_matrix_check_max_diff() {
     matrix_free(&matB);
 }
 
+
 void test_matrix_exp() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix result;
@@ -220,6 +246,7 @@ void test_matrix_exp() {
     matrix_free(&mat);
     matrix_free(&result);
 }
+
 
 void test_matrix_equals() {
     Matrix matA = generate_random_matrix(3, 3);
@@ -237,8 +264,32 @@ void test_matrix_equals() {
     matrix_free(&matB);
 }
 
+
+void test_matrix_lsolve_comparison() {
+    Matrix a = generate_random_matrix(3, 3);
+    Matrix b = generate_random_matrix(3, 1);
+
+    Matrix result_base;
+    STATUS status = matrix_lsolve(&result_base, a, b);
+    ASSERT_STATUS_OK(status);
+    Matrix result_cg;
+    status = matrix_lsolve_cg(&result_cg, a, b);
+    ASSERT_STATUS_OK(status);
+
+    // Depend on matrix it can fail!
+    ASSERT_MATRIX_EQ(&result_base, &result_cg, EQUAL_TEST_ACCURACY);
+
+    //matrix_print(result_base);
+    //matrix_print(result_cg);
+    matrix_free(&a);
+    matrix_free(&b);
+    matrix_free(&result_base);
+    matrix_free(&result_cg);
+}
+
+
 int main() {
-    srand(time(NULL)); // Initialize random seed
+    srand(time(NULL));
     printf("Test identity\n");
     test_matrix_identity();
     printf("Test fill val\n");
@@ -263,10 +314,11 @@ int main() {
     test_matrix_check_max_diff();
     printf("Test exp\n");
     test_matrix_exp();
+    printf("Test lsolve\n");
+    test_matrix_lsolve_comparison(); 
     printf("Test equals\n");
-    test_matrix_equals();
-
-    printf("All tests passed!\n");
+    test_matrix_equals();   
+    
     return 0;
 }
 

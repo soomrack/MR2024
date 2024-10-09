@@ -1,109 +1,140 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
-typedef unsigned long long int Money;  
+typedef long long int Money;  
+int START_YEAR = 2024;
 int SIMULATION_TIME = 30;
-int Month_Point = 9;
+int MONTH_START = 9;
 //Общие переменные
-struct Person
-    {
+struct Person {
     Money  Balance;
     Money  Salary;
     Money  Credit;
-    double  Rate;
+    double Rate;
     Money  Expense;
-    double  Rent;
+    Money  Rent;
     Money  Purpose;
     double Inflation;
-    double  Rate_Deposit;
-    };
+    double Deposit;
+};
 
 struct Person Alice; 
 struct Person Bob;
-    
+
+//Данные Алисы
 void Alice_Data()
 {
-    
-    Alice.Balance = pow(10,9);
-    Alice.Salary = pow(10,6);
-    Alice.Credit = 15*pow(10,9);
-    Alice.Rate = 20;
-    Alice.Rate_Deposit = 12;
+    Alice.Balance = pow(10,6);
+    Alice.Salary = 2*pow(10,5);
+    Alice.Credit = 15*pow(10,6);
+    Alice.Rate = 0.2/12;
+    Alice.Deposit = 0.12/12;
     Alice.Expense = 30 * 1000;
     Alice.Purpose = 0;
-    Alice.Inflation = 8;
-    Alice.Credit = Alice.Credit - Alice.Balance;
+    Alice.Inflation = 0.08/12;
+    Alice.Rent = (Alice.Credit - Alice.Balance) * (((Alice.Rate)*(pow((1. + Alice.Rate),(SIMULATION_TIME)*12.)))/(pow(1. + (Alice.Rate),(SIMULATION_TIME)*12.) - 1.));
     Alice.Balance = 0;
-    Alice.Rate = 1 + Alice.Rate / (100*12);
-    Alice.Rate_Deposit = 1 + Alice.Rate_Deposit / (100*12);
-    Alice.Inflation = Alice.Inflation / (100*12); // 
-    Alice.Rent = Alice.Credit * (((Alice.Rate - 1)*(pow((Alice.Rate),(SIMULATION_TIME)*12)))/(pow((Alice.Rate),(SIMULATION_TIME)*12) - 1));
-
 }
 
+//Данные Боба
 void Bob_Data()
 {
-    Bob.Balance = pow(10,9);
-    Bob.Salary = pow(10,6);
+    Bob.Balance = pow(10,6);
+    Bob.Salary = 2*pow(10,5);
     Bob.Credit = 0;
     Bob.Rate = 0;
-    Alice.Rate_Deposit = 12;
+    Bob.Deposit = 0.12/12;
     Bob.Expense = 30 * 1000;
     Bob.Rent = 30 * 1000;
-    Bob.Purpose = 15 * pow(10,9);
-    Bob.Inflation = 8;
-    Bob.Inflation = Bob.Inflation / (100*12);
-    Bob.Rate_Deposit = 1 + Bob.Rate_Deposit / (100*12);
+    Bob.Purpose = 15 * pow(10,6);
+    Bob.Inflation = 0.08/12;
 }
 
-
-void Calculations_Alice() //?? Как Сделать одну расчтеную функцию на двоих
+//Зарплата
+void Alice_Salary()
 {
-    for (int year=2024; year<(2024+SIMULATION_TIME); year++){
-        for (int mounth=0; mounth<12; mounth++){
-            Month_Point++;
-            Alice.Balance += Alice.Salary; 
-            Alice.Balance = Alice.Balance - Alice.Rent - Alice.Expense;
-            Alice.Salary += Alice.Salary*Alice.Inflation;
-            Alice.Expense += Alice.Expense*Alice.Inflation;
-            Alice.Balance =  Alice.Balance*Alice.Rate_Deposit;
-            printf("Alice.Balance:%d\n",Alice.Balance);
-        
+    Alice.Balance +=  Alice.Salary;
+}
+
+void Bob_Salary()
+{
+    Bob.Balance += Bob.Salary;
+}
+
+//Расходы
+void Alice_Expenses()
+{
+    Alice.Balance = Alice.Balance - Alice.Rent - Alice.Expense;
+}
+
+void Bob_Expenses()
+{
+    Bob.Balance = Bob.Balance - Bob.Rent - Bob.Expense;
+}
+
+//Инфляция
+void Alice_Inflation()
+{
+    Alice.Salary += Alice.Salary * Alice.Inflation;
+    Alice.Expense += Alice.Expense * Alice.Inflation;
+}
+
+void Bob_Inflation()
+{
+    Bob.Salary += Bob.Salary * Bob.Inflation;
+    Bob.Expense += Bob.Expense * Bob.Inflation;
+    Bob.Purpose += Bob.Purpose * Bob.Inflation;
+}
+
+//Вклады
+void Alice_Deposit()
+{
+    Alice.Balance +=  Alice.Balance * Alice.Deposit;
+}
+
+void Bob_Deposit()
+{
+    Bob.Balance += Bob.Balance * Bob.Deposit;
+}
+
+//Расчеты
+void Calculations()
+{
+    int Month = MONTH_START;
+    for (int year=START_YEAR ; year<=(START_YEAR + SIMULATION_TIME); year++){
+        printf("Year\n"); 
+        for (;Month<=12; Month++){
+
+            Alice_Salary(); 
+            Alice_Expenses(); 
+            Alice_Inflation(); 
+            Alice_Deposit(); 
+            printf("Bob.Balance: %lld\n\n", Bob.Balance);
+            Bob_Salary(); 
+            Bob_Expenses(); 
+            Bob_Inflation(); 
+            Bob_Deposit(); 
+            printf("Alice.Balance: %lld\n\n", Alice.Balance);
         }
-    }    
+        Month=1;
+    } 
 }
 
-void Calculations_Bob()
-{
-     for (int year=2024; year<(2024+SIMULATION_TIME); year++){
-        for (int mounth=0; mounth<12; mounth++){
-            Month_Point++;
-            Bob.Balance = Bob.Balance + Bob.Salary; 
-            Bob.Balance = Bob.Balance - Bob.Rent - Bob.Expense;
-            Bob.Salary += Bob.Salary*Bob.Inflation;
-            Bob.Expense += Bob.Expense*Bob.Inflation;
-            Bob.Purpose += Bob.Purpose*Bob.Inflation;
-            Bob.Balance =  Bob.Balance*Bob.Rate_Deposit;
-            printf("Bob.Balance:%d\n",Bob.Balance);
-       }
-    }
-}
-
+//Вывод результатов
 void Result ()
 {
 if (Bob.Balance > Alice.Balance+Bob.Purpose){
         printf("The winner is Bob\n"); 
-        printf("Bob.Balance: %d\n", round(Bob.Balance));
-        printf("Alice.Balance: %d\n", round(Alice.Balance));
-        printf("Bob.Purpose: %d\n", round(Bob.Purpose));
+        printf("Bob.Balance: %lld\n", Bob.Balance);
+        printf("Alice.Balance: %lld\n", Alice.Balance);
+        printf("Bob.Purpose: %lld\n", Bob.Purpose);
     }
     else{
         printf("The winner is Alice\n");
-        printf("Alice.Balance:%d\n",Alice.Balance);
-        printf("Bob.Balance: %d\n", Bob.Balance);
-        printf("Bob.Purpose: %d\n", Bob.Purpose);
+        printf("Alice.Balance:%lld\n",Alice.Balance);
+        printf("Bob.Balance: %lld\n", Bob.Balance);
+        printf("Bob.Purpose: %lld\n", Bob.Purpose);
     }
-//
 }
 
 int main()
@@ -112,8 +143,7 @@ int main()
 Alice_Data();
 Bob_Data();
 
-Calculations_Alice();
-Calculations_Bob();
+Calculations();
 
 Result();  
 
