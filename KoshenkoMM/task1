@@ -16,15 +16,18 @@ struct Person {
     Money deposit;
 };
 
-Person bob;
-Person alice;
-Mortgage alice_mortgage;
+
+struct Person bob;
+struct Person alice;
+struct Mortgage alice_mortgage;
 
 void alice_inite() 
 {
     alice.account = 1000 * 1000 * 100;
     alice.salary = 300 * 1000 * 100;
     alice.wastes = 30 * 1000 * 100;
+    alice.deposit = 0;
+
 
     alice_mortgage.sum = 14 * 1000 * 1000 * 100;
     alice_mortgage.first_pay = 1000 * 1000 * 100;
@@ -62,6 +65,7 @@ void alice_wastes()
 
 void alice_deposit()
 {
+    alice.deposit *= (20.0 / 12.) / 100.;
     alice.deposit += alice.account;
     alice.account = 0;
 }
@@ -106,9 +110,11 @@ void bob_wastes()
 
 void bob_deposit()
 {
+    bob.deposit *= (20.0 / 12.) / 100.;
     bob.deposit += bob.account;
     bob.account = 0;
 }
+
 
 void simulation()
 {
@@ -120,16 +126,19 @@ void simulation()
         alice__mortgage();
         alice_wastes();
         alice_deposit();
+       
 
         bob_salary(month);
         bob_rent();
         bob_wastes();
         bob_deposit();
+        
 
         month++;
         if (month == 13) {
             month = 1;
             year++;
+  
         }
     }
 }
