@@ -5,8 +5,7 @@ const double INFLATION_RATE = 1.09;
 const double DEPOSIT_RATE = 0.2;
 
 
-typedef struct Mortgage
-{
+typedef struct Mortgage {
     Money sum;
     Money first_pay;
     Money monthly_payment;
@@ -14,8 +13,7 @@ typedef struct Mortgage
 } Mortgage;
 
 
-typedef struct Person
-{
+typedef struct Person {
     Money salary;
     Money account;
     Mortgage mortgage;
@@ -23,6 +21,7 @@ typedef struct Person
     Money food;
     Money house_bills;
     Money personal_expens;
+    Money bike;
     Money deposit;
     Money rent;
 
@@ -41,6 +40,7 @@ void alice_init()
     alice.food = 15 * 1000 *100;
     alice.house_bills = 7 * 1000 * 100;
     alice.personal_expens = 16 * 1000 * 100;
+    alice.bike = 30 * 1000 * 100;
     alice.mortgage.sum = 13 * 1000 * 1000 * 100;
     alice.mortgage.first_pay = 1000 * 1000 * 100;
     alice.mortgage.monthly_payment = 16137084;  // https://calcus.ru/kalkulyator-ipoteki
@@ -137,6 +137,14 @@ void alice_house_price(const int month)
 }
 
 
+void alice_bike(const int month, const int year)
+{
+    if (((year - 2024) % 3) == 0) alice.account -= alice.bike;
+
+    if (month == 1) alice.bike *= INFLATION_RATE;
+}
+
+
 void alice_deposit(const int month)
 {
     alice.account += alice.account * DEPOSIT_RATE / 12;
@@ -159,6 +167,7 @@ void simulation()
         alice_mortgage();
         alice_house_price(month);
         alice_expenditure(month);
+        alice_bike(year, month);
         alice_deposit(month);
 
         bob_salary(month);
