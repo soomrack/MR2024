@@ -135,9 +135,7 @@ void bob_rent(const int month, const int year)
 void bob_overhaul(const int month, const int year)
 {
     bob.account -= overhaul.expenses;
-    while(overhaul.overhaul_month != 24) {
-        overhaul.overhaul_month += 1;
-    }
+    overhaul.overhaul_month += 1;
 
     if(overhaul.overhaul_month == 24) {
         bob.account += overhaul.outcome;
