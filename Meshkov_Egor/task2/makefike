@@ -1,0 +1,23 @@
+# Компилятор
+CC=gcc
+# Флаги
+CFLAGS=-c -Wall
+#Подключение библиотек
+LDFLAGS=-lm
+# Файлы для компиляции
+SOURCES=matrix.c main.c
+# Объектные файлы
+OBJECTS=$(SOURCES:.c=.o)
+# Итоговый файл
+EXECUTABLE=result
+
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	rm -rf *.o $(EXECUTABLE)

@@ -57,7 +57,7 @@ void alice_init()
     alice.mortgage.sum = 14 * 1000 * 1000;
     alice.mortgage.first_pay = 1000 * 1000;
     alice.mortgage.rate = 0.17;
-    alice.mortgage.monthly_payments = 120*1000; 
+    alice.mortgage.monthly_payments = 120 * 1000; 
     alice.account -= alice.mortgage.first_pay;
     alice.house_price = alice.mortgage.sum;
 }
@@ -75,7 +75,7 @@ void alice_salary(const int month)
 void alice_disaster(const int month, const int year)
 {
     if(month == 3 && year == 2028)  {
-        alice.account -= 50*1000;
+        alice.account -= 50 * 1000;
     }
 }
 
@@ -136,10 +136,10 @@ void alice_deposit()
 
 void bob_init()
 {
-    bob.salary = 200*1000;
-    bob.account = 1000*1000;
-    bob.house_rent = 50*1000;
-    bob.life_cost = 50*1000;
+    bob.salary = 200 * 1000;
+    bob.account = 1000 * 1000;
+    bob.house_rent = 50 * 1000;
+    bob.life_cost = 50 * 1000;
 
     bob.deposit_rate = 0.15;
     alice.inflation_index = 0.07;
@@ -241,5 +241,7 @@ int main()
     print();
     return 0;
 }
+
+
 
 
