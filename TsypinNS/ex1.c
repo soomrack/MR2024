@@ -16,8 +16,18 @@ typedef struct {
 } Person;
 
 
+typedef struct {
+    Money expenses;
+    Money outcome;
+    int overhaul_month;
+} Overhaul;
+
+
 Person alice;
 Person bob;
+
+
+Overhaul overhaul;
 
 
 void alice_init()
@@ -39,6 +49,14 @@ void bob_init()
     bob.rent = 30 * 1000 * 100;
     bob.overhaul = 50 * 1000 * 100;
     bob.overhaul_outcome = 3 * 1000 * 1000 * 100;
+}
+
+
+void overhaul_init()
+{
+    overhaul.expenses = 50 * 1000 * 100;
+    overhaul.outcome = 3 * 1000 * 1000 * 100;
+    overhaul.overhaul_month = 0;
 }
 
 
@@ -112,30 +130,23 @@ void bob_rent(const int month, const int year)
     if(month == 12) {
         bob.rent *= 1.08;
     }
-
-    if ((year % 2 == 0) && (year != 2024) && (month == 12)) {
-        bob.rent *= 1.1;
-    }
 }
 
-
-void bob_overhaul(const int month)
+void bob_overhaul(const int month, const int year)
 {
-    bob.account -= bob.overhaul;
-    if(month == 12) {
-        bob.overhaul *= 1.08;
+    bob.account -= overhaul.expenses;
+    while(overhaul.overhaul_month != 24) {
+        overhaul.overhaul_month += 1;
     }
-}
 
-
-void bob_overhaul_outcome(const int month, const int year)
-{
-    if((year % 2 == 0) && (year != 2024) && (month == 12)) {
-        bob.account += bob.overhaul_outcome;
+    if(overhaul.overhaul_month == 24) {
+        bob.account += overhaul.outcome;
+        overhaul.overhaul_month == 0;
     }
 
     if(month == 12) {
-        bob.overhaul_outcome *= 1.08;
+        overhaul.expenses *= 1.08;
+        overhaul.outcome *= 1.08;
     }
 }
 
@@ -197,8 +208,7 @@ void simulation()
         bob_rent(month, year);
         bob_food(month);
         bob_home_bills(month);
-        bob_overhaul(month);
-        bob_overhaul_outcome(month, year);
+        bob_overhaul(month, year);
 
         ++month;
         if(month == 13) {
@@ -212,6 +222,7 @@ void simulation()
 int main()
 {
     alice_init();
+    overhaul_init();
     bob_init();
 
     simulation();
