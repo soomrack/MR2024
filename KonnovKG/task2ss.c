@@ -253,6 +253,7 @@ Matrix matrix_inverse (Matrix A)
     return inverse_matrix;
 }
 
+
 Matrix matrix_power (Matrix A, long long int n)
 {
     if (A.rows != A.cols || n < 0) {
@@ -271,6 +272,7 @@ Matrix matrix_power (Matrix A, long long int n)
     return matrix_powered_to_n;
 }
 
+
 long long int factorial(int n) {
   if (n < 0) {
     return -1;
@@ -280,6 +282,7 @@ long long int factorial(int n) {
     return n * factorial(n - 1);
   }
 }
+
 
 Matrix matrix_exponent (Matrix A, long long int n)
 {
@@ -291,7 +294,7 @@ Matrix matrix_exponent (Matrix A, long long int n)
     Matrix matrix_exponent_to_n = {A.rows, A.cols};
     matrix_allocate(&matrix_exponent_to_n);
 
-    for (long long int idx = 1; idx < n; idx++) {
+    for (long long int idx = 1; idx <= n; idx++) {
         Matrix step_matrix = A;
         matrix_allocate(&step_matrix);
         step_matrix = matrix_multi_by_number(matrix_power(A, idx), 1/factorial(idx));
