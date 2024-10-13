@@ -129,7 +129,7 @@ void bob_salary_income(const Date date)
 {
     bob.bank_account += bob.salary;
     if ((date.year == 2038) && (date.month == 3)) bob.salary = 0;                // условие, что боб в 2038 году в марте потерял работу
-    if ((date.year == 2038) && (date.month == 5)) bob.salary = 320 * 1000 * 100; // на 2 месяц, но потом нашел новую с зп 320 тыс
+    if ((date.year == 2038) && (date.month == 5)) bob.salary = 390 * 1000 * 100; // на 2 месяц, но потом нашел новую с зп больше
 }
 
 
