@@ -90,6 +90,7 @@ void _init_arno()  //Инициализация Арно
 }
 
 
+//Just kiddin
 void cost_inflation(Hero* hero)  //Инфляция цен 2
 {
     hero -> food_payment += (Money)(hero -> food_payment * hero -> inflation);
