@@ -5,147 +5,208 @@ typedef long long int Money;
 int START_YEAR = 2024;
 int SIMULATION_TIME = 30;
 int MONTH_START = 9;
-//Общие переменные
-struct Person {
-    Money  Balance;
-    Money  Salary;
-    Money  Credit;
-    double Rate;
-    Money  Expense;
-    Money  Rent;
-    Money  Purpose;
-    double Inflation;
-    double Deposit;
+
+
+struct Mortgage
+{
+    double rate;  // ставка по ипотеке
+    Money payment;  // ежемесячный платёж по ипотеке
 };
 
-struct Person Alice; 
-struct Person Bob;
 
-//Данные Алисы
-void Alice_Data()
+struct Car
 {
-    Alice.Balance = pow(10,6);
-    Alice.Salary = 2*pow(10,5);
-    Alice.Credit = 15*pow(10,6);
-    Alice.Rate = 0.2/12;
-    Alice.Deposit = 0.12/12;
-    Alice.Expense = 30 * 1000;
-    Alice.Purpose = 0;
-    Alice.Inflation = 0.08/12;
-    Alice.Rent = (Alice.Credit - Alice.Balance) * (((Alice.Rate)*(pow((1. + Alice.Rate),(SIMULATION_TIME)*12.)))/(pow(1. + (Alice.Rate),(SIMULATION_TIME)*12.) - 1.));
-    Alice.Balance = 0;
+    Money cost;  
+    Money mounthly_service;  
+    Money winter_rubber;
+};
+
+
+//Общие переменные
+struct Person 
+{
+    Money  balance;
+    Money  salary;
+    Money  credit;
+    Money  expense;
+    Money  flat;
+    double inflation;
+    double deposit;
+    struct Mortgage mortgage;
+    bool car;
+};
+
+struct Person alice; 
+struct Person bob;
+struct Car lada_granta;
+
+
+
+void alice_init()  
+{
+    alice.balance = pow(10,6); 
+    alice.salary = 2 * pow(10,5);
+    alice.credit = 15 * pow(10,6);
+    alice.mortgage.rate = 0.2 / 12;
+    alice.deposit = 0.12 / 12;
+    alice.expense = 30 * 1000;
+    alice.inflation = 0.08 / 12;
+    alice.mortgage.payment = (alice.credit - alice.balance) * (((alice.mortgage.rate)*(pow((1. + alice.mortgage.rate),(SIMULATION_TIME)*12.))) / (pow(1. + (alice.mortgage.rate),(SIMULATION_TIME)*12.) - 1.));
+    alice.balance = 0;
 }
+
 
 //Данные Боба
-void Bob_Data()
+void bob_init()
 {
-    Bob.Balance = pow(10,6);
-    Bob.Salary = 2*pow(10,5);
-    Bob.Credit = 0;
-    Bob.Rate = 0;
-    Bob.Deposit = 0.12/12;
-    Bob.Expense = 30 * 1000;
-    Bob.Rent = 30 * 1000;
-    Bob.Purpose = 15 * pow(10,6);
-    Bob.Inflation = 0.08/12;
+    bob.balance = pow(10,6);
+    bob.salary = 2 * pow(10,5);
+    bob.credit = 0;
+    bob.mortgage.rate = 0;
+    bob.deposit = 0.12 / 12;
+    bob.expense = 30 * 1000;
+    bob.mortgage.payment = 30 * 1000;
+    bob.flat = 15 * pow(10,6);
+    bob.inflation = 0.08 / 12;
+    bob.car = 0;
 }
 
-//Зарплата
-void Alice_Salary()
+void car_init()
 {
-    Alice.Balance +=  Alice.Salary;
+lada_granta.cost = 2 * pow(10,6);
+lada_granta.mounthly_service = 20 * 1000;
+lada_granta.winter_rubber = 24 * 1000;
 }
 
-void Bob_Salary()
+
+void alice_salary(const int month)
 {
-    Bob.Balance += Bob.Salary;
+    alice.balance += alice.salary;
+    alice.salary += alice.salary * alice.inflation;
+     if(month % 4 == 0){
+        alice.balance += alice.salary * 0.2;
+    }
+     if(month == 12){
+        alice.balance += alice.salary * 0.5;
+    }
 }
+
+
+void bob_salary(const int month)
+{
+    bob.balance += bob.salary;
+    bob.salary += bob.salary * bob.inflation;
+     if(month % 4 == 0){
+        bob.balance += bob.salary * 0.2;
+    }
+     if(month == 12){
+        bob.balance += bob.salary * 0.5;
+    }
+}
+
 
 //Расходы
-void Alice_Expenses()
+void alice_expenses()
 {
-    Alice.Balance = Alice.Balance - Alice.Rent - Alice.Expense;
+    alice.balance = alice.balance - alice.mortgage.payment - alice.expense;
 }
 
-void Bob_Expenses()
+
+void bob_expenses()
 {
-    Bob.Balance = Bob.Balance - Bob.Rent - Bob.Expense;
+    bob.balance = bob.balance - bob.mortgage.payment - bob.expense;
 }
 
-//Инфляция
-void Alice_Inflation()
+void bob_car(const int month)
 {
-    Alice.Salary += Alice.Salary * Alice.Inflation;
-    Alice.Expense += Alice.Expense * Alice.Inflation;
+    if (bob.balance > (lada_granta.cost + lada_granta.cost * 0.5) && (bob.car!=1)){
+        bob.car = true;
+        bob.balance -= lada_granta.cost;
+    }
+    if (month == 10){
+      bob.balance -= bob.car;  
+    }
+    bob.balance -= lada_granta.mounthly_service;
+    lada_granta.mounthly_service += lada_granta.mounthly_service * bob.inflation;
+    lada_granta.winter_rubber += lada_granta.winter_rubber * bob.inflation;
 }
 
-void Bob_Inflation()
+void inflation()
 {
-    Bob.Salary += Bob.Salary * Bob.Inflation;
-    Bob.Expense += Bob.Expense * Bob.Inflation;
-    Bob.Purpose += Bob.Purpose * Bob.Inflation;
+    
+    alice.expense += alice.expense * alice.inflation;
+    bob.expense += bob.expense * bob.inflation;
+    bob.flat += bob.flat * bob.inflation; 
+    lada_granta.cost += lada_granta.cost * bob.inflation;
 }
+
 
 //Вклады
-void Alice_Deposit()
+void alice_deposit()
 {
-    Alice.Balance +=  Alice.Balance * Alice.Deposit;
+    alice.balance +=  alice.balance * alice.deposit;
 }
 
-void Bob_Deposit()
+
+void bob_deposit()
 {
-    Bob.Balance += Bob.Balance * Bob.Deposit;
+    bob.balance += bob.balance * bob.deposit;
 }
 
-//Расчеты
-void Calculations()
-{
-    int Month = MONTH_START;
-    for (int year=START_YEAR ; year<=(START_YEAR + SIMULATION_TIME); year++){
-        printf("Year\n"); 
-        for (;Month<=12; Month++){
 
-            Alice_Salary(); 
-            Alice_Expenses(); 
-            Alice_Inflation(); 
-            Alice_Deposit(); 
-            printf("Bob.Balance: %lld\n\n", Bob.Balance);
-            Bob_Salary(); 
-            Bob_Expenses(); 
-            Bob_Inflation(); 
-            Bob_Deposit(); 
-            printf("Alice.Balance: %lld\n\n", Alice.Balance);
+void calculations()
+{
+    int month = MONTH_START;
+    for (int year=START_YEAR ; year <= START_YEAR + SIMULATION_TIME; year++) {
+        if (year == START_YEAR + SIMULATION_TIME){
+            month = 12 - MONTH_START;
+        } 
+        for (;month<=12; month++) { 
+
+            alice_salary(month); 
+            alice_expenses(); 
+            alice_deposit(); 
+            bob_salary(month); 
+            bob_expenses(); 
+            bob_car(month);
+            bob_deposit(); 
+            inflation(); 
         }
-        Month=1;
+        month=1;
     } 
 }
 
-//Вывод результатов
-void Result ()
+
+void result()
 {
-if (Bob.Balance > Alice.Balance+Bob.Purpose){
-        printf("The winner is Bob\n"); 
-        printf("Bob.Balance: %lld\n", Bob.Balance);
-        printf("Alice.Balance: %lld\n", Alice.Balance);
-        printf("Bob.Purpose: %lld\n", Bob.Purpose);
+if (bob.balance > alice.balance+bob.flat) {
+        printf("The winner is bob\n"); 
+        printf("bob.balance: %lld\n", bob.balance);
+        printf("alice.balance: %lld\n", alice.balance);
+        printf("bob.flat: %lld\n", bob.flat);
+        printf("lada_granta: %lld\n", lada_granta.cost);
     }
-    else{
-        printf("The winner is Alice\n");
-        printf("Alice.Balance:%lld\n",Alice.Balance);
-        printf("Bob.Balance: %lld\n", Bob.Balance);
-        printf("Bob.Purpose: %lld\n", Bob.Purpose);
+    else {
+        printf("The winner is alice\n");
+        printf("alice.balance:%lld\n",alice.balance);
+        printf("bob.balance: %lld\n", bob.balance);
+        printf("bob.flat: %lld\n", bob.flat);
+        printf("lada_granta: %lld\n", lada_granta.cost);
     }
 }
+
 
 int main()
 {
 
-Alice_Data();
-Bob_Data();
+alice_init();
+bob_init();
+car_init();
 
-Calculations();
+calculations();
 
-Result();  
+result();  
 
-    return 0;
+return 0;
 }
+
