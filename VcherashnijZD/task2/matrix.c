@@ -8,7 +8,7 @@
 Matrix EMPTY = {0, 0, NULL};
 
 
-STATUS matrix_alloc(Matrix* ret, const size_t rows, const size_t cols) {
+MatrixStatus matrix_alloc(Matrix* ret, const size_t rows, const size_t cols) {
     if (ret == NULL) return ERR_NULL;
     if (!rows && !cols) {
         *ret = EMPTY;
@@ -36,7 +36,7 @@ void matrix_zero(Matrix mat) {
 }
 
 
-STATUS matrix_identity(Matrix matrix) {
+MatrixStatus matrix_identity(Matrix matrix) {
     if (matrix.rows != matrix.cols)
         return ERR_SIZE;
     if (matrix.values == NULL)
@@ -53,9 +53,9 @@ void matrix_fill_val(Matrix matrix, const double* value) {
 }
 
 
-STATUS matrix_clone(Matrix* ret, Matrix src) {
+MatrixStatus matrix_clone(Matrix* ret, Matrix src) {
     if (ret == NULL) return ERR_NULL;
-    STATUS status = matrix_alloc(ret, src.rows, src.cols);
+    MatrixStatus status = matrix_alloc(ret, src.rows, src.cols);
     if (status != OK)
         return status;
     matrix_fill_val(*ret, src.values);
@@ -63,7 +63,7 @@ STATUS matrix_clone(Matrix* ret, Matrix src) {
 }
 
 
-STATUS matrix_equals(int* res, const Matrix matA, const Matrix matB, const double accuracy) {
+MatrixStatus matrix_equals(int* res, const Matrix matA, const Matrix matB, const double accuracy) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
     for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
@@ -94,7 +94,24 @@ void matrix_print(const Matrix matrix) {
 }
 
 
-STATUS matrix_add(Matrix matA, const Matrix matB) {
+MatrixStatus matrix_transp(Matrix matrix)
+{
+    if (matrix.cols != matrix.rows)
+        return ERR_SIZE;
+
+    for(size_t row = 1; row < matrix.rows; row++) {
+        for(size_t col = 0; col < row; col++) {
+            double tmp = matrix.values[row * matrix.cols + col];
+            matrix.values[row * matrix.cols + col] = matrix.values[col * matrix.cols + row];
+            matrix.values[col * matrix.cols + row] = tmp;
+        }
+    }
+
+    return OK;
+}
+
+
+MatrixStatus matrix_add(Matrix matA, const Matrix matB) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
     for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
@@ -103,7 +120,7 @@ STATUS matrix_add(Matrix matA, const Matrix matB) {
 }
 
 
-STATUS matrix_subt(Matrix matA, const Matrix matB) {
+MatrixStatus matrix_subt(Matrix matA, const Matrix matB) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
     for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
@@ -112,7 +129,7 @@ STATUS matrix_subt(Matrix matA, const Matrix matB) {
 }
 
 
-STATUS matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB) {
+MatrixStatus matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB) {
     if (matA.cols != matB.rows)
         return ERR_SIZE;
     if (ret.rows != matA.rows || ret.cols != matB.cols)
@@ -127,11 +144,11 @@ STATUS matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB) {
 }
 
 
-STATUS matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB) {
+MatrixStatus matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB) {
     if (ret == NULL) return ERR_NULL;
     if (matA.cols != matB.rows)
         return ERR_SIZE;
-    STATUS status = matrix_alloc(ret, matA.rows, matB.cols);
+    MatrixStatus status = matrix_alloc(ret, matA.rows, matB.cols);
     if (status != OK)
         return status;
     status = matrix_mult_in_place(*ret, matA, matB);
@@ -141,14 +158,14 @@ STATUS matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB) {
 }
 
 
-STATUS matrix_mult_by_num(Matrix matrix, const double a) {
+MatrixStatus matrix_mult_by_num(Matrix matrix, const double a) {
     for (size_t idx = 0; idx < matrix.rows * matrix.cols; ++idx)
         matrix.values[idx] *= a;
     return OK;
 }
 
 
-STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
+MatrixStatus matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
     if (rowA >= matrix.rows || rowB >= matrix.rows) {
         return ERR_SIZE;
     }
@@ -164,7 +181,7 @@ STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
 }
 
 
-STATUS matrix_det(double* ret, const Matrix matrix) {
+MatrixStatus matrix_det(double* ret, const Matrix matrix) {
     if (ret == NULL) return ERR_NULL;
     if (matrix.rows != matrix.cols) {
         return ERR_SIZE;
@@ -181,7 +198,7 @@ STATUS matrix_det(double* ret, const Matrix matrix) {
     }
 
     Matrix submatrix;
-    STATUS status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
+    MatrixStatus status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
     if (status != OK) {
         return status;
     }
@@ -213,14 +230,14 @@ STATUS matrix_det(double* ret, const Matrix matrix) {
     return OK;
 }
 
-STATUS matrix_pow(Matrix* ret, const Matrix matrix, int power) {
+MatrixStatus matrix_pow(Matrix* ret, const Matrix matrix, int power) {
     if (ret == NULL) return ERR_NULL;
     if (power < 0) {
         return ERR_PWR;
     }
 
     if (power == 0) {
-        STATUS status = matrix_alloc(ret, matrix.rows, matrix.cols);
+        MatrixStatus status = matrix_alloc(ret, matrix.rows, matrix.cols);
         if (status != OK) {
             return status;
         }
@@ -231,7 +248,7 @@ STATUS matrix_pow(Matrix* ret, const Matrix matrix, int power) {
         return OK;
     }
     Matrix temp, temp2;
-    STATUS status = matrix_alloc(&temp2, matrix.rows, matrix.cols);
+    MatrixStatus status = matrix_alloc(&temp2, matrix.rows, matrix.cols);
     if (status != OK) {
         return status;
     }
@@ -272,7 +289,7 @@ STATUS matrix_pow(Matrix* ret, const Matrix matrix, int power) {
 }
 
 
-STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) {
+MatrixStatus matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
     double max_diff = 0.0;
@@ -289,12 +306,12 @@ STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) 
 #define STEPS 100	
 #define ACCURACY 1e-6
 
-STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
+MatrixStatus matrix_exp(Matrix* ret, const Matrix matrix) {
     if (ret == NULL) return ERR_NULL;
     if (matrix.rows != matrix.cols)
         return ERR_SIZE;
     Matrix result;
-    STATUS status = matrix_alloc(&result, matrix.rows, matrix.cols);
+    MatrixStatus status = matrix_alloc(&result, matrix.rows, matrix.cols);
     if (status != OK)
         return status;
     status = matrix_identity(result);
@@ -360,13 +377,13 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
 }
 
 
-STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
+MatrixStatus matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
     if (ret == NULL) return ERR_NULL;
     if (matA.rows != matA.cols || matA.rows != matB.rows)
         return ERR_SIZE;
 
     double det_a;
-    STATUS status = matrix_det(&det_a, matA);
+    MatrixStatus status = matrix_det(&det_a, matA);
     if (status != OK || fabs(det_a) < 1e-6)
         return ERR_DET;
 
@@ -427,7 +444,7 @@ int matrix_is_symmetric(const Matrix mat) {
 }
 
 
-STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
+MatrixStatus matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
     if (ret == NULL) return ERR_NULL;
     if (matA.cols != matB.rows) {
         return ERR_SIZE;
@@ -435,7 +452,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
     if (!matrix_is_symmetric(matA)) {
         return ERR_ITER;
     }
-    STATUS status = matrix_alloc(ret, matA.rows, matB.cols);
+    MatrixStatus status = matrix_alloc(ret, matA.rows, matB.cols);
     if (status != OK) {
         return status;
     }
