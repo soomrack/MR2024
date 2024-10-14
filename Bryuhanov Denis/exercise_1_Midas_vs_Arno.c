@@ -281,24 +281,23 @@ int main()
     _init_arno();
     _init_catalog();
 
-    /*
+    
     simulation(&midas, 9, 2054);
     simulation(&arno, 9, 2054);
 
-    printf("midas balance %lld\n", (midas.balance + midas.personal_home.price) / 100); // Сделать одной функцией
+    printf("midas balance %lld\n", (midas.balance + midas.personal_home.price) / 100); 
     printf("arno balance %lld\n", arno.balance / 100);
     printf("house cost %lld\n", (midas.personal_home.price) / 100);  //Цена квартиры спустя 30 лет
     printf("\n");
-
-    printf("arno another house price %lld\n", arno.another_houses[0].price);
-    */
-
+    
+   /*
     printf("%lld\n", catalog[0].price);
     printf("%lld\n", catalog[1].price);
     printf("%lld\n", catalog[2].price);
     printf("%lld\n", catalog[3].price);
     printf("%lld\n", house_desire(&midas).price);
     printf("%lld\n", house_desire(&arno).price);
+    */
     return 1;
     
 }
