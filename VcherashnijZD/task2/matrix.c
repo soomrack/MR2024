@@ -9,14 +9,14 @@ Matrix EMPTY = {0, 0, NULL};
 
 
 STATUS matrix_alloc(Matrix* ret, const size_t rows, const size_t cols) {
-    size_t array = rows * cols;
-    if (rows != 0 && array / rows != cols)
+    size_t size = rows * cols;
+    if (rows != 0 && size / rows != cols)
         return ERR_OVERFLOW;
     // Double size is platform-dependent. Cannot use bitflip easily
-    size_t size = array*sizeof(double);
-    if (size / sizeof(double) != array)
+    size_t size_in_bytes = size*sizeof(double);
+    if (size_in_bytes / sizeof(double) != size)
         return ERR_OVERFLOW;
-    ret->values = malloc(size);
+    ret->values = malloc(size_in_bytes);
     if (ret->values == NULL)
         return ERR_MALLOC;
     ret->rows = rows;
@@ -30,7 +30,7 @@ STATUS matrix_identity(Matrix matrix) {
         return ERR_SIZE;
     if (matrix.values == NULL)
         return (matrix.rows == matrix.cols && matrix.cols == 0) ? OK : ERR_MALLOC;
-    memset(matrix.values, 0, sizeof(double) * matrix.rows * matrix.cols); // It is safe if matrix initialized
+    memset(matrix.values, 0, sizeof(double) * matrix.rows * matrix.cols);  // It is safe if matrix initialized
     for (size_t i = 0; i < matrix.rows; ++i)
         matrix.values[i * matrix.cols + i] = 1.0;
     return OK;
@@ -44,6 +44,7 @@ STATUS matrix_fill_val(Matrix matrix, const double* value) {
 
 
 STATUS matrix_clone(Matrix* ret, Matrix src) {
+    if (ret == NULL) return ERR_NULL;
     STATUS status = matrix_alloc(ret, src.rows, src.cols);
     if (status != OK)
         return status;
@@ -101,19 +102,32 @@ STATUS matrix_subt(Matrix matA, const Matrix matB) {
 }
 
 
-STATUS matrix_mult(Matrix* ret, Matrix matA, Matrix matB) {
+STATUS matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB) {
+    if (matA.cols != matB.rows)
+        return ERR_SIZE;
+    if (ret.rows != matA.rows || ret.cols != matB.cols)
+        return ERR_SIZE;
+    memset(ret.values, 0, sizeof(double) * ret.rows * ret.cols);  // It is safe if matrix initialized
+    for (size_t row = 0; row < ret.rows; row++)
+        for (size_t col = 0; col < ret.cols; col++)
+            for (size_t a_col = 0; a_col < matA.cols; a_col++)
+                ret.values[row * ret.cols + col] += matA.values[row * matA.cols + a_col] * matB.values[a_col * matB.cols + col];
+
+    return OK;
+}
+
+
+STATUS matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB) {
+    if (ret == NULL) return ERR_NULL;
     if (matA.cols != matB.rows)
         return ERR_SIZE;
     STATUS status = matrix_alloc(ret, matA.rows, matB.cols);
     if (status != OK)
         return status;
-    for (size_t rowA = 0; rowA < matA.rows; ++rowA)
-        for (size_t colB = 0; colB < matB.cols; ++colB)
-            for (size_t colA = 0; colA < matA.cols; ++colA)
-                ret->values[rowA * matB.cols + colB] +=
-                    matA.values[rowA * matA.cols + colA]
-                    * matB.values[colA * matB.cols + colB];
-    return OK;
+    status = matrix_mult_in_place(*ret, matA, matB);
+    if (status != OK)
+        matrix_free(ret);
+    return status;
 }
 
 
@@ -140,7 +154,8 @@ STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB) {
 }
 
 
-STATUS matrix_det(double* ret, Matrix matrix) {
+STATUS matrix_det(double* ret, const Matrix matrix) {
+    if (ret == NULL) return ERR_NULL;
     if (matrix.rows != matrix.cols) {
         return ERR_SIZE;
     }
@@ -155,13 +170,13 @@ STATUS matrix_det(double* ret, Matrix matrix) {
         return OK;
     }
 
+    Matrix submatrix;
+    STATUS status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
+    if (status != OK) {
+        return status;
+    }
     double det = 0.0;
     for (size_t i = 0; i < matrix.cols; ++i) {
-        Matrix submatrix;
-        STATUS status = matrix_alloc(&submatrix, matrix.rows - 1, matrix.cols - 1);
-        if (status != OK) {
-            return status;
-        }
 
         size_t sub_row = 0;
         for (size_t row = 1; row < matrix.rows; ++row) {
@@ -183,15 +198,14 @@ STATUS matrix_det(double* ret, Matrix matrix) {
         }
 
         det += (i % 2 == 0 ? 1 : -1) * matrix.values[i] * sub_det;
-        matrix_free(&submatrix);
     }
-
+    matrix_free(&submatrix);
     *ret = det;
     return OK;
 }
 
-
-STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
+STATUS matrix_pow(Matrix* ret, const Matrix matrix, int power) {
+    if (ret == NULL) return ERR_NULL;
     if (power < 0) {
         return ERR_PWR;
     }
@@ -207,34 +221,44 @@ STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power) {
         }
         return OK;
     }
-
-    STATUS status = matrix_clone(ret, matrix);
+    Matrix temp, temp2;
+    STATUS status = matrix_alloc(&temp2, matrix.rows, matrix.cols);
     if (status != OK) {
         return status;
     }
 
-    // Optimized loop using binary exponentiation
-    for (int i = 1; i < power; i <<= 1) {
-        if (power & i) {  // If the current bit is set in 'power'
-            Matrix temp;
-            status = matrix_mult(&temp, *ret, matrix);
+    status = matrix_clone(&temp, matrix);
+    if (status != OK) {
+        matrix_free(&temp2);
+        return status;
+    }
+    while (power > 1) {
+        if (power % 2 == 0) {
+            // Even power: square temp
+            status = matrix_mult_in_place(temp2, temp, temp); 
             if (status != OK) {
-                matrix_free(ret);
+                matrix_free(&temp2);
+                matrix_free(&temp);
                 return status;
             }
-            matrix_free(ret);
-            *ret = temp;
+            power /= 2;
+        } else {
+            // Odd power: multiply temp with matrix
+            status = matrix_mult_in_place(temp2, temp, matrix); 
+            if (status != OK) {
+                matrix_free(&temp2);
+                matrix_free(&temp);
+                return status;
+            }
+            power--;
         }
-        Matrix temp;
-        status = matrix_mult(&temp, *ret, *ret);  // Square
-        if (status != OK) {
-            matrix_free(ret);
-            return status;
-        }
-        matrix_free(ret);
-        *ret = temp;
+        // Swap temp and temp2 for the next iteration
+        Matrix tmp = temp;
+        temp = temp2;
+        temp2 = tmp;
     }
-
+    *ret = temp;
+    matrix_free(&temp2);
     return OK;
 }
 
@@ -253,10 +277,11 @@ STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) 
 }
 
 
-#define EXPONENT_STEPS 100
+#define EXPONENT_STEPS 100	
 #define EXPONENT_ACCURACY 1e-6
 
 STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
+    if (ret == NULL) return ERR_NULL;
     if (matrix.rows != matrix.cols)
         return ERR_SIZE;
     Matrix result;
@@ -274,52 +299,66 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
         matrix_free(&result);
         return status;
     }
+    Matrix n1_member;
+    status = matrix_alloc(&n1_member, matrix.rows, matrix.cols);
+    if (status != OK) {
+        matrix_free(&result);
+        matrix_free(&prev);
+        return status;
+    }
+    double max_diff;
     for (int m = 1; m <= EXPONENT_STEPS; ++m) {
         status = matrix_fill_val(prev, result.values);
         if (status != OK) {
             matrix_free(&result);
+            matrix_free(&prev);
+            matrix_free(&n1_member);
             return status;
         }
         status = matrix_mult_by_num(matrix, 1.0 / m);
         if (status != OK) {
             matrix_free(&result);
             matrix_free(&prev);
+            matrix_free(&n1_member);
             return status;
         }
-        Matrix n1_member;
-        status = matrix_mult(&n1_member, prev, matrix);
+        status = matrix_mult_in_place(n1_member, prev, matrix);
         if (status != OK) {
             matrix_free(&result);
             matrix_free(&prev);
+            matrix_free(&n1_member);
             return status;
         }
         status = matrix_add(result, n1_member);
-        matrix_free(&n1_member);
         if (status != OK) {
             matrix_free(&result);
+            matrix_free(&n1_member);
             matrix_free(&prev);
             return status;
         }
-        double max_diff;
         status = matrix_check_max_diff(&max_diff, result, prev);
         if (status != OK) {
+            matrix_free(&n1_member);
             matrix_free(&result);
             matrix_free(&prev);
             return status;
         }
         if (max_diff < EXPONENT_ACCURACY) {
             matrix_free(&prev);
+            matrix_free(&n1_member);
             *ret = result;
             return OK;
         }
     }
     matrix_free(&prev);
+    matrix_free(&n1_member);
     *ret = result;
     return OK;
 }
 
 
 STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
+    if (ret == NULL) return ERR_NULL;
     if (matA.rows != matA.cols || matA.rows != matB.rows)
         return ERR_SIZE;
 
@@ -331,10 +370,10 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
     status = matrix_alloc(ret, matA.rows, 1);
     if (status != OK)
         return status;
+    Matrix submatrix;
+    status = matrix_alloc(&submatrix, matA.rows, matA.cols);
 
     for (size_t col = 0; col < matA.rows; ++col) {
-        Matrix submatrix;
-        status = matrix_alloc(&submatrix, matA.rows, matA.cols);
         if (status != OK) {
             matrix_free(ret);
             return status;
@@ -354,8 +393,8 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
         }
 
         ret->values[col] = -det_bi / det_a;
-        matrix_free(&submatrix);
     }
+    matrix_free(&submatrix);
 
     return OK;
 }
@@ -371,6 +410,7 @@ static double dot_product(const double* v1, const double* v2, size_t size) {
 
 
 STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
+    if (ret == NULL) return ERR_NULL;
     if (matA.rows != matA.cols || matA.rows != matB.rows) {
         return ERR_SIZE;
     }

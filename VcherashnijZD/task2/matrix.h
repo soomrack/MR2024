@@ -6,6 +6,7 @@
 typedef enum STATUS {
     OK,
     ERR_MALLOC,
+    ERR_NULL,
     ERR_OVERFLOW,
     ERR_DET,
     ERR_PWR,
@@ -32,11 +33,12 @@ void   matrix_print(const Matrix matrix);
 STATUS matrix_add(Matrix matA, const Matrix matB);
 STATUS matrix_subt(Matrix matA, const Matrix matB);
 STATUS matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB);
+STATUS matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB);
 STATUS matrix_mult_by_num(Matrix matrix, const double a);
 STATUS matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB);
 
-STATUS matrix_det(double* ret, Matrix matrix);
-STATUS matrix_pow(Matrix* ret, Matrix matrix, const int power);
+STATUS matrix_det(double* ret, const Matrix matrix);
+STATUS matrix_pow(Matrix* ret, const Matrix matrix, int power);
 STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB);
 STATUS matrix_exp(Matrix* ret, const Matrix matrix);
 
