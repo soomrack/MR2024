@@ -9,6 +9,11 @@ Matrix EMPTY = {0, 0, NULL};
 
 
 STATUS matrix_alloc(Matrix* ret, const size_t rows, const size_t cols) {
+    if (ret == NULL) return ERR_NULL;
+    if (!rows && !cols) {
+        *ret = EMPTY;
+        return OK;
+    }
     size_t size = rows * cols;
     if (rows != 0 && size / rows != cols)
         return ERR_OVERFLOW;
@@ -37,9 +42,8 @@ STATUS matrix_identity(Matrix matrix) {
 }
 
 
-STATUS matrix_fill_val(Matrix matrix, const double* value) {
+void matrix_fill_val(Matrix matrix, const double* value) {
     memcpy(matrix.values, value, matrix.rows * matrix.cols * sizeof(double));
-    return OK;
 }
 
 
@@ -308,13 +312,7 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
     }
     double max_diff;
     for (int m = 1; m <= STEPS; ++m) {
-        status = matrix_fill_val(prev, result.values);
-        if (status != OK) {
-            matrix_free(&result);
-            matrix_free(&prev);
-            matrix_free(&n1_member);
-            return status;
-        }
+        matrix_fill_val(prev, result.values);
         status = matrix_mult_by_num(matrix, 1.0 / m);
         if (status != OK) {
             matrix_free(&result);
@@ -402,7 +400,7 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
 
 static double matrix_dot_product(const Matrix a, const Matrix b) {
     if (a.rows != b.rows || a.cols != b.cols) {
-        return NAN; // Or handle the error differently
+        return NAN;  // Error!
     }
     double dot_product = 0.0;
     for (size_t i = 0; i < a.rows * a.cols; i++) {

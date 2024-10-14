@@ -24,7 +24,7 @@ extern Matrix EMPTY;
 
 STATUS matrix_alloc(Matrix* ret, const size_t rows, const size_t cols);
 void   matrix_free(Matrix* matrix);
-STATUS matrix_fill_val(Matrix matrix, const double* value);
+void   matrix_fill_val(Matrix matrix, const double* value);
 STATUS matrix_clone(Matrix* ret, const Matrix src);
 STATUS matrix_identity(Matrix matrix);
 STATUS matrix_equals(int* res, const Matrix matA, const Matrix matB, const double accuracy);
