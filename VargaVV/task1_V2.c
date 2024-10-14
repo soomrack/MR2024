@@ -7,15 +7,13 @@ int SIMULATION_TIME = 30;
 int MONTH_START = 9;
 
 
-struct Mortgage
-{
+struct Mortgage{
     double rate;  // ставка по ипотеке
     Money payment;  // ежемесячный платёж по ипотеке
 };
 
 
-struct Car
-{
+struct Car{
     Money cost;  
     Money mounthly_service;  
     Money winter_rubber;
@@ -23,17 +21,16 @@ struct Car
 
 
 //Общие переменные
-struct Person 
-{
+struct Person {
     Money  balance;
     Money  salary;
     Money  credit;
     Money  expense;
     Money  flat;
     double inflation;
-    double deposit;
+    double deposit_rate;
     struct Mortgage mortgage;
-    bool car;
+    bool is_car;
 };
 
 struct Person alice; 
@@ -48,10 +45,12 @@ void alice_init()
     alice.salary = 2 * pow(10,5);
     alice.credit = 15 * pow(10,6);
     alice.mortgage.rate = 0.2 / 12;
-    alice.deposit = 0.12 / 12;
+    alice.deposit_rate = 0.12 / 12;
     alice.expense = 30 * 1000;
     alice.inflation = 0.08 / 12;
-    alice.mortgage.payment = (alice.credit - alice.balance) * (((alice.mortgage.rate)*(pow((1. + alice.mortgage.rate),(SIMULATION_TIME)*12.))) / (pow(1. + (alice.mortgage.rate),(SIMULATION_TIME)*12.) - 1.));
+    alice.mortgage.payment = (alice.credit - alice.balance) * 
+    (((alice.mortgage.rate)*(pow((1. + alice.mortgage.rate),(SIMULATION_TIME)*12.))) 
+    / (pow(1. + (alice.mortgage.rate),(SIMULATION_TIME)*12.) - 1.));
     alice.balance = 0;
 }
 
@@ -63,12 +62,12 @@ void bob_init()
     bob.salary = 2 * pow(10,5);
     bob.credit = 0;
     bob.mortgage.rate = 0;
-    bob.deposit = 0.12 / 12;
+    bob.deposit_rate = 0.12 / 12;
     bob.expense = 30 * 1000;
     bob.mortgage.payment = 30 * 1000;
     bob.flat = 15 * pow(10,6);
     bob.inflation = 0.08 / 12;
-    bob.car = 0;
+    bob.is_car = 0;
 }
 
 void car_init()
@@ -109,71 +108,72 @@ void bob_salary(const int month)
 void alice_expenses()
 {
     alice.balance = alice.balance - alice.mortgage.payment - alice.expense;
+    alice.expense += alice.expense * alice.inflation;
 }
 
 
 void bob_expenses()
 {
     bob.balance = bob.balance - bob.mortgage.payment - bob.expense;
+    bob.flat += bob.flat * bob.inflation; 
+    bob.expense += bob.expense * bob.inflation;
 }
+
 
 void bob_car(const int month)
 {
-    if (bob.balance > (lada_granta.cost + lada_granta.cost * 0.5) && (bob.car!=1)){
-        bob.car = true;
-        bob.balance -= lada_granta.cost;
-    }
-    if (month == 10){
-      bob.balance -= bob.car;  
-    }
-    bob.balance -= lada_granta.mounthly_service;
+    lada_granta.cost += lada_granta.cost * bob.inflation;
     lada_granta.mounthly_service += lada_granta.mounthly_service * bob.inflation;
     lada_granta.winter_rubber += lada_granta.winter_rubber * bob.inflation;
-}
 
-void inflation()
-{
-    
-    alice.expense += alice.expense * alice.inflation;
-    bob.expense += bob.expense * bob.inflation;
-    bob.flat += bob.flat * bob.inflation; 
-    lada_granta.cost += lada_granta.cost * bob.inflation;
+    if (bob.balance > (lada_granta.cost + lada_granta.cost * 0.5) && (bob.is_car!=1)){
+        bob.is_car = true;
+        bob.balance -= lada_granta.cost;
+    }
+
+    if (bob.is_car!=1){
+        bob.balance -= lada_granta.mounthly_service;
+
+        if (month == 10){
+            bob.balance -= lada_granta.winter_rubber;  
+         }
+    }
 }
 
 
 //Вклады
-void alice_deposit()
+void alice_deposit_rate()
 {
-    alice.balance +=  alice.balance * alice.deposit;
+    alice.balance +=  alice.balance * alice.deposit_rate;
 }
 
 
-void bob_deposit()
+void bob_deposit_rate()
 {
-    bob.balance += bob.balance * bob.deposit;
+    bob.balance += bob.balance * bob.deposit_rate;
 }
 
 
 void calculations()
 {
     int month = MONTH_START;
-    for (int year=START_YEAR ; year <= START_YEAR + SIMULATION_TIME; year++) {
-        if (year == START_YEAR + SIMULATION_TIME){
-            month = 12 - MONTH_START;
-        } 
-        for (;month<=12; month++) { 
+    int year=START_YEAR;
+    while((month < MONTH_START) || (year < START_YEAR+SIMULATION_TIME)){
 
             alice_salary(month); 
             alice_expenses(); 
-            alice_deposit(); 
+            alice_deposit_rate(); 
+
             bob_salary(month); 
             bob_expenses(); 
             bob_car(month);
-            bob_deposit(); 
-            inflation(); 
+            bob_deposit_rate(); 
+
+            month++;
+
+            if(month==12){year++; month=1;}
         }
-        month=1;
-    } 
+        
 }
 
 
@@ -199,13 +199,13 @@ if (bob.balance > alice.balance+bob.flat) {
 int main()
 {
 
-alice_init();
-bob_init();
-car_init();
+    alice_init();
+    bob_init();
+    car_init();
 
-calculations();
+    calculations();
 
-result();  
+    result();  
 
 return 0;
 }
