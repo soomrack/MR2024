@@ -8,10 +8,12 @@
 MatrixStatus_t matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
 {
     if(M == NULL) return MAT_EMPTY_ERR;
-    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
 
-    M->data = (double*)malloc(rows * cols * sizeof(double));
-    if(M->data == NULL) return MAT_ALLOC_ERR;
+    if(rows != 0 && cols != 0) {
+        if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
+        M->data = (double*)malloc(rows * cols * sizeof(double));
+        if(M->data == NULL) return MAT_ALLOC_ERR;
+    }
 
     M->rows = rows;
     M->cols = cols;
