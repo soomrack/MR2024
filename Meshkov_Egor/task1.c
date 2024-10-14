@@ -102,13 +102,16 @@ void mortgage_month_pay() {
 
 
 void alice_car_expences(const int year, const int month) {
-   if (alice.car.count_of_car == 0) {
+    if (alice.car.count_of_car == 0) {
         if ((year >= alice.car.year_of_purchase) && (month >= alice.car.month_of_purchase)) {
-            if (alice.bank_account > alice.car.cost) {
-                alice.bank_account -= alice.car.cost;
+            if (alice.deposit > alice.car.cost) {
+                alice.deposit -= alice.car.cost;
                 alice.car.count_of_car = 1;
             }
         } 
+    } 
+    else {
+        alice.bank_account -= alice.car.petrol_cost + alice.car.maintenance_cost + alice.car.transport_tax;
     }
 
     if (month == 12) {
@@ -123,11 +126,14 @@ void alice_car_expences(const int year, const int month) {
 void bob_car_expences(const int year, const int month) {
     if (bob.car.count_of_car == 0) {
         if ((year >= bob.car.year_of_purchase) && (month >= bob.car.month_of_purchase)) {
-            if (bob.bank_account > bob.car.cost) {
-                bob.bank_account -= bob.car.cost;
+            if (bob.deposit > bob.car.cost) {
+                bob.deposit -= bob.car.cost;
                 bob.car.count_of_car = 1;
             }
         } 
+    }
+    else {
+        bob.bank_account -= bob.car.petrol_cost + bob.car.maintenance_cost + bob.car.transport_tax;
     }
 
     if (month == 12) {
