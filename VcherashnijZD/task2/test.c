@@ -175,12 +175,12 @@ void test_matrix_mult_by_num() {
 }
 
 
-void test_matrix_change_rows() {
+void test_matrix_swap_rows() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix expected = generate_random_matrix(3, 3);
     memcpy(expected.values, mat.values, 9 * sizeof(double));
-    matrix_change_rows(mat, 0, 2);
-    matrix_change_rows(expected, 0, 2);
+    matrix_swap_rows(mat, 0, 2);
+    matrix_swap_rows(expected, 0, 2);
     ASSERT_MATRIX_EQ(&mat, &expected, EQUAL_TEST_ACCURACY);
     matrix_free(&mat);
     matrix_free(&expected);
@@ -303,8 +303,8 @@ int main() {
     test_matrix_mult();
     printf("Test mult by num\n");
     test_matrix_mult_by_num();
-    printf("Test change rows\n");
-    test_matrix_change_rows();
+    printf("Test swap rows\n");
+    test_matrix_swap_rows();
     printf("Test det\n");
     test_matrix_det();
     printf("Test pow\n");

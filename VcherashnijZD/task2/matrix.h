@@ -39,10 +39,10 @@ MatrixStatus matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB);
 MatrixStatus matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB);
 MatrixStatus matrix_transp(Matrix matrix);
 MatrixStatus matrix_mult_by_num(Matrix matrix, const double a);
-MatrixStatus matrix_change_rows(Matrix matrix, const size_t rowA, const size_t rowB);
+MatrixStatus matrix_swap_rows(Matrix matrix, const size_t rowA, const size_t rowB);
 
 MatrixStatus matrix_det(double* ret, const Matrix matrix);
-MatrixStatus matrix_pow(Matrix* ret, const Matrix matrix, int power);
+MatrixStatus matrix_pow(Matrix* ret, const Matrix matrix, unsigned int power);
 MatrixStatus matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB);
 MatrixStatus matrix_exp(Matrix* ret, const Matrix matrix);
 
