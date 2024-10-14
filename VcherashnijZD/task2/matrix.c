@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string.h>
 
-// If only one cycle in function i as index!
+
 Matrix EMPTY = {0, 0, NULL};
 
 
@@ -30,14 +30,20 @@ STATUS matrix_alloc(Matrix* ret, const size_t rows, const size_t cols) {
 }
 
 
+void matrix_zero(Matrix mat) {
+    if (mat.values != NULL)
+        memset(mat.values, 0, sizeof(double) * mat.rows * mat.cols);
+}
+
+
 STATUS matrix_identity(Matrix matrix) {
     if (matrix.rows != matrix.cols)
         return ERR_SIZE;
     if (matrix.values == NULL)
         return (matrix.rows == matrix.cols && matrix.cols == 0) ? OK : ERR_MALLOC;
-    memset(matrix.values, 0, sizeof(double) * matrix.rows * matrix.cols);  // It is safe if matrix initialized
-    for (size_t i = 0; i < matrix.rows; ++i)
-        matrix.values[i * matrix.cols + i] = 1.0;
+    matrix_zero(matrix);  // It is safe if matrix initialized
+    for (size_t idx = 0; idx < matrix.rows; ++idx)
+        matrix.values[idx * matrix.cols + idx] = 1.0;
     return OK;
 }
 
@@ -60,8 +66,8 @@ STATUS matrix_clone(Matrix* ret, Matrix src) {
 STATUS matrix_equals(int* res, const Matrix matA, const Matrix matB, const double accuracy) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
-    for (size_t i = 0; i < matA.rows * matA.cols; ++i)
-        if (fabs(matA.values[i] - matB.values[i]) > accuracy) {
+    for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
+        if (fabs(matA.values[idx] - matB.values[idx]) > accuracy) {
             *res = 0;
             return OK;
         }
@@ -91,8 +97,8 @@ void matrix_print(const Matrix matrix) {
 STATUS matrix_add(Matrix matA, const Matrix matB) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
-    for (size_t i = 0; i < matA.rows * matA.cols; ++i)
-        matA.values[i] += matB.values[i];
+    for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
+        matA.values[idx] += matB.values[idx];
     return OK;
 }
 
@@ -100,8 +106,8 @@ STATUS matrix_add(Matrix matA, const Matrix matB) {
 STATUS matrix_subt(Matrix matA, const Matrix matB) {
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
-    for (size_t i = 0; i < matA.rows * matA.cols; ++i)
-        matA.values[i] -= matB.values[i];
+    for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx)
+        matA.values[idx] -= matB.values[idx];
     return OK;
 }
 
@@ -111,7 +117,7 @@ STATUS matrix_mult_in_place(Matrix ret, const Matrix matA, const Matrix matB) {
         return ERR_SIZE;
     if (ret.rows != matA.rows || ret.cols != matB.cols)
         return ERR_SIZE;
-    memset(ret.values, 0, sizeof(double) * ret.rows * ret.cols);  // It is safe if matrix initialized
+    matrix_zero(ret);  // It is safe if matrix initialized
     for (size_t row = 0; row < ret.rows; row++)
         for (size_t col = 0; col < ret.cols; col++)
             for (size_t a_col = 0; a_col < matA.cols; a_col++)
@@ -136,8 +142,8 @@ STATUS matrix_mult(Matrix* ret, const Matrix matA, const Matrix matB) {
 
 
 STATUS matrix_mult_by_num(Matrix matrix, const double a) {
-    for (size_t i = 0; i < matrix.rows * matrix.cols; ++i)
-        matrix.values[i] *= a;
+    for (size_t idx = 0; idx < matrix.rows * matrix.cols; ++idx)
+        matrix.values[idx] *= a;
     return OK;
 }
 
@@ -180,13 +186,12 @@ STATUS matrix_det(double* ret, const Matrix matrix) {
         return status;
     }
     double det = 0.0;
-    for (size_t i = 0; i < matrix.cols; ++i) {
-
+    for (size_t base_col = 0; base_col < matrix.cols; ++base_col) {
         size_t sub_row = 0;
         for (size_t row = 1; row < matrix.rows; ++row) {
             size_t sub_col = 0;
             for (size_t col = 0; col < matrix.cols; ++col) {
-                if (col != i) {
+                if (col != base_col) {
                     submatrix.values[sub_row * (matrix.cols - 1) + sub_col] = matrix.values[row * matrix.cols + col];
                     sub_col++;
                 }
@@ -201,7 +206,7 @@ STATUS matrix_det(double* ret, const Matrix matrix) {
             return status;
         }
 
-        det += (i % 2 == 0 ? 1 : -1) * matrix.values[i] * sub_det;
+        det += (base_col % 2 == 0 ? 1 : -1) * matrix.values[base_col] * sub_det;
     }
     matrix_free(&submatrix);
     *ret = det;
@@ -271,8 +276,8 @@ STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) 
     if (matA.rows != matB.rows || matA.cols != matB.cols)
         return ERR_SIZE;
     double max_diff = 0.0;
-    for (size_t i = 0; i < matA.rows * matA.cols; ++i) {
-        double diff = fabs(matA.values[i] - matB.values[i]);
+    for (size_t idx = 0; idx < matA.rows * matA.cols; ++idx) {
+        double diff = fabs(matA.values[idx] - matB.values[idx]);
         if (diff > max_diff)
             max_diff = diff;
     }
@@ -403,17 +408,17 @@ static double matrix_dot_product(const Matrix a, const Matrix b) {
         return NAN;  // Error!
     }
     double dot_product = 0.0;
-    for (size_t i = 0; i < a.rows * a.cols; i++) {
-        dot_product += a.values[i] * b.values[i];
+    for (size_t idx = 0; idx < a.rows * a.cols; idx++) {
+        dot_product += a.values[idx] * b.values[idx];
     }
     return dot_product;
 }
 
 
 int matrix_is_symmetric(const Matrix mat) {
-    for (size_t i = 0; i < mat.rows; i++) {
-        for (size_t j = i + 1; j < mat.cols; j++) {
-            if (mat.values[i * mat.cols + j] != mat.values[j * mat.cols + i]) {
+    for (size_t col = 0; col < mat.rows; col++) {
+        for (size_t row = col + 1; row < mat.cols; row++) {
+            if (mat.values[col * mat.cols + row] != mat.values[row * mat.cols + col]) {
                 return 0;
             }
         }
@@ -463,7 +468,7 @@ STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
     }
 
     // Initialize x with zeros (initial guess)
-    memset(x.values, 0, sizeof(double) * x.rows * x.cols);
+    matrix_zero(x);
 
     // Calculate initial residual r = b - Ax
     status = matrix_mult_in_place(r, matA, x);
