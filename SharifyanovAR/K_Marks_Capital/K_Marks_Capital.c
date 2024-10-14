@@ -179,7 +179,7 @@ void simulation()
     int year = START_YEAR;
     int month = START_MONTH;
 
-    while (!((year == START_YEAR + SIMULATION_DURATION) && (month == START_MONTH + 1))) {
+    while ((year != START_YEAR + SIMULATION_DURATION) && (month != START_MONTH + 1)) {
         alice_salary(month);
         alice_mortgage(month);
         alice_unx_expenses(month);
