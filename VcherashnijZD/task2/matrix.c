@@ -277,8 +277,8 @@ STATUS matrix_check_max_diff(double* ret, const Matrix matA, const Matrix matB) 
 }
 
 
-#define EXPONENT_STEPS 100	
-#define EXPONENT_ACCURACY 1e-6
+#define STEPS 100	
+#define ACCURACY 1e-6
 
 STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
     if (ret == NULL) return ERR_NULL;
@@ -307,7 +307,7 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
         return status;
     }
     double max_diff;
-    for (int m = 1; m <= EXPONENT_STEPS; ++m) {
+    for (int m = 1; m <= STEPS; ++m) {
         status = matrix_fill_val(prev, result.values);
         if (status != OK) {
             matrix_free(&result);
@@ -343,7 +343,7 @@ STATUS matrix_exp(Matrix* ret, const Matrix matrix) {
             matrix_free(&prev);
             return status;
         }
-        if (max_diff < EXPONENT_ACCURACY) {
+        if (max_diff < ACCURACY) {
             matrix_free(&prev);
             matrix_free(&n1_member);
             *ret = result;
@@ -400,121 +400,198 @@ STATUS matrix_lsolve(Matrix* ret, const Matrix matA, const Matrix matB) {
 }
 
 
-static double dot_product(const double* v1, const double* v2, size_t size) {
-    double sum = 0.0;
-    for (size_t i = 0; i < size; ++i) {
-        sum += v1[i] * v2[i];
+static double matrix_dot_product(const Matrix a, const Matrix b) {
+    if (a.rows != b.rows || a.cols != b.cols) {
+        return NAN; // Or handle the error differently
     }
-    return sum;
+    double dot_product = 0.0;
+    for (size_t i = 0; i < a.rows * a.cols; i++) {
+        dot_product += a.values[i] * b.values[i];
+    }
+    return dot_product;
+}
+
+
+int matrix_is_symmetric(const Matrix mat) {
+    for (size_t i = 0; i < mat.rows; i++) {
+        for (size_t j = i + 1; j < mat.cols; j++) {
+            if (mat.values[i * mat.cols + j] != mat.values[j * mat.cols + i]) {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 
 STATUS matrix_lsolve_cg(Matrix* ret, const Matrix matA, const Matrix matB) {
     if (ret == NULL) return ERR_NULL;
-    if (matA.rows != matA.cols || matA.rows != matB.rows) {
+    if (matA.cols != matB.rows) {
         return ERR_SIZE;
     }
-
-    Matrix x;
-    STATUS status = matrix_alloc(&x, matA.rows, 1);
+    if (!matrix_is_symmetric(matA)) {
+        return ERR_ITER;
+    }
+    STATUS status = matrix_alloc(ret, matA.rows, matB.cols);
     if (status != OK) {
         return status;
     }
-    memset(x.values, 0, sizeof(double) * x.rows);
-
-    Matrix r;
-    status = matrix_alloc(&r, matA.rows, 1);
+    Matrix r, p, Ap, x;
+    status = matrix_alloc(&r, ret->rows, ret->cols);
     if (status != OK) {
-        matrix_free(&x);
+        matrix_free(ret);
         return status;
     }
-
-    Matrix r_prev;
-    status = matrix_alloc(&r_prev, matA.rows, 1);
+    status = matrix_alloc(&p, ret->rows, ret->cols);
     if (status != OK) {
-        matrix_free(&x);
+        matrix_free(ret);
         matrix_free(&r);
         return status;
     }
-
-    Matrix p;
-    status = matrix_alloc(&p, matA.rows, 1);
+    status = matrix_alloc(&Ap, ret->rows, ret->cols);
     if (status != OK) {
-        matrix_free(&x);
+        matrix_free(ret);
         matrix_free(&r);
-        matrix_free(&r_prev);
-        return status;
-    }
-
-    status = matrix_mult(&r, matA, x);
-    if (status != OK) {
-        matrix_free(&x);
-        matrix_free(&r);
-        matrix_free(&r_prev);
         matrix_free(&p);
+        return status;
+    }
+    status = matrix_alloc(&x, ret->rows, ret->cols);
+    if (status != OK) {
+        matrix_free(ret);
+        matrix_free(&r);
+        matrix_free(&p);
+        matrix_free(&Ap);
+        return status;
+    }
+
+    // Initialize x with zeros (initial guess)
+    memset(x.values, 0, sizeof(double) * x.rows * x.cols);
+
+    // Calculate initial residual r = b - Ax
+    status = matrix_mult_in_place(r, matA, x);
+    if (status != OK) {
+        matrix_free(ret);
+        matrix_free(&r);
+        matrix_free(&p);
+        matrix_free(&Ap);
+        matrix_free(&x);
         return status;
     }
     status = matrix_subt(r, matB);
     if (status != OK) {
-        matrix_free(&x);
+        matrix_free(ret);
         matrix_free(&r);
-        matrix_free(&r_prev);
         matrix_free(&p);
+        matrix_free(&Ap);
+        matrix_free(&x);
         return status;
     }
 
-    memcpy(p.values, r.values, matA.rows * sizeof(double));
+    // Set initial search direction p = r
+    status = matrix_clone(&p, r);
+    if (status != OK) {
+        matrix_free(ret);
+        matrix_free(&r);
+        matrix_free(&p);
+        matrix_free(&Ap);
+        matrix_free(&x);
+        return status;
+    }
 
-    double tolerance = 1e-6;
-    int max_iterations = 100; 
-    int iteration = 0;
-
-    while (iteration < max_iterations) {
-        memcpy(r_prev.values, r.values, matA.rows * sizeof(double));
-
-        double alpha = 0.0;
-        status = matrix_mult(&r_prev, matA, p);
-        if (status != OK) {
-            matrix_free(&x);
-            matrix_free(&r);
-            matrix_free(&r_prev);
-            matrix_free(&p);
-            return status;
-        }
-        alpha = dot_product(r.values, r.values, matA.rows) / dot_product(r_prev.values, p.values, matA.rows);
-
-        for (size_t i = 0; i < matA.rows; ++i) {
-            x.values[i] += alpha * p.values[i];
-            r.values[i] -= alpha * r_prev.values[i];
-        }
-
-        if (dot_product(r.values, r.values, matA.rows) < tolerance) {
+    // Main CG iteration loop
+    double r_dot_r, p_dot_Ap, alpha;
+    for (int k = 0; k < STEPS; k++) {
+        r_dot_r = matrix_dot_product(r, r); 
+        if (r_dot_r < ACCURACY) {
             break;
         }
 
-        double beta = dot_product(r.values, r.values, matA.rows) / dot_product(r_prev.values, r_prev.values, matA.rows);
-
-        for (size_t i = 0; i < matA.rows; ++i) {
-            p.values[i] = r.values[i] + beta * p.values[i];
+        // Calculate Ap = A * p
+        status = matrix_mult_in_place(Ap, matA, p); 
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
         }
 
-        iteration++;
+        p_dot_Ap = matrix_dot_product(p, Ap); 
+        alpha = r_dot_r / p_dot_Ap;
+
+        // Update solution x = x + alpha * p
+        status = matrix_mult_by_num(p, alpha);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
+        status = matrix_add(x, p);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
+
+        // Update residual r = r - alpha * Ap
+        status = matrix_mult_by_num(Ap, alpha);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
+        status = matrix_subt(r, Ap);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
+
+        // Update search direction p = r + beta * p
+        // Calculate beta = (r_new dot r_new) / (r_old dot r_old)
+        double r_new_dot_r_new = matrix_dot_product(r, r);
+        double beta = r_new_dot_r_new / r_dot_r; 
+        status = matrix_mult_by_num(p, beta);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
+        status = matrix_add(p, r);
+        if (status != OK) {
+            matrix_free(ret);
+            matrix_free(&r);
+            matrix_free(&p);
+            matrix_free(&Ap);
+            matrix_free(&x);
+            return status;
+        }
     }
 
-    STATUS ret_status = dot_product(r.values, r.values, matA.rows) >= tolerance ? ERR_ITER : OK;
-    status = matrix_clone(ret, x);
-    if (status != OK) {
-        matrix_free(&x);
-        matrix_free(&r);
-        matrix_free(&r_prev);
-        matrix_free(&p);
-        return status;
-    }
+    // Copy the solution from x to ret
+    matrix_fill_val(*ret, x.values);
 
-    matrix_free(&x);
     matrix_free(&r);
-    matrix_free(&r_prev);
     matrix_free(&p);
-    return ret_status;
+    matrix_free(&Ap);
+    matrix_free(&x);
+
+    return OK;
 }
 
