@@ -6,32 +6,42 @@ typedef struct
   int len;
 } Matrix;
 
-Matrix mallocMatrix(size_t rows, size_t cols);
+typedef enum {
+    MAT_OK = 0,
+    MAT_ALLOC_ERR,
+    MAT_EMPTY_ERR,
+    MAT_SIZE_ERR,
+    MAT_RANGE_ERR,
+} Status_t;
 
-Matrix createMatrixO(size_t rows, size_t cols);
+Status_t mallocMatrix(size_t rows, size_t cols, Matrix **matrix);
 
-Matrix createMatrixE(size_t rows, size_t cols);
+Status_t createMatrixO(size_t rows, size_t cols, Matrix **matrix);
 
-Matrix createMatrixR(size_t rows, size_t cols, int min, int max, int accuracy);
+Status_t createMatrixE(size_t rows, size_t cols, Matrix **matrix);
 
-void freeMatrix(Matrix matrix);
+Status_t createMatrixR(Matrix **matrix, size_t rows, size_t cols, double min, double max, unsigned int accuracy);
 
-void printMatrix(Matrix matrix, int accuracy);
+void freeMatrix(Matrix **matrix);
 
-Matrix addMatrix(Matrix matrixA, Matrix matrixB);
+void printMatrix(Matrix *matrix, int accuracy);
 
-Matrix subMatrix(Matrix matrixA, Matrix matrixB);
+Status_t addMatrix(const Matrix *matrixA, const Matrix *matrixB, Matrix *matrixC);
 
-Matrix multiMatrix(Matrix matrixA, Matrix matrixB);
+Status_t subMatrix(const Matrix *matrixA, const Matrix *matrixB, Matrix *matrixC);
 
-Matrix transposeMatrix(Matrix matrix);
+Status_t multiMatrix(Matrix *matrixA,const Matrix *matrixB, Matrix *matrixC);
 
-Matrix multiplyMatrixByScalar(Matrix matrix, double scalar);
+Status_t transposeMatrix(const Matrix *src_matrix, Matrix *res_matrix);
 
-int calculate_max_width(Matrix matrix);
+Status_t multiplyMatrixByScalar(const Matrix *src_matrix, double scalar, Matrix *res_matrix);
 
-double gauss_method(Matrix matrix);
+Status_t gaussMethod(Matrix *matrix, double *det);
 
-Matrix reverseMatrix(Matrix matrix);
+Status_t reverseMatrix(Matrix *matrix, Matrix *reverseMatrix);
 
-Matrix solveMatrixEquation(Matrix matrixA, Matrix matrixB);
+Status_t solveMatrixEquation(Matrix *matrixA, Matrix *matrixB, Matrix *matrixX);
+
+Status_t powerMatrix(Matrix *matrix, unsigned int degree);
+
+Status_t expMatrix(Matrix *matrix, Matrix **EXPmatrix, const int accuracy);

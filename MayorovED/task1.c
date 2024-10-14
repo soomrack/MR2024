@@ -57,7 +57,6 @@ typedef struct  {
 typedef struct {
     char name[20];
     long capital;
-    int salary;
     Deposit deposit;
 } Person;
 
@@ -80,74 +79,75 @@ void life_inflation() {
     vegetables_cost *= 1 + (inflation_rate / 100.0);
     dacha_year_cost *= 1 + (inflation_rate / 100.0);
     cat_funiral_cost *= 1 + (inflation_rate / 100.0);
+    salary *= 1 + (inflation_rate / 100.0);
 }
 
 
-void salary_inflation(Person* p) {
-    p->salary *= 1 + (inflation_rate / 100.0);
-}
-
-
-void recieve_salary(Person* p) {
-    p->capital += p->salary;
-}
-
-
-void pay_mortgage(Person* p, Mortgage* m) {
+void mortgage(Person* p, Mortgage* m) {
     p->capital -= m->payment;
 }
 
 
-void pay_rent(Person* p) {
+void rent(Person* p) {
     p->capital -= appartment_rent;
 }
 
 
-void pay_bills(Person* p) {
+void life(Person* p) {
     p->capital -= (food_cost + service_cost + personal_cost);
+    p->capital += salary;
 }
 
 
-void pay_dacha(Person* p) {
+void dacha(Person* p, Dates* d) {
     p->capital -= dacha_year_cost;
+    if (d->current_month >= 6 && d->current_month <= 8) {
+        p->capital += vegetables_cost;
+    }
 }
 
-void vegetables_sell(Person* p) {
-    p->capital += vegetables_cost;
-}
-
-
-void cat_expenses(Person* p) {
-    p->capital -= cat_month_cost;
-}
-
-
-void cat_doctor_expenses(Person* p) {
-    p->capital -= cat_doctor_cost;
-}
-
-
-void cat_funiral_expenses(Person* p) {
-    p->capital -= cat_funiral_cost;
+void cat(Person* p, Dates* d) {
+    if (d->current_year <= d->cat_end_year) {
+        p->capital -= cat_month_cost;
+        if (d->current_month == 11) {
+        p->capital -= cat_doctor_cost;
+        }
+        if (d->current_year == d->cat_end_year) {
+            p->capital -= cat_funiral_cost;
+            p->capital += cat_month_cost;
+        }
+    }
 }
 
 
-void increase_deposit(Person* p) {
+void deposit(Person* p) {
     p->deposit.value += p->capital;
     p->deposit.value *= 1 + (p->deposit.rate / 100.0) / 12;
     p->capital = 0;
 }
 
 
-void show_capital(Person* p) {
-    printf("%s\n", p->name);
-    printf(" Balance is %.ld rub\n", p->capital);
+void move_to_next_date(Dates* d) {
+    if (d->current_month == 12) {
+            life_inflation();
+            d->current_year++;
+            d->current_month = 1;
+        } else {
+            d->current_month++;
+        }
 }
 
 
-void show_date(Dates* d) {
-    printf("Current year is %d\n", d->current_year);
-    printf("Current month is %d\n", d->current_month);
+void calculate_capital(Person* p, long components[], int components_count) {
+    for (int i = 0; i < components_count; i++) {
+        p->capital += components[i];
+    }
+}
+
+
+void show(Person* p) {
+    printf("%s\n", p->name);
+    printf(" Balance is %.ld rub\n", p->capital);
 }
 
 
@@ -168,24 +168,6 @@ Dates init_dates(int start_year, int start_month, int duration, int cat_life_exp
 }
 
 
-void move_to_next_year(Dates* d) {
-    d->current_year++;
-    d->current_month = 1;
-}
-
-
-void move_to_next_month(Dates* d) {
-    d->current_month++;
-}
-
-
-void calculate_capital(Person* p, long components[], int components_count) {
-    for (int i = 0; i < components_count; i++) {
-        p->capital += components[i];
-    }
-}
-
-
 struct Simulation {
     Person alice;
     Person bob;
@@ -198,8 +180,8 @@ struct Simulation init_simulation() {
     setlocale(LC_NUMERIC, "");
 
     Deposit deposit = {base_deposit, deposit_rate};
-    Person alice = {"Alice", start_balance, salary, deposit};
-    Person bob = {"Bob", start_balance, salary, deposit};
+    Person alice = {"Alice", start_balance, deposit};
+    Person bob = {"Bob", start_balance, deposit};
     Dates dates = init_dates(start_year, start_month, mortgage_duration, cat_life_expectancy);
 
     Mortgage mortgage = {appartment_cost, mortgage_duration, mortgage_rate};
@@ -212,48 +194,24 @@ struct Simulation init_simulation() {
 
 
 void run_simulation(struct Simulation simulation) {
-    while (simulation.dates.current_year <= simulation.dates.end_year && !(simulation.dates.current_year == simulation.dates.end_year && simulation.dates.current_month == simulation.dates.end_month)) {
-        recieve_salary(&simulation.alice);
-        pay_bills(&simulation.alice);
-        pay_mortgage(&simulation.alice, &simulation.mortgage);
-        increase_deposit(&simulation.alice);
+    while (!(simulation.dates.current_year == simulation.dates.end_year 
+    && simulation.dates.current_month == simulation.dates.end_month)) {
+        life(&simulation.alice);
+        mortgage(&simulation.alice, &simulation.mortgage);
+        dacha(&simulation.alice, &simulation.dates);
 
-        pay_dacha(&simulation.alice);
-        if (simulation.dates.current_month >= 6 && simulation.dates.current_year <= 8) {
-            vegetables_sell(&simulation.alice);
-        }
+        life(&simulation.bob);
+        rent(&simulation.bob);
+        deposit(&simulation.bob);
+        cat(&simulation.bob, &simulation.dates);
 
-
-        recieve_salary(&simulation.bob);
-        pay_bills(&simulation.bob);
-        pay_rent(&simulation.bob);
-        increase_deposit(&simulation.bob);
-
-        if (simulation.dates.current_year <= simulation.dates.cat_end_year) {
-            cat_expenses(&simulation.bob);
-            if (simulation.dates.current_month == 11) {
-                cat_doctor_expenses(&simulation.bob);
-            }
-            if (simulation.dates.current_year == simulation.dates.cat_end_year) {
-            cat_funiral_expenses(&simulation.bob);
-            }
-        }
-
-        if (simulation.dates.current_month == 12) {
-            salary_inflation(&simulation.alice);
-            salary_inflation(&simulation.bob);
-            life_inflation();
-            move_to_next_year(&simulation.dates);
-        } else {
-            move_to_next_month(&simulation.dates);
-        }
+        move_to_next_date(&simulation.dates);
     }
 
     calculate_capital(&simulation.alice, (long[]) {appartment_cost, simulation.alice.deposit.value}, 2);
     calculate_capital(&simulation.bob, (long[]) {simulation.bob.deposit.value}, 1);
-    show_date(&simulation.dates);
-    show_capital(&simulation.alice);
-    show_capital(&simulation.bob);
+    show(&simulation.alice);
+    show(&simulation.bob);
 }
 
 
