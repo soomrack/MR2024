@@ -248,7 +248,6 @@ void time_update(int *year, int *month) {
     }
 }
 
-   printMatrix(TMPmatrix, 3);
 
 void simulation() {
     mortgage_month_pay();
