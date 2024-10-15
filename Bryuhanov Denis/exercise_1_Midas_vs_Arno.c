@@ -13,6 +13,7 @@ typedef struct
 
 typedef struct
 {
+    char* name;
     Money price;
     int area;
     Money rent;
@@ -41,18 +42,22 @@ typedef struct
 
 
 House one_bedroom_apartment = {
+    .name = "One bedroom apartment",
     .price = 12 * 1000 * 1000 * 100, 
     .area = 60, 
     .rent = 30 * 1000 * 100};  // 2-х комнатная квартира
 House two_berdroom_apartment = {
+    .name = "Two bedroom apartment",
     .price = 16 * 1000 * 1000 * 100, 
     .area = 85, 
     .rent = 50 * 1000 * 100};  // 3-х комнатная квартира
 House country_house = {
+    .name = "Country house",
     .price = 15 * 1000 * 1000 * 100, 
     .area = 130, 
     .rent = 60 * 1000 * 100};  // Загородний дом
 House penthouse = {
+    .name = "penthouse",
     .price = (Money)350 * 1000 * 1000 * 100, 
     .area = 380, 
     .rent = 800 * 1000 * 100};  // Пентхаус
@@ -88,8 +93,8 @@ void init_midas()  // Инициализация переменных Мидас
         .houses[0] = one_bedroom_apartment,
         .bank_account = 0,
         .salary = 300 * 1000 * 100,
-        .annual_bonus = 100 * 1000 * 100,
-        .food_payment = 20 * 1000 * 100,
+        .annual_bonus = 300 * 1000 * 100,
+        .food_payment = 25 * 1000 * 100,
         .comunal_payment = midas.houses[0].area * comunal_per_area,  // Зависит от площади
         .another_payment = 35 * 1000 * 100,
         .vacation_cost = 300 * 1000 * 100,
@@ -108,12 +113,12 @@ void init_arno()  // Инициализация Арно
         .name = "Arno",
         .houses[0] = one_bedroom_apartment,
         .bank_account = 1000 * 1000 * 100,
-        .salary = 200 * 1000 * 100,
+        .salary = 300 * 1000 * 100,
         .annual_bonus = 300 * 1000 * 100,  // Премия в конце года
         .food_payment = 25 * 1000 * 100 ,
         .comunal_payment =  arno.houses[0].area * comunal_per_area,  // Зависит от площади
         .another_payment = 45 * 1000 * 100,
-        .vacation_cost = 250 * 1000 * 100,
+        .vacation_cost = 300 * 1000 * 100,
         .deposite_percent = 0.18,
         .indexation = 0.07,
         .amount_of_flats = 0,
@@ -123,12 +128,6 @@ void init_arno()  // Инициализация Арно
 
 
 // Написать функцию для покупки квартир, дач и недвижимостей
-void house_operations(Hero* hero)  // Основаня функция для работы с домами
-{
-    
-}
-
-
 void buy_house(Hero* hero)
 {
     hero -> bank_account -= hero -> desired_house.price;
@@ -142,6 +141,7 @@ House house_desire(Hero* hero)  // Функция для выбора покуп
     if (hero->amount_of_flats == 0){  // Добавить комментариии к условиям выбора квартиры 
         double best[2] = {1000000000, 0};
         for (int i = 0; i < 2; i++){
+            // Первое жильё выбирается среди квартиры с лучшей ценой руб/м^2
             double efficient[2] = {(double)catalog[i].price / catalog[i].area, (double)i};
             if (efficient[0] > best[0])
             {
@@ -154,7 +154,8 @@ House house_desire(Hero* hero)  // Функция для выбора покуп
     else if(hero->amount_of_flats < 8){
         double best[2] = {1000000000, 0};
         for (int i = 0; i < catalog_size; i++){
-            double efficient[2] = {(double)catalog[i].price / catalog[i].area + (double)catalog[i].price / (catalog[i].rent / 1000 * 100) , (double)i};
+            // Выбирается квартира самой выгодной арендой за свою цену, а также смотриться привлекательность для покупателя ()
+            double efficient[2] = {(double)catalog[i].rent * 0.25 / (catalog[i].area * 1000 * 100) + (double)catalog[i].price / (catalog[i].rent) , (double)i};
             if (efficient[0] <= best[0])
             {
                 best[0] = efficient[0];
@@ -166,6 +167,8 @@ House house_desire(Hero* hero)  // Функция для выбора покуп
     else{
         double best[2] = {100000000000, 0};
         for (int i = 0; i < catalog_size; i++){
+            // Больше 6 квартир на сдачу и 1 одной личной героям не надо.
+            // Поэтому он будет копить на покупку роскошных домов - пентхаусов, коттеджей, дворцов и т.д. 
             double efficient[2] = {(double)catalog[i].price / catalog[i].area, (double)i};
             if (catalog[i].area > 250 && efficient[0] < best[0]){
                 best[0] = efficient[0];
@@ -183,21 +186,39 @@ House house_desire(Hero* hero)  // Функция для выбора покуп
 }
 
 
-void house_misery(Hero* hero)  // Нужна ли в данный момент квартира
+int house_want_to_buy(Hero* hero)  // Нужна ли в данный момент квартира
 {
     if(hero->amount_of_flats == 0 && hero->bank_account > (Money)(hero->desired_house.price * 1.2)){
-        buy_house(&*hero);
-        hero->desired_house = house_desire(&*hero);
+        return 1;
     }
     else if (hero->amount_of_flats > 0 && hero->bank_account > (Money)hero->desired_house.price * 1.2 
     && (hero->bank_account * hero->deposite_percent) < (hero->desired_house.rent * 12) && hero->amount_of_flats < 8)
     {
-        buy_house(&*hero);
-        hero->desired_house = house_desire(&*hero);
+        return 1;
     }
     else if (hero->amount_of_flats >= 8 && hero->bank_account > hero->desired_house.price * 3){
+        return 1;
+    }
+    return 0;
+}
+
+
+void house_operations(Hero* hero)  // Основаня функция для работы с домами
+{
+    hero->desired_house = house_desire(&*hero);
+    if (house_want_to_buy(&*hero)){
+        printf("\n\n");
+        printf("%s bank account %lld\n", hero->name, (hero->bank_account) / 100);
+        printf("%s flats %lld\n", hero->name, (hero->amount_of_flats) );
+        printf("%s house price %lld\n", hero->name, (hero->desired_house.price) / 100);
+        printf("%s house name %s\n", hero->name, hero->desired_house.name);
         buy_house(&*hero);
+        printf("%s bank account after buy %lld\n", hero->name, (hero->bank_account) / 100);
+        printf("%s flats after buy %lld\n", hero->name, (hero->amount_of_flats));
+        printf("\n\n");
+
         hero->desired_house = house_desire(&*hero);
+        printf("%s desired house name %s\n", hero->name, hero->desired_house.name);
     }
 }
 
@@ -259,6 +280,7 @@ void account_recount(Hero* hero, const int current_month)
     if (hero->amount_of_flats == 0)
     {
         hero->bank_account -= hero->houses[0].rent;
+        printf("%s\n", hero->name);
     }
     if (current_month == 12){
         hero -> bank_account += hero -> annual_bonus;
@@ -302,6 +324,7 @@ void simulation(Hero hero_list[], const int hero_list_size, const int start_mont
             personal_inflation_cost(&hero_list[i], current_date.month);
             personal_indexation(&hero_list[i], current_date.month); 
             capital_recount(&hero_list[i], current_date.month);
+            house_operations(&hero_list[i]);
         }
         global_inflation(current_date.month);
         next_month(&current_date);
@@ -313,7 +336,8 @@ void final_conclusion(Hero hero_list[], const int hero_list_size){
 
     for (int i = 0; i < hero_list_size; i++)
     {
-        printf("%s capital %lld\n", hero_list[i].name, (hero_list[i].capital) / 100);  // Вывод капитаа Мидаса
+        printf("%s capital %lld\n", hero_list[i].name, (hero_list[i].capital) / 100);  // Вывод капитала Героя
+        printf("%s flats %lld\n", hero_list[i].name, (hero_list[i].amount_of_flats)); 
     }
 
     for (int i = 0; i < catalog_size; i++){
@@ -325,7 +349,7 @@ void final_conclusion(Hero hero_list[], const int hero_list_size){
 
 
 int main()
-{
+{   
     // Инициализируем параметры Героев и каталога
     init_midas();
     init_arno();
@@ -334,9 +358,7 @@ int main()
     Hero hero_list[] = {midas, arno}; 
     int hero_list_size = (int)(sizeof(hero_list)/sizeof(hero_list[0]));
     
-    
     simulation(hero_list, hero_list_size, 9, 2054);  // Запускаем симуляцию до 2054 года
-     
     final_conclusion(hero_list, hero_list_size);  // Итоговый вывод
    /*
     printf("%lld\n", catalog[0].price);
@@ -347,5 +369,4 @@ int main()
     printf("%lld\n", house_desire(&arno).price);
     */
     return 1;
-    
 }
