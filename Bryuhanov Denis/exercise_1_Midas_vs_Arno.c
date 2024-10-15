@@ -21,6 +21,7 @@ typedef struct
 
 typedef struct
 {
+    char* name;
     Money capital; // Сумма всех активов, пассивов и денег на банковском счёте
     Money bank_account; // Счёт в банке, который сразу кладётся на вклад
     double deposite_percent;
@@ -83,6 +84,7 @@ Money comunal_per_area = 2 * 1000 * 100;  // Цена комунальных у�
 void init_midas()  // Инициализация переменных Мидаса
 {
     midas = (Hero){   
+        .name = "Midas",
         .houses[0] = one_bedroom_apartment,
         .bank_account = 0,
         .salary = 300 * 1000 * 100,
@@ -103,6 +105,7 @@ void init_midas()  // Инициализация переменных Мидас
 void init_arno()  // Инициализация Арно 
 {
     arno = (Hero){
+        .name = "Arno",
         .houses[0] = one_bedroom_apartment,
         .bank_account = 1000 * 1000 * 100,
         .salary = 200 * 1000 * 100,
@@ -283,7 +286,7 @@ void next_month(Date* current_date)  // Наступление следующе�
 }
 
 
-void simulation(Hero* hero, const int start_month, const int final_year)  // Симмуляция на до определённого года и того месяца
+void simulation(Hero hero_list[], const int hero_list_size, const int start_month, const int final_year)  // Симмуляция на до определённого года и того месяца
 {
     Date current_date = {
         .month = start_month, 
@@ -293,26 +296,31 @@ void simulation(Hero* hero, const int start_month, const int final_year)  // С�
         .year = final_year};
 
     while (current_date.year < final_date.year || current_date.month < final_date.month){
-        account_recount(&*hero, current_date.month);
-        personal_inflation_cost(&*hero, current_date.month);
-        personal_indexation(&*hero, current_date.month); 
+        for (int i = 0; i < hero_list_size; i++)
+        {
+            account_recount(&hero_list[i], current_date.month);
+            personal_inflation_cost(&hero_list[i], current_date.month);
+            personal_indexation(&hero_list[i], current_date.month); 
+            capital_recount(&hero_list[i], current_date.month);
+        }
         global_inflation(current_date.month);
-
-        capital_recount(&*hero, current_date.month);
-
         next_month(&current_date);
     }
 }
 
 
-void final_conclusion(){
+void final_conclusion(Hero hero_list[], const int hero_list_size){
 
-    printf("Midas capital %lld\n", (midas.capital) / 100);  // Вывод капитаа Мидаса
-    printf("Arno capital %lld\n", arno.capital / 100);  // Вывод капитала Арно
+    for (int i = 0; i < hero_list_size; i++)
+    {
+        printf("%s capital %lld\n", hero_list[i].name, (hero_list[i].capital) / 100);  // Вывод капитаа Мидаса
+    }
+
     for (int i = 0; i < catalog_size; i++){
         printf("price %lld,   rent %lld\n",catalog[i].price / 100, catalog[i].rent / 100); // Цена квартир спустя 30 лет
     } 
     printf("\n");
+   
 }
 
 
@@ -323,11 +331,13 @@ int main()
     init_arno();
     init_catalog();
 
-    // Запускаем симуляцию до 2054 года
-    simulation(&midas, 9, 2054); // Сделать одну симуляцию, нужно добавить ввод обоих героев за раз.
-    simulation(&arno, 9, 2054);
-
-    final_conclusion();  // Итоговый вывод
+    Hero hero_list[] = {midas, arno}; 
+    int hero_list_size = (int)(sizeof(hero_list)/sizeof(hero_list[0]));
+    
+    
+    simulation(hero_list, hero_list_size, 9, 2054);  // Запускаем симуляцию до 2054 года
+     
+    final_conclusion(hero_list, hero_list_size);  // Итоговый вывод
    /*
     printf("%lld\n", catalog[0].price);
     printf("%lld\n", catalog[1].price);
