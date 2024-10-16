@@ -46,11 +46,11 @@ void alice_start_parametrs(){
 	alice.salary = 200 * 1000 * 100;
 	alice.status = 1000 * 1000 * 100;
 
-	alice.mortgage.house_cost = 5600 * 1000 * 100; //ñ ñàéòà
+	alice.mortgage.house_cost = 5600 * 1000 * 100; // стоимость возможной квартиры
 	alice.mortgage.first_payment = 1000 * 1000 * 100;
 	alice.mortgage.sum = alice.mortgage.house_cost - alice.mortgage.first_payment;
-	alice.mortgage.monthly_payment = 24694 * 100;						//ëüãîòíàÿ èïîòåêà 5%
-	alice.house_bills =  2500 * 100; //ñ ñàéòà, ïî êàäàñòðó
+	alice.mortgage.monthly_payment = 24694 * 100;						//льготная ипотека 5%
+	alice.house_bills =  2500 * 100; //налог по кадастру, с сайта
 	alice.house_timeprice = alice.mortgage.house_cost = 5600 * 1000 * 100;
 	
 	alice.status -= alice.mortgage.first_payment;
