@@ -11,7 +11,7 @@ int main()
     float ipoteka = 16; 
     int year = 30; 
     int months = 12; 
-    float zp = 200000; 
+    float zp = 300000; 
     float rent = 30000; 
     float rashod = 30000; 
     float inf = 9; 
