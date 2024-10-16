@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Coins; // рассчет в копейках
+typedef long long int Coins; // СЂР°СЃСЃС‡РµС‚ РІ РєРѕРїРµР№РєР°С…
 
 const double inflation = 1.09;
-const double deposit_percent = 1.0169; // при процентой ставке 20% годовых примерный процент в месяц 1.69%
+const double deposit_percent = 1.0169; // РїСЂРё РїСЂРѕС†РµРЅС‚РѕР№ СЃС‚Р°РІРєРµ 20% РіРѕРґРѕРІС‹С… РїСЂРёРјРµСЂРЅС‹Р№ РїСЂРѕС†РµРЅС‚ РІ РјРµСЃСЏС† 1.69%
 
 int month, year;
 
@@ -14,19 +14,19 @@ int start_year = 2024;
 typedef struct  Mortgage {
 	Coins house_cost;
 	Coins sum;
-	Coins first_payment;   //ипотека
+	Coins first_payment;   //РёРїРѕС‚РµРєР°
 	Coins monthly_payment;
 	double mortgage_percent;
 }Mortgage;
    
 typedef struct Cintribution {
-	Coins deposit;          //Вклад
+	Coins deposit;          //РІРєР»Р°Рґ
 	double deposit_percent; 
 }Contribution;
 
 typedef struct Household{
 	Coins food;
-	Coins person_expens; //бытовые расходы
+	Coins person_expens; //Р±С‹С‚РѕРІС‹Рµ СЂР°СЃС…РѕРґС‹
 }Household;
 typedef struct Person {
 	Coins salary;
@@ -46,11 +46,11 @@ void alice_start_parametrs(){
 	alice.salary = 200 * 1000 * 100;
 	alice.status = 1000 * 1000 * 100;
 
-	alice.mortgage.house_cost = 5600 * 1000 * 100; //с сайта
+	alice.mortgage.house_cost = 5600 * 1000 * 100; //Г± Г±Г Г©ГІГ 
 	alice.mortgage.first_payment = 1000 * 1000 * 100;
 	alice.mortgage.sum = alice.mortgage.house_cost - alice.mortgage.first_payment;
-	alice.mortgage.monthly_payment = 24694 * 100;						//льготная ипотека 5%
-	alice.house_bills =  2500 * 100; //с сайта, по кадастру
+	alice.mortgage.monthly_payment = 24694 * 100;						//Г«ГјГЈГ®ГІГ­Г Гї ГЁГЇГ®ГІГҐГЄГ  5%
+	alice.house_bills =  2500 * 100; //Г± Г±Г Г©ГІГ , ГЇГ® ГЄГ Г¤Г Г±ГІГ°Гі
 	alice.house_timeprice = alice.mortgage.house_cost = 5600 * 1000 * 100;
 	
 	alice.status -= alice.mortgage.first_payment;
