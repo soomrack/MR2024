@@ -6,21 +6,21 @@ typedef long long int Coins; // рассчет в копейках
 const double inflation = 1.09;
 const double deposit_percent = 1.0169; // при процентой ставке 20% годовых примерный процент в месяц 1.69%
 
-int month, year;
 
 int start_month = 10;
-int start_year = 2024;
+int start_year = 2024;  // глобальные сдалть капсом ( с 6 по 11 строчку)!
+
 
 typedef struct  Mortgage {
 	Coins house_cost;
 	Coins sum;
-	Coins first_payment;   //ипотека
+	Coins first_payment; //ипотека
 	Coins monthly_payment;
 	double mortgage_percent;
 }Mortgage;
    
 typedef struct Cintribution {
-	Coins deposit;          //вклад
+	Coins deposit;          //вклад (поменять на депозит)
 	double deposit_percent; 
 }Contribution;
 
@@ -72,7 +72,7 @@ void bob_start_parametrs() {
 	bob.contribution.deposit = 0;
 }
 
-void alice_life_for_month(const int month) {
+void alice_life_for_month(const int month) { // ПОМЕНЯТЬ С ВРЕМЕНИ НА ОБЪЕКТ
 
 	alice.contribution.deposit *= deposit_percent;
 
@@ -88,8 +88,8 @@ void bob_life_for_month(const int month) {
 
 	bob.status += (bob.salary - bob.rent - bob.house_bills - bob.household.food - bob.household.person_expens);
 	bob.contribution.deposit += bob.status = 1000 * 1000 * 100;
-	bob.status = 0;
-	
+	bob.status = 0; //ПОМЕНЯТЬ НА АКККАУНТ
+	 
 }
 
 void alice_life_for_year(const int month) {
@@ -117,9 +117,11 @@ void life(){
 	int year = start_year;
 	while (!((year == start_year + 30) && (month == start_month))){
 		alice_life_for_month(month);
-		alice_life_for_year(month);
+		alice_life_for_year(month); 
+		
 		bob_life_for_month(month);
 		bob_life_for_year(month);
+		
 		month++;
 		if (month == 13) {
 			month = 1;
@@ -133,7 +135,7 @@ int main() {
 
 	life();
 	
-	printf("Alce status: %lld rubles\n", (alice.contribution.deposit + alice.mortgage.house_cost) / 100);
+	printf("Alce status: %lld rubles\n", (alice.contribution.deposit + alice.mortgage.house_cost) / 100); // сделать функцикями
 	printf("Bob status: %lld rubles\n", bob.contribution.deposit / 100);
 
 		return 0;
