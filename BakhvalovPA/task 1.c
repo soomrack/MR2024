@@ -1,6 +1,7 @@
 #include <stdio.h> 
 #include <math.h> 
 
+
 int main() 
 {
     
@@ -22,12 +23,12 @@ int main()
     float plata = S * ((r * result) / (result - 1)); 
 
     
-    
     float zp_Bob = zp;
     float rashod_Bob = rashod;
     float ost_Bob;
     float schet_Bob = start; 
 
+    
     for (int i = 1; i <= year; i++) {         
         for (int j = 1; j <= months; j++) { 
             ost_Bob = zp_Bob - (rent + rashod_Bob); 
@@ -40,13 +41,12 @@ int main()
     }
     
         
-
-   
     float zp_Alice = zp;
     float rashod_Alice = rashod;
     float ost_Alice;
     float schet_Alice = 0; 
 
+    
     for (int i = 1; i <= year; i++) { 
         for (int j = 1; j <= months; j++) { 
             ost_Alice = zp_Alice - (plata + rashod_Alice); 
@@ -59,8 +59,6 @@ int main()
     }
     schet_Alice = schet_Alice + kvar;
     
-
-
     
     printf("Alice:                                 %.0f rub.\n", schet_Alice);
     printf("Bob:                                   %.0f rub. \n", schet_Bob);
