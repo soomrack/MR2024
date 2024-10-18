@@ -1,93 +1,135 @@
-
-
-#include <math.h>
 #include <stdio.h>
-#include <string.h>
+#include <math.h>
+#include <stdbool.h>
 
 typedef long long int Money;
 
-const double inflation_pp = 7;
 
-typedef struct Person
-{
-    Money bank_account;
+typedef struct Person {
     Money salary;
-    Money flat;
-    Money mortgage;
-    Money first_pay;
-    Money expenditure;
-    Money flat_expenditure;
-    short int duration;
-    double bank_account_pp;
-    char name[6];
+    Money capital;
+    Money person_flat_payment;  // ежемесечная плата за ипотеку
+    Money monthly_expences;  // ежемесячные расходы
+    Money apartment_coast;
+    bool mortgage;
 } Person;
 
-Person alice;
-Person bob;
 
-void alice_init()
-{
-    alice.bank_account = 0;
-    alice.salary = 0;
-    alice.flat = 0;
-    alice.first_pay = 0;
-    alice.duration = 0;
-    alice.bank_account_pp = 11.0;
-    alice.expenditure = 0;
-    strcpy(alice.name, "Alice");
-    alice.flat_expenditure = 0; // monthly_mortgage_pay_bob(7.0);
-};
-
-void bob_init()
-{
-    bob.bank_account = 0;
-    bob.salary = 0;
-    bob.flat = 0;
-    bob.first_pay = 0;
-    bob.bank_account_pp = 11.0;
-    bob.expenditure = 0;
-    bob.flat_expenditure = 0;
-    strcpy(bob.name, "Bob");
-};
-
-void bob_deposite_income()
-{
-    bob.bank_account +=
-        (Money)(bob.bank_account * bob.bank_account_pp / 100.0 / 12.0);
-};
-
-Money bob_salary(const int year, const int month)
-{
-    if (month == 12)
-        bob.salary += (Money)(bob.salary * inflation_pp / 100);
-    if (month != 3)
-        bob.bank_account += alice.salary;
-};
+typedef struct Date {
+    int month;
+    int year;
+} Date;
 
 
-void monthly_mortgage_pay_alice(double mortgage_percent)
-{
-    double monthly_pp = mortgage_percent / 12.0;
-    Money flat_price = alice.flat - alice.first_pay;
+Date begin_date;
+Date last_date;
+Date now_date;
 
-    alice.flat_expenditure =
-        (double)flat_price *
-        ((monthly_pp / 100.0) *
-            (powf(1.0 + (monthly_pp / 100.0), (double)bob.duration)) /
-            (powf(1.0 + (monthly_pp / 100.0), (double)bob.duration) - 1.0));
-};
 
-Money alice_salary(const int year, const int month)
-{
-    if (!(month >= 4 && month <= 6 && year == 2030))
-        bob.bank_account += bob.salary;
-    if (month == 12)
-        bob.salary += (Money)(bob.salary * inflation_pp / 100);
-};
+void date_init () {
+    begin_date.month = 1;
+    begin_date.year = 2024;
+    last_date.month = 1;
+    last_date.year = 2054;
+}
 
-void alice_deposite_income()
-{
-    bob.bank_account +=
-        (Money)(bob.bank_account * bob.bank_account_pp / 100.0 / 12.0);
-};
 
+Person flat_payment (Money initial_payment, float percent, Money mortgage_summ, Money mortgage_years, Person person) {
+    if (person.mortgage == true) {
+        person.capital -= 1000000;  // первый взнос ипотеки
+        Money periods = mortgage_years * 12;  // число периодов в месяцах
+        person.person_flat_payment = (((percent / 12) * pow(1 + (percent / 12),periods))
+                                      / (pow(1 + (percent / 12),periods) - 1)) * mortgage_summ;  // рассчет ежемесячного платежа
+    } else {
+        person.person_flat_payment = 30000;
+    }
+    return person;
+}
+
+
+Person init (bool mortgage, Money begin_capital) {
+    Person person;
+    person.capital = begin_capital;
+    person.salary = 200000;
+    person.monthly_expences = 30000;
+    person.mortgage = mortgage;
+    person.apartment_coast = 13000 * 1000 * mortgage;  // стоимость квартиры
+    person = flat_payment(1000000, 0.16, person.apartment_coast, 30, person);  // рассчет ежемесячного платежа за ипотеку/аренду
+    return person;
+}
+
+
+Person work_incident (Person person) {
+    if(person.mortgage == false) {
+        if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
+        else if ((now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
+    }
+    return person;
+}
+
+
+Person apartment_payment (Person person) {
+    person.capital = person.capital - person.person_flat_payment;  //ежем. доходы/расходы
+    if(person.mortgage == false && now_date.month == 12) person.person_flat_payment *= 1.07;  // учет инфляции аренды жилья
+    else if(person.mortgage == true && now_date.month == 12)person.apartment_coast *= 1.07; //учет инфляции в стоимости жилья
+    return person;
+}
+
+
+Person salary (Person person) {
+    person.capital += person.salary;
+    if(now_date.month == 12) person.salary *= 1.07;  // индексация зарплаты
+    return person;
+}
+
+
+Person monthly_expences (Person person) {
+    person.capital -= person.monthly_expences;
+    if(now_date.month == 12) person.monthly_expences *= 1.07;  // учет инфляции потребительской корзины
+    return person;
+}
+
+
+Person invest (Person person) {
+    person.capital *= 1.016;  //учет процентов банковского вклада
+    return person;
+}
+
+
+Person simulation (Person person) {
+    now_date = begin_date;
+
+    while ((now_date.year < last_date.year) || (now_date.month < last_date.month)) {
+        person = salary(person);
+        person = monthly_expences(person);
+        person = work_incident(person);
+        person = apartment_payment(person);
+        person = invest(person);
+
+        now_date.month++;
+        if(now_date.month == 13) {
+            now_date.month = 1;
+            now_date.year++;
+        }
+    }
+    return person;
+}
+
+
+void results (Person Alice, Person Bob) {
+    printf("Alice Capital %llu\n", Alice.capital + Alice.apartment_coast);
+    printf("Bob capital %llu\n", Bob.capital);
+}
+
+
+int main () {
+    date_init();
+
+    Person Alice = init(1, 1500 * 1000);
+    Person Bob = init(0, 1000 * 1000);
+
+    Alice = simulation(Alice);
+    Bob = simulation(Bob);
+
+    results(Alice, Bob);
+}
