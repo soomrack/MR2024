@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 
+
 typedef long long int Money;  // Тип данных для денежных переменных
 
 
@@ -18,6 +19,21 @@ typedef struct
     int area;
     Money rent;
 } House;
+
+
+typedef struct 
+{
+    char* name;
+    char* scope_of_activity;
+    Money salary;
+    Money vacation_pay;
+    Money annual_bonus;
+    Money quarter_bonus;
+    int required_expirience;
+    int working_conditions;
+
+} Company;
+
 
 
 typedef struct
@@ -81,8 +97,9 @@ Hero midas;  // Мидас выбрал не заморачиваться и в�
 Hero arno;  // Арно живёт в аренду и копит деньги
 
 
-const int CURRENT_YEAR = 2024;
+const int START_YEAR = 2024;
 const int MONTH = 12;
+double key_rate = 0.19;
 double inflation = 0.07;  
 Money comunal_per_area = 2 * 1000 * 100;  // Цена комунальных услуг за метр квадратный
 
@@ -222,6 +239,34 @@ void house_operations(Hero* hero)  // Основаня функция для р�
 // Написать функцию для семьи и детей (В пользу Мидаса)
 // Написать функцию для расчёта ипотеки и поиска размера квартиры
 
+void inflation_change(Date* start_date, Date* current_date)
+{
+    if ((current_date->year - start_date->year) % 6 == 0 && current_date->month == 2)
+    {
+        inflation = 0.11;
+    }
+    else if (inflation > 0.04 && current_date->month == 2)
+    {
+        inflation -= 0.015;
+    }
+}
+
+
+void percent_change(Date* start_date, Date* current_date)
+{
+    if ((current_date->year - start_date->year) % 6 == 0 && current_date->month == 2)
+    {
+        key_rate = 0.2;
+        printf("key rate %f\n", key_rate);
+
+    }
+    else if (key_rate > 0.05 && current_date->month == 2)
+    {
+        key_rate /= 1.23;
+        printf("key rate %f\n", key_rate);
+    }
+}
+
 
 void global_inflation(const int current_month)  // Дорожание товаров, которыми не пользуются (происходит в январе)
 {
@@ -251,6 +296,7 @@ void personal_inflation_cost(Hero* hero, const int current_month)  // Инфля
 
 void personal_indexation(Hero* hero, const int current_month)  // Индексация зарплат и премий (происходит в октябре)
 {
+    hero -> indexation = inflation - 0.005;
     if (current_month == 10)
     {
         hero -> salary += (Money)(hero -> salary * hero -> indexation);
@@ -262,6 +308,8 @@ void personal_indexation(Hero* hero, const int current_month)  // Индекса
 
 void account_recount(Hero* hero, const int current_month)
 {
+    hero->deposite_percent = key_rate - 0.01;
+
     hero->bank_account += (Money)((double)(hero->bank_account) * (hero->deposite_percent / 12));
     hero->bank_account += hero->salary;
     hero->bank_account -= hero->food_payment;
@@ -300,9 +348,12 @@ void next_month(Date* current_date)  // Наступление следующе�
 
 void simulation(Hero hero_list[], const int hero_list_size, const int start_month, const int final_year)  // Симмуляция на до определённого года и того месяца
 {
+    Date start_date = {
+        .month = start_month,
+        .year = START_YEAR,};
     Date current_date = {
         .month = start_month, 
-        .year = CURRENT_YEAR};
+        .year = START_YEAR};
     Date final_date = {
         .month = start_month,
         .year = final_year};
@@ -317,6 +368,8 @@ void simulation(Hero hero_list[], const int hero_list_size, const int start_mont
             house_operations(&hero_list[i]);
         }
         global_inflation(current_date.month);
+        percent_change(&start_date, &current_date);
+        inflation_change(&start_date, &current_date);
         next_month(&current_date);
     }
 }
@@ -350,13 +403,6 @@ int main()
     
     simulation(hero_list, hero_list_size, 9, 2054);  // Запускаем симуляцию до 2054 года
     final_conclusion(hero_list, hero_list_size);  // Итоговый вывод
-   /*
-    printf("%lld\n", catalog[0].price);
-    printf("%lld\n", catalog[1].price);
-    printf("%lld\n", catalog[2].price);
-    printf("%lld\n", catalog[3].price);
-    printf("%lld\n", house_desire(&midas).price);
-    printf("%lld\n", house_desire(&arno).price);
-    */
+
     return 1;
 }
