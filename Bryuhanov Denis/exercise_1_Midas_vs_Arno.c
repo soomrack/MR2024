@@ -207,18 +207,8 @@ void house_operations(Hero* hero)  // Основаня функция для р�
 {
     hero->desired_house = house_desire(&*hero);
     if (house_want_to_buy(&*hero)){
-        printf("\n\n");
-        printf("%s bank account %lld\n", hero->name, (hero->bank_account) / 100);
-        printf("%s flats %lld\n", hero->name, (hero->amount_of_flats) );
-        printf("%s house price %lld\n", hero->name, (hero->desired_house.price) / 100);
-        printf("%s house name %s\n", hero->name, hero->desired_house.name);
         buy_house(&*hero);
-        printf("%s bank account after buy %lld\n", hero->name, (hero->bank_account) / 100);
-        printf("%s flats after buy %lld\n", hero->name, (hero->amount_of_flats));
-        printf("\n\n");
-
         hero->desired_house = house_desire(&*hero);
-        printf("%s desired house name %s\n", hero->name, hero->desired_house.name);
     }
 }
 
@@ -281,7 +271,6 @@ void account_recount(Hero* hero, const int current_month)
     if (hero->amount_of_flats == 0)
     {
         hero->bank_account -= hero->houses[0].rent;
-        printf("%s\n", hero->name);
     }
     if (current_month == 12){
         hero -> bank_account += hero -> annual_bonus;
@@ -342,7 +331,7 @@ void final_conclusion(Hero hero_list[], const int hero_list_size){
     }
 
     for (int i = 0; i < catalog_size; i++){
-        printf("price %lld,   rent %lld\n",catalog[i].price / 100, catalog[i].rent / 100); // Цена квартир спустя 30 лет
+        printf("%s price %lld and rent %lld\n", catalog[i].name, catalog[i].price / 100, catalog[i].rent / 100); // Цена квартир спустя 30 лет
     } 
     printf("\n");
    
