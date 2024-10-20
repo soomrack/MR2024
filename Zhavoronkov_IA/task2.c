@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include <math.h>
 
 
 struct Matrix
@@ -10,63 +11,118 @@ struct Matrix
     size_t rows;
     double* data;
 };
-struct Matrix A;
-struct Matrix B;
-struct Matrix C;
-struct Matrix C2;
+
+const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
 
-void error()
+// Сообщение об ошибке
+void matrix_error (const char* Er_type)
 {
-	printf("Error!\n");
+	printf("\nError!\nProblem: %s\n", Er_type);
 }
 
 
-int matrix_print(const struct Matrix A)
+// Инициализация матрицы
+struct Matrix matrix_alloc (const size_t rows, const size_t cols)
+{
+    if (cols == 0 || rows == 0) {
+		matrix_error("zero value");
+        return MATRIX_NULL;
+	}
+
+    if (rows * cols >= SIZE_MAX / sizeof(double)) {
+        matrix_error("exceeded the size");
+        return MATRIX_NULL;
+    }
+
+    struct Matrix A;
+	A.cols = cols;
+	A.rows = rows;
+
+    A.data = malloc(A.cols * A.rows * sizeof(double));
+
+    if (A.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
+    }
+    return A;
+}
+
+
+// Освобождение памяти
+void matrix_free (struct Matrix* A)
+{
+    if (A->data == NULL) {
+        return;
+    }
+
+    free(A->data);
+    *A = MATRIX_NULL;
+}
+
+
+// Нулевая матрица
+void matrix_zero (const struct Matrix A)
+{
+    if (A.data == NULL) {
+        matrix_error("no memory allocated");       
+        return;
+    }
+
+    memset(A.data, 0, A.cols * A.rows * sizeof(double));
+}
+
+
+// Единичная матрица
+struct Matrix matrix_identity (const struct Matrix A)
+{
+    if (A.cols != A.cols) {
+        matrix_error("a non-square matrix");
+        return MATRIX_NULL;
+    }
+    
+    if (A.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
+    }
+
+    matrix_zero(A);
+    for (size_t idx = 0; idx < A.rows * A.cols; idx += A.cols + 1) {
+        A.data[idx] = 1.0;
+    }
+    return A;
+}
+
+
+void matrix_print(const struct Matrix A)
 {
     printf("_____________________________\n");
     for (size_t row = 0; row < A.rows; ++row) {
         for (size_t col = 0; col < A.cols; ++col) {
-            printf(" %4.2f ", A.data[A.cols*row + col]);
+            printf(" %.2f ", A.data[A.cols*row + col]);
         }
         printf("\n");
     }
     printf("\n");
-    return 0;
-}
-
-
-// Выделение памяти
-void malloc_give (struct Matrix* A)
-{
-    A->data = malloc(A->cols * A->rows * sizeof(double));
-}
-
-
-// Проверка на успешное выделение памяти
-int malloc_check (const struct Matrix* A)
-{
-    if (A->data == NULL) {
-        error();
-        printf("haha");
-        return 1; 
-    }
-    return 0;
 }
 
 
 // A = A + B
-int matrix_add (struct Matrix A, struct Matrix B)
+void matrix_add (struct Matrix A, struct Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        error();
-        return 1;
+        matrix_error("matrices of different dimensions");
+        return;
+    }
+    
+    if (A.data == NULL || B.data == NULL) {
+        matrix_error("no memory allocated for one of the transferred matrices");
+        return;
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
 		A.data[idx] += B.data[idx];
 	}
-    return 0;
 }
 
 
@@ -74,18 +130,16 @@ int matrix_add (struct Matrix A, struct Matrix B)
 struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        error();
-        exit;
+        matrix_error("matrices of different dimensions");
+        return MATRIX_NULL;
     }
 
-    struct Matrix C;
-    C.cols = A.cols;
-    C.rows = A.rows;
-    malloc_give(&C);
+    struct Matrix C = matrix_alloc (A.rows, A.cols);
 
-    if (malloc_check(&C)) {
-        exit;
-    } 
+    if (C.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
+    }
 
     memcpy(C.data, A.data, C.cols * C.rows * sizeof(double));
     matrix_add(C, B); 
@@ -94,59 +148,160 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 
 
 // C = A - B 
-struct Matrix matrix_min(const struct Matrix A, const struct Matrix B)
+struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        error();
-        exit;
+        matrix_error("matrices of different dimensions");
+        return MATRIX_NULL;
     }
 
-    struct Matrix C;
-    C.cols = A.cols;
-    C.rows = A.rows;
-    malloc_give(&C);
+    struct Matrix C = matrix_alloc (A.rows, A.cols);
 
-    if (malloc_check(&C)) {
-        exit;
+    if (C.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
     }
     
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {    
-        C.data[idx] = A.data[idx] - B.data[idx];
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
+		C.data[idx] = A.data[idx] - B.data[idx];
     }
     return C;
 }
 
 
 // A = A * k
-void matrix_k (struct Matrix A, double k)
+void matrix_mult_k (struct Matrix A, double k)
 {   
-    malloc_check(&A);
+    if (A.data == NULL) {
+        matrix_error("matrix data is NULL");
+        return;
+    }
+
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
 		A.data[idx] *= k;
 	}
 }
 
 
+// C = A * B
+struct Matrix matrix_mult (const struct Matrix A, const struct Matrix B)
+{
+    if (A.cols != B.rows) {
+        matrix_error("incorrect matrix size");
+        return MATRIX_NULL;
+    }
+
+    struct Matrix C = matrix_alloc(A.rows, B.cols);
+
+    if (C.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
+    }
+
+    for (size_t rowA = 0; rowA < A.rows; ++rowA) {
+        for (size_t colB = 0; colB < B.cols; ++colB) {
+            C.data[rowA * (B.cols) + colB] = 0;
+                
+            for (size_t idx = 0; idx < A.cols; idx++) {
+                  C.data[rowA * B.cols + colB] += A.data[rowA * A.cols + idx] * B.data[idx * B.cols + colB];
+            }
+        }
+    }
+    return C;
+}
+
+
+// A ^ T
+struct Matrix matrix_transp(const struct Matrix A)
+{
+    struct Matrix B = matrix_alloc(A.cols, A.rows);
+
+    if (B.data == NULL) {
+        matrix_error("no memory allocated");
+        return MATRIX_NULL;
+    }
+
+    for (size_t row = 0; row < A.rows; ++row) {
+        for (size_t col = 0; col < A.cols; ++col) {
+            B.data[row + A.rows * col] = A.data[col + A.cols * row];
+        }
+    }
+    return B;
+}
+
+
+// Определитель
+double matrix_det (const struct Matrix A)
+{
+    double det;
+    if (A.rows != A.cols) {
+        matrix_error("a non-square matrix");
+        return NAN;
+    }
+
+    if (A.rows == 1) {
+        det = A.data[0];
+        return det;
+    }
+
+    if (A.rows == 2) {
+        det = A.data[0] * A.data[3] - A.data[1] * A.data[2];
+        return det;
+    }
+
+    if (A.rows == 3) {
+        det = A.data[0] * A.data[4] * A.data[8] + A.data[1] * A.data[5] * A.data[6] + A.data[3] * A.data[7] * A.data[2] - \
+        (A.data [2] * A.data[4] * A.data[6]) - A.data[3] * A.data[1] * A.data[8] - A.data[0] * A.data[5] * A.data[7];
+        return det;
+    }
+    return NAN;
+}
+
+
+// A ^ n
+struct Matrix matrix_pow(const struct Matrix A, unsigned int power)
+{
+    if (A.rows != A.cols) {
+        matrix_error("a non-square matrix");
+        return MATRIX_NULL;
+    }
+
+    if (power == 0) {
+        return matrix_identity(A); 
+    }
+
+    struct Matrix B = matrix_alloc (A.rows, A.cols);
+
+    if (B.data == NULL) {
+        matrix_error("no memory allocated");
+        return B;
+    }
+
+    memcpy(B.data, A.data, A.rows * A.cols * sizeof(double));
+
+    for (unsigned int cur_pow = 1; cur_pow < power; ++cur_pow) {
+        B = matrix_mult(B,A);
+    }
+    return B;
+}
+
+
 int main()
 {
-    A.cols = 3;
-    A.rows = 3;
-    B.cols = 3;
-    B.rows = 3;
-    
-    malloc_give(&A);
-    malloc_give(&B);
-    
-    if (malloc_check(&A) || malloc_check(&B)) {
-        return 1; // Завершение программы в случае ошибки
-    } 
+    struct Matrix A,C,C2,B,D,F,T;
+    A = matrix_alloc(3,2);
+    A.data[0] = 0.0;
+    A.data[1] = 2.0;
+    A.data[2] = -5.0;
+    A.data[3] = 1.0;
+    A.data[4] = 4.0;
+    A.data[5] = -3.0;
 
-    *(A.data) = 1;
-    A.data [1] = -2;
-    *(A.data + 2) = 6.0;
-    A.data[5] = 4.0;
+    B = matrix_alloc(2,2);
 
-    B.data[3] = 2.0;
+    for (size_t idx = 0; idx < B.rows * B.cols; ++idx) {
+        B.data[idx] = idx;
+    }
 
     matrix_print(A);
     matrix_print(B);
@@ -159,16 +314,31 @@ int main()
     C = matrix_sum(A,B);
     matrix_print(C);
 
-    C2 = matrix_min(A,B);
+    C2 = matrix_sub(A,B);
     matrix_print(C2);
 
-    matrix_k(A,10);
+    matrix_mult_k(A,10);
     matrix_print(A);
 
-    free(A.data);
-    free(B.data);
-    free(C.data);
-    free(C2.data);
+    matrix_print(B);
+    D = matrix_pow(B,4);
+    matrix_print(D); 
+
+    printf("Matrix A det is %.2f", matrix_det(A));
+
+    printf("\nD matrix is\n");
+    F = matrix_mult(B,B);
+    matrix_print(F);
+    
+    matrix_print(A);
+    T = matrix_transp(A);
+    matrix_print(T);
+
+    matrix_free(&A);
+    matrix_free(&B);
+    matrix_free(&C);
+    matrix_free(&C2);
+    matrix_free(&D);
+    matrix_free(&F);
+    matrix_free(&T);
 }
-
-
