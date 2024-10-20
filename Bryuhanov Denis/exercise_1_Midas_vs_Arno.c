@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 
-
 typedef long long int Money;  // Тип данных для денежных переменных
 
 
@@ -24,13 +23,13 @@ typedef struct
 typedef struct 
 {
     char* name;
-    char* scope_of_activity;
+    char* scope_of_activity; // В какой сфере
     Money salary;
-    Money vacation_pay;
-    Money annual_bonus;
-    Money quarter_bonus;
-    int required_expirience;
-    int working_conditions;
+    Money vacation_pay; // Отпускные
+    Money annual_bonus; // Годовая премия
+    Money quarter_bonus; // Квартальная премия
+    int required_expirience; // Необходимый опыт работы
+    int working_conditions; // Условия работы от 1 до 100
 
 } Company;
 
@@ -91,6 +90,117 @@ void init_catalog()  // Инициализация каталога
     catalog[3] = penthouse;
     // увеличть в ручную размер каталога, при добавлении нового типа жилья
 }
+
+
+Company F_IT = {
+    .name = "fIT",
+    .scope_of_activity = "IT",
+    .salary = 300 * 1000 * 100,
+    .vacation_pay = 600 * 1000 * 100,
+    .annual_bonus = 300 * 1000 * 100,
+    .quarter_bonus = 100 * 1000 * 100,
+    .working_conditions = 42,
+    .required_expirience = 0,
+};
+
+Company S_IT = {
+    .name = "sIT",
+    .scope_of_activity = "IT",
+    .salary = 350 * 1000 * 100,
+    .vacation_pay = 700 * 1000 * 100,
+    .annual_bonus = 250 * 1000 * 100,
+    .quarter_bonus = 120 * 1000 * 100,
+    .working_conditions = 31,
+    .required_expirience = 0,
+};
+
+Company T_IT = {
+    .name = "tIT",
+    .scope_of_activity = "IT",
+    .salary = 280 * 1000 * 100,
+    .vacation_pay = 800 * 1000 * 100,
+    .annual_bonus = 400 * 1000 * 100,
+    .quarter_bonus = 80 * 1000 * 100,
+    .working_conditions = 60,
+    .required_expirience = 0,
+};
+
+Company Fourth_IT = {
+    .name = "fourthIT",
+    .scope_of_activity = "IT",
+    .salary = 500 * 1000 * 100,
+    .vacation_pay = 1000 * 1000 * 100,
+    .annual_bonus = 500 * 1000 * 100,
+    .quarter_bonus = 200 * 1000 * 100,
+    .working_conditions = 51,
+    .required_expirience = 5,
+};
+
+Company Fifth_IT = {
+    .name = "fifithIT",
+    .scope_of_activity = "IT",
+    .salary = 1500 * 1000 * 100,
+    .vacation_pay = 1000 * 1000 * 100,
+    .annual_bonus = 1000 * 1000 * 100,
+    .quarter_bonus = 500 * 1000 * 100,
+    .working_conditions = 80,
+    .required_expirience = 15,
+};
+
+Company F_Engine = {
+    .name = "fEngine",
+    .scope_of_activity = "Engineering",
+    .salary = 320 * 1000 * 100,
+    .vacation_pay = 600 * 1000 * 100,
+    .annual_bonus = 300 * 1000 * 100,
+    .quarter_bonus = 100 * 1000 * 100,
+    .working_conditions = 38,
+    .required_expirience = 0,
+};
+
+Company S_Engine = {
+    .name = "sEngine",
+    .scope_of_activity = "Engineering",
+    .salary = 400 * 1000 * 100,
+    .vacation_pay = 500 * 1000 * 100,
+    .annual_bonus = 200 * 1000 * 100,
+    .quarter_bonus = 150 * 1000 * 100,
+    .working_conditions = 20,
+    .required_expirience = 0,
+};
+
+Company T_Engine = {
+    .name = "tEngine",
+    .scope_of_activity = "Engineering",
+    .salary = 250 * 1000 * 100,
+    .vacation_pay = 800 * 1000 * 100,
+    .annual_bonus = 400 * 1000 * 100,
+    .quarter_bonus = 50 * 1000 * 100,
+    .working_conditions = 78,
+    .required_expirience = 0,
+};
+
+Company Fourth_Engine = {
+    .name = "fourthEngine",
+    .scope_of_activity = "Engineering",
+    .salary = 700 * 1000 * 100,
+    .vacation_pay = 1200 * 1000 * 100,
+    .annual_bonus = 600 * 1000 * 100,
+    .quarter_bonus = 10 * 1000 * 100,
+    .working_conditions = 68,
+    .required_expirience = 8,
+};
+
+Company Fifth_Engine = {
+    .name = "fifthEngine",
+    .scope_of_activity = "Engineering",
+    .salary = 1000 * 1000 * 100,
+    .vacation_pay = 2000 * 1000 * 100,
+    .annual_bonus = 500 * 1000 * 100,
+    .quarter_bonus = 200 * 1000 * 100,
+    .working_conditions = 58,
+    .required_expirience = 12,
+};
 
 
 Hero midas;  // Мидас выбрал не заморачиваться и взять Ипотеку
@@ -231,10 +341,8 @@ void house_operations(Hero* hero)  // Основаня функция для р�
 
 
 // Написать функцию для изменения процентов вклада и инфляции 
-// Написать функцию для смены работы
-// Написать структуру - компании и прочее
-// Написть функцию для получения отпуска неоплачиваемого (увольняется на пару месяцев)
-// Написать функцию покупки машины
+
+
 // Написать функцию домашних животных с рандомайзером
 // Написать функцию для семьи и детей (В пользу Мидаса)
 // Написать функцию для расчёта ипотеки и поиска размера квартиры
