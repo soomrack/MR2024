@@ -1,47 +1,50 @@
-typedef struct
-{
+typedef struct {
   double *ptr;
-  int rows;
-  int cols;
-  int len;
+  size_t rows;
+  size_t cols;
 } Matrix;
 
+
 typedef enum {
-    MAT_OK = 0,
-    MAT_ALLOC_ERR,
-    MAT_EMPTY_ERR,
-    MAT_SIZE_ERR,
-    MAT_RANGE_ERR,
-} Status_t;
+  MAT_OK = 0,
+  MAT_ALLOC_ERR,
+  MAT_EMPTY_ERR,
+  MAT_SIZE_ERR,
+  MAT_RANGE_ERR,
+  MAT_DET_ERR,
+  MAT_SOLVE_ERR,
+  MAT_EXP_ERR,
+} MatrixExceptions_t;
 
-Status_t mallocMatrix(size_t rows, size_t cols, Matrix **matrix);
 
-Status_t createMatrixO(size_t rows, size_t cols, Matrix **matrix);
+MatrixExceptions_t malloc_matrix(size_t rows, size_t cols, Matrix *m);
 
-Status_t createMatrixE(size_t rows, size_t cols, Matrix **matrix);
+MatrixExceptions_t create_zero_matrix(size_t rows, size_t cols, Matrix *m);
 
-Status_t createMatrixR(Matrix **matrix, size_t rows, size_t cols, double min, double max, unsigned int accuracy);
+MatrixExceptions_t create_unit_matrix(size_t rows, size_t cols, Matrix *m);
 
-void freeMatrix(Matrix **matrix);
+MatrixExceptions_t create_random_matrix(Matrix *m, size_t rows, size_t cols, double min, double max, unsigned int accuracy);
 
-void printMatrix(Matrix *matrix, int accuracy);
+void free_matrix(Matrix *m);
 
-Status_t addMatrix(const Matrix *matrixA, const Matrix *matrixB, Matrix *matrixC);
+MatrixExceptions_t print_matrix(const Matrix m, const int accuracy);
 
-Status_t subMatrix(const Matrix *matrixA, const Matrix *matrixB, Matrix *matrixC);
+MatrixExceptions_t add_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-Status_t multiMatrix(Matrix *matrixA,const Matrix *matrixB, Matrix *matrixC);
+MatrixExceptions_t sub_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-Status_t transposeMatrix(const Matrix *src_matrix, Matrix *res_matrix);
+MatrixExceptions_t multi_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-Status_t multiplyMatrixByScalar(const Matrix *src_matrix, double scalar, Matrix *res_matrix);
+MatrixExceptions_t transpose_matrix(const Matrix src_matrix, const Matrix res_matrix);
 
-Status_t gaussMethod(Matrix *matrix, double *det);
+MatrixExceptions_t multiply_matrix_by_scalar(const Matrix src_matrix, double scalar, Matrix res_matrix);
 
-Status_t reverseMatrix(Matrix *matrix, Matrix *reverseMatrix);
+MatrixExceptions_t matrix_determinant_gauss_method(const Matrix matrix, double *det);
 
-Status_t solveMatrixEquation(Matrix *matrixA, Matrix *matrixB, Matrix *matrixX);
+MatrixExceptions_t reverse_matrix(const Matrix matrix, const Matrix reverse_matrix);
 
-Status_t powerMatrix(Matrix *matrix, unsigned int degree);
+MatrixExceptions_t solve_matrix_equation(const Matrix A, const Matrix B, const Matrix X);
 
-Status_t expMatrix(Matrix *matrix, Matrix **EXPmatrix, const int accuracy);
+MatrixExceptions_t powerMatrix(const Matrix matrix, const unsigned int degree);
+
+MatrixExceptions_t expMatrix(const Matrix matrix, Matrix *EXPmatrix, const int accuracy);
