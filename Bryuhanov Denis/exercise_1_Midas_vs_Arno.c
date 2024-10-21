@@ -23,11 +23,12 @@ typedef struct
 typedef struct 
 {
     char* name;
-    char* scope_of_activity; // В какой сфере
+    char* specialization; // Специализация
     Money salary;
     Money vacation_pay; // Отпускные
     Money annual_bonus; // Годовая премия
     Money quarter_bonus; // Квартальная премия
+    Money year_income;
     int required_expirience; // Необходимый опыт работы
     int working_conditions; // Условия работы от 1 до 100
 
@@ -46,8 +47,6 @@ typedef struct
     int current_restraint; // Оставшееся выдержка, падает каждый год, возрастает после отпуска   
     int restraint;  // Выдержка, чем выше, тем дольше готов находиться на неудобной работе
     int experience; // Стаж, опыт работы
-    Money salary;
-    Money annual_bonus;  // Годовая премия
     Money food_payment;  // Ежемесечные траты за еду
     Money comunal_payment;  // Траты на комунальные услуги
     Money another_payment;  //Траты на одежду, медикаменты и прочее
@@ -99,7 +98,7 @@ void init_house_catalog()  // Инициализация каталога дом
 
 Company F_IT = {
     .name = "fIT",
-    .scope_of_activity = "IT",
+    .specialization = "IT",
     .salary = 300 * 1000 * 100,
     .vacation_pay = 600 * 1000 * 100,
     .annual_bonus = 300 * 1000 * 100,
@@ -110,7 +109,7 @@ Company F_IT = {
 
 Company S_IT = {
     .name = "sIT",
-    .scope_of_activity = "IT",
+    .specialization = "IT",
     .salary = 350 * 1000 * 100,
     .vacation_pay = 700 * 1000 * 100,
     .annual_bonus = 250 * 1000 * 100,
@@ -121,7 +120,7 @@ Company S_IT = {
 
 Company T_IT = {
     .name = "tIT",
-    .scope_of_activity = "IT",
+    .specialization = "IT",
     .salary = 280 * 1000 * 100,
     .vacation_pay = 800 * 1000 * 100,
     .annual_bonus = 400 * 1000 * 100,
@@ -132,7 +131,7 @@ Company T_IT = {
 
 Company Fourth_IT = {
     .name = "fourthIT",
-    .scope_of_activity = "IT",
+    .specialization = "IT",
     .salary = 500 * 1000 * 100,
     .vacation_pay = 1000 * 1000 * 100,
     .annual_bonus = 500 * 1000 * 100,
@@ -143,7 +142,7 @@ Company Fourth_IT = {
 
 Company Fifth_IT = {
     .name = "fifithIT",
-    .scope_of_activity = "IT",
+    .specialization = "IT",
     .salary = 1500 * 1000 * 100,
     .vacation_pay = 1000 * 1000 * 100,
     .annual_bonus = 1000 * 1000 * 100,
@@ -154,7 +153,7 @@ Company Fifth_IT = {
 
 Company F_Engine = {
     .name = "fEngine",
-    .scope_of_activity = "Engineering",
+    .specialization = "Engineering",
     .salary = 320 * 1000 * 100,
     .vacation_pay = 600 * 1000 * 100,
     .annual_bonus = 300 * 1000 * 100,
@@ -165,7 +164,7 @@ Company F_Engine = {
 
 Company S_Engine = {
     .name = "sEngine",
-    .scope_of_activity = "Engineering",
+    .specialization = "Engineering",
     .salary = 400 * 1000 * 100,
     .vacation_pay = 500 * 1000 * 100,
     .annual_bonus = 200 * 1000 * 100,
@@ -176,7 +175,7 @@ Company S_Engine = {
 
 Company T_Engine = {
     .name = "tEngine",
-    .scope_of_activity = "Engineering",
+    .specialization = "Engineering",
     .salary = 250 * 1000 * 100,
     .vacation_pay = 800 * 1000 * 100,
     .annual_bonus = 400 * 1000 * 100,
@@ -187,7 +186,7 @@ Company T_Engine = {
 
 Company Fourth_Engine = {
     .name = "fourthEngine",
-    .scope_of_activity = "Engineering",
+    .specialization = "Engineering",
     .salary = 700 * 1000 * 100,
     .vacation_pay = 1200 * 1000 * 100,
     .annual_bonus = 600 * 1000 * 100,
@@ -198,7 +197,7 @@ Company Fourth_Engine = {
 
 Company Fifth_Engine = {
     .name = "fifthEngine",
-    .scope_of_activity = "Engineering",
+    .specialization = "Engineering",
     .salary = 1000 * 1000 * 100,
     .vacation_pay = 2000 * 1000 * 100,
     .annual_bonus = 500 * 1000 * 100,
@@ -215,15 +214,25 @@ const int company_catalog_size = 10;
 void init_company_catalog()  // Инициализация каталога компаний
 {
     company_catalog[0] = F_IT;
+    F_IT.year_income += F_IT.annual_bonus + 11 * F_IT.salary + F_IT.vacation_pay + F_IT.quarter_bonus * 4;
     company_catalog[1] = S_IT;
+    S_IT.year_income += S_IT.annual_bonus + 11 * S_IT.salary + S_IT.vacation_pay + S_IT.quarter_bonus * 4;
     company_catalog[2] = T_IT;
+    T_IT.year_income += T_IT.annual_bonus + 11 * T_IT.salary + T_IT.vacation_pay + T_IT.quarter_bonus * 4;
     company_catalog[3] = Fourth_IT;
+    Fourth_IT.year_income += Fourth_IT.annual_bonus + 11 * Fourth_IT.salary + Fourth_IT.vacation_pay + Fourth_IT.quarter_bonus * 4;
     company_catalog[4] = Fifth_IT;
+    Fifth_IT.year_income += Fifth_IT.annual_bonus + 11 * Fifth_IT.salary + Fifth_IT.vacation_pay + Fifth_IT.quarter_bonus * 4;
     company_catalog[5] = F_Engine;
+    F_Engine.year_income += F_Engine.annual_bonus + 11 * F_Engine.salary + F_Engine.vacation_pay + F_Engine.quarter_bonus * 4;
     company_catalog[6] = S_Engine;
+    S_Engine.year_income += S_Engine.annual_bonus + 11 * S_Engine.salary + S_Engine.vacation_pay + S_Engine.quarter_bonus * 4;
     company_catalog[7] = T_Engine;
+    T_Engine.year_income += T_Engine.annual_bonus + 11 * T_Engine.salary + T_Engine.vacation_pay + T_Engine.quarter_bonus * 4;
     company_catalog[8] = Fourth_Engine;
+    Fourth_Engine.year_income += Fourth_Engine.annual_bonus + 11 * Fourth_Engine.salary + Fourth_Engine.vacation_pay + Fourth_Engine.quarter_bonus * 4;
     company_catalog[9] = Fifth_Engine;
+    Fifth_Engine.year_income += Fifth_Engine.annual_bonus + 11 * Fifth_Engine.salary + Fifth_Engine.vacation_pay + Fifth_Engine.quarter_bonus * 4;
     // увеличть в ручную размер каталога, при добавлении нового места работы
 }
 
@@ -249,8 +258,6 @@ void init_midas()  // Инициализация переменных Мидас
         .current_restraint = 200,
         .restraint = 200,  // Имеет большую выдержку
         .experience = 0,
-        .salary = 300 * 1000 * 100,
-        .annual_bonus = 300 * 1000 * 100,
         .food_payment = 25 * 1000 * 100,
         .comunal_payment = midas.houses[0].area * comunal_per_area,  // Зависит от площади
         .another_payment = 35 * 1000 * 100,
@@ -275,8 +282,6 @@ void init_arno()  // Инициализация Арно
         .current_restraint = 120,
         .restraint = 120, // Имеет нормальную выдержку
         .experience = 0,
-        .salary = 300 * 1000 * 100,
-        .annual_bonus = 300 * 1000 * 100,  // Премия в конце года
         .food_payment = 25 * 1000 * 100 ,
         .comunal_payment =  arno.houses[0].area * comunal_per_area,  // Зависит от площади
         .another_payment = 45 * 1000 * 100,
@@ -379,6 +384,66 @@ void house_operations(Hero* hero)  // Основаня функция для р�
 // Написать функцию для семьи и детей (В пользу Мидаса)
 // Написать функцию для расчёта ипотеки и поиска размера квартиры
 
+
+Company job_change(Hero* hero)
+{
+    Money best_year_income = 0; //Лучшая суммарная годовая зарплата
+    int best_conditions = 0; // Лучшие условия
+    Company best_companies[2];
+    
+    for (int i = 0; i < company_catalog_size; i ++ ){
+        if (hero->specialization == company_catalog[i].specialization && hero->experience >= company_catalog[i].required_expirience){
+            if (best_year_income < company_catalog[i].year_income){
+                best_year_income = company_catalog[i].year_income;
+                best_companies[0] = company_catalog[i];
+            }
+            if (best_conditions < company_catalog[i].working_conditions){
+                best_conditions = company_catalog[i].working_conditions;
+                best_companies[1] = company_catalog[i];
+            }
+        }
+    }
+    
+    if (best_companies[0].name == best_companies[1].name)
+    {
+        return best_companies[0];
+    }
+    else if ((Money)(best_companies[1].salary * 1.2) >= best_companies[0].salary && best_companies[1].working_conditions > best_companies[0].working_conditions)
+    {
+        return best_companies[1];
+    }
+    else{
+        return best_companies[0];
+    }
+       
+}
+
+
+void restraint_change(Hero* hero, const int current_month)
+{
+    if (current_month % 6 == 0) // Герой раз в полгода задумаеваться как он устал
+    {
+       hero->current_restraint -= (int)(100 - hero->current_work.working_conditions) / 2; 
+    }
+    
+    if (hero->current_restraint <= 0)
+    {
+        hero->current_work = job_change(&*hero); // Устал от работы, выбирает лучший вариант
+        hero->current_restraint = hero->restraint;
+    }
+    if (current_month == 7) 
+    {
+        hero->current_restraint += 20; //Отдохнул в отпуске
+    }
+}
+
+
+void experience_cup(Hero* hero, const int current_month)
+{
+    
+}
+
+
 void inflation_change(Date* start_date, Date* current_date)
 {
     if ((current_date->year - start_date->year) % 6 == 0 && current_date->month == 2)
@@ -416,6 +481,12 @@ void global_inflation(const int current_month)  // Дорожание товар
             house_catalog[i].price += (Money)(house_catalog[i].price * inflation);
             house_catalog[i].rent += (Money)(house_catalog[i].rent * inflation);   
         }
+        for (int i = 0; i < company_catalog_size; i++){
+            company_catalog[i].salary += (Money)(company_catalog[i].salary * inflation);
+            company_catalog[i].annual_bonus += (Money)(company_catalog[i].annual_bonus * inflation);
+            company_catalog[i].quarter_bonus += (Money)(company_catalog[i].quarter_bonus * inflation);
+            company_catalog[i].vacation_pay += (Money)(company_catalog[i].vacation_pay * inflation);
+        }
     }
     
 }
@@ -436,11 +507,13 @@ void personal_inflation_cost(Hero* hero, const int current_month)  // Инфля
 
 void personal_indexation(Hero* hero, const int current_month)  // Индексация зарплат и премий (происходит в октябре)
 {
-    hero -> indexation = inflation - 0.005;
+    hero->indexation = inflation;
     if (current_month == 10)
     {
-        hero -> salary += (Money)(hero -> salary * hero -> indexation);
-        hero -> annual_bonus += (Money)(hero -> annual_bonus * hero -> indexation);
+        hero->current_work.salary += (Money)(hero->current_work.salary * hero->indexation);
+        hero->current_work.annual_bonus += (Money)(hero->current_work.annual_bonus * hero->indexation);
+        hero->current_work.quarter_bonus += (Money)(hero->current_work.quarter_bonus * hero->indexation);
+        hero->current_work.vacation_pay += (Money)(hero->current_work.vacation_pay * hero->indexation);
     }
     
 }
@@ -450,20 +523,33 @@ void account_recount(Hero* hero, const int current_month)
 {
     hero->deposite_percent = key_rate - 0.01;
 
+    if (current_month == 7) // Уходит в неоплачиваемый отпуск
+    {
+        hero->bank_account += hero->current_work.vacation_pay;
+        hero->bank_account -= hero->vacation_cost;
+    }
+    else {
+        hero->bank_account += hero->current_work.salary;
+        hero->bank_account -= hero->food_payment;
+        hero->bank_account -= hero->comunal_payment;
+    }
+
     hero->bank_account += (Money)((double)(hero->bank_account) * (hero->deposite_percent / 12));
-    hero->bank_account += hero->salary;
-    hero->bank_account -= hero->food_payment;
-    hero->bank_account -= hero->comunal_payment;
     hero->bank_account -= hero->another_payment;  
     hero->bank_account -= hero->ipotek_payment;
-    if (hero->amount_of_flats == 0)
-    {
+
+    if (hero->amount_of_flats == 0){
         hero->bank_account -= hero->houses[0].rent;
     }
-    if (current_month == 12){
-        hero -> bank_account += hero -> annual_bonus;
-        hero -> bank_account -= hero -> vacation_cost;
+
+    if (current_month % 3 == 0){
+        hero->bank_account += hero->current_work.quarter_bonus;
     }
+    
+    if (current_month == 12){
+        hero->bank_account += hero->current_work.annual_bonus;
+    }
+
 }
 
 
@@ -502,6 +588,7 @@ void simulation(Hero hero_list[], const int hero_list_size, const int start_mont
         for (int i = 0; i < hero_list_size; i++)
         {
             account_recount(&hero_list[i], current_date.month);
+            restraint_change(&hero_list[i], current_date.month);
             personal_inflation_cost(&hero_list[i], current_date.month);
             personal_indexation(&hero_list[i], current_date.month); 
             capital_recount(&hero_list[i], current_date.month);
@@ -537,6 +624,7 @@ int main()
     init_midas();
     init_arno();
     init_house_catalog();
+    init_company_catalog();
 
     Hero hero_list[] = {midas, arno}; 
     int hero_list_size = (int)(sizeof(hero_list)/sizeof(hero_list[0]));
