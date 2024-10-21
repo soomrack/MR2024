@@ -6,17 +6,17 @@
 #include <math.h>
 
 
-LogLevel_t current_level = LOG_NONE;
+LogLevel current_level = LOG_NONE;
 
 
-void matrix_set_log_level(LogLevel_t level)
+void matrix_set_log_level(LogLevel level)
 {
     current_level = level;
 }
 
 
 #ifdef MATRIX_LOG_ENABLE
-static void print_log(LogLevel_t level, const char *format, ...)
+static void print_log(LogLevel level, const char *format, ...)
 {
     if(level <= current_level) {
         switch (level)
@@ -46,7 +46,7 @@ static void print_log(LogLevel_t level, const char *format, ...)
 #endif
 
 
-MatrixStatus_t matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
+MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
 {
     PRINT_LOG(LOG_INFO, "allocate matrix with size: %lux%lu\n", rows, cols);
 
@@ -151,7 +151,7 @@ void matrix_print(const Matrix M)
 }
 
 
-MatrixStatus_t matrix_zeros(Matrix M)
+MatrixStatus matrix_zeros(Matrix M)
 {
     PRINT_LOG(LOG_INFO, "make zero matrix\n");
 
@@ -166,7 +166,7 @@ MatrixStatus_t matrix_zeros(Matrix M)
 }
 
 
-MatrixStatus_t matrix_identity(Matrix M)
+MatrixStatus matrix_identity(Matrix M)
 {
     PRINT_LOG(LOG_INFO, "make identity matrix\n");
 
@@ -184,7 +184,7 @@ MatrixStatus_t matrix_identity(Matrix M)
 }
 
 
-MatrixStatus_t matrix_copy(Matrix* dest, const Matrix src)
+MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
 {
     PRINT_LOG(LOG_INFO, "matrix copy\n");
 
@@ -207,7 +207,7 @@ MatrixStatus_t matrix_copy(Matrix* dest, const Matrix src)
 }
 
 
-MatrixStatus_t matrix_clone(Matrix* dest, const Matrix src)
+MatrixStatus matrix_clone(Matrix* dest, const Matrix src)
 {
     PRINT_LOG(LOG_INFO, "matrix clone\n");
 
@@ -231,7 +231,7 @@ MatrixStatus_t matrix_clone(Matrix* dest, const Matrix src)
 }
 
 
-MatrixStatus_t matrix_sum(Matrix* result, const Matrix A, const Matrix B)
+MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
 {
     PRINT_LOG(LOG_INFO, "matrix sum\n");
 
@@ -256,7 +256,7 @@ MatrixStatus_t matrix_sum(Matrix* result, const Matrix A, const Matrix B)
 }
 
 
-MatrixStatus_t matrix_sub(Matrix* result, const Matrix A, const Matrix B)
+MatrixStatus matrix_sub(Matrix* result, const Matrix A, const Matrix B)
 {
     PRINT_LOG(LOG_INFO, "matrix subtraction\n");
 
@@ -281,7 +281,7 @@ MatrixStatus_t matrix_sub(Matrix* result, const Matrix A, const Matrix B)
 }
 
 
-MatrixStatus_t matrix_mul_num(Matrix* result, const Matrix M, const double number)
+MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number)
 {
     PRINT_LOG(LOG_INFO, "matrix multiplication by number\n");
 
@@ -302,7 +302,7 @@ MatrixStatus_t matrix_mul_num(Matrix* result, const Matrix M, const double numbe
 }
 
 
-MatrixStatus_t matrix_mul(Matrix* result, const Matrix A, const Matrix B)
+MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B)
 {
     PRINT_LOG(LOG_INFO, "matrix multiplication\n");
 
@@ -351,7 +351,7 @@ MatrixStatus_t matrix_mul(Matrix* result, const Matrix A, const Matrix B)
 }
 
 
-MatrixStatus_t matrix_pow(Matrix* result, const Matrix M, const unsigned int exp)
+MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int exp)
 {
     PRINT_LOG(LOG_INFO, "matrix power\n");
 
@@ -407,7 +407,7 @@ MatrixStatus_t matrix_pow(Matrix* result, const Matrix M, const unsigned int exp
 }
 
 
-MatrixStatus_t matrix_exp(Matrix* result, const Matrix M)
+MatrixStatus matrix_exp(Matrix* result, const Matrix M)
 {
     PRINT_LOG(LOG_INFO, "matrix exponent\n");
 
@@ -476,7 +476,7 @@ MatrixStatus_t matrix_exp(Matrix* result, const Matrix M)
 }
 
 
-MatrixStatus_t matrix_transp(Matrix M)
+MatrixStatus matrix_transp(Matrix M)
 {
     PRINT_LOG(LOG_INFO, "matrix transposition\n");
 
@@ -526,7 +526,7 @@ static void matrix_sub_row(Matrix M, size_t row_base, size_t row, double ratio)
 }
 
 
-MatrixStatus_t matrix_det(double* det, const Matrix M)
+MatrixStatus matrix_det(double* det, const Matrix M)
 {
     PRINT_LOG(LOG_INFO, "matrix determinant\n");
 
