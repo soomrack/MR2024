@@ -137,9 +137,12 @@ struct Matrix multiply_by_scalar(const struct Matrix A, double scalar) // Умн
 
 double determinant(const struct Matrix A) // Определитель матрицы (для 2x2 и 3x3)
 {
-    if (A.rows == 2 && A.cols == 2) {
+    if (A.rows == 1 && A.cols == 1) {
+        return A.data[0];
+    } else if (A.rows == 2 && A.cols == 2){
         return A.data[0] * A.data[3] - A.data[1] * A.data[2];
-    } else if (A.rows == 3 && A.cols == 3) {
+    }
+    else if (A.rows == 3 && A.cols == 3) {
         return A.data[0] * (A.data[4] * A.data[8] - A.data[5] * A.data[7]) -
                A.data[1] * (A.data[3] * A.data[8] - A.data[5] * A.data[6]) +
                A.data[2] * (A.data[3] * A.data[7] - A.data[4] * A.data[6]);
