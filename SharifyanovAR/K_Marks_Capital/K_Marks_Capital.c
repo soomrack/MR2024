@@ -158,10 +158,10 @@ void bob_expenses(const int month, const int year)
     if (month == 1) {
         Bob.expenses *= (1. + inflation);
     }
-    if ((month >= 3 && year >= 2027) && !(year == cat.lifetime / 12 && month == cat.lifetime % 12 + 3)) {
+    if ((month >= 3 && year >= 2027) && !(year == (2027 + cat.lifetime / 12) && month == (cat.lifetime % 12 + 3))) {
         Bob.capital -= Bob.cat.cost;
     }
-    if ((month >= 6 && year >= 2034) && !(year == parrot.lifetime / 12 && month == parrot.lifetime % 12 + 6)) {
+    if ((month >= 6 && year >= 2034) && !(year == (2034 + parrot.lifetime / 12) && month == (parrot.lifetime % 12 + 6))) {
         Bob.capital -= Bob.parrot.cost;
     }
     Bob.capital -= Bob.expenses;
