@@ -37,7 +37,7 @@ MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols);
 void matrix_free(Matrix* M);
 
 
-void matrix_set(Matrix M, const size_t row, const size_t col, const double number);
+void matrix_set(const Matrix M, const size_t row, const size_t col, const double number);
 
 
 double matrix_get(const Matrix M, const size_t row, const size_t col);
@@ -55,10 +55,10 @@ unsigned char matrix_equal_size(const Matrix A, const Matrix B);
 void matrix_print(const Matrix M);
 
 
-MatrixStatus matrix_zeros(Matrix M);
+MatrixStatus matrix_set_zeros(const Matrix M);
 
 
-MatrixStatus matrix_identity(Matrix M);
+MatrixStatus matrix_set_identity(const Matrix M);
 
 
 MatrixStatus matrix_copy(Matrix* dest, const Matrix src);
@@ -79,13 +79,13 @@ MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number)
 MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B);
 
 
-MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int exp);
+MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int pow);
 
 
 MatrixStatus matrix_exp(Matrix* result, const Matrix M);
 
 
-MatrixStatus matrix_transp(Matrix M);
+MatrixStatus matrix_transp(const Matrix M);
 
 
 MatrixStatus matrix_det(double* det, const Matrix M);
