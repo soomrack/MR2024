@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <limits.h>
 #include <string.h>
 #include <math.h>
@@ -280,9 +281,8 @@ struct Matrix matrix_pow(const struct Matrix A, unsigned int power)
         struct Matrix tmp = matrix_mult (B,A);
         
         matrix_free(&B);
-        B = tmp;
+        struct Matrix B = tmp;
         matrix_free(&tmp);
-        //B = matrix_mult(B,A);
     }
     return B;
 }
@@ -325,9 +325,10 @@ struct Matrix matrix_exp(const struct Matrix A, const double accuracy)
         
 		struct Matrix buf = matrix_sum(E, tmp);
 		matrix_free(&E);
-        E = buf;
+        struct Matrix E = buf;
         
 		matrix_free(&tmp);
+        matrix_free(&buf);
 	}
 	return E;
 }
@@ -335,7 +336,9 @@ struct Matrix matrix_exp(const struct Matrix A, const double accuracy)
 
 int main()
 {
-    struct Matrix A,C,C2,B,D,E,F,T;
+    printf("1");
+    printf("adfsd\n");
+    struct Matrix A,C,C2,B,D,E,F,T,I;
     A = matrix_alloc(3,2);
     A.data[0] = 0.0;
     A.data[1] = 2.0;
@@ -355,21 +358,31 @@ int main()
     printf("______________\n");
     matrix_add(A,B);
     matrix_print(A);
+    printf("A = A + B");
+
 
     printf("______________\n");
     printf("______________\n");
     C = matrix_sum(A,B);
     matrix_print(C);
+    printf("C = A + B");
+
 
     C2 = matrix_sub(A,B);
     matrix_print(C2);
+    printf("C = A - B");
+
 
     matrix_mult_k(A,10);
     matrix_print(A);
+    printf("A * K is done\n");
+
 
     matrix_print(B);
     D = matrix_pow(B,4);
     matrix_print(D); 
+    printf("D ^ 4");
+
 
     printf("Matrix A det is %.2f", matrix_det(A));
 
@@ -380,9 +393,15 @@ int main()
     matrix_print(A);
     T = matrix_transp(A);
     matrix_print(T);
+    printf("A ^ T is done\n");
 
     E = matrix_exp(B,2);
     matrix_print(E);
+
+    I = matrix_alloc(3,3);
+    matrix_zero(I);
+    matrix_identity(I);
+    matrix_print(I);
 
     matrix_free(&A);
     matrix_free(&B);
@@ -392,4 +411,5 @@ int main()
     matrix_free(&F);
     matrix_free(&T);
     matrix_free(&E);
+    matrix_free(&I);
 }
