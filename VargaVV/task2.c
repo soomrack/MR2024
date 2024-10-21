@@ -101,7 +101,7 @@ void addition(Matrix A, Matrix B) //сложение матриц
     output(&addition_matrix);
     }
 
-    else {printf("ОШИБКА! Матрица A != Матрице B \n");}
+    else {printf("ОШИБКА! Матрица A != Матрице B \n");printf("\n"); printf("\n");}
 
     free_mem(&addition_matrix);
 }
@@ -129,10 +129,10 @@ void subtraction(Matrix A, Matrix B) //вычитание матриц
 void multiplication(Matrix A, Matrix B)  //умножение матриц
 {
     printf("\tmultiplication:\n");
-
+    
     Matrix multiplication_matrix = { A.cols, A.rows, NULL, NULL };
     zero_matrix(&multiplication_matrix);
-
+    if(A.cols == B.rows){
     for (int rows = 0; rows < multiplication_matrix.rows; rows++)
     {
         for (int cols = 0; cols < multiplication_matrix.cols; cols++)
@@ -144,6 +144,8 @@ void multiplication(Matrix A, Matrix B)  //умножение матриц
         }
     }
     output(&multiplication_matrix);
+    }
+    else{printf("ОШИБКА! Число строблцов Матрица A не равно числу строк матрицы B \n"); printf("\n"); printf("\n");}
     free_mem(&multiplication_matrix);
 }
 
