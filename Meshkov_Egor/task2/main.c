@@ -9,34 +9,16 @@ int main() {
 
   srand(time(NULL) + getpid());
 
-  // size_t rows = 5, cols = 5; 
-  // Matrix *matrixA = NULL, *matrixB = NULL, *matrixC = NULL;
-  // printf("%d\n", mallocMatrix(rows, 1, &matrixC));
-  // printf("%d\n", createMatrixR(&matrixA, rows, cols, -5.0, 5.0, 3));
-  // printf("%d\n", createMatrixR(&matrixB, rows, 1, -2, 2, 3));
-
-  // printMatrix(matrixA, 3);
-  // printMatrix(matrixB, 3);
-
-  // printf("%d\n", solveMatrixEquation(matrixA, matrixB, matrixC));
-
-  // printMatrix(matrixC, 6);
-
-  // freeMatrix(&matrixA);
-  // freeMatrix(&matrixB);
-  // freeMatrix(&matrixC);
-
-  Matrix *matrixA = NULL, *matrixB = NULL;
-  createMatrixR(&matrixA, 1, 1, -5, 1, 3);
+  Matrix *a = malloc(sizeof(Matrix)), *b = malloc(sizeof(Matrix)), *c = malloc(sizeof(Matrix));
+  create_random_matrix(a, 1, 1, -2, 2, 3);
+  //create_random_matrix(b, 1, 1, -2, 2, 3);
+  //malloc_matrix(1, 1, c);
   
-  printMatrix(matrixA, 3);
-  
-  printf("%d", expMatrix(matrixA, &matrixB, 5));
+  print_matrix(*a, 3);
+  //print_matrix(*b, 3);
 
-  printMatrix(matrixB, 5);
-
-  freeMatrix(&matrixA);
-  freeMatrix(&matrixB);
-
+  printf("%d\n", expMatrix(*a, c, 6));
+    
+  print_matrix(*c, 6);
   return 0;
 }
