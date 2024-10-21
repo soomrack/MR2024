@@ -497,6 +497,35 @@ MatrixStatus_t matrix_transp(Matrix M)
 }
 
 
+static size_t matrix_find_non_zero_in_col(Matrix M, size_t row_start)
+{
+    for(size_t row = row_start + 1; row < M.rows; row++) {
+        if(fabs(M.data[row * M.cols + row_start]) >= 0.00001) {
+            return row;
+        }
+    }
+    return row_start;
+}
+
+
+static void matrix_swap_rows(Matrix M, size_t row_A, size_t row_B)
+{
+    for(size_t idx = 0; idx < M.cols; idx++) {
+        double tmp = M.data[row_A * M.cols + idx];
+        M.data[row_A * M.cols + idx] = M.data[row_B * M.cols + idx];
+        M.data[row_B * M.cols + idx] = tmp;
+    }
+}
+
+
+static void matrix_sub_row(Matrix M, size_t row_base, size_t row, double ratio)
+{
+    for(size_t idx = 0; idx < M.cols; idx++) {
+        M.data[row * M.cols + idx] -= ratio * M.data[row_base * M.cols + idx];
+    }
+}
+
+
 MatrixStatus_t matrix_det(double* det, const Matrix M)
 {
     PRINT_LOG(LOG_INFO, "matrix determinant\n");
@@ -523,39 +552,25 @@ MatrixStatus_t matrix_det(double* det, const Matrix M)
     *det = 1.0;
     for(size_t row_base = 0; row_base < m_tmp.rows - 1; row_base++) {
         if(fabs(m_tmp.data[row_base * (m_tmp.cols + 1)]) < 0.00001) {
-            size_t idx_non_zero = row_base;
-            for(size_t row = row_base + 1; row < m_tmp.rows; row++) {
-                if(fabs(m_tmp.data[row * m_tmp.cols + row_base]) >= 0.00001) {
-                    idx_non_zero = row;
-                    break;
-                }
-            }
+            size_t idx_non_zero = matrix_find_non_zero_in_col(m_tmp, row_base);
             if(idx_non_zero != row_base) {
-                for(size_t idx = row_base; idx < m_tmp.cols; idx++) {
-                    double tmp = m_tmp.data[row_base * m_tmp.cols + idx];
-                    m_tmp.data[row_base * m_tmp.cols + idx] = m_tmp.data[idx_non_zero * m_tmp.cols + idx];
-                    m_tmp.data[idx_non_zero * m_tmp.cols + idx] = tmp;
-                }
+                matrix_swap_rows(m_tmp, row_base, idx_non_zero);
                 *det *= -1.0;
             }
             else {
                 *det = 0.0;
-                break;
+                matrix_free(&m_tmp);
+                return MAT_OK;
             }
         }
         for(size_t row = row_base + 1; row < m_tmp.rows; row++) {
             double mult = m_tmp.data[row * m_tmp.cols + row_base] / m_tmp.data[row_base * (m_tmp.cols + 1)];
-            m_tmp.data[row * m_tmp.cols + row_base] = 0.0;
-            for(size_t idx = row_base + 1; idx < m_tmp.cols; idx++) {
-                m_tmp.data[row * m_tmp.cols + idx] = m_tmp.data[row * m_tmp.cols + idx] - mult * m_tmp.data[row_base * m_tmp.cols + idx];
-            }
+            matrix_sub_row(m_tmp, row_base, row, mult);
         }
     }
 
-    if(*det != 0.0) {
-        for(size_t i = 0; i < m_tmp.rows; i++) {
-            *det *= m_tmp.data[i * m_tmp.cols + i];
-        }
+    for(size_t i = 0; i < m_tmp.rows; i++) {
+        *det *= m_tmp.data[i * m_tmp.cols + i];
     }
 
     matrix_free(&m_tmp);
