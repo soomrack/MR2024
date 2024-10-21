@@ -17,14 +17,14 @@ void matrix_mem(Matrix* matrix)
     // Память под одномерный массив данных, который будет хранить все элементы матрицы
     matrix->data = (int*)malloc(matrix->rows * matrix->cols * sizeof(int));
     if (matrix->data == NULL) {  // Проверка выделения памяти
-        fprintf(stderr, "Ошибка при выделении памяти для данных матрицы\n");
+        printf("Ошибка при выделении памяти для данных матрицы\n");
         exit(EXIT_FAILURE);  // Завершение в случае ошибки
     }
 
     // Память для массива указателей на строки матрицы
     matrix->values = (int**)malloc(matrix->rows * sizeof(int*));
     if (matrix->values == NULL) {  // Проверка выделения памяти
-        fprintf(stderr, "Ошибка при выделении памяти для указателей на строки\n");
+        printf("Ошибка при выделении памяти для указателей на строки\n");
         free(matrix->data);  // Освобождаем память
         exit(EXIT_FAILURE);  // Завершаем в случае ошибки
     }
