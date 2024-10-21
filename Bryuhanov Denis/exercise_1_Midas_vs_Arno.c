@@ -154,7 +154,7 @@ Company Fifth_IT = {
 Company F_Engine = {
     .name = "fEngine",
     .specialization = "Engineering",
-    .salary = 320 * 1000 * 100,
+    .salary = 400 * 1000 * 100,
     .vacation_pay = 600 * 1000 * 100,
     .annual_bonus = 300 * 1000 * 100,
     .quarter_bonus = 100 * 1000 * 100,
@@ -165,7 +165,7 @@ Company F_Engine = {
 Company S_Engine = {
     .name = "sEngine",
     .specialization = "Engineering",
-    .salary = 400 * 1000 * 100,
+    .salary = 450 * 1000 * 100,
     .vacation_pay = 500 * 1000 * 100,
     .annual_bonus = 200 * 1000 * 100,
     .quarter_bonus = 150 * 1000 * 100,
@@ -176,7 +176,7 @@ Company S_Engine = {
 Company T_Engine = {
     .name = "tEngine",
     .specialization = "Engineering",
-    .salary = 250 * 1000 * 100,
+    .salary = 350 * 1000 * 100,
     .vacation_pay = 800 * 1000 * 100,
     .annual_bonus = 400 * 1000 * 100,
     .quarter_bonus = 50 * 1000 * 100,
@@ -428,6 +428,7 @@ void restraint_change(Hero* hero, const int current_month)
     
     if (hero->current_restraint <= 0)
     {
+        printf("%s Job changed\n", hero->name);
         hero->current_work = job_change(&*hero); // Устал от работы, выбирает лучший вариант
         hero->current_restraint = hero->restraint;
     }
@@ -438,9 +439,11 @@ void restraint_change(Hero* hero, const int current_month)
 }
 
 
-void experience_cup(Hero* hero, const int current_month)
+void experience_cup(Hero* hero, const int current_month, const int start_month)
 {
-    
+    if (current_month == start_month){
+        hero->experience += 1;
+    }
 }
 
 
@@ -462,13 +465,11 @@ void percent_change(Date* start_date, Date* current_date)
     if ((current_date->year - start_date->year) % 6 == 0 && current_date->month == 2)
     {
         key_rate = 0.2;
-        printf("key rate %f\n", key_rate);
 
     }
     else if (key_rate > 0.05 && current_date->month == 2)
     {
         key_rate /= 1.23;
-        printf("key rate %f\n", key_rate);
     }
 }
 
@@ -588,6 +589,7 @@ void simulation(Hero hero_list[], const int hero_list_size, const int start_mont
         for (int i = 0; i < hero_list_size; i++)
         {
             account_recount(&hero_list[i], current_date.month);
+            experience_cup(&hero_list[i], current_date.month, start_date.month);
             restraint_change(&hero_list[i], current_date.month);
             personal_inflation_cost(&hero_list[i], current_date.month);
             personal_indexation(&hero_list[i], current_date.month); 
