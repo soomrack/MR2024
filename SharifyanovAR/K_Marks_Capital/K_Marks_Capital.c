@@ -62,7 +62,7 @@ void Bob_init() {
 	Bob.flat_payment = RENT_PRICE;
     Bob.cat.buy = ANIMAL_BUY_COST;
     Bob.cat.cost = ANIMAL_KEEPING_COST;
-    Bob.cat.lifetime = 96;
+    Bob.cat.lifetime = 180;
     Bob.parrot.buy = ANIMAL_BUY_COST;
     Bob.parrot.cost = ANIMAL_KEEPING_COST;
     Bob.parrot.lifetime = 600;
