@@ -38,11 +38,11 @@ typedef struct
 
 typedef struct
 {
-    char* name;
+    char *name;
     Money capital; // Сумма всех активов, пассивов и денег на банковском счёте
     Money bank_account; // Счёт в банке, который сразу кладётся на вклад
     double deposite_percent;
-    char* specialization; 
+    char *specialization; 
     Company current_work;
     int current_restraint; // Оставшееся выдержка, падает каждый год, возрастает после отпуска   
     int restraint;  // Выдержка, чем выше, тем дольше готов находиться на неудобной работе
