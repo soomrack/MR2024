@@ -87,37 +87,41 @@ void random_matrix(Matrix* matrix) //заполнение случайными �
 void addition(Matrix A, Matrix B) //сложение матриц
 {
     printf("\tsummation:\n");
-
     Matrix addition_matrix = { A.cols, A.rows, NULL, NULL };
     matrix_mem(&addition_matrix);
 
-    for (int rows = 0; rows < addition_matrix.rows; rows++)
-    {
-        for (int cols = 0; cols < addition_matrix.cols; cols++)
-        {
+    if (A.cols==B.cols && A.rows==B.rows){
+
+    for (int rows = 0; rows < addition_matrix.rows; rows++){
+        for (int cols = 0; cols < addition_matrix.cols; cols++){
+
             addition_matrix.values[rows][cols] = A.values[rows][cols] + B.values[rows][cols];
         }
     }
     output(&addition_matrix);
+    }
+
+    else {printf("ОШИБКА! Матрица A != Матрице B \n");}
+
     free_mem(&addition_matrix);
 }
-
 
 void subtraction(Matrix A, Matrix B) //вычитание матриц
 {
     printf("\tsubtraction:\n");
-
     Matrix subtraction_matrix = { A.cols, A.rows, NULL, NULL };
     matrix_mem(&subtraction_matrix);
 
-    for (int rows = 0; rows < subtraction_matrix.rows; rows++)
-    {
-        for (int cols = 0; cols < subtraction_matrix.cols; cols++)
-        {
+    if (A.cols==B.cols && A.rows==B.rows){
+    for (int rows = 0; rows < subtraction_matrix.rows; rows++){
+        for (int cols = 0; cols < subtraction_matrix.cols; cols++){
+
             subtraction_matrix.values[rows][cols] = A.values[rows][cols] - B.values[rows][cols];
         }
     }
     output(&subtraction_matrix);
+    }
+    else {printf("ОШИБКА! Матрица A != Матрице B \n"); printf("\n"); printf("\n");}
     free_mem(&subtraction_matrix);
 }
 
