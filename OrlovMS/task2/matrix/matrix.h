@@ -17,6 +17,20 @@ typedef enum {
 } MatrixStatus_t;
 
 
+#define MATRIX_LOG_ENABLE
+
+
+typedef enum {
+    LOG_NONE,
+    LOG_ERR,
+    LOG_WARN,
+    LOG_INFO
+} LogLevel_t;
+
+
+void matrix_set_log_level(LogLevel_t level);
+
+
 MatrixStatus_t matrix_alloc(Matrix* M, const size_t rows, const size_t cols);
 
 
@@ -44,7 +58,7 @@ void matrix_print(const Matrix M);
 MatrixStatus_t matrix_zeros(Matrix M);
 
 
-MatrixStatus_t matrix_ones(Matrix M);
+MatrixStatus_t matrix_identity(Matrix M);
 
 
 MatrixStatus_t matrix_copy(Matrix* dest, const Matrix src);
