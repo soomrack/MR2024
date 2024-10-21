@@ -1,17 +1,29 @@
 #include<stdio.h>
 #include<math.h>
 
+
 typedef long long int money;
 
+
+struct animal {
+    money buy;
+    money cost;
+    int lifetime; // months
+}cat, parrot;
+
 struct dude {
-	money capital;
+    money deposit;
+    money capital;
 	money salary;
 	money expenses;
 	money unx_expeses; 
 	money flat_payment;
 	money overpayment;
+    struct animal cat;
+    struct animal parrot;
 }Alice, Bob;
 
+const money START_DEPOSIT = 0;
 const money START_CAPITAL = 1100000 *100;
 const money INIT_SALARY = 270000 * 100;
 const money INIT_EXPENSES = 50000 * 100;
@@ -21,6 +33,9 @@ const money RENT_PRICE = 45000 * 100;
 const money MORTRAGE_MOUNTH_PRICE = 170000 * 100;
 const money MORTRAGE_FIST_PAYMENT = 106500 * 100;
 
+const money ANIMAL_BUY_COST = 10000 * 100;
+const money ANIMAL_KEEPING_COST = 2000 * 100; // per month
+
 const int SIMULATION_DURATION = 30;
 const int START_YEAR = 2024;
 const int START_MONTH = 9;
@@ -29,6 +44,7 @@ double inflation = 0.10;
 double invest_rate = 0.18;
 
 void Alice_init() {
+    Alice.deposit = START_DEPOSIT;
 	Alice.capital = START_CAPITAL- MORTRAGE_FIST_PAYMENT;
 	Alice.salary = INIT_SALARY;
 	Alice.expenses = INIT_EXPENSES;
@@ -38,11 +54,18 @@ void Alice_init() {
 }
 
 void Bob_init() {
+    Bob.deposit = START_DEPOSIT;
 	Bob.capital = START_CAPITAL;
 	Bob.salary = INIT_SALARY;
 	Bob.expenses = INIT_EXPENSES;
 	Bob.unx_expeses = INIT_UNX_EXPENSES;
 	Bob.flat_payment = RENT_PRICE;
+    Bob.cat.buy = ANIMAL_BUY_COST;
+    Bob.cat.cost = ANIMAL_KEEPING_COST;
+    Bob.cat.lifetime = 96;
+    Bob.parrot.buy = ANIMAL_BUY_COST;
+    Bob.parrot.cost = ANIMAL_KEEPING_COST;
+    Bob.parrot.lifetime = 600;
 	//Bob.overpayment = RENT_PRICE * pow((1.0 + inflation), SIMULATION_DURATION) - FLAT_PRICE;
 }
 
@@ -92,25 +115,31 @@ void alice_house_price(const int month)
 
 void alice_deposit()
 {
-    Alice.capital += Alice.capital * (invest_rate / 12);
+    if (Alice.capital > 0) {
+        Alice.deposit += Alice.capital * (invest_rate / 12);
+    }
 }
 
 
 void alice_print()
 {
-    printf("Alice summary capital: %lld \n", Alice.capital/100);
+    printf("Alice summary capital: %lld \n", Alice.capital / 100 + Alice.deposit / 100);
 }
 
 
 
 
-void bob_salary(const int month)
+void bob_salary(const int month, const int year)
 {
     if (month == 1) {
         Bob.salary *= (1. + inflation);
     }
-
-    Bob.capital += Bob.salary;
+    if (month == 1 && year == 2034) {
+        Bob.salary *= 1.5; // extra condition
+    }
+    if (month != 8) {
+     Bob.capital += Bob.salary; // extra condition
+    }
 }
 
 
@@ -124,21 +153,31 @@ void bob_rent(const int month)
 }
 
 
-void bob_expenses(const int month)
+void bob_expenses(const int month, const int year)
 {
     if (month == 1) {
         Bob.expenses *= (1. + inflation);
     }
-
+    if ((month >= 3 && year >= 2027) && !(year == cat.lifetime / 12 && month == cat.lifetime % 12 + 3)) {
+        Bob.capital -= Bob.cat.cost;
+    }
+    if ((month >= 6 && year >= 2034) && !(year == parrot.lifetime / 12 && month == parrot.lifetime % 12 + 6)) {
+        Bob.capital -= Bob.parrot.cost;
+    }
     Bob.capital -= Bob.expenses;
 }
 
-void bob_unx_expenses(const int month)
+void bob_unx_expenses(const int month, const int year)
 {
     if (month == 1) {
         Bob.unx_expeses *= (1. + inflation);
     }
-
+    if (month == 3 && year == 2027) {
+        Bob.capital -= Bob.cat.buy;
+    }
+    if (month == 6 && year == 2034) {
+        Bob.capital -= Bob.parrot.buy;
+    }
     Bob.capital -= Bob.unx_expeses;
 }
 
@@ -146,13 +185,15 @@ void bob_unx_expenses(const int month)
 
 void bob_deposit()
 {
-    Bob.capital += Bob.capital * (invest_rate / 12);
+    if (Bob.capital > 0) {
+        Bob.deposit += Bob.capital * (invest_rate / 12);
+    }
 }
 
 
 void bob_print()
 {
-    printf("Bob summary capital: %lld \n", Bob.capital/100);
+    printf("Bob summary capital: %lld \n", Bob.capital / 100 + Bob.deposit / 100);
 }
 
 
@@ -187,10 +228,10 @@ void simulation()
         alice_house_price(month);
         alice_deposit();
 
-        bob_salary(month);
+        bob_salary(month, year);
         bob_rent(month);
-        bob_unx_expenses(month);
-        bob_expenses(month);
+        bob_unx_expenses(month,year);
+        bob_expenses(month, year);
         bob_deposit();
 
         month++;
