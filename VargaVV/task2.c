@@ -6,8 +6,8 @@ typedef struct Matrix
 {
     unsigned int rows;
     unsigned int cols;
-    int** values;
-    int* data;
+    double** values;
+    double* data;
 } Matrix;
 
 
@@ -15,7 +15,7 @@ typedef struct Matrix
 void matrix_mem(Matrix* matrix)
 {
     // Память под одномерный массив данных, который будет хранить все элементы матрицы
-    matrix->data = (int*)malloc(matrix->rows * matrix->cols * sizeof(int));
+    matrix->data = (double*)malloc(matrix->rows * matrix->cols * sizeof(double));
     if (matrix->data == NULL) {  // Проверка выделения памяти
         printf("Ошибка при выделении памяти для данных матрицы\n");
         exit(EXIT_FAILURE);  // Завершение в случае ошибки
@@ -48,7 +48,7 @@ void output(Matrix* matrix) //вывод
     {
         for (int cols = 0; cols < matrix->cols; cols++)
         {
-            printf("%d ", matrix->values[rows][cols]);
+            printf("%3.0f ", matrix->values[rows][cols]);
         }
         printf("\n");
     }
@@ -163,6 +163,50 @@ void transposition(Matrix A)  //транспонирование матрицы
 }
 
 
+void exponent(Matrix A)
+{
+    printf("\texponent matrix:\n");
+
+    Matrix exp_matrix = { A.cols, A.rows, NULL, NULL };
+    matrix_mem(&exp_matrix);
+    for (int rows = 0; rows < exp_matrix.rows; rows++)
+        for (int cols = 0; cols < exp_matrix.cols; cols++)
+            exp_matrix.values[rows][cols] = 1 + A.values[rows][cols];
+
+    Matrix temporarily_matrix = { A.cols, A.rows, NULL, (double*)A.values };
+    matrix_mem(&temporarily_matrix);
+
+    long int k = 2;
+    long long int factorial = k;
+    while (k < 10)
+    {
+        for (int rows = 0; rows < exp_matrix.rows; rows++)
+        {
+            for (int cols = 0; cols < exp_matrix.cols; cols++)
+            {
+                for (int i = 0; i < exp_matrix.rows; i++)
+                {
+                    temporarily_matrix.values[rows][cols] = temporarily_matrix.values[rows][i] * A.values[i][cols];
+                }
+            }
+        }
+        for (int rows = 0; rows < exp_matrix.rows; rows++)
+        {
+            for (int cols = 0; cols < exp_matrix.cols; cols++)
+            {
+                exp_matrix.values[rows][cols] += temporarily_matrix.values[rows][cols] / factorial;
+            }
+        }
+        k++;
+        factorial *= k;
+    } 
+
+    free_mem(&temporarily_matrix);
+    output(&exp_matrix);
+    free_mem(&exp_matrix);
+}
+
+
 int main()
 {
     Matrix A = { 3, 3, NULL, NULL };
@@ -178,7 +222,7 @@ int main()
     addition(A, B); //+
     subtraction(A, B); //-
     multiplication(A, B); //*
-    transposition(A); //транспонирование
+    exponent(A);
 
 
     free_mem(&A);
