@@ -222,6 +222,7 @@ int main()
     addition(A, B); //+
     subtraction(A, B); //-
     multiplication(A, B); //*
+    transposition(A);
     exponent(A);
 
 
