@@ -1,70 +1,37 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 
-const int height = 5; // количество строк
-const int lenght = 4; // количество столбцов
-double array1[5 * 4], array2[5 * 4]; // Наша матрица
-
-
-void array_init(double *arr, int i, int j) // Заполнение матрицы числами
+typedef struct 
 {
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++)
-        {
-            arr[k * j + l] = (double) k * i + l;
-        }
-    }
+    int rows;
+    int cols;
+    double *data;
+} Matrix;
+
+
+void matrix_init(Matrix *A, const int rows, const int cols)
+{
+    A->data = (double *)malloc(rows * cols * sizeof(double));
+    A->rows = rows;
+    A->cols = cols;
 }
 
 
-void array_sum(double *arr1, double *arr2, int i, int j) //Функция для суммы матриц
+void matrix_sum(Matrix *sum, Matrix A, Matrix B)
 {
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++)
+    if (A.rows == B.rows & A.cols == B.cols) {
+        for (size_t i = 0; i < A.rows * A.cols; i++)
         {
-            printf("%.2f\t", arr1[k * j + l] + arr2[k * j + l]);
+            sum->data[i] = A.data[i] + B.data[i];   
         }
-        printf("\n");
+        
     }
-    printf("\n");
-}
-
-void array_sub(double *arr1, double *arr2, int i, int j)
-{
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++)
-        {
-            printf("%.2f\t", arr1[k * j + l] - arr2[k * j + l]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-
-
-void array_output(double *arr, int i, int j)
-{
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++){
-            printf("%.2f\t", arr[k * j + l]); 
-        }
-        printf("\n"); 
-    }
-    printf("\n");
+    
 }
 
 
 int main()
 {
-    array_init(array1, lenght, height);
-    array_init(array2, lenght, height);
 
-    array_output(array1, lenght, height);
-    array_output(array2, lenght, height);
-
-    array_sum(array1, array2, lenght, height);
-    array_sub(array1, array2, lenght, height);
-
-    return 0;
 }

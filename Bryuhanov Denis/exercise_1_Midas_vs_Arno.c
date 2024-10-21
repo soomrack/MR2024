@@ -13,7 +13,7 @@ typedef struct
 
 typedef struct
 {
-    char* name;
+    char *name;
     Money price;
     int area;
     Money rent;
@@ -22,8 +22,8 @@ typedef struct
 
 typedef struct 
 {
-    char* name;
-    char* specialization; // Специализация
+    char *name;
+    char *specialization; // Специализация
     Money salary;
     Money vacation_pay; // Отпускные
     Money annual_bonus; // Годовая премия
@@ -408,7 +408,8 @@ Company job_change(Hero* hero)
     {
         return best_companies[0];
     }
-    else if ((Money)(best_companies[1].salary * 1.2) >= best_companies[0].salary && best_companies[1].working_conditions > best_companies[0].working_conditions)
+    else if ((Money)(best_companies[1].salary * 1.2) >= best_companies[0].salary 
+    && best_companies[1].working_conditions > best_companies[0].working_conditions)
     {
         return best_companies[1];
     }
@@ -588,7 +589,8 @@ void simulation(Hero hero_list[], const int hero_list_size, const int start_mont
     while (current_date.year < final_date.year || current_date.month < final_date.month){
         for (int i = 0; i < hero_list_size; i++)
         {
-            account_recount(&hero_list[i], current_date.month);
+            // поправить косяки фигурных скобок
+            account_recount(&hero_list[i], current_date.month); // изменить структуры функций
             experience_cup(&hero_list[i], current_date.month, start_date.month);
             restraint_change(&hero_list[i], current_date.month);
             personal_inflation_cost(&hero_list[i], current_date.month);
