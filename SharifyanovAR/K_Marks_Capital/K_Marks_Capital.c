@@ -246,8 +246,10 @@ void print_output()
 {
     printf("Results for %d.%d are:\n", START_MONTH, START_YEAR + SIMULATION_DURATION);
     printf(".......................\n");
+	
     alice_print();
     bob_print();
+	
     conclusion();
 }
 
@@ -255,7 +257,10 @@ int main()
 {
     Alice_init();
     Bob_init();
+	
     simulation();
+	
     print_output();
+	
     return 0;
 }
