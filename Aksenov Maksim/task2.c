@@ -45,8 +45,11 @@ Matrix matrix_create(const size_t rows, const size_t cols) // Функция д�
 
 void matrix_free(Matrix* m) // Функция для освобождения памяти матрицы
 {
+    if (m == NULL){
+    return;
+}
     free(m->data);
-    m->data = 0, 0, NULL;
+    *m = MATRIX_NULL;
 }
 
 
@@ -279,10 +282,10 @@ int main()
     // Определитель
     printf("Определитель матрицы A: %2.f \n", matrix_determinant(A));
     
-    // Матричная экспонента
+    /* Матричная экспонента
     Matrix exp_result = matrix_exponential(A);
     printf("Матричная экспонента от A:\n");
-    matrix_print(exp_result);
+    matrix_print(exp_result);*/
 
     // Освобождение памяти
     matrix_free(&A);
@@ -293,7 +296,7 @@ int main()
     matrix_free(&T);
     matrix_free(&F);
     matrix_free(&G);
-    matrix_free(&exp_result);
+   // matrix_free(&exp_result);
 
     return 0;
 }
