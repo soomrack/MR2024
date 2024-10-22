@@ -1,70 +1,177 @@
-#include <stdio.h> 
-#include <math.h> 
+#include <stdio.h>
+
+typedef long long int Money;    //КОП.
+const double INFLATION_RATE = 1.09;
+const double DEPOSIT_RATE = 0.2;
 
 
-int main() 
+typedef struct Mortgage {
+    Money sum;
+    Money first_pay;
+    Money monthly_payment;
+    double mortgage_rate;
+} Mortgage;
+
+
+
+typedef struct Person {
+    Money salary;
+    Money account;
+    Mortgage mortgage;
+    Money house_price;
+    Money expenses;
+    Money deposit;
+    Money rent;
+
+} Person;
+
+
+Person alice;
+Person bob;
+
+
+void alice_init()
 {
-    
-    int start = 1000000; 
-    float kvar = 20000000; 
-    float vklad = 15; 
-    float ipoteka = 16; 
-    int year = 30; 
-    int months = 12; 
-    float zp = 300000; 
-    float rent = 30000; 
-    float rashod = 30000; 
-    float inf = 9; 
-    
-    int S = kvar - start; 
-    float r = (ipoteka / 100) / 12; 
-    int n = year * 12; 
-    float result = pow((1 + r), (float)n); 
-    float plata = S * ((r * result) / (result - 1)); 
+    alice.salary = 200 * 1000 * 100;
+    alice.account = 1000 * 1000 * 100;
+    alice.expenses = 30 * 1000 * 100;
+    alice.mortgage.sum = 20 * 1000 * 1000 * 100;
+    alice.mortgage.first_pay = 1000 * 1000 * 100;
+    alice.mortgage.monthly_payment = 25550383;  // https://calcus.ru/kalkulyator-ipoteki
+    alice.mortgage.mortgage_rate = 0.16;
+    alice.account -= alice.mortgage.first_pay;
+    alice.house_price = alice.mortgage.sum;
 
-    
-    float zp_Bob = zp;
-    float rashod_Bob = rashod;
-    float ost_Bob;
-    float schet_Bob = start; 
+}
 
-    
-    for (int i = 1; i <= year; i++) {         
-        for (int j = 1; j <= months; j++) { 
-            ost_Bob = zp_Bob - (rent + rashod_Bob); 
-            schet_Bob = schet_Bob + ost_Bob; 
-            schet_Bob = schet_bob * (1 + (vklad / 100) / 12); 
-        }
-        zp_Bob = zp_Bob * (1 + (inf / 100)); 
-        rashod_Bob = rashod_Bob * (1 + (inf / 100)); 
-        rent = rent * (1 + (inf / 100)); 
+
+void bob_init()
+{
+    bob.salary = 200 * 1000 * 100;
+    bob.account =  1000 * 1000 * 100;
+    bob.expenses = 30 * 1000 * 100;
+    bob.rent = 30 * 1000 * 100;
+}
+
+
+void print_alice()
+{
+    printf("Alice account = %lld RUB\n", alice.account / 100);
+    printf("Alice house price = %lld RUB\n", alice.house_price / 100);
+    printf("Alice capital = %lld RUB\n", (alice.account + alice.house_price) / 100);
+}
+
+
+void print_bob()
+{
+    printf("Bob capital = %11d RUB\n", bob.account / 100);
+}
+
+
+void alice_salary(const int month)
+{
+    if (month == 12) {
+        alice.salary *= INFLATION_RATE;
     }
-    
-        
-    float zp_Alice = zp;
-    float rashod_Alice = rashod;
-    float ost_Alice;
-    float schet_Alice = 0; 
+    alice.account += alice.salary;
+}
 
-    
-    for (int i = 1; i <= year; i++) { 
-        for (int j = 1; j <= months; j++) { 
-            ost_Alice = zp_Alice - (plata + rashod_Alice); 
-            schet_Alice = (schet_Alice + ost_Alice); 
-            schet_Alice = schet_Alice * (1 + (vklad / 100) / 12); 
-        }
-        zp_Alice = zp_Alice * (1 + (inf / 100)); 
-        rashod_Alice = rashod_Alice * (1 + (inf / 100)); 
-        kvar = kvar * (1 + (inf / 100)); 
+
+void bob_salary(const int month)
+{
+    if (month == 12) {
+        bob.salary *= INFLATION_RATE;
     }
-    schet_Alice = schet_Alice + kvar;
-    
-    
-    printf("Alice:                                 %.0f rub.\n", schet_Alice);
-    printf("Bob:                                   %.0f rub. \n", schet_Bob);
-   
-  
-    getchar();getchar(); 
-    return 0; 
-    
+    bob.account += bob.salary;
+}
+
+
+void alice_mortgage()
+{
+    alice.account -= alice.mortgage.monthly_payment;
+}
+
+
+void bob_rent(const int month)
+{
+    if (month == 12) {
+        bob.rent *= INFLATION_RATE;
+    }
+    bob.account -= bob.rent;
+}
+
+
+void alice_expenditure(const int month)
+{
+    if (month == 12) {
+        alice.expenses *= INFLATION_RATE;
+    }
+    alice.account -= (alice.expenses);
+}
+
+
+void bob_expenditure(const int month)
+{
+    if (month == 12) {
+        bob.expenses *= INFLATION_RATE;
+    }
+    bob.account -= (bob.expenses);
+}
+
+
+void alice_house_price(const int month)
+{
+    if (month == 1) alice.house_price *= INFLATION_RATE;
+}
+
+
+void alice_deposit(const int month)
+{
+    alice.account += alice.account * DEPOSIT_RATE / 12;
+}
+
+
+void bob_deposit(const int month)
+{
+    bob.account += bob.account * DEPOSIT_RATE / 12;
+}
+
+
+void simulation()
+{
+    int month = 10;
+    int year = 2024;
+
+    while (!((year == 2024 + 30) && (month == 10))) {
+        alice_salary(month);
+        alice_mortgage();
+        alice_house_price(month);
+        alice_expenditure(month);
+        alice_deposit(month);
+
+        bob_salary(month);
+        bob_rent(month);
+        bob_expenditure(month);
+        bob_deposit(month);
+
+
+        month++;
+        if (month == 13) {
+            month = 1;
+            year++;
+        }
+    }
+}
+
+
+int main()
+{
+    alice_init();
+    bob_init();
+
+    simulation();
+
+    print_alice();
+    print_bob();
+    return 0;
 }
