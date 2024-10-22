@@ -45,7 +45,7 @@ struct Matrix matrix_alloc (const size_t rows, const size_t cols)
     if (cols == 0 || rows == 0) {
         matrix_error(1, "matrix_alloc", "matrix ix0 or 0xj");
         return (struct Matrix){rows, cols, NULL};
-	}
+    }
 
     if (rows * cols >= SIZE_MAX) {
         matrix_error(0, "matrix_alloc", "rows * cols >= SIZE_MAX");
@@ -127,8 +127,8 @@ void matrix_add (const struct Matrix A, const struct Matrix B)
     }
     
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
-		A.data[idx] += B.data[idx];
-	}
+        A.data[idx] += B.data[idx];
+    }
 }
 
 
@@ -167,7 +167,7 @@ struct Matrix matrix_sub(const struct Matrix A, const struct Matrix B)
     }
     
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
-		C.data[idx] = A.data[idx] - B.data[idx];
+        C.data[idx] = A.data[idx] - B.data[idx];
     }
     return C;
 }
@@ -181,8 +181,8 @@ void matrix_mult_k (const struct Matrix A, const double k)
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
-		A.data[idx] *= k;
-	}
+        A.data[idx] *= k;
+    }
 }
 
 
@@ -316,19 +316,19 @@ struct Matrix matrix_exp(const struct Matrix A, const unsigned int num)
     if (num == 1) {
         return E;
     }
-
-	for (size_t cur_num = 1; cur_num < num; ++cur_num) {
+    
+    for (size_t cur_num = 1; cur_num < num; ++cur_num) {
         struct Matrix tmp = matrix_pow (A,cur_num);
         matrix_mult_k(tmp, 1/factorial(cur_num));
         
-		struct Matrix buf = matrix_sum(E, tmp);
+        struct Matrix buf = matrix_sum(E, tmp);
         memcpy(E.data, buf.data, buf.rows * buf.cols * sizeof(double));
-
-		matrix_free(&tmp);
+        
+        matrix_free(&tmp);
         matrix_free(&buf);
-	}
-
-	return E;
+        }
+    
+    return E;
 }
 
 
