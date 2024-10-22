@@ -21,7 +21,7 @@ typedef struct
 //Умножение матриц +
 //Степень матрицы (натуральное число) +
 //Нахождение определителя матрицы
-//Транспонирование матрицы 
+//Транспонирование матрицы +
 //Деление матриц
 //Экспонента матрицы
 
@@ -130,12 +130,56 @@ void matrix_print(Matrix A)
 }
 
 
-int main()
+void matrix_transp(Matrix *A)
+{
+    Matrix B;
+    matrix_clone(&B, *A);
+    matrix_init(&*A, A->cols, A->rows);
+    for (int i = 0; i < B.cols * B.rows; i++) {
+        A->data[B.rows * (i % B.cols) + i / B.cols] = B.data[i];
+    }
+}
+
+
+double matrix_det(Matrix A)
+{
+    Matrix B;
+    matrix_clone(&B, A);
+    double result = 1;
+    if(A.rows == A.cols) {
+        for (size_t col_nul = 0; col_nul < A.cols; col_nul++) {
+            for (size_t row = col_nul + 1; row < A.rows; row++) {
+                double proportion = B.data[col_nul * B.cols + col_nul] / B.data[row * B.cols + col_nul];
+                for (size_t col = col_nul; col < A.cols; col++) {
+                    B.data[row * B.cols + col] -= B.data[col_nul * B.cols + col] * proportion;
+                }
+                result *= B.data[col_nul * B.cols + col_nul];
+            }
+        }
+    }
+    return result;
+}
+
+
+int main()  
 {
     Matrix first_matrix;
+    Matrix second_matrix;
+    Matrix third_matrix;
     matrix_init(&first_matrix, 3, 3);
     matrix_fill(&first_matrix);
     matrix_print(first_matrix);
     matrix_pow(&first_matrix, first_matrix, 3);
     matrix_print(first_matrix);
+    matrix_init(&second_matrix, 2, 3);
+    matrix_init(&third_matrix, 3, 3);
+    matrix_fill(&second_matrix);
+    matrix_fill(&third_matrix);
+    matrix_print(second_matrix);
+    matrix_transp(&second_matrix);
+    matrix_print(second_matrix);
+    matrix_print(third_matrix);
+    matrix_clone(&third_matrix, second_matrix);
+    matrix_print(third_matrix);
+
 }
