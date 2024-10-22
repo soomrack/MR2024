@@ -33,31 +33,59 @@ void matrix_exception(const enum MatrixExceptionLevel level, char *msg)
 }
 
 
-Matrix matrix_create(const size_t rows, const size_t cols) // Функция для создания матрицы
+Matrix matrix_alloc(const size_t rows, const size_t cols) 
 {
-    Matrix m;
-    m.rows = rows;
-    m.cols = cols;
-    m.data = (double*)malloc(rows * cols * sizeof(double));
-    return m;
+    Matrix M;
+    
+    if (rows == 0 || cols == 0) {
+        matrix_exception(WARNING, "Матрица содержит 0 столбцов или строк");
+        return (Matrix) {rows, cols, NULL};
+    }
+    
+    
+    M.data = (double*)malloc(rows * cols * sizeof(double));
+    
+    if (M.data == NULL) {
+        matrix_exception(WARNING, "Сбой выделения памяти");
+        return MATRIX_NULL;
+    }
+    
+    M.rows = rows;
+    M.cols = cols;
+    return M;
 }
 
 
-void matrix_free(Matrix* m) // Функция для освобождения памяти матрицы
+void matrix_free(Matrix* M)  // Функция для освобождения памяти матрицы
 {
-    if (m == NULL){
-    return;
-}
-    free(m->data);
-    *m = MATRIX_NULL;
+    free(M->data);
+    *M = MATRIX_NULL;
 }
 
 
-void matrix_print(const Matrix m) // Функция для печати матрицы
+// Создание единичной матрицы
+Matrix identity_matrix(size_t size) 
 {
-    for (size_t row = 0; row < m.rows; row++) {
-        for (size_t col = 0; col < m.cols; col++) {
-            printf("%.2f ", m.data[row * m.cols + col]);
+    Matrix identity = {size, size, (double*)malloc(size * size * sizeof(double))};
+    if (identity.data == NULL) {
+        matrix_exception(ERROR, "Не удалось выделить память для единичной матрицы.\n");
+        exit(1);
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            identity.data[i * size + j] = (i == j) ? 1.0 : 0.0;
+        }
+    }
+
+    return identity;
+}
+
+void matrix_print(const Matrix M) // Функция для печати матрицы
+{
+    for (size_t row = 0; row < M.rows; row++) {
+        for (size_t col = 0; col < M.cols; col++) {
+            printf("%.2f ", M.data[row * M.cols + col]);
         }
         printf("\n");
     }
@@ -71,9 +99,10 @@ Matrix matrix_sum(const Matrix A, const Matrix B) // Сложение матри
         return MATRIX_NULL;
     }
 
-    Matrix C = matrix_create(A.rows, A.cols);
-    for (size_t row = 0; row < C.rows * C.cols; row++) {
-        C.data[row] = A.data[row] + B.data[row];
+    Matrix C = matrix_alloc(A.rows, A.cols);
+    
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] + B.data[idx];
     }
     return C;
 }
@@ -87,9 +116,9 @@ Matrix matrix_subtract(const Matrix A, const Matrix B) // Вычитание м�
         return MATRIX_NULL;
     }
 
-    Matrix C = matrix_create(A.rows, A.cols);
-    for (size_t row = 0; row < C.rows * C.cols; row++) {
-        C.data[row] = A.data[row] - B.data[row];
+    Matrix C = matrix_alloc(A.rows, A.cols);
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] - B.data[idx];
     }
     return C;
 }
@@ -103,7 +132,8 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) // Умножение м�
         return MATRIX_NULL;
     }
 
-    Matrix C = matrix_create(A.rows, B.cols);
+    Matrix C = matrix_alloc(A.rows, B.cols);
+    
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < C.cols; col++) {
             C.data[row * B.cols + col] = 0;
@@ -118,7 +148,8 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) // Умножение м�
 
 Matrix matrix_transpose(const Matrix A) // Транспонирование матрицы
 {
-    Matrix T = matrix_create(A.cols, A.rows);
+    Matrix T = matrix_alloc(A.cols, A.rows);
+    
     for (size_t row = 0; row < T.rows; row++) {
         for (size_t col = 0; col < T.cols; col++) {
             T.data[col * T.cols + row] = A.data[row * A.cols + col];
@@ -128,21 +159,17 @@ Matrix matrix_transpose(const Matrix A) // Транспонирование ма
 }
 
 
-Matrix matrix_power(const Matrix A, int exponent) // Возведение матрицы в степень
+// Возведение матрицы в степень
+Matrix matrix_power(const Matrix A, int power) 
 {
-    if (A.rows != A.cols || A.cols != A.rows) {
+    if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
         return MATRIX_NULL;
     }
+    
+    Matrix result = identity_matrix(A.rows); // Создаем единичную матрицу
 
-    Matrix result = matrix_create(A.rows, A.cols);
-    for (size_t i = 0; i < result.rows; i++) {
-        for (size_t col = 0; col < result.cols; col++) {
-            result.data[i * result.cols + col] = (i == col) ? 1.0 : 0.0; // Идентичная матрица
-        }
-    }
-
-    for (int n = 0; n < exponent; n++) {
+    for (int n = 0; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
@@ -154,9 +181,10 @@ Matrix matrix_power(const Matrix A, int exponent) // Возведение мат
 // C = A * k
 Matrix matrix_by_scalar(const Matrix A, double scalar) // Умножение матрицы на число
 {
-    Matrix C = matrix_create(A.rows, A.cols);
-    for (size_t row = 0; row < C.rows * C.cols; row++) {
-        C.data[row] = A.data[row] * scalar;
+    Matrix C = matrix_alloc(A.rows, A.cols);
+    
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] * scalar;
     }
     return C;
 }
@@ -190,17 +218,17 @@ double matrix_determinant(const Matrix A) // Определитель матри
 {
     if (A.rows != A.cols || A.cols != A.rows) {
         printf("Ошибка: Матрица должна быть квадратной для вычисления экспоненты.n");
-        return matrix_create(0, 0); // Возвращаем пустую матрицу
+        return matrix_alloc(0, 0); // Возвращаем пустую матрицу
     }
 
-    Matrix result = matrix_create(A.rows, A.cols);
+    Matrix result = matrix_alloc(A.rows, A.cols);
     for (size_t i = 0; i < result.rows; i++) {
         for (size_t col = 0; col < result.cols; col++) {
             result.data[i * result.cols + col] = (i == col) ? 1.0 : 0.0; // Единичная матрица
         }
     }
 
-    Matrix current_power = matrix_create(A.rows, A.cols);
+    Matrix current_power = matrix_alloc(A.rows, A.cols);
     
     // Примерный алгоритм для вычисления экспоненты
     double factorial = 1.0;
@@ -221,7 +249,7 @@ double matrix_determinant(const Matrix A) // Определитель матри
         result = temp_result;
         
         matrix_free(&current_power);
-        current_power = matrix_create(A.rows, A.cols);
+        current_power = matrix_alloc(A.rows, A.cols);
     }
 
     matrix_free(&current_power);
@@ -231,8 +259,8 @@ double matrix_determinant(const Matrix A) // Определитель матри
 
 int main() 
 {
-    Matrix A = matrix_create(3, 3);
-    Matrix B = matrix_create(3, 3);
+    Matrix A = matrix_alloc(3,3);
+    Matrix B = matrix_alloc(3, 3);
 
     double data_A[9] = {3, 1, 7, 0, 5, 7, 2, 5, 8};
     double data_B[9] = {5, 0, 8, 1, 9, 6, 3, 2, 1};
@@ -268,9 +296,9 @@ int main()
     matrix_print(T);
 
     // Возведение в степень
-    int exponent = 2;
-    Matrix F = matrix_power(A, exponent);
-    printf("Матрица A в степени %d:\n", exponent);
+    int power = 3;
+    Matrix F = matrix_power(A, power);
+    printf("Матрица A в степени %d:\n", power);
     matrix_print(F);
 
     // Умножение на число
