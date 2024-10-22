@@ -20,7 +20,7 @@ typedef struct
 //Деление матрицы на число + 
 //Умножение матриц +
 //Степень матрицы (натуральное число) +
-//Нахождение определителя матрицы
+//Нахождение определителя матрицы +
 //Транспонирование матрицы +
 //Деление матриц
 //Экспонента матрицы
@@ -39,7 +39,21 @@ void matrix_init(Matrix *A, const int rows, const int cols)
 void matrix_fill(Matrix *A)
 {
     for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = i + 1;
+        A->data[i] = (i + 1) * (i + 1);
+    }
+}
+
+
+void unit_matrix(Matrix *I, int rows, int cols)
+{
+    matrix_init(&*I, rows, cols);
+    for (int i = 0; i < I->cols * I->rows; i ++) {
+        if (i / cols == i % cols) {
+            I->data[i] = 1;
+        }
+        else {
+            I->data[i] = 0;
+        }   
     }
 }
 
@@ -98,7 +112,7 @@ void matrix_mul(Matrix *result, Matrix A, Matrix B)
             for (size_t col = 0; col < B.cols; col++) {
                 result->data[row * result->cols + col] = 0;
                 for (size_t i = 0; i < A.cols; i++) {
-                    result->data[row * result->cols + col] += A.data[row * A.cols + i] * B.data[i * B.cols + col];
+                    result->data[row * result->cols + col] += (double)A.data[row * A.cols + i] * B.data[i * B.cols + col];
                 }
             }
         }
@@ -146,15 +160,16 @@ double matrix_det(Matrix A)
     Matrix B;
     matrix_clone(&B, A);
     double result = 1;
-    if(A.rows == A.cols) {
-        for (size_t col_nul = 0; col_nul < A.cols; col_nul++) {
-            for (size_t row = col_nul + 1; row < A.rows; row++) {
-                double proportion = B.data[col_nul * B.cols + col_nul] / B.data[row * B.cols + col_nul];
-                for (size_t col = col_nul; col < A.cols; col++) {
-                    B.data[row * B.cols + col] -= B.data[col_nul * B.cols + col] * proportion;
+    if(B.rows == B.cols) {
+        for (size_t col_nul = 0; col_nul < B.cols - 1; col_nul++) {
+            for (size_t row = col_nul + 1; row < B.rows; row++) {
+                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
+                for (size_t col = col_nul; col < B.cols; col++) {
+                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
                 }
-                result *= B.data[col_nul * B.cols + col_nul];
             }
+            result *= (double)B.data[col_nul * B.cols + col_nul];
+            matrix_print(B);
         }
     }
     return result;
@@ -169,17 +184,8 @@ int main()
     matrix_init(&first_matrix, 3, 3);
     matrix_fill(&first_matrix);
     matrix_print(first_matrix);
-    matrix_pow(&first_matrix, first_matrix, 3);
-    matrix_print(first_matrix);
-    matrix_init(&second_matrix, 2, 3);
-    matrix_init(&third_matrix, 3, 3);
-    matrix_fill(&second_matrix);
-    matrix_fill(&third_matrix);
-    matrix_print(second_matrix);
-    matrix_transp(&second_matrix);
-    matrix_print(second_matrix);
-    matrix_print(third_matrix);
-    matrix_clone(&third_matrix, second_matrix);
-    matrix_print(third_matrix);
+    printf("%f" ,matrix_det(first_matrix));
+
+    return 0;
 
 }
