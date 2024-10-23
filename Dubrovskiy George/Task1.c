@@ -67,6 +67,7 @@ void alice_init()
     alice.deposit = 0;
 }
 
+
 void bob_init() 
 {
     bob.salary = 200 * 1000 * 100;
@@ -84,15 +85,16 @@ void bob_init()
 void alice_salary(const int month)
 {
     alice.acaunt += alice.salary;
-        if (month == 12){
+        if (month == 12) {
             alice.salary *= INFLATION;
         }
 }
 
+
 void bob_salary(const int month) 
 {
     bob.acaunt += bob.salary;
-    if (month == 12){
+    if (month == 12) {
         bob.salary *= INFLATION;
     }
 }
@@ -103,6 +105,7 @@ void alice_house(const int month)
     alice.acaunt -= (alice.mortgage.monthly_payment + alice.house_bills);
 }
 
+
 void bob_house(const int month)
 {
     bob.acaunt -= (bob.rent + bob.house_bills);
@@ -112,65 +115,69 @@ void bob_house(const int month)
     }
 }
 
+
 void alice_household(const int month)
 {
     alice.acaunt -= (alice.household.food + alice.household.person_expens);
 
-    if (month == 12){
+    if (month == 12) {
         alice.household.food *= INFLATION;
         alice.household.person_expens *= INFLATION;
     }
 }
 
 
-void bob_household(int month) 
+void bob_household(const int month) 
 {
     bob.acaunt -= (bob.household.food + bob.household.person_expens);
 
-    if (month == 12){
+    if (month == 12) {
         bob.household.food *= INFLATION;
         bob.household.person_expens *= INFLATION;
     }
 }
 
 
-void alice_deposit(int month) 
+void alice_deposit(const int month) 
 {
     alice.deposit += alice.acaunt;
     alice.acaunt = 0;
 
-    if (month == 12){
+    if (month == 12) {
         alice.deposit *= DEPOSIT_PERCENT;
     }
 }
 
-void bob_deposit(int month){
+void bob_deposit(const int month)
+{
     bob.deposit += bob.acaunt;
     bob.acaunt = 0;
 
-    if (month == 12)
-    {
+    if (month == 12) {
         bob.deposit *= DEPOSIT_PERCENT;
     }
 }
 
-void alice_print() {
+void alice_print() 
+{
     printf("Alce status: %lld rubles\n", (alice.deposit + alice.mortgage.house_cost) / 100);
 }
 
-void bob_print() {
+void bob_print()
+{
     printf("Bob status: %lld rubles\n", bob.deposit / 100);
 }
 
 
 
-void life(){
+void life()
+{
     int start_month = 10;
     int start_year = 2024;
     int month = start_month;
     int year = start_year;
 
-    while (!((year == start_year + 30) && (month == start_month))){
+    while (!((year == start_year + 30) && (month == start_month))) {
         
         alice_salary(month);
         alice_house(month);       // alice.mortgage and alice.bills
@@ -203,44 +210,3 @@ int main() {
     bob_print();
     return 0;
 }
-
-
-
-/*void alice_life_for_month(const int month) {
-
-    alice.contribution.deposit *= deposit_percent;
-
-    alice.status += (alice.salary - alice.mortgage.monthly_payment - alice.house_bills - alice.household.food - alice.household.person_expens);
-    alice.contribution.deposit += alice.status = 1000 * 1000 * 100;
-    alice.status = 0;
-
-}
-
-void bob_life_for_month(const int month) {
-
-    bob.contribution.deposit *= deposit_percent;
-
-    bob.status += (bob.salary - bob.rent - bob.house_bills - bob.household.food - bob.household.person_expens);
-    bob.contribution.deposit += bob.status = 1000 * 1000 * 100;
-    bob.status = 0;
-
-}
-
-void alice_life_for_year(const int month) {
-
-    if (month == 12) {
-        alice.salary *= inflation;
-        alice.household.food *= inflation;
-        alice.household.person_expens *= inflation;
-        alice.mortgage.house_cost *= inflation;
-    }
-}
-
-void bob_life_for_year(const int month) {
-    if (month == 12) {
-        bob.salary *= inflation;
-        bob.household.food *= inflation;
-        bob.household.person_expens *= inflation;
-        bob.rent *= inflation;
-    }
-}*/
