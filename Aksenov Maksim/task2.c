@@ -42,6 +42,19 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
         return (Matrix) {rows, cols, NULL};
     }
     
+    size_t size = rows * cols;
+    if (size / rows != cols) {
+        matrix_exception(ERROR, "OVERFLOW: Переполнение количества элементов.");
+        return MATRIX_NULL;
+    }
+    
+    size_t size_in_bytes = size * sizeof(double);
+    
+    if (size_in_bytes / sizeof(double) != size) {
+        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти");
+        return MATRIX_NULL;
+    }
+    
     M.data = malloc(rows * cols * sizeof(double));
     
     if (M.data == NULL) {
@@ -49,17 +62,6 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
         return MATRIX_NULL;
     }
     
-    size_t size = rows * cols;
-    if (rows != 0 && size / rows != cols) {
-        matrix_exception(ERROR, "OVERFLOW: Переполнение количества элементов.");
-        return MATRIX_NULL;
-    }
-    size_t size_in_bytes = size * sizeof(double);
-    if (size_in_bytes / sizeof(double) != size) {
-        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти");
-        return MATRIX_NULL;
-    }
-
     M.rows = rows;
     M.cols = cols;
     return M;
@@ -68,27 +70,37 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
 
 void matrix_free(Matrix* M)  // Функция для освобождения памяти матрицы
 {
+    if (M == NULL){
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        return;
+    }
+    
     free(M->data);
     *M = MATRIX_NULL;
 }
 
 
-Matrix matrix_identity(size_t size)  // Создание единичной матрицы
+// Нулевая матрица
+void matrix_zero(const Matrix M)
 {
-    Matrix identity = {size, size, (double*)malloc(size * size * sizeof(double))};
-    if (identity.data == NULL) {
-        matrix_exception(ERROR, "Не удалось выделить память для единичной матрицы.\n");
-        exit(1);
-    }
-
-    for (size_t i = 0; i < size; i++) {
-        for (size_t j = 0; j < size; j++) {
-            identity.data[i * size + j] = (i == j) ? 1.0 : 0.0;
-        }
-    }
-
-    return identity;
+    memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
+
+
+// Единичная матрица
+Matrix matrix_identity(size_t size)
+{
+    Matrix M = matrix_alloc(size, size);
+
+    matrix_zero(M);
+
+    for (size_t idx = 0; idx < size; idx++) {
+        M.data[idx * size + idx] = 1.0;
+    }
+
+    return M; 
+}
+
 
 
 void matrix_print(const Matrix M) // Функция для печати матрицы
@@ -243,13 +255,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         return MATRIX_NULL;
     }
 
-    Matrix E = matrix_alloc(A.rows, A.cols);   
-  
-    if (E.data == NULL) {
-        return E;
-    }
-
-    E = matrix_identity(A.rows);
+    Matrix E = matrix_identity(A.rows);
 
     if (num == 1) {
         return E;
