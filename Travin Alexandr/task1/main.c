@@ -3,22 +3,21 @@
 #include <locale.h>
 #include <stdlib.h>
 
-typedef long long int kop;
+typedef long long int Kop;
 
-kop amortization = 5000 * 100;
-kop flat_price = 10 * 1000 * 1000 * 100;
-double inflation = 0.97;
-double vklad_prots = 1.1;
+Kop Amortization = 5000 * 100;
+Kop Flat_price = 10 * 1000 * 1000 * 100;
+double Inflation = 0.01;
 int count;
 
 struct Person {
-	kop capital;
-	kop salary;
-	kop expenses;
-	kop rent_price;
-	kop mortgage_price;
-	kop vklad
-};
+	Kop capital;
+	Kop salary;
+	Kop expenses;
+	Kop rent_price;
+	Kop mortgage_price;
+	Kop vklad;
+} ;
 
 
 struct Person Alice, Bob;
@@ -42,109 +41,99 @@ void bob_init(){
 }
 
 
-void alice_salary_income(const int mounth) {
-	if (mounth == 12) {
-        	Alice.capital += Alice.salary;
+void alice_salary_income(const int month) {
+	if (month == 12) {
+        	Alice.capital += Alice.salary / 2;
 	}
 	Alice.capital += Alice.salary;
-	Alice.salary /= (inflation / 12 + 1);
-
+	Alice.salary *= (Inflation / 12 + 1);
 }
 
 
 void bob_salary_income(){
 	Bob.capital += Bob.salary;
-	Bob.salary /= (inflation/12 + 1);
-
+	Bob.salary *= (Inflation/12 + 1);
 }
 
 
-void alice_deposite(const int mounth){
+void alice_deposite(const int month){
 if (Alice.capital > 0){
         	Alice.vklad += Alice.capital;
 		Alice.capital = 0;
     	}
-if (mounth == 12){
-        	Alice.vklad *= vklad_prots;
+if (month == 12){
+        	Alice.vklad *= 1.02;
     	}
 }
 
 
-void bob_deposite(const int mounth) {
+void bob_deposite(const int month) {
 if (Bob.capital > 0){
         	Bob.vklad += Bob.capital;
 		Bob.capital = 0;
     	}
-if (mounth == 12){
-        	Bob.vklad *= vklad_prots;
+if (month == 12){
+        	Bob.vklad *= 1.02;
     	}
 }
 
 
 void alice_expenses() {
 	Alice.capital -= Alice.expenses;
-	Alice.expenses *= (inflation / 12 + 1);
+	Alice.expenses *= (Inflation / 12 + 1);
 }
 
 
 void bob_expenses(){
 	Bob.capital -= Bob.expenses;
-	Bob.expenses *= (inflation / 12 + 1);
+	Bob.expenses *= (Inflation / 12 + 1);
 }
 
-void alice_inflation(const int mounth) {
-if (mounth == 12){
-        	Alice.capital *= inflation;
-    	}
-}
-
-void bob_inflation(const int mounth) {
-if (mounth == 12){
-        	Bob.capital *= inflation;
-    	}
-}
 
 void alice_rent() {
 Alice.capital -= Alice.rent_price;
-Alice.rent_price *= (inflation / 12 + 1);
+Alice.rent_price *= (Inflation / 12 + 1);
 }
 
+
 void bob_rent() {
-Bob.capital -= Bob.mortgage_price;
-Bob.mortgage_price *= (inflation / 12 + 1);
+if ((Bob.capital - Flat_price + Bob.vklad) < 0) {
+    	Bob.capital -= Bob.mortgage_price;
+}
+Bob.mortgage_price *= (Inflation / 12 + 1);
 }
 
 
 void alice_extra_spend() {
-Alice.capital -= amortization * rand()%100 / 100;  
+Alice.capital -= Amortization * (rand()%100 / 100);  
 }
 
 
 void bob_extra_spend() {
-Bob.capital -= amortization * rand()%100 / 100; 
+Bob.capital -= Amortization * (rand()%100 / 100); 
 }
 
 
 void simulation() {
-int mounth = 9, year = 2023;
-while(year < 2053 && mounth !=8){
-	alice_salary_income(mounth);
-	alice_deposite(mounth);
+int month = 9, year = 2023;
+while(!((year == 2053) && (month == 8))){
+	alice_salary_income(month);
 	alice_rent();
 	alice_expenses();
 	alice_extra_spend();
-	alice_inflation(mounth);
+	alice_deposite(month);
 
 	bob_salary_income();
-	bob_deposite(mounth);
 	bob_rent();
 	bob_expenses();
 	bob_extra_spend();
-	bob_inflation(mounth);
+	bob_deposite(month);
 
-	++mounth;
-	if (mounth > 12){
-	       	mounth = 1;
+//printf("|%0.2lld | %0.2lld|\n ", ((Bob.capital - Flat_price + Bob.vklad)/100), ((Alice.capital + Alice.vklad)/100));
+
+	++month;
+	if (month > 12){
+	       	month = 1;
 	       	++year;
 	    	}
 	}
@@ -152,10 +141,11 @@ while(year < 2053 && mounth !=8){
 
 
 void print_winner() {
-	kop Bob_capital = (Bob.capital - flat_price + Bob.vklad) / 100;
-	kop Alice_capital = (Alice.capital + Alice.vklad) / 100;
+	Kop Bob_capital = (Bob.capital - Flat_price + Bob.vklad) / 100;
+	Kop Alice_capital = (Alice.capital + Alice.vklad) / 100;
 	printf("|%0.2lld | %0.2lld|\n %s", Alice_capital, Bob_capital,  (Alice_capital > Bob_capital) ? "Alice will accumulate more capital":"Bob will accumulate more capital");
 }
+
 
 int main() {
  	alice_init();
