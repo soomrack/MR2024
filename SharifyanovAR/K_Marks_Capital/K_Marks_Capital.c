@@ -14,11 +14,11 @@ struct animal {
 struct dude {
     Money deposit;
     Money capital;
-	Money salary;
-	Money expenses;
-	Money unx_expeses; 
-	Money flat_payment;
-	Money overpayment;
+    Money salary;
+    Money expenses;
+    Money unx_expeses; 
+    Money flat_payment;
+    Money overpayment;
     struct animal cat;
     struct animal parrot;
 }Alice, Bob;
@@ -45,28 +45,28 @@ double invest_rate = 0.18;
 
 void Alice_init() {
     Alice.deposit = START_DEPOSIT;
-	Alice.capital = START_CAPITAL- MORTRAGE_FIST_PAYMENT;
-	Alice.salary = INIT_SALARY;
-	Alice.expenses = INIT_EXPENSES;
-	Alice.unx_expeses = INIT_UNX_EXPENSES;
-	Alice.flat_payment = MORTRAGE_MOUNTH_PRICE;
-	//Alice.overpayment = MORTRAGE_MOUNTH_PRICE * SIMULATION_DURATION - FLAT_PRICE;
+    Alice.capital = START_CAPITAL- MORTRAGE_FIST_PAYMENT;
+    Alice.salary = INIT_SALARY;
+    Alice.expenses = INIT_EXPENSES;
+    Alice.unx_expeses = INIT_UNX_EXPENSES;
+    Alice.flat_payment = MORTRAGE_MOUNTH_PRICE;
+    //Alice.overpayment = MORTRAGE_MOUNTH_PRICE * SIMULATION_DURATION - FLAT_PRICE;
 }
 
 void Bob_init() {
     Bob.deposit = START_DEPOSIT;
-	Bob.capital = START_CAPITAL;
-	Bob.salary = INIT_SALARY;
-	Bob.expenses = INIT_EXPENSES;
-	Bob.unx_expeses = INIT_UNX_EXPENSES;
-	Bob.flat_payment = RENT_PRICE;
+    Bob.capital = START_CAPITAL;
+    Bob.salary = INIT_SALARY;
+    Bob.expenses = INIT_EXPENSES;
+    Bob.unx_expeses = INIT_UNX_EXPENSES;
+    Bob.flat_payment = RENT_PRICE;
     Bob.cat.buy = ANIMAL_BUY_COST;
     Bob.cat.cost = ANIMAL_KEEPING_COST;
     Bob.cat.lifetime = 96;
     Bob.parrot.buy = ANIMAL_BUY_COST;
     Bob.parrot.cost = ANIMAL_KEEPING_COST;
     Bob.parrot.lifetime = 600;
-	//Bob.overpayment = RENT_PRICE * pow((1.0 + inflation), SIMULATION_DURATION) - FLAT_PRICE;
+    //Bob.overpayment = RENT_PRICE * pow((1.0 + inflation), SIMULATION_DURATION) - FLAT_PRICE;
 }
 
 
