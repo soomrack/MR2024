@@ -11,12 +11,13 @@ struct Matrix {
     size_t cols;
     double* data;
 };
+typedef struct Matrix Matrix;
 
-const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
 enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
-typedef struct Matrix Matrix;
+
+const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
 
 // Сообщение об ошибке
@@ -37,6 +38,7 @@ void matrix_error(const enum MatrixExceptionLevel level, const char* location, c
     if (level == DEBUG) {
         printf("\nDEBUG\nLoc: %s\nText: %s\n", location, msg);
     }
+
 }
 
 
@@ -49,13 +51,13 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
     }
     
     size_t size = rows * cols;
-    if (rows != 0 && size / rows != cols) {
+
+    if (SIZE_MAX / cols || SIZE_MAX / rows) {
         matrix_error(ERROR,"matrix_alloc","Rows or cols is greater than size_t");
         return MATRIX_NULL;
-    }
+    }  
 
-    size_t size_in_bytes = size * sizeof(double);
-    if (size_in_bytes / sizeof(double) != size) {
+    if (SIZE_MAX / cols / rows / sizeof(double)) {
         matrix_error(ERROR,"matrix_alloc","Rows * cols * sizeof(double) is greater than size_t");
         return MATRIX_NULL;
     }
@@ -84,17 +86,20 @@ void matrix_free(struct Matrix *A)
 }
 
 
-// Копирование матрицы: B = A
+// B := A
 void matrix_copy(const Matrix B, const Matrix A) {
     
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        matrix_error(WARNING,"matrix_copy" ,"matrices of different dimensions");
+        matrix_error(ERROR,"matrix_copy" ,"matrices of different dimensions");
         return;
     }
 
-    for (size_t idx = 0; idx < B.cols * B.rows; ++idx) {
-        B.data[idx] = A.data[idx];
+    if (B.data == NULL) {
+        matrix_error(ERROR,"matrix_copy" ,"matrices of different dimensions");
+        return;
     }
+
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
 }
 
 
@@ -106,13 +111,16 @@ void matrix_set_zero(const Matrix A)
 
 
 // Единичная матрица
-void matrix_set_identity (const Matrix A)
+void matrix_set_identity(const Matrix A)
 {   
+    if (A.data == NULL) {
+        matrix_error(ERROR,"matrix_set_idenety" ,"memory is not allocated");
+    }
+    
     matrix_set_zero(A);
     for (size_t idx = 0; idx < A.rows * A.cols; idx += A.cols + 1) {
         A.data[idx] = 1.0;
     }
-    return;
 }
 
 
@@ -130,11 +138,11 @@ void matrix_print(const Matrix A)
 }
 
 
-// A = A + B
+// A += B
 void matrix_add(const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        matrix_error(WARNING,"A = A + B" ,"matrices of different dimensions");
+        matrix_error(ERROR,"A = A + B" ,"matrices of different dimensions");
         return;
     }
     
@@ -148,13 +156,12 @@ void matrix_add(const Matrix A, const Matrix B)
 void matrix_sum(const Matrix C, const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        matrix_error(WARNING,"C = A + B","matrices of different dimensions");
+        matrix_error(ERROR,"C = A + B","matrices of different dimensions");
         return;
     }
 
     matrix_copy(C,A);
     matrix_add(C,B); 
-    return;
 }
 
 
@@ -162,18 +169,22 @@ void matrix_sum(const Matrix C, const Matrix A, const Matrix B)
 void matrix_sub(const Matrix C, const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        matrix_error(WARNING,"C = A - B", "matrices of different dimensions");
+        matrix_error(ERROR,"C = A - B", "matrices of different dimensions");
+        return;
+    }
+
+    if ((C.cols != A.cols) || (C.rows != A.rows)) {
+        matrix_error(ERROR,"C = A - B", "matrix C has different dimensions");
         return;
     }
     
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         C.data[idx] = A.data[idx] - B.data[idx];
     }
-    return;
 }
 
 
-// A = A * k
+// A *= k
 void matrix_mult_k(const Matrix A, const double k)
 {   
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
@@ -186,7 +197,7 @@ void matrix_mult_k(const Matrix A, const double k)
 void matrix_mult(const Matrix C, const Matrix A, const Matrix B)
 {
     if (A.cols != B.rows) {
-        matrix_error(WARNING,"C = A * B" ,"incorrect matrix size");
+        matrix_error(ERROR,"C = A * B" ,"incorrect matrix size");
         return;
     }
 
@@ -199,19 +210,22 @@ void matrix_mult(const Matrix C, const Matrix A, const Matrix B)
             }
         }
     }
-    return;
 }
 
 
-// A ^ T
+// B = A ^ T
 void matrix_transp(const Matrix B, const Matrix A)
 {
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        matrix_error(ERROR,"B = A ^ T", "matrices of different dimensions");
+        return;
+    }
+    
     for (size_t row = 0; row < B.rows; ++row) {
         for (size_t col = 0; col < B.cols; ++col) {
             B.data[row + A.rows * col] = A.data[col + A.cols * row];
         }
     }
-    return;
 }
 
 
@@ -221,6 +235,10 @@ double matrix_det(const Matrix A)
     double det;
     if (A.rows != A.cols) {
         matrix_error(WARNING, "matrix_det", "a non-square matrix");
+        return NAN;
+    }
+
+    if (A.rows == 0) {
         return NAN;
     }
 
@@ -250,23 +268,33 @@ double matrix_det(const Matrix A)
 // B = A ^ n
 void matrix_pow(const Matrix B, const Matrix A, const unsigned int targ_power)
 {
+    if (B.data == NULL) {
+        return;
+    }
+    
     if (A.rows != A.cols) {
         matrix_error(WARNING, "matrix_pow", "a non-square matrix");
         return;
     }
-
-    if (B.data == NULL) {
+    
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        matrix_error(ERROR,"B = A ^ n", "matrices of different dimensions");
         return;
     }
-
-    matrix_copy(B,A);
-
+    
     if (targ_power == 0) {
+        matrix_copy(B,A);
         matrix_set_identity(B);
         return; 
     }
 
     Matrix tmp = matrix_alloc(A.rows, A.cols);
+
+    if (tmp.data == NULL) {
+        matrix_error(ERROR, "B = A ^ n","no memory allocated");
+    }
+
+    matrix_copy(B,A);
 
     for (unsigned int pow = 1; pow < targ_power; ++pow) {
         matrix_mult(tmp,B,A);
@@ -274,30 +302,37 @@ void matrix_pow(const Matrix B, const Matrix A, const unsigned int targ_power)
     }
     
     matrix_free(&tmp);
-    return;
 }
 
 
 // e ^ A
-void matrix_exp(const Matrix E, const Matrix A, const unsigned int targ_num)
+int matrix_exp(const Matrix E, const Matrix A, const unsigned int targ_num)
 {
+    if (E.data == NULL) {
+        return 1;
+    }
+   
     if (A.rows != A.cols) {
         matrix_error(ERROR, "matrix_pow", "a non-square matrix");
-        return;
-    }
-  
-    if (E.data == NULL) {
-        return;
+        return 1;
     }
 
     matrix_set_identity(E);
 
     if (targ_num == 1) {
-        return;
+        return 1;
     }
 
     Matrix tmp = matrix_alloc(A.rows, A.cols);
     Matrix buf_mult = matrix_alloc(A.rows, A.cols);
+
+    if (tmp.data == NULL || buf_mult.data == NULL) {
+        matrix_free(&tmp);
+        matrix_free(&buf_mult);
+
+        matrix_error(ERROR, "B = e ^ A","no memory allocated");
+        return 1;
+    }
 
     matrix_copy(tmp,E);
 
