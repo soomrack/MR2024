@@ -3,53 +3,58 @@
 #include <stddef.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 
-typedef struct
-{
+typedef struct {
   double *ptr;
-  int rows;
-  int cols;
-  int len;
+  size_t rows;
+  size_t cols;
 } Matrix;
 
 
-static void error_malloc()
-{
-  fprintf(stderr, "Memory allocation failed\n");
-  exit(1);
-}
+typedef enum {
+  MAT_OK = 0,
+  MAT_ALLOC_ERR,
+  MAT_EMPTY_ERR,
+  MAT_SIZE_ERR,
+  MAT_RANGE_ERR,
+  MAT_DET_ERR,
+  MAT_SOLVE_ERR,
+  MAT_EXP_ERR,
+} MatrixExceptions_t;
 
 
-// Function for function for allocating memory for matrices
-Matrix mallocMatrix(size_t rows, size_t cols)
-{
-  Matrix matrix;
+//===== allocate memory for matrix ================================================================
+MatrixExceptions_t malloc_matrix(const size_t rows, const size_t cols, Matrix *m) {
+  if(m == NULL) {
+    return MAT_EMPTY_ERR;
+  }
 
-  matrix.rows = rows;
-  matrix.cols = cols;
-  matrix.len = matrix.rows * matrix.cols;
-  matrix.ptr = (double *)malloc(matrix.len * sizeof(double));
+  size_t matrix_mem_size = rows * cols * sizeof(double);
+
+  // if(matrix_mem_size > sizeof(size_t)) {
+  //   return MAT_ALLOC_ERR;
+  // }
   
-  if (matrix.ptr == NULL)
-  {
-    error_malloc();
+  m->rows = rows;
+  m->cols = cols;
+  m->ptr = (double *)malloc(matrix_mem_size);
+  
+  if(m->ptr == NULL) {
+    return MAT_ALLOC_ERR;
   }
   
-  return matrix;
+  return MAT_OK;
 }
 
 
-// Function for finding the largest width of numbers in a matrix
-static int calculate_max_width(Matrix matrix, int accuracy)
-{
+static int calculate_max_width(const Matrix m, const int accuracy) {
   int max_width = 0;
 
-  for(size_t pos = 0; pos < matrix.len; pos++)
-  {
-    int width = snprintf(NULL, 0, "%.*f", accuracy, matrix.ptr[pos]);
-    if (width > max_width)
-    {
+  for(size_t idx = 0; idx < m.rows * m.cols; idx++) {
+    int width = snprintf(NULL, 0, "%.*f", accuracy, m.ptr[idx]);
+    if (width > max_width) {
       max_width = width;
     }
   }
@@ -57,480 +62,575 @@ static int calculate_max_width(Matrix matrix, int accuracy)
   return max_width;
 }
 
-// Function to print matrix
-void printMatrix(Matrix matrix, int accuracy)
-{
-  int width = calculate_max_width(matrix, accuracy);
+
+//==== function for print matrix with choose accuracy of numbers in matrix ========================
+MatrixExceptions_t print_matrix(const Matrix m, const int accuracy) {
+  if(m.rows == 0 || m.cols == 0 || m.ptr == NULL) {
+    return MAT_EMPTY_ERR;
+  }
+
+  int width = calculate_max_width(m, accuracy);
   double number;
 
-  for(size_t pos = 0; pos < matrix.len; ++pos)
-  {
-    if(pos % matrix.cols == 0 && pos != 0)
-    {
-      printf("\n"); // New line after each row
+  for (size_t idx = 0; idx < m.rows * m.cols; ++idx) {
+    if (idx % (int)m.cols == 0) {
+      if (idx != 0) {
+        printf("|\n");
+      }
+      printf("| ");
     }
-    number = round(matrix.ptr[pos] * pow(10, accuracy)) / pow(10, accuracy);
+    number = round(m.ptr[idx] * pow(10, accuracy)) / pow(10, accuracy);
     printf("%*.*f ", width, accuracy, number);
   }
-  printf("\n\n"); // Final new line for better formatting
+  printf("|\n\n"); // Final new line for better formatting
+
+  return MAT_OK;
 }
 
 
-static double random_number(int min, int max, int accuracy)
-{
+static double random_number(const double min, const double max, const unsigned int accuracy) {
   int sign = (rand() % 2) * 2 - 1;
-  int range = max - min;
+  double range = max - min;
   double number;
 
-  if(sign == 1)
-  {
+  if(sign == 1) {
     number = min + ((double)rand() / (double)RAND_MAX) * range;
-  } else
-  {
+  } else {
     number = max - ((double)rand() / (double)RAND_MAX) * range;
   }
 
   return round(number * pow(10, accuracy)) / pow(10, accuracy);
-  //return min + sign * (((double)rand() + (double)rand() / (double)RAND_MAX) % range);
 }
 
 
-// Function to create O-matrix
-Matrix createMatrixO(size_t rows, size_t cols)
-{
-  Matrix matrix = mallocMatrix(rows, cols);
+//==== Create zero matrix==========================================================================
+MatrixExceptions_t create_zero_matrix(const size_t rows, const size_t cols, Matrix *m) {
+  if(m == NULL) {
+    return MAT_EMPTY_ERR;
+  }
 
-  for(size_t pos = 0; pos < matrix.len; ++pos)
-  {
-    matrix.ptr[pos] = 0;
+  if(malloc_matrix(rows, cols, m) != MAT_OK) {
+    return MAT_ALLOC_ERR;
+  }
+
+  memset(m->ptr, 0, m->rows * m->cols);
+  
+  return MAT_OK;
+}
+
+
+//==== Create unit matrix==========================================================================
+MatrixExceptions_t create_unit_matrix(const size_t rows, const size_t cols, Matrix *m) {
+  if(m == NULL) {
+    return MAT_EMPTY_ERR;
+  }
+
+  if(malloc_matrix(rows, cols, m) != MAT_OK) {
+    return MAT_ALLOC_ERR;
+  }
+
+  memset(m->ptr, 0, m->rows * m->cols);
+
+  for(size_t row = 0; row < m->rows; ++row) {
+    m->ptr[row * m->rows + row] = 1;
   }
   
-  return matrix;
+  return MAT_OK;
 }
 
 
-// Function to create E-matrix
-Matrix createMatrixE(size_t rows, size_t cols)
-{
-  Matrix matrix = mallocMatrix(rows, cols);
+//==== Create matrix with random numbers===========================================================
+MatrixExceptions_t create_random_matrix(Matrix *m, const size_t rows, const size_t cols, const double min, const double max, const unsigned int accuracy) {
+  if(m == NULL) {
+    return MAT_EMPTY_ERR;
+  }
 
-  for(size_t pos = 0; pos < matrix.len; ++pos)
-  {
-    matrix.ptr[pos] = (pos % (matrix.cols + 1) == 0) ? 1 : 0;
+  if(malloc_matrix(rows, cols, m) != MAT_OK) {
+    return MAT_ALLOC_ERR;
+  }
+
+  if(max < min) {
+    return MAT_RANGE_ERR;
+  }
+
+  for(size_t idx = 0; idx < m->rows * m->cols; ++idx) {
+    m->ptr[idx] = random_number(min, max, accuracy);
   }
   
-  return matrix;
+  return MAT_OK;
 }
 
 
-static int check_range(int min, int max)
-{
-  return (max >= min);
+//==== free memory of matrix=======================================================================
+void free_matrix(Matrix *m) {
+  if(m != NULL) {
+    if(m->ptr != NULL) {
+      free(m->ptr);
+      m->ptr = NULL; 
+      m->cols = 0;
+      m->rows = 0;
+    }
+    free(m);
+    m = NULL;
+  }
 }
 
 
-static void error_range()
+static void copy_matrix(const Matrix src, const Matrix dest)
 {
-  printf("Error to create random matrix, incorrect range of random numbers\n");
-  exit(1);
+  memcpy(dest.ptr, src.ptr, src.rows * src.cols * sizeof(double));
 }
 
 
-// Function to create random matrix in choose range and with choose accuracy
-Matrix createMatrixR(size_t rows, size_t cols, int min, int max, int accuracy)
-{
-  if(check_range(min, max) == 0)
-    error_range();
+//==== A + B = C ==================================================================================
+MatrixExceptions_t add_matrix(const Matrix A, const Matrix B, const Matrix C) {
+  if(A.ptr == NULL || B.ptr == NULL || C.ptr == NULL) {
+    return MAT_EMPTY_ERR;
+  }
 
-  Matrix matrix = mallocMatrix(rows, cols);
+  if(((A.rows == B.rows) && (A.cols == B.cols)) == 0) {
+    return MAT_SIZE_ERR;
+  }
 
-  for(size_t pos = 0; pos < matrix.len; ++pos)
-  {
-    matrix.ptr[pos] = random_number(min, max, accuracy);
+  for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+    C.ptr[idx] = A.ptr[idx] + B.ptr[idx];
+  }
+
+  return MAT_OK;
+}
+
+
+//==== A - B = C ==================================================================================
+MatrixExceptions_t sub_matrix(const Matrix A, const Matrix B, const Matrix C) {
+  if(A.ptr == NULL || B.ptr == NULL || C.ptr == NULL) {
+    return MAT_EMPTY_ERR;
+  }
+
+  if(((A.rows == B.rows) && (A.cols == B.cols)) == 0) {
+    return MAT_SIZE_ERR;
+  }
+
+  for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+    C.ptr[idx] = A.ptr[idx] - B.ptr[idx];
+  }
+
+  return MAT_OK;
+}
+
+
+//==== A * B = C ==================================================================================
+MatrixExceptions_t multi_matrix(const Matrix A, const Matrix B, const Matrix C) {
+  if((A.cols != B.rows) || (C.rows != A.rows) || (C.cols != B.cols)) {
+    return MAT_SIZE_ERR;
+  } 
+
+  Matrix *tmp = malloc(sizeof(Matrix));
+  MatrixExceptions_t status = malloc_matrix(C.rows, C.cols, tmp);
+  if(status != MAT_OK) {
+    return status;
   }
   
-  return matrix;
-}
-
-
-void freeMatrix(Matrix matrix)
-{
-  free(matrix.ptr);
-}
-
-
-static void error_to_sum()
-{
-  printf("Error to matrix addition/subtraction, columns and rows should be equal respectively\n");
-  exit(1);
-}
-
-
-static int check_size_matrix_for_sum(Matrix matrixA, Matrix matrixB)
-{
-  return ((matrixA.rows == matrixB.rows) && (matrixA.cols == matrixB.cols));
-}
-
-
-// function for matrix addition
-Matrix addMatrix(Matrix matrixA, Matrix matrixB)
-{
-  if(check_size_matrix_for_sum(matrixA, matrixB) == 0)
-    error_to_sum();
-
-  Matrix matrixC = mallocMatrix(matrixA.rows, matrixA.cols);
-
-  for(size_t pos = 0; pos < matrixA.len; ++pos)
-  {
-    matrixC.ptr[pos] = matrixA.ptr[pos] + matrixB.ptr[pos];
-  }
-
-  return matrixC;
-}
-
-
-// function for matrix subtraction
-Matrix subMatrix(Matrix matrixA, Matrix matrixB)
-{
-  if(check_size_matrix_for_sum(matrixA, matrixB))
-    error_to_sum();
-
-  Matrix matrixC = mallocMatrix(matrixA.rows, matrixA.cols);
-
-  for(size_t pos = 0; pos < matrixA.len; ++pos)
-  {
-    matrixC.ptr[pos] = matrixA.ptr[pos] - matrixB.ptr[pos];
-  }
-
-  return matrixC;
-}
-
-
-static int check_size_matrixes_for_multi(Matrix matrixA, Matrix matrixB)
-{
-  return (matrixA.cols == matrixB.rows);
-}
-
-
-// Function to handle multiplication error
-void error_to_multi()
-{
-    fprintf(stderr, "Matrix dimensions are not suitable for multiplication\n");
-    exit(1);
-}
-
-
-// Function for matrix-matrix multiplication
-Matrix multiMatrix(Matrix matrixA, Matrix matrixB)
-{
-  if (!check_size_matrixes_for_multi(matrixA, matrixB))
-  {
-    error_to_multi();
-  }
-
-  Matrix matrixC = mallocMatrix(matrixA.rows, matrixB.cols);
-
-  for (size_t row = 0; row < matrixA.rows; ++row)
-  {
-    for (size_t colB = 0; colB < matrixB.cols; ++colB)
-    {
-      matrixC.ptr[row * matrixC.cols + colB] = 0;
-      for (size_t colA = 0; colA < matrixA.cols; ++colA)
-      {
-        matrixC.ptr[row * matrixC.cols + colB] += matrixA.ptr[row * matrixA.cols + colA] * matrixB.ptr[colA * matrixB.cols + colB];
+  for (size_t rowA = 0; rowA < A.rows; ++rowA) {
+    for (size_t colB = 0; colB < B.cols; ++colB) {
+      for (size_t innerDim = 0; innerDim < A.cols; ++innerDim) {
+        tmp->ptr[rowA * tmp->cols + colB] += A.ptr[rowA * A.cols + innerDim] * B.ptr[innerDim * B.cols + colB];
       }
     }
   }
-
-  return matrixC;
+  
+  copy_matrix(*tmp, C);
+  free(tmp);
+  
+  return MAT_OK;
 }
 
 
-// Function to multiply a matrix by a number
-Matrix multiplyMatrixByScalar(Matrix matrix, double scalar)
-{
-  Matrix result = mallocMatrix(matrix.rows, matrix.cols);
-
-  for (size_t i = 0; i < matrix.len; ++i)
-  {
-    result.ptr[i] = matrix.ptr[i] * scalar;
+//==== A * b = C, "b" is a scalar number ==========================================================
+MatrixExceptions_t multiply_matrix_by_scalar(const Matrix src_matrix, const double scalar, const Matrix res_matrix) {
+  for (size_t idx = 0; idx < src_matrix.rows * src_matrix.cols; ++idx) {
+    res_matrix.ptr[idx] = src_matrix.ptr[idx] * scalar;
   }
 
-  return result;
+  return MAT_OK;
 }
 
 
-// Function to transpose a matrix
-Matrix transposeMatrix(Matrix matrix)
-{
-  Matrix result = mallocMatrix(matrix.cols, matrix.rows);
+//==== res_matrix = src_matrix^(T) ================================================================
+MatrixExceptions_t transpose_matrix(const Matrix src_matrix, const Matrix res_matrix) {
+  if(src_matrix.ptr == NULL) {
+    return MAT_EMPTY_ERR;
+  }
 
-  for (size_t row = 0; row < matrix.rows; ++row)
-  {
-    for (size_t col = 0; col < matrix.cols; ++col)
-    {
-      result.ptr[col * result.cols + row] = matrix.ptr[row * matrix.cols + col];
+  if(res_matrix.rows != src_matrix.cols || res_matrix.cols != src_matrix.rows) {
+    return MAT_SIZE_ERR;
+  }
+
+  for (size_t row = 0; row < src_matrix.rows; ++row) {
+    for (size_t col = 0; col < src_matrix.cols; ++col) {
+      res_matrix.ptr[col * res_matrix.cols + row] = src_matrix.ptr[row * src_matrix.cols + col];
     }
   }
   
-  return result;
+  return MAT_OK;
 }
 
 
-// Function to check if a matrix is square
-static int is_square_Matrix(Matrix matrix)
-{
-  return (matrix.rows == matrix.cols);
-}
+static double find_row_max_element(const Matrix M, const size_t currentRow) {
+  size_t rowMaxElement = currentRow;
 
-
-// Function to handle determinant calculation error
-static void error_to_calculate_determinant()
-{
-    fprintf(stderr, "Error to calculate determinant, rows and columns must be equal\n");
-    exit(1);
-}
-
-
-// Function to check for zeros in the first column
-static int check_zeros_in_first_col(Matrix matrix)
-{
-  for (size_t row = 0; row < matrix.rows; row++)
-  {
-    if (matrix.ptr[row * matrix.cols] != 0)
-    {
-      return 1;
+  for (size_t row = currentRow; row < M.rows; row++) {
+    if (fabs(M.ptr[row * M.cols + currentRow]) > fabs(M.ptr[rowMaxElement * M.cols + currentRow])) {
+      rowMaxElement = row;
     }
   }
-  
-  return 0;
+
+  return rowMaxElement; 
 }
 
 
-// Function to copy a matrix
-static void copyMatrix(Matrix *src, Matrix *dest)
-{
-  for (size_t pos = 0; pos < src->len; pos++)
-  {
-    dest->ptr[pos] = src->ptr[pos];
+static void swap_rows(const Matrix M, const size_t currentRow, const size_t rowMaxElement) {
+  if(currentRow == rowMaxElement) {
+    return;
   }
-}
 
-// Function to find the row with the maximum element in the current column
-static void findMaxRow(const Matrix *matrix, const size_t *currentRow, size_t *maxRow)
-{
-  *maxRow = *currentRow;
-
-  for (size_t row = *currentRow + 1; row < matrix->rows; row++)
-  {
-    if (fabs(matrix->ptr[row * matrix->cols + *currentRow]) > fabs(matrix->ptr[*maxRow * matrix->cols + *currentRow]))
-    {
-      *maxRow = row;
-    }
+  for (size_t col = currentRow; col < M.cols; col++) {
+    double temp = M.ptr[rowMaxElement * M.cols + col];
+    M.ptr[rowMaxElement * M.cols + col] = M.ptr[currentRow * M.cols + col];
+    M.ptr[currentRow * M.cols + col] = temp;
   }
 }
 
 
-// Function to swap rows in a matrix
-static void swapRows(Matrix *matrix, const size_t *currentRow, const size_t *maxRow)
-{
-  for (size_t col = *currentRow; col < matrix->cols; col++)
-  {
-    double temp = matrix->ptr[*maxRow * matrix->cols + col];
-    matrix->ptr[*maxRow * matrix->cols + col] = matrix->ptr[*currentRow * matrix->cols + col];
-    matrix->ptr[*currentRow * matrix->cols + col] = temp;
-  }
-}
-
-
-// Function to make a matrix triangular
-static void makeTriangularMatrix(Matrix *matrix, size_t *currentRow) 
-{
-  for (size_t row = *currentRow + 1; row < matrix->rows; row++)
-  {
+static void zeroing_elements_below_diagonal(const Matrix matrix, const size_t currentRow) {
+  for (size_t row = currentRow + 1; row < matrix.rows; row++) {
     // The coefficient by which the strings are multiplied
-    double factor = matrix->ptr[row * matrix->cols + *currentRow] / matrix->ptr[*currentRow * matrix->cols + *currentRow];
-    for (size_t col = *currentRow; col < matrix->cols; col++)
-    {
-      if (*currentRow == col)
-      {
-        matrix->ptr[row * matrix->cols + col] = 0;
-      } else
-      {
-        matrix->ptr[row * matrix->cols + col] -= factor * matrix->ptr[*currentRow * matrix->cols + col];
+    double factor = matrix.ptr[row * matrix.cols + currentRow] / matrix.ptr[currentRow * matrix.cols + currentRow];
+
+    for (size_t col = currentRow; col < matrix.cols; col++) {
+      if (currentRow == col) {
+        matrix.ptr[row * matrix.cols + col] = 0;
+      } else {
+        matrix.ptr[row * matrix.cols + col] -= factor * matrix.ptr[currentRow * matrix.cols + col];
       }
     }
   }
 }
 
 
-// Function for calculating the matrix determinant
-double gauss_method(Matrix matrix)
-{
-  if (!is_square_Matrix(matrix))
-  {
-    error_to_calculate_determinant();
-  }
-
-  if (!check_zeros_in_first_col(matrix))
-  {
-    return 0;
-  }
-
-  size_t size = matrix.rows; // rows and columns must be equal
-  Matrix matrixC = mallocMatrix(size, size);
-  copyMatrix(&matrix, &matrixC); // Copying the matrix so as not to spoil the original one
-
-  size_t maxRow;
-  for (size_t currentRow = 0; currentRow < size; currentRow++)
-  {
-    // Finding the max element in the column for stability
-    findMaxRow(&matrixC, &currentRow, &maxRow);
-
-    // Swap lines
-    swapRows(&matrixC, &currentRow, &maxRow);
-
-    // Reduce to triangular form
-    makeTriangularMatrix(&matrixC, &currentRow);
-  }
-
+static double det_triangular_matrix(const Matrix M) {
   double det = 1;
 
-  // Calculating the determinant of a triangular matrix
-  for (size_t pos = 0; pos < size; pos++)
-  {
-    det *= matrixC.ptr[pos * matrixC.cols + pos];
+  for (size_t row = 0; row < M.rows; row++) {
+    det *= M.ptr[row * M.cols + row];
   }
-
-  freeMatrix(matrixC);
 
   return det;
 }
 
 
-// Function to check if the determinant is zero
-static int check_determinant_to_calculate_reverse_Matrix(const double *determinant)
-{
-  return (*determinant == 0) ? 0 : 1;
-}
+// return sign of determinant or zero if determinant = 0
+static int make_zero_down_triangular_matrix(const Matrix matrix) {
+  size_t rowMaxElement = 0;
+  int count_of_swap = 0;
 
-
-static void createExtendMatrix(Matrix *matrix, Matrix *Ematrix)
-{
-  for(size_t row = 0; row < Ematrix->rows; ++row)
-  { 
-    for(size_t col = 0; col < Ematrix->cols; ++col)
-    {
-      if(col >= matrix->cols)
-      {
-        Ematrix->ptr[row * Ematrix->cols + col] = (row == col - matrix->cols) ? 1 : 0;
-      } else
-      {
-        Ematrix->ptr[row * Ematrix->cols + col] = matrix->ptr[row * matrix->cols + col];
-      }
-    }
-  }
-}
-
-
-// Function to handle reverse Matrix calculation error
-static void error_to_calculate_reverse_Matrix()
-{
-  fprintf(stderr, "Error to calculate reverse Matrix, rows and columns must be equal\n");
-  exit(1);
-}
-
-
-// Function to handle determinant for reverse Matrix calculation error
-static void error_to_calculate_determinant_for_reverse_Matrix()
-{
-  fprintf(stderr, "Error to calculate reverse Matrix, determinant source matrix equal zero\n");
-  exit(1);
-}
-
-
-static void extractInverseMatrix(Matrix *reverse_matrix, Matrix *Ematrix)
-{
-  for(size_t row = 0; row < reverse_matrix->rows; row++)
-  {
-    for (size_t col = 0; col < reverse_matrix->cols; col++)
-    {
-      reverse_matrix->ptr[row * reverse_matrix->cols + col] = Ematrix->ptr[row * Ematrix->cols + reverse_matrix->cols + col];
-    }
-  }
-}
-
-
-static void zeroUpperTriangle(Matrix *Ematrix)
-{
-  for (size_t currentRow = 1; currentRow < Ematrix->rows; currentRow++)
-  {
-    for (size_t row = 0; row < currentRow; row++)
-    {
-      double factor = Ematrix->ptr[row * Ematrix->cols + currentRow];
-      for (size_t col = currentRow; col < Ematrix->cols; col++)
-      {
-        Ematrix->ptr[row * Ematrix->cols + col] -= factor * Ematrix->ptr[currentRow * Ematrix->cols + col];
-      }
-    }
-  }
-}
-
-
-static void normalizeDiagonal(Matrix *Ematrix, size_t currentRow)
-{
-      double diagElement = Ematrix->ptr[currentRow * Ematrix->cols + currentRow];
-    for (size_t col = 0; col < Ematrix->cols; col++)
-    {
-      Ematrix->ptr[currentRow * Ematrix->cols + col] /= diagElement;
-    }
-}
-
-
-void reverseMatrix(Matrix *matrix, Matrix *reverse_matrix)
-{
-  if(!is_square_Matrix(*matrix))
-  {
-    error_to_calculate_reverse_Matrix();
-  }
-
-  double det = gauss_method(*matrix);
-  if(check_determinant_to_calculate_reverse_Matrix(&det) == 0)
-  {
-    error_to_calculate_determinant_for_reverse_Matrix();
-  }
-
-  Matrix Ematrix = mallocMatrix(matrix->rows, matrix->cols * 2);
-  createExtendMatrix(matrix, &Ematrix);
-
-  size_t maxRow;
-  for (size_t currentRow = 0; currentRow < Ematrix.rows; currentRow++)
-  {
+  for (size_t currentRow = 0; currentRow < matrix.rows; currentRow++) {
     // Finding the max element in the column for stability
-    findMaxRow(&Ematrix, &currentRow, &maxRow);
+    rowMaxElement = find_row_max_element(matrix, currentRow);
+   
+    if(matrix.ptr[rowMaxElement * matrix.cols + currentRow] == 0) {
+      return 0; // Returns zero if the determinant is known to be zero
+    }
 
-    // Swap lines
-    swapRows(&Ematrix, &currentRow, &maxRow);
+    swap_rows(matrix, currentRow, rowMaxElement);
 
-    // Reduce to triangular form
-    makeTriangularMatrix(&Ematrix, &currentRow);
+    if(currentRow != rowMaxElement) {
+      count_of_swap++;
+    }
 
-    // Делаем диагональный элемент равным 1
-    normalizeDiagonal(&Ematrix, currentRow);
+    zeroing_elements_below_diagonal(matrix, currentRow);
   }
-  zeroUpperTriangle(&Ematrix);
 
-  extractInverseMatrix(reverse_matrix, &Ematrix);
-
-  freeMatrix(Ematrix);
+  return (count_of_swap % 2 != 0) ? -1 : 1;
 }
 
 
-// Function to solve matrix equation A * X = B 
-Matrix solveMatrixEquation(Matrix matrixA, Matrix matrixB)
-{
-  Matrix reverse_MatrixA = mallocMatrix(matrixA.rows, matrixA.cols);
-  reverseMatrix(&matrixA, &reverse_MatrixA);
+//==== calculate matrix determinant by gauss method ===============================================
+MatrixExceptions_t matrix_determinant_gauss_method(const Matrix matrix, double *det) {
+  if(matrix.rows != matrix.cols) {
+    return MAT_SIZE_ERR;
+  }
+
+  Matrix *matrixC = malloc(sizeof(Matrix));
+  MatrixExceptions_t status;
   
-  return multiMatrix(reverse_MatrixA, matrixB);
+  status = malloc_matrix(matrix.rows, matrix.cols, matrixC);
+  if(status != MAT_OK) {
+    return status;
+  }
+
+  copy_matrix(matrix, *matrixC);  // Copying the matrix so as not o spoil the original one
+  
+  int sign_of_det = make_zero_down_triangular_matrix(*matrixC);
+  if(sign_of_det == 0) {
+    *det = 0;  // One of the diagonal elements is zero
+    return MAT_OK;
+  }
+
+  *det = sign_of_det * det_triangular_matrix(*matrixC);
+ 
+  free_matrix(matrixC);
+
+  return MAT_OK;
+}
+
+
+static void create_extend_matrix(const Matrix matrix, const Matrix Ematrix) {
+  for(size_t row = 0; row < Ematrix.rows; ++row) { 
+    for(size_t col = 0; col < Ematrix.cols; ++col) {
+      if(col >= matrix.cols) {
+        Ematrix.ptr[row * Ematrix.cols + col] = (row == col - matrix.cols) ? 1 : 0;
+      } else {
+        Ematrix.ptr[row * Ematrix.cols + col] = matrix.ptr[row * matrix.cols + col];
+      }
+    }
+  }
+}
+
+
+static void extract_inverse_matrix(const Matrix reverse_matrix, const Matrix extend_matrix) {
+  for(size_t row = 0; row < reverse_matrix.rows; row++) {
+    for (size_t col = 0; col < reverse_matrix.cols; col++) {
+      reverse_matrix.ptr[row * reverse_matrix.cols + col] = extend_matrix.ptr[row * extend_matrix.cols + reverse_matrix.cols + col];
+    }
+  }
+}
+
+
+static void zeroing_elements_above_diagonal(const Matrix matrix, const size_t current_row) {
+  for (size_t row = 0; row < current_row; row++) {
+    // The coefficient by which the strings are multiplied
+    double factor = matrix.ptr[row * matrix.cols + current_row] / matrix.ptr[current_row * matrix.cols + current_row];
+    for (size_t col = current_row; col < matrix.cols; col++) {
+      if (current_row == col) {
+        matrix.ptr[row * matrix.cols + col] = 0;
+      } else {
+        matrix.ptr[row * matrix.cols + col] -= factor * matrix.ptr[current_row * matrix.cols + col];
+      }
+    }
+  }
+}
+
+
+static void normalize_diagonal(const Matrix extend_matrix,const size_t currentRow) {
+  double diagElement = extend_matrix.ptr[currentRow * extend_matrix.cols + currentRow];
+  for (size_t col = 0; col < extend_matrix.cols; col++) {
+    extend_matrix.ptr[currentRow * extend_matrix.cols + col] /= diagElement;
+  }
+}
+
+
+static int transform_extend_matrix(const Matrix extend_matrix) {
+  size_t rowMaxElement = 0;
+
+  for (size_t currentRow = 0; currentRow < extend_matrix.rows; currentRow++) {
+    // Finding the max element in the column for stability
+    rowMaxElement = find_row_max_element(extend_matrix, currentRow);
+
+    if(extend_matrix.ptr[rowMaxElement * extend_matrix.cols + currentRow] == 0) {
+    print_matrix(extend_matrix, 3);
+      return 0;
+    }
+
+    swap_rows(extend_matrix, currentRow, rowMaxElement);
+
+    zeroing_elements_below_diagonal(extend_matrix, currentRow);
+
+    normalize_diagonal(extend_matrix, currentRow);
+
+    zeroing_elements_above_diagonal(extend_matrix, currentRow);
+  }
+
+  return 1;
+}
+                                
+                                
+//==== function to calculate reverse matrix =======================================================
+MatrixExceptions_t reverse_matrix(const Matrix matrix, const Matrix reverse_matrix) {
+  if(matrix.rows != matrix.cols) {
+    return MAT_SIZE_ERR;
+  }
+
+  if((reverse_matrix.rows != matrix.rows) && (reverse_matrix.cols != matrix.cols)) {
+    return MAT_SIZE_ERR;
+  }
+
+  Matrix *extend_matrix = malloc(sizeof(Matrix));
+  MatrixExceptions_t status = malloc_matrix(matrix.rows, matrix.cols * 2, extend_matrix);
+  
+  if(status != MAT_OK) {
+    return status;
+  }
+
+  create_extend_matrix(matrix, *extend_matrix);
+
+  if(transform_extend_matrix(*extend_matrix) == 0) {
+    return MAT_DET_ERR;
+  }
+
+  extract_inverse_matrix(reverse_matrix, *extend_matrix);
+
+  free_matrix(extend_matrix);
+
+  return MAT_OK;
+} 
+
+//==== Function to solve matrix equation A * X = B ================================================
+MatrixExceptions_t solve_matrix_equation(const Matrix A, const Matrix B, const Matrix X) {
+  if(((A.rows == B.rows) && (A.rows == X.rows) && (B.cols == 1) && (X.cols == 1)) == 0) {
+    return MAT_SIZE_ERR;
+  }
+
+  if(A.cols > X.rows) {
+    return MAT_SOLVE_ERR;
+  }
+
+  Matrix *reverse_matrixA = malloc(sizeof(Matrix));
+  MatrixExceptions_t status = malloc_matrix(A.rows, A.cols, reverse_matrixA);
+  
+  if(status != MAT_OK) {
+    return status;
+  }
+
+  status = reverse_matrix(A, *reverse_matrixA);
+  if(status != MAT_OK) {
+    return status;
+  }
+  
+  print_matrix(*reverse_matrixA, 3);
+  status = multi_matrix(*reverse_matrixA, B, X);
+  if(status != MAT_OK)
+  {
+    return status;
+  }
+
+  return MAT_OK;
+}
+
+
+static double max_element_matrix(const Matrix matrix) {
+  double max_element = matrix.ptr[0];
+
+  for(size_t idx = 1; idx < matrix.rows * matrix.cols; idx++) {
+    max_element = (matrix.ptr[idx] > max_element) ? matrix.ptr[idx] : max_element;
+  }
+  
+  return max_element;
+}
+
+
+static long long int factorial(const int k) {
+  long long int fact = 1;
+
+  for(int n = 2; n <= k; n++) {
+    fact *= n;
+  }
+  
+  return fact;
+}
+
+
+MatrixExceptions_t powerMatrix(const Matrix matrix, const unsigned int degree) {
+  if(degree == 0) {
+    for (size_t idx = 0; idx < matrix.rows * matrix.cols; idx++) {
+      matrix.ptr[idx] = (idx % (matrix.cols + 1) == 0) ? 1 : 0;
+    }
+    return MAT_OK;
+  }
+
+  if(degree == 1) {
+    return MAT_OK;
+  }
+
+  Matrix *TMPmatrix = malloc(sizeof(Matrix));
+  MatrixExceptions_t status = malloc_matrix(matrix.rows, matrix.cols, TMPmatrix);
+
+  if(status != MAT_OK) {
+    return status;
+  }
+
+  copy_matrix(matrix, *TMPmatrix);
+
+  // Perform matrix multiplication degree times
+  for (unsigned int k = 1; k < degree; k++) {
+    Matrix *result = NULL;
+    status = create_unit_matrix(matrix.rows, matrix.cols, result);
+    if (status != MAT_OK) {
+      free_matrix(TMPmatrix);
+      return status;
+    }
+
+    for (size_t row = 0; row < matrix.rows; ++row) {
+      for (size_t col = 0; col < matrix.cols; ++col) {
+        result->ptr[row * matrix.cols + col] = 0;
+        for (size_t inner = 0; inner < matrix.cols; ++inner) {
+          result->ptr[row * matrix.cols + col] +=
+            matrix.ptr[row * matrix.cols + inner] * TMPmatrix->ptr[inner * matrix.cols + col];
+        }
+      }
+    }
+
+    copy_matrix(*result, *TMPmatrix);
+    free_matrix(result);
+  }
+
+  copy_matrix(*TMPmatrix, matrix);
+  free_matrix(TMPmatrix);
+
+  return MAT_OK;
+}
+
+
+//==== calculate exponent of matrix ===============================================================
+MatrixExceptions_t expMatrix(const Matrix matrix, Matrix *EXPmatrix, const int accuracy) {
+  if(matrix.rows != matrix.cols) {
+    return MAT_SIZE_ERR;
+  }
+
+  if(matrix.ptr == NULL) {
+    return MAT_EMPTY_ERR;
+  }
+
+  MatrixExceptions_t status = create_unit_matrix(matrix.rows, matrix.cols, EXPmatrix);
+  if(status != MAT_OK) {
+    return status;
+  }
+
+  Matrix *TMPmatrix = malloc(sizeof(Matrix));
+  status = malloc_matrix(matrix.rows, matrix.cols, TMPmatrix);
+  if(status != MAT_OK) {
+    free_matrix(EXPmatrix);
+    return status;
+  }
+
+  copy_matrix(matrix, *TMPmatrix);
+  add_matrix(matrix, *EXPmatrix, *EXPmatrix);
+  
+  double number = 1.0;
+  double error = pow(10, -accuracy);
+
+  for(unsigned int k = 2; ; ++k) {
+    if(fabs(max_element_matrix(*TMPmatrix)) < error) {
+      break;
+    }
+   
+    multi_matrix(*TMPmatrix, matrix, *TMPmatrix);
+    number *= 1.0 / k;
+    multiply_matrix_by_scalar(*TMPmatrix, number, *TMPmatrix);
+    add_matrix(*EXPmatrix, *TMPmatrix, *EXPmatrix);
+    multiply_matrix_by_scalar(*TMPmatrix, 1.0 / number, *TMPmatrix);
+  }
+
+  free_matrix(TMPmatrix);
+
+  return MAT_OK;
 }

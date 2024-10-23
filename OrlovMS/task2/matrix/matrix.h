@@ -14,61 +14,78 @@ typedef enum {
     MAT_ALLOC_ERR,
     MAT_EMPTY_ERR,
     MAT_SIZE_ERR
-} MStatus_t;
+} MatrixStatus;
 
 
-MStatus_t matrix_init(Matrix* m, const size_t rows, const size_t cols);
+#define MATRIX_LOG_ENABLE
 
 
-void matrix_free(Matrix* m);
+typedef enum {
+    LOG_NONE,
+    LOG_ERR,
+    LOG_WARN,
+    LOG_INFO
+} LogLevel;
 
 
-void matrix_set(Matrix m, const size_t row, const size_t col, const double number);
+void matrix_set_log_level(LogLevel level);
 
 
-double matrix_get(const Matrix m, const size_t row, const size_t col);
+MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols);
 
 
-unsigned char matrix_is_empty(const Matrix m);
+void matrix_free(Matrix* M);
 
 
-unsigned char matrix_is_square(const Matrix m);
+void matrix_set(const Matrix M, const size_t row, const size_t col, const double number);
 
 
-unsigned char matrix_equal_size(const Matrix m1, const Matrix m2);
+double matrix_get(const Matrix M, const size_t row, const size_t col);
 
 
-void matrix_print(const Matrix m);
+unsigned char matrix_is_empty(const Matrix M);
 
 
-MStatus_t matrix_zeros(Matrix m);
+unsigned char matrix_is_square(const Matrix M);
 
 
-MStatus_t matrix_ones(Matrix m);
+unsigned char matrix_equal_size(const Matrix A, const Matrix B);
 
 
-MStatus_t matrix_copy(const Matrix src, Matrix* dest);
+void matrix_print(const Matrix M);
 
 
-MStatus_t matrix_sum(const Matrix m1, const Matrix m2, Matrix* result);
+MatrixStatus matrix_set_zeros(const Matrix M);
 
 
-MStatus_t matrix_sub(const Matrix m1, const Matrix m2, Matrix* result);
+MatrixStatus matrix_set_identity(const Matrix M);
 
 
-MStatus_t matrix_mul_num(const Matrix m, const double number, Matrix* result);
+MatrixStatus matrix_copy(Matrix* dest, const Matrix src);
 
 
-MStatus_t matrix_mul(const Matrix m1, const Matrix m2, Matrix* result);
+MatrixStatus matrix_clone(Matrix* dest, const Matrix src);
 
 
-MStatus_t matrix_pow(const Matrix m, const unsigned exp, Matrix* result);
+MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B);
 
 
-MStatus_t matrix_exp(const Matrix m, Matrix* result);
+MatrixStatus matrix_sub(Matrix* result, const Matrix A, const Matrix B);
 
 
-MStatus_t matrix_transp(Matrix m);
+MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number);
 
 
-MStatus_t matrix_det(const Matrix m, double* det);
+MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B);
+
+
+MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int pow);
+
+
+MatrixStatus matrix_exp(Matrix* result, const Matrix M);
+
+
+MatrixStatus matrix_transp(const Matrix M);
+
+
+MatrixStatus matrix_det(double* det, const Matrix M);

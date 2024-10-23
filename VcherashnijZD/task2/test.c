@@ -16,7 +16,7 @@
 #define ASSERT_MATRIX_EQ(A, B, accuracy) \
     do {                                  \
         int are_equal;                     \
-        STATUS status = matrix_equals(&are_equal, * A, * B, accuracy); \
+        MatrixStatus status = matrix_equals(&are_equal, * A, * B, accuracy); \
         ASSERT_STATUS_OK(status);           \
         if (!are_equal) {                 \
             printf("Test failed: Matrices are not equal.\n"); \
@@ -38,7 +38,7 @@ double EQUAL_TEST_ACCURACY = 1e-4;
 
 Matrix generate_random_matrix(size_t rows, size_t cols) {
     Matrix matrix;
-    STATUS status = matrix_alloc(&matrix, rows, cols);
+    MatrixStatus status = matrix_alloc(&matrix, rows, cols);
     if (status != OK) {
         printf("Test failed: matrix_alloc failed.\n");
         exit(1);
@@ -51,7 +51,7 @@ Matrix generate_random_matrix(size_t rows, size_t cols) {
 
 void test_matrix_identity() {
     Matrix matrix;
-    STATUS status = matrix_alloc(&matrix, 3, 3);
+    MatrixStatus status = matrix_alloc(&matrix, 3, 3);
     ASSERT_STATUS_OK(status);
     status = matrix_identity(matrix);
     ASSERT_STATUS_OK(status);
@@ -66,11 +66,10 @@ void test_matrix_identity() {
 
 void test_matrix_fill_val() {
     Matrix matrix;
-    STATUS status = matrix_alloc(&matrix, 2, 3);
+    MatrixStatus status = matrix_alloc(&matrix, 2, 3);
     ASSERT_STATUS_OK(status);
     double values[] = {1, 2, 3, 4, 5, 6};
-    status = matrix_fill_val(matrix, values);
-    ASSERT_STATUS_OK(status);
+    matrix_fill_val(matrix, values);
     ASSERT_MATRIX_EQ(&matrix, (&(Matrix){ \
         .rows = 2, \
         .cols = 3, \
@@ -83,7 +82,7 @@ void test_matrix_fill_val() {
 void test_matrix_clone() {
     Matrix original = generate_random_matrix(2, 3);
     Matrix clone;
-    STATUS status = matrix_clone(&clone, original);
+    MatrixStatus status = matrix_clone(&clone, original);
     ASSERT_STATUS_OK(status);
     ASSERT_MATRIX_EQ(&original, &clone, EQUAL_TEST_ACCURACY);
     matrix_free(&original);
@@ -98,7 +97,7 @@ void test_matrix_add() {
     for (size_t i = 0; i < 9; i++) {
         expected.values[i] = matA.values[i] + matB.values[i];
     }
-    STATUS status = matrix_add(matA, matB);
+    MatrixStatus status = matrix_add(matA, matB);
     ASSERT_STATUS_OK(status);
     ASSERT_MATRIX_EQ(&matA, &expected, EQUAL_TEST_ACCURACY);
     matrix_free(&matA);
@@ -114,7 +113,7 @@ void test_matrix_subt() {
     for (size_t i = 0; i < 9; i++) {
         expected.values[i] = matA.values[i] - matB.values[i];
     }
-    STATUS status = matrix_subt(matA, matB);
+    MatrixStatus status = matrix_subt(matA, matB);
     ASSERT_STATUS_OK(status);
     ASSERT_MATRIX_EQ(&matA, &expected, EQUAL_TEST_ACCURACY);
     matrix_free(&matA);
@@ -127,7 +126,7 @@ void test_matrix_mult() {
     Matrix matA = generate_random_matrix(2, 3);
     Matrix matB = generate_random_matrix(3, 2);
     Matrix result;
-    STATUS status = matrix_mult(&result, matA, matB);
+    MatrixStatus status = matrix_mult(&result, matA, matB);
     ASSERT_STATUS_OK(status);
 
     // Calculate expected result correctly:
@@ -168,7 +167,7 @@ void test_matrix_mult_by_num() {
     for (size_t i = 0; i < 6; i++) {
         expected.values[i] = mat.values[i] * a;
     }
-    STATUS status = matrix_mult_by_num(mat, a);
+    MatrixStatus status = matrix_mult_by_num(mat, a);
     ASSERT_STATUS_OK(status);
     ASSERT_MATRIX_EQ(&mat, &expected, EQUAL_TEST_ACCURACY);
     matrix_free(&mat);
@@ -176,12 +175,12 @@ void test_matrix_mult_by_num() {
 }
 
 
-void test_matrix_change_rows() {
+void test_matrix_swap_rows() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix expected = generate_random_matrix(3, 3);
     memcpy(expected.values, mat.values, 9 * sizeof(double));
-    matrix_change_rows(mat, 0, 2);
-    matrix_change_rows(expected, 0, 2);
+    matrix_swap_rows(mat, 0, 2);
+    matrix_swap_rows(expected, 0, 2);
     ASSERT_MATRIX_EQ(&mat, &expected, EQUAL_TEST_ACCURACY);
     matrix_free(&mat);
     matrix_free(&expected);
@@ -191,7 +190,7 @@ void test_matrix_change_rows() {
 void test_matrix_det() {
     Matrix mat = generate_random_matrix(3, 3);
     double det_a;
-    STATUS status = matrix_det(&det_a, mat);
+    MatrixStatus status = matrix_det(&det_a, mat);
     ASSERT_STATUS_OK(status);
     // Cannot reliably check the determinant without knowing the actual values.
     // Just check if it's not zero (which would be unusual for a random matrix)
@@ -207,7 +206,7 @@ void test_matrix_det() {
 void test_matrix_pow() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix result;
-    STATUS status = matrix_pow(&result, mat, 2);
+    MatrixStatus status = matrix_pow(&result, mat, 2);
     ASSERT_STATUS_OK(status);
     matrix_free(&mat);
     matrix_free(&result);
@@ -218,7 +217,7 @@ void test_matrix_check_max_diff() {
     Matrix matA = generate_random_matrix(3, 3);
     Matrix matB = generate_random_matrix(3, 3);
     double max_diff;
-    STATUS status = matrix_check_max_diff(&max_diff, matA, matB);
+    MatrixStatus status = matrix_check_max_diff(&max_diff, matA, matB);
     ASSERT_STATUS_OK(status);
     // Check if the calculated max_diff is reasonable
     if (max_diff < 0 || max_diff > MAX_VALUE * 2) {
@@ -235,7 +234,7 @@ void test_matrix_check_max_diff() {
 void test_matrix_exp() {
     Matrix mat = generate_random_matrix(3, 3);
     Matrix result;
-    STATUS status = matrix_exp(&result, mat);
+    MatrixStatus status = matrix_exp(&result, mat);
     ASSERT_STATUS_OK(status);
     if (result.rows != 3 || result.cols != 3) {
         printf("Test failed: matrix_exp returned matrix with incorrect size.\n");
@@ -253,7 +252,7 @@ void test_matrix_equals() {
     Matrix matB = generate_random_matrix(3, 3);
     int are_equal;
     // Test for equal matrices
-    STATUS status = matrix_equals(&are_equal, matA, matA, EQUAL_TEST_ACCURACY);
+    MatrixStatus status = matrix_equals(&are_equal, matA, matA, EQUAL_TEST_ACCURACY);
     ASSERT_STATUS_OK(status);
     ASSERT_DOUBLE_EQ(1.0, are_equal, 0.0);
     // Test for non-equal matrices
@@ -270,7 +269,7 @@ void test_matrix_lsolve_comparison() {
     Matrix b = generate_random_matrix(3, 1);
 
     Matrix result_base;
-    STATUS status = matrix_lsolve(&result_base, a, b);
+    MatrixStatus status = matrix_lsolve(&result_base, a, b);
     ASSERT_STATUS_OK(status);
     Matrix result_cg;
     status = matrix_lsolve_cg(&result_cg, a, b);
@@ -304,8 +303,8 @@ int main() {
     test_matrix_mult();
     printf("Test mult by num\n");
     test_matrix_mult_by_num();
-    printf("Test change rows\n");
-    test_matrix_change_rows();
+    printf("Test swap rows\n");
+    test_matrix_swap_rows();
     printf("Test det\n");
     test_matrix_det();
     printf("Test pow\n");

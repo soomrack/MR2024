@@ -1,38 +1,191 @@
 #include <stdio.h>
-
-    const int height = 5; // количество строк
-    const int lenght = 4; // количество столбцов
-    double array1[5 * 4], array2[5 * 4]; // Наша матрица
+#include <stdlib.h>
 
 
-void array_init(double *arr, int i, int j)
+typedef struct 
 {
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++)
-        {
-            arr[k * j + l] = (double) k * i + l;
-        }
+    int rows;
+    int cols;
+    double *data;
+} Matrix;
+
+//Необходимые функции матриц
+//Инициализация матрицы +
+//Заполнение матрицы +
+//Копирование матрицы + 
+//Вывод матрицы +
+//Сложение матриц +
+//Вычитание матриц + 
+//Умножение матрицы на число +
+//Деление матрицы на число + 
+//Умножение матриц +
+//Степень матрицы (натуральное число) +
+//Нахождение определителя матрицы +
+//Транспонирование матрицы +
+//Деление матриц
+//Экспонента матрицы
+
+
+
+
+void matrix_init(Matrix *A, const int rows, const int cols)
+{
+    A->data = (double *)malloc(rows * cols * sizeof(double));
+    A->rows = rows;
+    A->cols = cols;
+}
+
+
+void matrix_fill(Matrix *A)
+{
+    for (size_t i = 0; i < A->rows * A->cols; i++) {
+        A->data[i] = (i + 1) * (i + 1);
     }
 }
 
 
-void array_output(double *arr, int i, int j)
+void unit_matrix(Matrix *I, int rows, int cols)
 {
-    for (int k = 0; k < i; k++){
-        for (int l = 0; l < j; l++){
-            printf("%.2f\t", arr[k * j + l]); 
+    matrix_init(&*I, rows, cols);
+    for (int i = 0; i < I->cols * I->rows; i ++) {
+        if (i / cols == i % cols) {
+            I->data[i] = 1;
         }
-        printf("\n\n"); 
+        else {
+            I->data[i] = 0;
+        }   
     }
 }
 
 
-int main()
+void matrix_clone(Matrix *result, Matrix A)
 {
-    array_init(array1, lenght, height);
-    array_init(array1, lenght, height);
-    array_output(array1, lenght, height);
+    matrix_init(&*result, A.rows, A.cols);
+    for (size_t i = 0; i < A.rows * A.cols; i++) {
+        result->data[i] = A.data[i];
+    }
     
-    printf
+}
+
+
+void matrix_sum(Matrix *result, Matrix A, Matrix B)
+{
+    if (A.rows == B.rows & A.cols == B.cols) {
+        for (size_t i = 0; i < A.rows * A.cols; i++) {
+            result->data[i] = A.data[i] + B.data[i];   
+        }
+    }
+}
+
+
+void matrix_sub(Matrix *result, Matrix A, Matrix B)
+{
+    if (A.rows == B.rows & A.cols == B.cols) {
+        for (size_t i = 0; i < A.rows * A.cols; i++) {
+            result->data[i] = A.data[i] - B.data[i];   
+        }
+    }
+}
+
+
+void matrix_mul_num(Matrix *result, Matrix A, double num)
+{
+    for (size_t i = 0; i < A.rows * A.cols; i++) {
+        result->data[i] = A.data[i] * num;
+    }
+}
+
+
+void matrix_div_num(Matrix *result, Matrix A, double num)
+{
+    for (size_t i = 0; i < A.rows * A.cols; i++) {
+        result->data[i] = A.data[i] / num;
+    }
+}
+
+
+void matrix_mul(Matrix *result, Matrix A, Matrix B)
+{
+    if (A.cols == B.rows) {
+        matrix_init(&*result, A.rows, B.cols);
+        for (size_t row = 0; row < A.rows; row++) {
+            for (size_t col = 0; col < B.cols; col++) {
+                result->data[row * result->cols + col] = 0;
+                for (size_t i = 0; i < A.cols; i++) {
+                    result->data[row * result->cols + col] += (double)A.data[row * A.cols + i] * B.data[i * B.cols + col];
+                }
+            }
+        }
+    }
+}
+
+
+void matrix_pow(Matrix *result, Matrix A, int power){
+    if (A.cols == A.rows && power > 0) {
+        for (size_t i = 1; i < power; i++) {
+            matrix_mul(&*result, *result, A);
+        }
+    }
+}
+
+
+void matrix_print(Matrix A)
+{   
+    for (size_t i = 0; i < A.cols * A.rows; i++) {
+        if ((i) % A.cols == 0) {
+            printf("|");
+        }
+        printf("%.2f|", A.data[i]);
+        if ((i) % A.cols == A.cols - 1) {
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
+
+
+void matrix_transp(Matrix *A)
+{
+    Matrix B;
+    matrix_clone(&B, *A);
+    matrix_init(&*A, A->cols, A->rows);
+    for (int i = 0; i < B.cols * B.rows; i++) {
+        A->data[B.rows * (i % B.cols) + i / B.cols] = B.data[i];
+    }
+}
+
+
+double matrix_det(Matrix A)
+{
+    Matrix B;
+    matrix_clone(&B, A);
+    double result = 1;
+    if(B.rows == B.cols) {
+        for (size_t col_nul = 0; col_nul < B.cols - 1; col_nul++) {
+            for (size_t row = col_nul + 1; row < B.rows; row++) {
+                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
+                for (size_t col = col_nul; col < B.cols; col++) {
+                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
+                }
+            }
+            result *= (double)B.data[col_nul * B.cols + col_nul];
+            matrix_print(B);
+        }
+    }
+    return result;
+}
+
+
+int main()  
+{
+    Matrix first_matrix;
+    Matrix second_matrix;
+    Matrix third_matrix;
+    matrix_init(&first_matrix, 3, 3);
+    matrix_fill(&first_matrix);
+    matrix_print(first_matrix);
+    printf("%f" ,matrix_det(first_matrix));
+
     return 0;
+
 }

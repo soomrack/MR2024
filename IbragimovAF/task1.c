@@ -10,6 +10,7 @@ typedef struct Person {
     Money capital;
     Money person_flat_payment;  // ежемесечная плата за ипотеку
     Money monthly_expences;  // ежемесячные расходы
+    Money apartment_coast;
     bool mortgage;
 } Person;
 
@@ -23,16 +24,6 @@ typedef struct Date {
 Date begin_date;
 Date last_date;
 Date now_date;
-
-
-Person init (bool mortgage, Money begin_capital) {
-    Person person;
-    person.capital = begin_capital;
-    person.salary = 200000;
-    person.monthly_expences = 30000;
-    person.mortgage = mortgage;
-    return person;
-}
 
 
 void date_init () {
@@ -56,55 +47,83 @@ Person flat_payment (Money initial_payment, float percent, Money mortgage_summ, 
 }
 
 
-Person year_inflation (Person person) {
-    if(person.mortgage == false) person.person_flat_payment *= 1.07;  // учет инфляции аренды жилья
-    person.monthly_expences *= 1.07;  // учет инфляции потребительской корзины
-    person.salary *= 1.07;  // индексация зарплаты
+Person init (bool mortgage, Money begin_capital) {
+    Person person;
+    person.capital = begin_capital;
+    person.salary = 200000;
+    person.monthly_expences = 30000;
+    person.mortgage = mortgage;
+    person.apartment_coast = 13000 * 1000 * mortgage;  // стоимость квартиры
+    person = flat_payment(1000000, 0.16, person.apartment_coast, 30, person);  // рассчет ежемесячного платежа за ипотеку/аренду
     return person;
 }
 
 
-Person work_incident (Person person){
-	if(person.mortgage == false){
-		if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
-		else if ((now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
-	}
-	return person;
+Person work_incident (Person person) {
+    if(person.mortgage == false) {
+        if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
+        else if ((now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
+    }
+    return person;
+}
+
+
+Person apartment_payment (Person person) {
+    person.capital = person.capital - person.person_flat_payment;  //ежем. доходы/расходы
+    if(person.mortgage == false && now_date.month == 12) person.person_flat_payment *= 1.07;  // учет инфляции аренды жилья
+    else if(person.mortgage == true && now_date.month == 12)person.apartment_coast *= 1.07; //учет инфляции в стоимости жилья
+    return person;
+}
+
+
+Person salary (Person person) {
+    person.capital += person.salary;
+    if(now_date.month == 12) person.salary *= 1.07;  // индексация зарплаты
+    return person;
+}
+
+
+Person monthly_expences (Person person) {
+    person.capital -= person.monthly_expences;
+    if(now_date.month == 12) person.monthly_expences *= 1.07;  // учет инфляции потребительской корзины
+    return person;
+}
+
+
+Person invest (Person person) {
+    person.capital *= 1.016;  //учет процентов банковского вклада
+    return person;
 }
 
 
 Person simulation (Person person) {
-	now_date = begin_date;
-    Money apartment_coast = 13000 * 1000;  // стоимость квартиры
+    now_date = begin_date;
 
-    person = flat_payment(1000000, 0.16, apartment_coast, 30, person);  // рассчет ежемесячного платежа за ипотеку/аренду
-
-    while ((now_date.year < last_date.year) ^ (now_date.month < last_date.month)) {
-
-        person.capital = person.capital + person.salary - person.monthly_expences - person.person_flat_payment;  // рассчет капиталла
-       	person = work_incident(person);
-        person.capital *= 1.0166;
+    while ((now_date.year < last_date.year) || (now_date.month < last_date.month)) {
+        person = salary(person);
+        person = monthly_expences(person);
+        person = work_incident(person);
+        person = apartment_payment(person);
+        person = invest(person);
 
         now_date.month++;
         if(now_date.month == 13) {
-            person = year_inflation(person);  // учет инфляции
             now_date.month = 1;
             now_date.year++;
         }
     }
-    person.capital += apartment_coast * person.mortgage;  // учет квартиры в конечном капитале
     return person;
 }
 
 
 void results (Person Alice, Person Bob) {
-    printf("Alice Capital %llu\n", Alice.capital);
+    printf("Alice Capital %llu\n", Alice.capital + Alice.apartment_coast);
     printf("Bob capital %llu\n", Bob.capital);
 }
 
 
 int main () {
-    date_init(begin_date, last_date);
+    date_init();
 
     Person Alice = init(1, 1500 * 1000);
     Person Bob = init(0, 1000 * 1000);

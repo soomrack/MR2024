@@ -1,118 +1,203 @@
 #include "matrix.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 
 
-MStatus_t matrix_init(Matrix* m, const size_t rows, const size_t cols)
+LogLevel CURRENT_LEVEL = LOG_NONE;
+
+
+void matrix_set_log_level(LogLevel level)
 {
-    if(m == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_is_empty(*m)) matrix_free(m);
-    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
-
-    m->data = (double*)malloc(rows * cols * sizeof(double));
-    if(m->data == NULL) return MAT_ALLOC_ERR;
-
-    m->rows = rows;
-    m->cols = cols;
-
-    return MAT_OK;
+    CURRENT_LEVEL = level;
 }
 
 
-void matrix_free(Matrix* m)
+static void print_log(LogLevel level, const char *format, ...)
 {
-    if(matrix_is_empty(*m)) return;
-
-    free(m->data);
-    m->data = NULL;
-    m->rows = 0;
-    m->cols = 0;
-}
-
-
-void matrix_set(Matrix m, const size_t row, const size_t col, const double number)
-{
-    if(row >= m.rows || col >= m.cols || m.data == NULL) return;
-
-    m.data[row * m.cols + col] = number;
-}
-
-
-double matrix_get(const Matrix m, const size_t row, const size_t col)
-{
-    if(row >= m.rows || col >= m.cols || m.data == NULL) return NAN;
-
-    return m.data[row * m.cols + col];
-}
-
-
-unsigned char matrix_is_empty(const Matrix m)
-{
-    return (m.rows == 0 || m.cols == 0 || m.data == NULL);
-}
-
-
-unsigned char matrix_is_square(const Matrix m)
-{
-    return (m.rows == m.cols);
-}
-
-
-unsigned char matrix_equal_size(const Matrix m1, const Matrix m2)
-{
-    return (m1.rows == m2.rows) && (m1.cols == m2.cols);
-}
-
-
-void matrix_print(const Matrix m)
-{
-    if(matrix_is_empty(m)) {
-        printf("Matrix is empty\n");
-    }
-    else {
-        printf("Matrix size: %ux%u\n", m.rows, m.cols);
-        for(size_t i = 0; i < (m.rows * m.cols); i += m.cols) {
-            printf("[ ");
-            for(size_t j = 0; j < m.cols - 1; j++) {
-                printf("%8.3f, ", m.data[i + j]);
-            }
-            printf("%8.3f ]\n", m.data[i +  m.cols - 1]);
+#ifdef MATRIX_LOG_ENABLE
+    if(level <= CURRENT_LEVEL) {
+        switch (level)
+        {
+        case LOG_ERR:
+            printf("\033[0;31mERROR: \033[0m");
+            break;
+        case LOG_WARN:
+            printf("\033[1;33mWARNING: \033[0m");
+            break;
+        case LOG_INFO:
+            printf("INFO: ");
+        default:
+            break;
         }
+        va_list list;
+        va_start(list, format);
+        vprintf(format, list);
+        va_end(list);
     }
+#endif
 }
 
 
-MStatus_t matrix_zeros(Matrix m)
-{
-    if(matrix_is_empty(m)) return MAT_EMPTY_ERR;
+const Matrix EMPTY = {.rows = 0, .cols = 0, .data = NULL};
 
-    memset(m.data, 0, m.rows * m.cols * sizeof(double));
+
+MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
+{
+    print_log(LOG_INFO, "allocate matrix with size: %lux%lu\n", rows, cols);
+
+    if(M == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+
+    if(rows == 0 || cols == 0) {
+        *M = EMPTY;
+        print_log(LOG_WARN, "empty matrix allocation\n");
+        return MAT_OK;
+    }
+
+    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+        print_log(LOG_ERR, "matrix size too big\n");
+        return MAT_SIZE_ERR;
+    }
+
+    M->data = (double*)malloc(rows * cols * sizeof(double));
+    if(M->data == NULL) {
+        *M = EMPTY;
+        print_log(LOG_ERR, "matrix allocation error\n");
+        return MAT_ALLOC_ERR;
+    }
+
+    M->rows = rows;
+    M->cols = cols;
 
     return MAT_OK;
 }
 
 
-MStatus_t matrix_ones(Matrix m)
+void matrix_free(Matrix* M)
 {
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "free matrix\n");
 
-    if(matrix_zeros(m) == MAT_EMPTY_ERR) return MAT_EMPTY_ERR;
-    for(size_t i = 0; i < m.rows * m.cols; i += m.cols + 1) {
-        m.data[i] = 1.0;
+    if(M == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return;
+    }
+
+    free(M->data);
+    *M = EMPTY;
+}
+
+
+void matrix_set(const Matrix M, const size_t row, const size_t col, const double number)
+{
+    if(row >= M.rows || col >= M.cols) {
+        print_log(LOG_ERR, "index out of bound\n");
+        return;
+    }
+
+    M.data[row * M.cols + col] = number;
+}
+
+
+double matrix_get(const Matrix M, const size_t row, const size_t col)
+{
+    if(row >= M.rows || col >= M.cols) {
+        print_log(LOG_ERR, "index out of bound\n");
+        return NAN;
+    }
+
+    return M.data[row * M.cols + col];
+}
+
+
+unsigned char matrix_is_empty(const Matrix M)
+{
+    return (M.data == NULL);
+}
+
+
+unsigned char matrix_is_square(const Matrix M)
+{
+    return (M.rows == M.cols);
+}
+
+
+unsigned char matrix_equal_size(const Matrix A, const Matrix B)
+{
+    return (A.rows == B.rows) && (A.cols == B.cols);
+}
+
+
+void matrix_print(const Matrix M)
+{
+    if(matrix_is_empty(M)) {
+        printf("Matrix is empty\n");
+        return;
+    }
+
+    printf("Matrix size: %ux%u\n", M.rows, M.cols);
+    for(size_t row = 0; row < (M.rows * M.cols); row += M.cols) {
+        printf("[ ");
+        for(size_t idx = 0; idx < M.cols - 1; idx++) {
+            printf("%8.3f, ", M.data[row + idx]);
+        }
+        printf("%8.3f ]\n", M.data[row +  M.cols - 1]);
+    }
+}
+
+
+MatrixStatus matrix_set_zeros(const Matrix M)
+{
+    print_log(LOG_INFO, "make zero matrix\n");
+
+    if(matrix_is_empty(M)) {
+        print_log(LOG_WARN, "matrix is empty\n");
+        return MAT_OK;
+    }
+
+    memset(M.data, 0, M.rows * M.cols * sizeof(double));
+
+    return MAT_OK;
+}
+
+
+MatrixStatus matrix_set_identity(const Matrix M)
+{
+    print_log(LOG_INFO, "make identity matrix\n");
+
+    if(!matrix_is_square(M)) {
+        print_log(LOG_ERR, "matrix not square\n");
+        return MAT_SIZE_ERR;
+    }
+
+    matrix_set_zeros(M);
+    for(size_t idx = 0; idx < M.rows * M.cols; idx += M.cols + 1) {
+        M.data[idx] = 1.0;
     }
 
     return MAT_OK;
 }
 
 
-MStatus_t matrix_copy(const Matrix src, Matrix* dest)
+MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
 {
-    if(matrix_is_empty(src) || dest == NULL) return MAT_EMPTY_ERR;
+    print_log(LOG_INFO, "matrix copy\n");
 
+    if(dest == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
     if(!matrix_equal_size(src, *dest)) {
-        if(matrix_init(dest, src.rows, src.cols) != MAT_OK) return MAT_ALLOC_ERR;
+        print_log(LOG_ERR, "matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+    if(matrix_is_empty(src)) {
+        print_log(LOG_WARN, "matrix is empty\n");
+        return MAT_OK;
     }
 
     memcpy(dest->data, src.data, src.rows * src.cols * sizeof(double));
@@ -121,91 +206,141 @@ MStatus_t matrix_copy(const Matrix src, Matrix* dest)
 }
 
 
-MStatus_t matrix_sum(const Matrix m1, const Matrix m2, Matrix* result)
+MatrixStatus matrix_clone(Matrix* dest, const Matrix src)
 {
-    if(matrix_is_empty(m1) || matrix_is_empty(m2) || result == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_equal_size(m1, m2)) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "matrix clone\n");
 
-    if(!matrix_equal_size(m1, *result)) {
-        if(matrix_init(result, m1.rows, m1.cols) != MAT_OK) return MAT_ALLOC_ERR;
+    if(dest == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(matrix_is_empty(src)) {
+        matrix_free(dest);
+        print_log(LOG_WARN, "matrix is empty\n");
+        return MAT_OK;
+    }
+    if(!matrix_equal_size(src, *dest)) {
+        print_log(LOG_INFO, "matrix size not equals, reallocation needed\n");
+        matrix_free(dest);
+        if(matrix_alloc(dest, src.rows, src.cols) != MAT_OK) return MAT_ALLOC_ERR;
     }
 
-    for(size_t i = 0; i < m1.rows * m1.cols; i++) {
-        result->data[i] = m1.data[i] + m2.data[i];
+    memcpy(dest->data, src.data, src.rows * src.cols * sizeof(double));
+
+    return MAT_OK;
+}
+
+
+MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
+{
+    print_log(LOG_INFO, "matrix sum\n");
+
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(!matrix_equal_size(A, B)) {
+        print_log(LOG_ERR, "A, B matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+    if(!matrix_equal_size(A, *result)) {
+        print_log(LOG_ERR, "result matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+
+    for(size_t idx = 0; idx < A.rows * A.cols; idx++) {
+        result->data[idx] = A.data[idx] + B.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-MStatus_t matrix_sub(const Matrix m1, const Matrix m2, Matrix* result)
+MatrixStatus matrix_sub(Matrix* result, const Matrix A, const Matrix B)
 {
-    if(matrix_is_empty(m1) || matrix_is_empty(m2) || result == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_equal_size(m1, m2)) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "matrix subtraction\n");
 
-    if(!matrix_equal_size(m1, *result)) {
-        if(matrix_init(result, m1.rows, m1.cols) != MAT_OK) return MAT_ALLOC_ERR;
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(!matrix_equal_size(A, B)) {
+        print_log(LOG_ERR, "A, B matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+    if(!matrix_equal_size(A, *result)) {
+        print_log(LOG_ERR, "result matrix size not equals\n");
+        return MAT_SIZE_ERR;
     }
 
-    for(size_t i = 0; i < m1.rows * m1.cols; i++) {
-        result->data[i] = m1.data[i] - m2.data[i];
+    for(size_t idx = 0; idx < A.rows * A.cols; idx++) {
+        result->data[idx] = A.data[idx] - B.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-MStatus_t matrix_mul_num(const Matrix m, const double number, Matrix* result)
+MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number)
 {
-    if(matrix_is_empty(m) || result == NULL) return MAT_EMPTY_ERR;
+    print_log(LOG_INFO, "matrix multiplication by number\n");
 
-    if(!matrix_equal_size(m, *result)) {
-        if(matrix_init(result, m.rows, m.cols) != MAT_OK) return MAT_ALLOC_ERR;
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(!matrix_equal_size(M, *result)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        return MAT_SIZE_ERR;
     }
 
-    for(size_t i = 0; i < m.rows * m.cols; i++) {
-        result->data[i] = m.data[i] * number;
+    for(size_t idx = 0; idx < M.rows * M.cols; idx++) {
+        result->data[idx] = M.data[idx] * number;
     }
 
     return MAT_OK;
 }
 
 
-MStatus_t matrix_mul(const Matrix m1, const Matrix m2, Matrix* result)
+MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B)
 {
-    if(matrix_is_empty(m1) || matrix_is_empty(m2) || result == NULL) return MAT_EMPTY_ERR;
-    if(m1.cols != m2.rows) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "matrix multiplication\n");
 
-    unsigned char same_matrix = 0;
-    Matrix* result_ptr;
-    Matrix result_tmp = {0};
-    if((m1.data == result->data) || (m2.data == result->data)) {
-        same_matrix = 1;
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(A.cols != B.rows) {
+        print_log(LOG_ERR, "A.cols, B.rows not equals\n");
+        return MAT_SIZE_ERR;
+    }
+    if((result->rows != A.rows) || (result->cols != B.cols)) {
+        print_log(LOG_ERR, "result matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+
+    char is_same_matrix = 0;
+    Matrix* result_ptr = result;
+    Matrix result_tmp = EMPTY;
+    if((A.data == result->data) || (B.data == result->data)) {
+        is_same_matrix = 1;
+        print_log(LOG_INFO, "input and output is same matrix, allocation temporary result matrix\n");
+        if(matrix_alloc(&result_tmp, result->rows, result->cols) != MAT_OK) return MAT_ALLOC_ERR;
         result_ptr = &result_tmp;
     }
-    else {
-        result_ptr = result;
-    }
 
-    if((result_ptr->rows != m1.rows) || (result_ptr->cols != m2.cols)) {
-        if(matrix_init(result_ptr, m1.rows, m2.cols) != MAT_OK) return MAT_ALLOC_ERR;
-    }
-
-    for(size_t i = 0; i < m1.rows; i++) {
-        for(size_t j = 0; j < m2.cols; j++) {
-            double sum = 0.0;
-            for(size_t k = 0; k < m1.cols; k++) {
-                sum += m1.data[i * m1.cols + k] * m2.data[k * m2.cols + j];
+    for(size_t row = 0; row < A.rows; row++) {
+        for(size_t col = 0; col < B.cols; col++) {
+            result_ptr->data[row * result->cols + col] = 0.0;
+            for(size_t idx = 0; idx < A.cols; idx++) {
+                result_ptr->data[row * result->cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];
             }
-            result_ptr->data[i * result->cols + j] = sum;
         }
     }
 
-    if(same_matrix) {
-        if(matrix_copy(result_tmp, result) != MAT_OK) {
-            matrix_free(&result_tmp);
-            return MAT_ALLOC_ERR;
-        }
+    if(is_same_matrix) {
+        print_log(LOG_INFO, "input and output is same matrix, copy data from temporary\n");
+        memcpy(result->data, result_tmp.data, result_tmp.rows * result_tmp.cols * sizeof(double));
         matrix_free(&result_tmp);
     }
 
@@ -213,45 +348,52 @@ MStatus_t matrix_mul(const Matrix m1, const Matrix m2, Matrix* result)
 }
 
 
-MStatus_t matrix_pow(const Matrix m, const unsigned exp, Matrix* result)
+MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int pow)
 {
-    if(matrix_is_empty(m) || result == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "matrix power\n");
 
-    unsigned char same_matrix = 0;
-    Matrix* result_ptr;
-    Matrix result_tmp = {0};
-    if(m.data == result->data) {
-        same_matrix = 1;
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(!matrix_is_square(M)) {
+        print_log(LOG_ERR, "matrix not square\n");
+        return MAT_SIZE_ERR;
+    }
+    if(!matrix_equal_size(M, *result)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+
+    char is_same_matrix = 0;
+    Matrix* result_ptr = result;
+    Matrix result_tmp = EMPTY;
+    if(M.data == result->data) {
+        is_same_matrix = 1;
+        print_log(LOG_INFO, "input and output is same matrix, allocation temporary result matrix\n");
+        if(matrix_alloc(&result_tmp, result->rows, result->cols) != MAT_OK) return MAT_ALLOC_ERR;
         result_ptr = &result_tmp;
     }
-    else {
-        result_ptr = result;
-    }
 
-    if(!matrix_equal_size(m, *result_ptr)) {
-        if(matrix_init(result_ptr, m.rows, m.cols) != MAT_OK) return MAT_ALLOC_ERR;
-    }
-    matrix_ones(*result_ptr);
+    matrix_set_identity(*result_ptr);
 
-    Matrix tmp = {0};
-    if(matrix_init(&tmp, m.rows, m.cols) != MAT_OK) {
-        if(same_matrix) matrix_free(&result_tmp);
+    print_log(LOG_INFO, "allocation temporary matrix for internal usage\n");
+    Matrix tmp = EMPTY;
+    if(matrix_alloc(&tmp, M.rows, M.cols) != MAT_OK) {
+        if(is_same_matrix) matrix_free(&result_tmp);
         return MAT_ALLOC_ERR;
     }
 
-    for(unsigned i = 0; i < exp; i++) {
-        matrix_mul(*result_ptr, m, &tmp);
-        matrix_copy(tmp, result_ptr);
+    for(unsigned int cnt = 0; cnt < pow; cnt++) {
+        matrix_mul(&tmp, *result_ptr, M);
+        matrix_copy(result_ptr, tmp);
     }
 
     matrix_free(&tmp);
 
-    if(same_matrix) {
-        if(matrix_copy(result_tmp, result) != MAT_OK) {
-            matrix_free(&result_tmp);
-            return MAT_ALLOC_ERR;
-        }
+    if(is_same_matrix) {
+        print_log(LOG_INFO, "input and output is same matrix, copy data from temporary\n");
+        memcpy(result->data, result_tmp.data, result_tmp.rows * result_tmp.cols * sizeof(double));
         matrix_free(&result_tmp);
     }
 
@@ -259,56 +401,65 @@ MStatus_t matrix_pow(const Matrix m, const unsigned exp, Matrix* result)
 }
 
 
-MStatus_t matrix_exp(const Matrix m, Matrix* result)
+MatrixStatus matrix_exp(Matrix* result, const Matrix M)
 {
-    if(matrix_is_empty(m) || result == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    print_log(LOG_INFO, "matrix exponent\n");
 
-    unsigned char same_matrix = 0;
-    Matrix* result_ptr;
-    Matrix result_tmp = {0};
-    if(m.data == result->data) {
-        same_matrix = 1;
+    if(result == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(!matrix_is_square(M)) {
+        print_log(LOG_ERR, "matrix not square\n");
+        return MAT_SIZE_ERR;
+    }
+    if(!matrix_equal_size(M, *result)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        return MAT_SIZE_ERR;
+    }
+
+    char is_same_matrix = 0;
+    Matrix* result_ptr = result;
+    Matrix result_tmp = EMPTY;
+    if(M.data == result->data) {
+        is_same_matrix = 1;
+        print_log(LOG_INFO, "input and output is same matrix, allocation temporary result matrix\n");
+        if(matrix_alloc(&result_tmp, result->rows, result->cols) != MAT_OK) return MAT_ALLOC_ERR;
         result_ptr = &result_tmp;
     }
-    else {
-        result_ptr = result;
-    }
 
-    if(!matrix_equal_size(m, *result_ptr)) {
-        if(matrix_init(result_ptr, m.rows, m.cols) != MAT_OK) return MAT_ALLOC_ERR;
-    }
-    matrix_ones(*result_ptr);
+    matrix_set_identity(*result_ptr);
 
-    Matrix term = {0};
-    if(matrix_init(&term, m.rows, m.cols) != MAT_OK) {
-        if(same_matrix) matrix_free(&result_tmp);
+    print_log(LOG_INFO, "allocation temporary matrix for internal usage\n");
+    Matrix term = EMPTY;
+    if(matrix_alloc(&term, M.rows, M.cols) != MAT_OK) {
+        if(is_same_matrix) matrix_free(&result_tmp);
         return MAT_ALLOC_ERR;
     }
-    matrix_ones(term);
+    matrix_set_identity(term);
 
-    Matrix tmp = {0};
-    if(matrix_init(&tmp, m.rows, m.cols) != MAT_OK) {
+    print_log(LOG_INFO, "allocation temporary matrix for internal usage\n");
+    Matrix tmp = EMPTY;
+    if(matrix_alloc(&tmp, M.rows, M.cols) != MAT_OK) {
         matrix_free(&term);
-        if(same_matrix) matrix_free(&result_tmp);
+        if(is_same_matrix) matrix_free(&result_tmp);
         return MAT_ALLOC_ERR;
     }
 
-    for(unsigned i = 1; i < 10; i++) {
-        matrix_mul(term, m, &tmp);
-        matrix_copy(tmp, &term);
-        matrix_mul_num(term, 1 / (double)i, &term);
+    for(unsigned num = 1; num < 10; num++) {
+        matrix_mul(&tmp, term, M);
+        matrix_copy(&term, tmp);
+        matrix_mul_num(&term, term, 1 / (double)num);
 
-        matrix_sum(*result_ptr, term, result_ptr);
+        matrix_sum(result_ptr, *result_ptr, term);
     }
+
     matrix_free(&tmp);
     matrix_free(&term);
 
-    if(same_matrix) {
-        if(matrix_copy(result_tmp, result) != MAT_OK) {
-            matrix_free(&result_tmp);
-            return MAT_ALLOC_ERR;
-        }
+    if(is_same_matrix) {
+        print_log(LOG_INFO, "input and output is same matrix, copy data from temporary\n");
+        memcpy(result->data, result_tmp.data, result_tmp.rows * result_tmp.cols * sizeof(double));
         matrix_free(&result_tmp);
     }
 
@@ -316,16 +467,26 @@ MStatus_t matrix_exp(const Matrix m, Matrix* result)
 }
 
 
-MStatus_t matrix_transp(Matrix m)
+static void swap_double(double* first, double* second)
 {
-    if(matrix_is_empty(m)) return MAT_EMPTY_ERR;
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    double tmp = *first;
+    *first = *second;
+    *second = tmp;
+}
 
-    for(size_t i = 1; i < m.rows; i++) {
-        for(size_t j = 0; j < i; j++) {
-            double tmp = m.data[i * m.cols + j];
-            m.data[i * m.cols + j] = m.data[j * m.cols + i];
-            m.data[j * m.cols + i] = tmp;
+
+MatrixStatus matrix_transp(const Matrix M)
+{
+    print_log(LOG_INFO, "matrix transposition\n");
+
+    if(!matrix_is_square(M)) {
+        print_log(LOG_ERR, "matrix not square\n");
+        return MAT_SIZE_ERR;
+    }
+
+    for(size_t row = 1; row < M.rows; row++) {
+        for(size_t idx = 0; idx < row; idx++) {
+            swap_double(M.data + row * M.cols + idx, M.data + idx * M.cols + row);
         }
     }
 
@@ -333,52 +494,79 @@ MStatus_t matrix_transp(Matrix m)
 }
 
 
-MStatus_t matrix_det(const Matrix m, double* det)
+static size_t matrix_find_non_zero_in_col(const Matrix M, const size_t row_start)
 {
-    if(matrix_is_empty(m) || det == NULL) return MAT_EMPTY_ERR;
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    for(size_t row = row_start + 1; row < M.rows; row++) {
+        if(fabs(M.data[row * M.cols + row_start]) >= 0.00001) {
+            return row;
+        }
+    }
+    return row_start;
+}
 
-    Matrix m_tmp = {0};
-    if(matrix_copy(m, &m_tmp) != MAT_OK) return MAT_ALLOC_ERR;
 
+static void matrix_swap_rows(const Matrix M, const size_t row_A, const size_t row_B)
+{
+    for(size_t idx = 0; idx < M.cols; idx++) {
+        swap_double(M.data + row_A * M.cols + idx, M.data + row_B * M.cols + idx);
+    }
+}
+
+
+static void matrix_sub_row(const Matrix M, const size_t row, const size_t row_base, const double ratio)
+{
+    for(size_t idx = 0; idx < M.cols; idx++) {
+        M.data[row * M.cols + idx] -= ratio * M.data[row_base * M.cols + idx];
+    }
+}
+
+
+MatrixStatus matrix_det(double* det, const Matrix M)
+{
+    print_log(LOG_INFO, "matrix determinant\n");
+
+    if(det == NULL) {
+        print_log(LOG_ERR, "NULL pointer passed as argument\n");
+        return MAT_EMPTY_ERR;
+    }
+    if(matrix_is_empty(M)) {
+        *det = 0.0;
+        print_log(LOG_WARN, "empty matrix\n");
+        return MAT_OK;
+    }
+    if(!matrix_is_square(M)) {
+        print_log(LOG_ERR, "matrix not square\n");
+        return MAT_SIZE_ERR;
+    }
+
+    print_log(LOG_INFO, "clone temporary matrix for internal usage\n");
+    Matrix T = EMPTY;
+    if(matrix_clone(&T, M) != MAT_OK) return MAT_ALLOC_ERR;
+
+    // Gauss method
     *det = 1.0;
-    for(size_t i = 0; i < m_tmp.rows - 1; i++) {
-        if(fabs(m_tmp.data[i * (m_tmp.cols + 1)]) < 0.00001) {
-            size_t idx_non_zero = i;
-            for(size_t j = i + 1; j < m_tmp.rows; j++) {
-                if(fabs(m_tmp.data[j * m_tmp.cols + i]) >= 0.00001) {
-                    idx_non_zero = j;
-                    break;
-                }
-            }
-            if(idx_non_zero != i) {
-                for(size_t j = i; j < m_tmp.cols; j++) {
-                    double tmp = m_tmp.data[i * m_tmp.cols + j];
-                    m_tmp.data[i * m_tmp.cols + j] = m_tmp.data[idx_non_zero * m_tmp.cols + j];
-                    m_tmp.data[idx_non_zero * m_tmp.cols + j] = tmp;
-                }
-                *det *= -1.0;
-            }
-            else {
+    for(size_t row_base = 0; row_base < T.rows - 1; row_base++) {
+        if(fabs(T.data[row_base * (T.cols + 1)]) < 0.00001) {
+            size_t idx_non_zero = matrix_find_non_zero_in_col(T, row_base);
+            if(idx_non_zero == row_base) {
                 *det = 0.0;
-                break;
+                matrix_free(&T);
+                return MAT_OK;
             }
+
+            matrix_swap_rows(T, row_base, idx_non_zero);
+            *det *= -1.0;
         }
-        for(size_t j = i + 1; j < m_tmp.rows; j++) {
-            double mult = m_tmp.data[j * m_tmp.cols + i] / m_tmp.data[i * (m_tmp.cols + 1)];
-            m_tmp.data[j * m_tmp.cols + i] = 0.0;
-            for(size_t k = i + 1; k < m_tmp.cols; k++) {
-                m_tmp.data[j * m_tmp.cols + k] = m_tmp.data[j * m_tmp.cols + k] - mult * m_tmp.data[i * m_tmp.cols + k];
-            }
+        for(size_t row = row_base + 1; row < T.rows; row++) {
+            double mult = T.data[row * T.cols + row_base] / T.data[row_base * (T.cols + 1)];
+            matrix_sub_row(T, row, row_base, mult);
         }
     }
 
-    if(*det != 0.0) {
-        for(size_t i = 0; i < m_tmp.rows; i++) {
-            *det *= m_tmp.data[i * m_tmp.cols + i];
-        }
+    for(size_t idx = 0; idx < T.rows; idx++) {
+        *det *= T.data[idx * T.cols + idx];
     }
 
-    matrix_free(&m_tmp);
+    matrix_free(&T);
     return MAT_OK;
 }

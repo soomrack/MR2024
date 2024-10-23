@@ -5,25 +5,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[]) {
-
-  int rows = atoi(argv[1]), cols = atoi(argv[2]);
+int main() {
 
   srand(time(NULL) + getpid());
+
+  Matrix *a = malloc(sizeof(Matrix)), *b = malloc(sizeof(Matrix)), *c = malloc(sizeof(Matrix));
+  create_random_matrix(a, 1, 1, -2, 2, 3);
+  //create_random_matrix(b, 1, 1, -2, 2, 3);
+  //malloc_matrix(1, 1, c);
   
-  Matrix matrixA = createMatrixR(rows, cols, atoi(argv[3]), atoi(argv[4]), 3);
-  Matrix matrixB = createMatrixR(rows, 1, atoi(argv[3]), atoi(argv[4]), 3);
+  print_matrix(*a, 3);
+  //print_matrix(*b, 3);
 
-  printMatrix(matrixA, 3);
-  printMatrix(matrixB, 3);
-
-  Matrix matrixC = solveMatrixEquation(matrixA, matrixB);
-
-  printMatrix(matrixC, 6);
-
-  freeMatrix(matrixA);
-  freeMatrix(matrixB);
-  freeMatrix(matrixC);
-
+  printf("%d\n", expMatrix(*a, c, 6));
+    
+  print_matrix(*c, 6);
   return 0;
 }

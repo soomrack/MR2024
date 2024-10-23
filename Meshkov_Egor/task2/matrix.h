@@ -1,37 +1,50 @@
-typedef struct
-{
+typedef struct {
   double *ptr;
-  int rows;
-  int cols;
-  int len;
+  size_t rows;
+  size_t cols;
 } Matrix;
 
-Matrix mallocMatrix(size_t rows, size_t cols);
 
-Matrix createMatrixO(size_t rows, size_t cols);
+typedef enum {
+  MAT_OK = 0,
+  MAT_ALLOC_ERR,
+  MAT_EMPTY_ERR,
+  MAT_SIZE_ERR,
+  MAT_RANGE_ERR,
+  MAT_DET_ERR,
+  MAT_SOLVE_ERR,
+  MAT_EXP_ERR,
+} MatrixExceptions_t;
 
-Matrix createMatrixE(size_t rows, size_t cols);
 
-Matrix createMatrixR(size_t rows, size_t cols, int min, int max, int accuracy);
+MatrixExceptions_t malloc_matrix(size_t rows, size_t cols, Matrix *m);
 
-void freeMatrix(Matrix matrix);
+MatrixExceptions_t create_zero_matrix(size_t rows, size_t cols, Matrix *m);
 
-void printMatrix(Matrix matrix, int accuracy);
+MatrixExceptions_t create_unit_matrix(size_t rows, size_t cols, Matrix *m);
 
-Matrix addMatrix(Matrix matrixA, Matrix matrixB);
+MatrixExceptions_t create_random_matrix(Matrix *m, size_t rows, size_t cols, double min, double max, unsigned int accuracy);
 
-Matrix subMatrix(Matrix matrixA, Matrix matrixB);
+void free_matrix(Matrix *m);
 
-Matrix multiMatrix(Matrix matrixA, Matrix matrixB);
+MatrixExceptions_t print_matrix(const Matrix m, const int accuracy);
 
-Matrix transposeMatrix(Matrix matrix);
+MatrixExceptions_t add_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-Matrix multiplyMatrixByScalar(Matrix matrix, double scalar);
+MatrixExceptions_t sub_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-int calculate_max_width(Matrix matrix);
+MatrixExceptions_t multi_matrix(const Matrix A, const Matrix B, const Matrix C);
 
-double gauss_method(Matrix matrix);
+MatrixExceptions_t transpose_matrix(const Matrix src_matrix, const Matrix res_matrix);
 
-Matrix reverseMatrix(Matrix matrix);
+MatrixExceptions_t multiply_matrix_by_scalar(const Matrix src_matrix, double scalar, Matrix res_matrix);
 
-Matrix solveMatrixEquation(Matrix matrixA, Matrix matrixB);
+MatrixExceptions_t matrix_determinant_gauss_method(const Matrix matrix, double *det);
+
+MatrixExceptions_t reverse_matrix(const Matrix matrix, const Matrix reverse_matrix);
+
+MatrixExceptions_t solve_matrix_equation(const Matrix A, const Matrix B, const Matrix X);
+
+MatrixExceptions_t powerMatrix(const Matrix matrix, const unsigned int degree);
+
+MatrixExceptions_t expMatrix(const Matrix matrix, Matrix *EXPmatrix, const int accuracy);

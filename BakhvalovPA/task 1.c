@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-typedef long long int Money;    //коп.
+typedef long long int Money;    //КОП.
 const double INFLATION_RATE = 1.09;
 const double DEPOSIT_RATE = 0.2;
 
@@ -13,23 +13,15 @@ typedef struct Mortgage {
 } Mortgage;
 
 
-typedef struct Bike {
-    Money cost;
-    int month_bye;
-} Bike;
-
 
 typedef struct Person {
     Money salary;
     Money account;
     Mortgage mortgage;
     Money house_price;
-    Money food;
-    Money house_bills;
-    Money personal_expens;
+    Money expenses;
     Money deposit;
     Money rent;
-    Bike bike;
 
 } Person;
 
@@ -42,30 +34,22 @@ void alice_init()
 {
     alice.salary = 200 * 1000 * 100;
     alice.account = 1000 * 1000 * 100;
-
-    alice.food = 15 * 1000 *100;
-    alice.house_bills = 7 * 1000 * 100;
-    alice.personal_expens = 16 * 1000 * 100;
-    alice.mortgage.sum = 13 * 1000 * 1000 * 100;
+    alice.expenses = 30 * 1000 * 100;
+    alice.mortgage.sum = 20 * 1000 * 1000 * 100;
     alice.mortgage.first_pay = 1000 * 1000 * 100;
-    alice.mortgage.monthly_payment = 16137084;  // https://calcus.ru/kalkulyator-ipoteki
+    alice.mortgage.monthly_payment = 25550383;  // https://calcus.ru/kalkulyator-ipoteki
     alice.mortgage.mortgage_rate = 0.16;
     alice.account -= alice.mortgage.first_pay;
     alice.house_price = alice.mortgage.sum;
 
-    alice.bike.cost = 30 * 1000 * 100;
-    alice.bike.month_bye = 0;
 }
 
 
 void bob_init()
 {
     bob.salary = 200 * 1000 * 100;
-    bob.account = 1000 * 1000 * 100;
-
-    bob.food = 15 * 1000 * 100;
-    bob.house_bills = 7 * 1000 * 100;
-    bob.personal_expens = 16 * 1000 * 100;
+    bob.account =  1000 * 1000 * 100;
+    bob.expenses = 30 * 1000 * 100;
     bob.rent = 30 * 1000 * 100;
 }
 
@@ -74,7 +58,7 @@ void print_alice()
 {
     printf("Alice account = %lld RUB\n", alice.account / 100);
     printf("Alice house price = %lld RUB\n", alice.house_price / 100);
-    printf("Alice capital = %lld RUB\n", (alice.account + alice.house_price) / 100); 
+    printf("Alice capital = %lld RUB\n", (alice.account + alice.house_price) / 100);
 }
 
 
@@ -110,7 +94,7 @@ void alice_mortgage()
 
 void bob_rent(const int month)
 {
-    if (month == 12){
+    if (month == 12) {
         bob.rent *= INFLATION_RATE;
     }
     bob.account -= bob.rent;
@@ -119,42 +103,25 @@ void bob_rent(const int month)
 
 void alice_expenditure(const int month)
 {
-    if (month == 12){
-        alice.food *= INFLATION_RATE;
-        alice.house_bills *= INFLATION_RATE;
-        alice.personal_expens *= INFLATION_RATE;
+    if (month == 12) {
+        alice.expenses *= INFLATION_RATE;
     }
-    alice.account -= (alice.food + alice.house_bills + alice.personal_expens);
+    alice.account -= (alice.expenses);
 }
 
 
 void bob_expenditure(const int month)
 {
     if (month == 12) {
-        bob.food *= INFLATION_RATE;
-        bob.house_bills *= INFLATION_RATE;
-        bob.personal_expens *= INFLATION_RATE;
+        bob.expenses *= INFLATION_RATE;
     }
-    bob.account -= (bob.food + bob.house_bills + bob.personal_expens);
+    bob.account -= (bob.expenses);
 }
 
 
 void alice_house_price(const int month)
 {
     if (month == 1) alice.house_price *= INFLATION_RATE;
-}
-
-
-void alice_bike(const int month, const int year)
-{
-    alice.bike.month_bye += 1;
-
-    if (alice.bike.month_bye == 36) {
-        alice.account -= alice.bike.cost;
-        alice.bike.month_bye = 0;
-    }
-
-    if (month == 1) alice.bike.cost *= INFLATION_RATE;
 }
 
 
@@ -172,15 +139,14 @@ void bob_deposit(const int month)
 
 void simulation()
 {
-    int month = 9;
+    int month = 10;
     int year = 2024;
 
-    while( !((year == 2024 + 30) && (month == 9)) ) {
+    while (!((year == 2024 + 30) && (month == 10))) {
         alice_salary(month);
         alice_mortgage();
         alice_house_price(month);
         alice_expenditure(month);
-        alice_bike(year, month);
         alice_deposit(month);
 
         bob_salary(month);
@@ -190,7 +156,7 @@ void simulation()
 
 
         month++;
-        if(month == 13) {
+        if (month == 13) {
             month = 1;
             year++;
         }
