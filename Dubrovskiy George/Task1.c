@@ -7,17 +7,15 @@ const double INFLATION = 1.09;
 const double DEPOSIT_PERCENT = 1.0169; // при процентой ставке 20% годовых примерный процент в месяц 1.69%
 
 
-
-
-
-typedef struct  Mortgage {
+struct  Mortgage {
     Coins house_cost;
     Coins sum;
     Coins first_payment;   //ipoteka
     Coins monthly_payment;
     double mortgage_percent;
-}Mortgage;
-   
+} typedef Mortgage;
+
+
 typedef struct Deposit {
     Coins deposit;          //vklad
     double deposit_percent; 
