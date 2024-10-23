@@ -257,22 +257,32 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 
     Matrix E = matrix_identity(A.rows);
 
+    if (E.data == NULL) {
+        return MATRIX_NULL; // Проверка на успешное выделение памяти
+    }
+
     if (num == 1) {
         return E;
     }
     
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        Matrix tmp = matrix_power(A,cur_num);
-        tmp = matrix_by_scalar(tmp, 1/factorial(cur_num));
-
-        Matrix exp = matrix_sum(E, tmp);
-        memcpy(E.data, exp.data, exp.rows * exp.cols * sizeof(double));
-        
-        matrix_free(&tmp);
-        matrix_free(&exp);
+        Matrix tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) {
+            matrix_free(&E); 
+            return MATRIX_NULL;
         }
+
+        Matrix scaled_tmp = matrix_by_scalar(tmp, 1.0 / factorial(cur_num)); 
+
+        Matrix new_E = matrix_sum(E, scaled_tmp);
+        matrix_free(&E); 
+        E = new_E; 
+
+        matrix_free(&tmp); 
+        matrix_free(&scaled_tmp);
+    }
     
-    return E;
+    return E; // Возвращаем результирующую матрицу
 }
 
 
