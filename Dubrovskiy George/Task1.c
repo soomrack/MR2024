@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Coins;  // рассчет в копейках
+typedef long long int Coins;  // Г°Г Г±Г±Г·ГҐГІ Гў ГЄГ®ГЇГҐГ©ГЄГ Гµ
 
 const double INFLATION = 1.09;
-const double DEPOSIT_PERCENT = 1.0169;  // при процентой ставке 20% годовых примерный процент в месяц 1.69%
+const double DEPOSIT_PERCENT = 1.0169;  // ГЇГ°ГЁ ГЇГ°Г®Г¶ГҐГ­ГІГ®Г© Г±ГІГ ГўГЄГҐ 20% ГЈГ®Г¤Г®ГўГ»Гµ ГЇГ°ГЁГ¬ГҐГ°Г­Г»Г© ГЇГ°Г®Г¶ГҐГ­ГІ Гў Г¬ГҐГ±ГїГ¶ 1.69%
 
 
 struct  Mortgage {
@@ -13,18 +13,22 @@ struct  Mortgage {
     Coins first_payment;   // ipoteka
     Coins monthly_payment;
     double mortgage_percent;
-}typedef Mortgage;
-   
+};
+typedef struct Mortage Mortgage;
+
+
  struct Deposit {
     Coins deposit;          // vklad
     double deposit_percent;   
-}typedef Deposit;
+};
+typedef struct Deposit Deposit;
 
 
  struct Household{
     Coins food;
     Coins person_expens;  //household expens
-}typedef Household;
+};
+typedef struct Household Household;
 
 
 struct Person {
@@ -36,7 +40,8 @@ struct Person {
     Coins house_bills;
     Coins rent;
     Coins acaunt;
-}typedef Person;
+};
+typedef struct Person Person;
 
 
 Person alice;
@@ -168,13 +173,13 @@ void life(){
     while (!((year == start_year + 30) && (month == start_month))){
         
         alice_salary(month);
-        alice_house(month);     // alice.mortgage and alice.bills
-        alice_household(month);
+        alice_house(month);       // alice.mortgage and alice.bills
+        alice_household(month);  // alice.food and alice.person_expens
         alice_deposit(month);
         
         bob_salary(month);
         bob_house(month);      // bob.rent and bob.bills
-        bob_household(month);
+        bob_household(month);  // bob.food and bob.person_expens
         bob_deposit(month);
 
         month++;
