@@ -20,6 +20,9 @@ typedef enum {
 } Matrix_status;
 
 
+const Matrix EMPTY = {.cols = 0, .rows = 0, .data = NULL};
+
+
 Matrix_status matrix_alloc(Matrix* m_ptr, const size_t rows, const size_t cols)
 {
     if(m_ptr == NULL) return MAT_EMPTY_ERR;
@@ -80,7 +83,7 @@ Matrix_status matrix_ones(Matrix m)
 }
 
 
-Matrix_status matrix_copy(const Matrix m, Matrix m_new)
+Matrix_status matrix_copy(Matrix m_new, const Matrix m)
 {
     if(!matrix_equal_size(m, m_new)) return MAT_SIZE_ERR;
 
@@ -125,6 +128,17 @@ Matrix_status matrix_lower_triangular(Matrix m)
             m.data[rows_idx * m.rows + cols_idx] = 0.0;
         }
     }
+}
+
+
+int factorial(const int n)
+{
+    int result = 1;
+    for(int idx = 2; idx <= n; ++idx) {
+        result *= idx;
+    }
+
+    return result;
 }
 
 
@@ -195,14 +209,13 @@ Matrix_status matrix_mul(Matrix* m_result, const Matrix m1, const Matrix m2)
             for(size_t idx = 0; idx < m1.cols; ++idx) {
                 m_result->data[idx_rows * m_result->rows + idx_cols] += m1.data[idx_rows * m1.rows + idx] * m2.data[idx * m2.cols + idx_cols];
             }
-            
         }
     }
 
     return MAT_OK;
 }
 
-
+/*
 Matrix_status matrix_pow(Matrix m, double power)
 {
     for(size_t idx = 0; idx < m.rows * m.cols; ++idx) {
@@ -211,6 +224,10 @@ Matrix_status matrix_pow(Matrix m, double power)
 
     return MAT_OK;
 }
+*/
+
+
+
 
 
 Matrix_status matrix_random(Matrix m, const long int lower_limit, const long int higher_limit)
@@ -306,6 +323,29 @@ Matrix_status matrix_det(Matrix m, Matrix m_upper_triang)  // Метод Гау�
     return MAT_OK; 
 }
 
+/*
+Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
+{
+    if(!(matrix_is_square(M))) return MAT_SIZE_ERR;
+
+    Matrix M_tmp = {.cols = M.cols, .rows = M.rows};
+    Matrix* M_tmp_ptr = &M_tmp;
+
+    Matrix M_ones = {.cols = M.cols, .rows = M.rows};
+    Matrix* M_ones_ptr = &M_ones;
+    matrix_alloc(M_tmp_ptr, M.cols, M.rows);
+    matrix_alloc(M_ones_ptr, M.cols, M.rows);
+
+    matrix_add(M_exp, M_ones);  // k = 0
+    matrix_add(M_exp, M);  // k = 1
+
+    for(int k = 2; k <= 20; ++k) {
+        for(int idx = 0; idx <= k; ++idx) {
+            matrix_mul(M_tmp_ptr, M, M);
+        }
+    }
+}
+*/
 
 void matrix_print(const Matrix matrix)
 {
@@ -322,25 +362,63 @@ void matrix_print(const Matrix matrix)
 }
 
 
+Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
+{
+    if(!matrix_is_square(M)) return MAT_SIZE_ERR;
+    if(!matrix_equal_size(M_result, M)) return MAT_SIZE_ERR;
+
+    Matrix* M_result_ptr = &M_result;
+
+    Matrix M_temp;
+    Matrix* M_temp_ptr = &M_temp;
+    matrix_alloc(M_temp_ptr, M.cols, M.rows);
+
+    if(pow == 0) {
+        matrix_ones(M_result);
+        return MAT_OK;
+    }
+
+    if(pow == 1) {
+        matrix_copy(M_result, M);
+        return MAT_OK;
+    }
+
+    matrix_copy(M_temp, M);
+    for(int idx = 2; idx <= pow; ++idx) {
+        matrix_mul(M_result_ptr, M, M_temp);
+        if(idx == pow) break;
+        matrix_copy(M_temp, M_result);
+        matrix_zeros(M_result);
+    }
+
+    matrix_free(M_temp_ptr);
+
+    return MAT_OK;
+}
+
+
 int main(void)
 {
     Matrix m;
     Matrix* m_ptr = &m;
 
-    Matrix m_triang;
-    Matrix* m_triang_ptr = &m_triang;
-
-    matrix_alloc(m_ptr, 5, 5);
-    matrix_random(m, -6, 6);
-    matrix_alloc(m_triang_ptr, 5, 5);
-
+    Matrix m_res;
+    Matrix* m_res_ptr = &m_res;
+    
+    matrix_alloc(m_ptr, 3, 3);
+    //matrix_random(m, -6, 6);
+    matrix_alloc(m_res_ptr, 3, 3);
+    for(int idx = 0; idx < 9; ++idx) {
+        m.data[idx] = idx + 1;
+    }
     matrix_print(m);
     //matrix_copy(m, m_triang);
-    matrix_det(m, m_triang);
-    matrix_print(m_triang);
+    //matrix_det(m, m_triang);
+    matrix_pow(m_res, m, 4);
+    matrix_print(m_res);
 
     matrix_free(m_ptr);
-    matrix_free(m_triang_ptr);
+    matrix_free(m_res_ptr);
 
     return 0;
 }
