@@ -47,6 +47,36 @@ Matrix_status matrix_free(Matrix* m_ptr)
 }
 
 
+double matrix_get(const Matrix M, size_t row_number, size_t col_number)
+{
+    return M.data[row_number * M.cols + col_number];
+}
+
+
+double matrix_get_max_element(const Matrix M)
+{
+    double max_element = M.data[0];
+
+    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
+        if(M.data[idx] > max_element) max_element = M.data[idx];
+    }
+
+    return max_element;
+}
+
+
+double matrix_get_max_absolute_element(const Matrix M)
+{
+    double max_element = M.data[0];
+
+    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
+        if(fabs(M.data[idx]) > max_element) max_element = fabs(M.data[idx]);
+    }
+
+    return max_element;
+}
+
+
 unsigned char matrix_equal_size(const Matrix m1, const Matrix m2)
 {
     return (m1.rows == m2.rows && m1.cols == m2.cols);
@@ -95,7 +125,7 @@ Matrix_status matrix_copy(Matrix m_new, const Matrix m)
 }
 
 
-Matrix_status matrix_unitriangular(Matrix m)
+Matrix_status matrix_identity(Matrix m)
 {
     if(!matrix_is_square(m)) return MAT_SIZE_ERR;
 
@@ -131,11 +161,11 @@ Matrix_status matrix_lower_triangular(Matrix m)
 }
 
 
-int factorial(const int n)
+double factorial(const int n)
 {
-    int result = 1;
+    long double result = 1;
     for(int idx = 2; idx <= n; ++idx) {
-        result *= idx;
+        result *= (double)idx;
     }
 
     return result;
@@ -338,7 +368,7 @@ Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
     matrix_alloc(M_temp_ptr, M.cols, M.rows);
 
     if(pow == 0) {
-        matrix_ones(M_result);
+        matrix_identity(M_result);
         return MAT_OK;
     }
 
@@ -364,32 +394,41 @@ Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
 
 Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
 {
-    if(!(matrix_is_square(M))) return MAT_SIZE_ERR;
+    if(!matrix_is_square(M)) return MAT_SIZE_ERR;
+    if(!matrix_equal_size(M_exp, M)) return MAT_SIZE_ERR;
 
     Matrix M_tmp = {.cols = M.cols, .rows = M.rows};
     Matrix* M_tmp_ptr = &M_tmp;
 
-    Matrix M_ones = {.cols = M.cols, .rows = M.rows};
-    Matrix* M_ones_ptr = &M_ones;
+    size_t idx;
+
     matrix_alloc(M_tmp_ptr, M.cols, M.rows);
-    matrix_alloc(M_ones_ptr, M.cols, M.rows);
-
-    matrix_ones(M_ones);
-
-    matrix_add(M_exp, M_ones);  // k = 0
-    matrix_add(M_exp, M);  // k = 1
-
-    for(int k = 2; k <= 10; ++k) {
+    int k = 0;
+    while(1) {
         matrix_pow(M_tmp, M, k);
-        matrix_mul_num(M_tmp, 1.0/(double)factorial(k));
+        matrix_mul_num(M_tmp, 1.0/factorial(k));
+        //printf("1/factorial(%d) = %lf\n", k, 1.0/factorial(k));
+
+        //printf("k = %d\n", k);
+        //puts("M_tmp\n");
+        
+        //matrix_print(M_tmp);
+        //printf("%f\n", matrix_get_max_element(M_tmp));
+
+        
         matrix_add(M_exp, M_tmp);
+        if(matrix_get_max_absolute_element(M_tmp) < 0.001) {
+            //printf("%f\n", matrix_get_max_absolute_element(M_tmp));
+            //matrix_print(M_exp);
+            matrix_free(M_tmp_ptr);
+            puts("Заданная точность достигнута.");
+            return MAT_OK;
+        }
+        //puts("M_exp\n");
         matrix_zeros(M_tmp);
+        ++k;
     }
 
-    matrix_free(M_tmp_ptr);
-    matrix_free(M_ones_ptr);
-
-    return MAT_OK;
 }
 
 
@@ -402,23 +441,29 @@ int main(void)
     Matrix m_res;
     Matrix* m_res_ptr = &m_res;
     
-    matrix_alloc(m_ptr, 3, 3);
+    matrix_alloc(m_ptr, 2, 2);
     //matrix_random(m, -6, 6);
-    matrix_alloc(m_res_ptr, 3, 3);
+    matrix_alloc(m_res_ptr, 2, 2);
+    
     /*
     for(int idx = 0; idx < 4; ++idx) {
         m.data[idx] = idx + 1;
     }
     */
-    m.data[0] = 4;
-    m.data[1] = 10;
-    m.data[2] = 18;
-    m.data[3] = 3;
+    
+
+    m.data[0] = 6.0;
+    m.data[1] = 4.0;
+    m.data[2] = 5.0;
+    m.data[3] = -4.0;
+    
+    /*
     m.data[4] = 9;
     m.data[5] = 17;
     m.data[6] = 2;
     m.data[7] = 8;
     m.data[8] = 16;
+    */
     
     matrix_print(m);
     //matrix_copy(m, m_triang);
@@ -426,9 +471,11 @@ int main(void)
     //matrix_pow(m_res, m, 4);
     matrix_exp(m_res, m);
     matrix_print(m_res);
+    //printf("%f\n", matrix_get_max_absolute_element(m));
 
     matrix_free(m_ptr);
     matrix_free(m_res_ptr);
-
+    
+    
     return 0;
 }
