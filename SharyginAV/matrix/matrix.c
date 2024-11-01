@@ -23,33 +23,51 @@ typedef enum {
 const Matrix EMPTY = {.cols = 0, .rows = 0, .data = NULL};
 
 
-Matrix_status matrix_alloc(Matrix* m_ptr, const size_t rows, const size_t cols)
+Matrix_status matrix_alloc(Matrix* M_ptr, const size_t rows, const size_t cols)
 {
-    if(m_ptr == NULL) return MAT_EMPTY_ERR;
+    if(M_ptr == NULL) return MAT_EMPTY_ERR;
 
     if(rows != 0 && cols != 0) {
         if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
-        m_ptr -> data = (double*)malloc(rows * cols * sizeof(double));
-        if(m_ptr -> data == NULL) return MAT_ALLOC_ERR;
+        M_ptr -> data = (double*)malloc(rows * cols * sizeof(double));
+        if(M_ptr -> data == NULL) return MAT_ALLOC_ERR;
     }
     
-    m_ptr -> rows = rows;
-    m_ptr -> cols = cols;
+    M_ptr -> rows = rows;
+    M_ptr -> cols = cols;
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_free(Matrix* m_ptr)
+Matrix_status matrix_free(Matrix* M_ptr)
 {
-    free(m_ptr -> data);
+    free(M_ptr -> data);
     return MAT_OK;
 }
 
 
-double matrix_get(const Matrix M, size_t row_number, size_t col_number)
+double matrix_get(const Matrix M, const size_t row_number, const size_t col_number)
 {
+    if(row_number > M.rows || col_number > M.cols) {
+        puts("Недопустимый индекс");
+        return MAT_SIZE_ERR;
+    }
+
     return M.data[row_number * M.cols + col_number];
+}
+
+
+Matrix_status matrix_set(Matrix M, double element, const size_t row_number, const size_t col_number)
+{
+    if(row_number > M.rows || col_number > M.cols) {
+        puts("Недопустимый индекс");
+        return MAT_SIZE_ERR;
+    }
+
+    M.data[row_number * M.cols + col_number] = element;
+
+    return MAT_OK;
 }
 
 
@@ -74,6 +92,12 @@ double matrix_get_max_absolute_element(const Matrix M)
     }
 
     return max_element;
+}
+
+
+unsigned char matrix_is_empty(const Matrix M)
+{
+    return (M.data == NULL);
 }
 
 
@@ -378,16 +402,18 @@ Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
     }
 
     matrix_copy(M_temp, M);
+    
     for(int idx = 2; idx <= pow; ++idx) {
         matrix_mul(M_result_ptr, M, M_temp);
-        if(idx == pow) break;
+
+        if(idx == pow) {
+            matrix_free(M_temp_ptr);
+            return MAT_OK;
+        }
+
         matrix_copy(M_temp, M_result);
         matrix_zeros(M_result);
     }
-
-    matrix_free(M_temp_ptr);
-
-    return MAT_OK;
 }
 
 
@@ -400,31 +426,19 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
     Matrix M_tmp = {.cols = M.cols, .rows = M.rows};
     Matrix* M_tmp_ptr = &M_tmp;
 
-    size_t idx;
-
     matrix_alloc(M_tmp_ptr, M.cols, M.rows);
     int k = 0;
+
     while(1) {
         matrix_pow(M_tmp, M, k);
         matrix_mul_num(M_tmp, 1.0/factorial(k));
-        //printf("1/factorial(%d) = %lf\n", k, 1.0/factorial(k));
-
-        //printf("k = %d\n", k);
-        //puts("M_tmp\n");
-        
-        //matrix_print(M_tmp);
-        //printf("%f\n", matrix_get_max_element(M_tmp));
-
-        
         matrix_add(M_exp, M_tmp);
+
         if(matrix_get_max_absolute_element(M_tmp) < 0.001) {
-            //printf("%f\n", matrix_get_max_absolute_element(M_tmp));
-            //matrix_print(M_exp);
             matrix_free(M_tmp_ptr);
-            puts("Заданная точность достигнута.");
             return MAT_OK;
         }
-        //puts("M_exp\n");
+
         matrix_zeros(M_tmp);
         ++k;
     }
@@ -436,12 +450,12 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
 int main(void)
 {
     Matrix m;
-    Matrix* m_ptr = &m;
+    Matrix* M_ptr = &m;
 
     Matrix m_res;
     Matrix* m_res_ptr = &m_res;
     
-    matrix_alloc(m_ptr, 2, 2);
+    matrix_alloc(M_ptr, 2, 2);
     //matrix_random(m, -6, 6);
     matrix_alloc(m_res_ptr, 2, 2);
     
@@ -473,7 +487,7 @@ int main(void)
     matrix_print(m_res);
     //printf("%f\n", matrix_get_max_absolute_element(m));
 
-    matrix_free(m_ptr);
+    matrix_free(M_ptr);
     matrix_free(m_res_ptr);
     
     
