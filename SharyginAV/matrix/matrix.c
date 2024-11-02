@@ -16,7 +16,8 @@ typedef enum {
     MAT_OK = 0,
     MAT_ALLOC_ERR = 1,
     MAT_EMPTY_ERR = 2,
-    MAT_SIZE_ERR = 3
+    MAT_SIZE_ERR = 3,
+    MAT_NULL_ERR = 4
 } Matrix_status;
 
 
@@ -52,7 +53,7 @@ double matrix_get(const Matrix M, const size_t row_number, const size_t col_numb
     if(row_number > M.rows || col_number > M.cols) {
         puts("Недопустимый индекс");
         return MAT_SIZE_ERR;
-    }
+    }   
 
     return M.data[row_number * M.cols + col_number];
 }
@@ -244,10 +245,36 @@ Matrix_status matrix_sub(Matrix m1, const Matrix m2)
 }
 
 
+Matrix_status matrix_sub_rows(Matrix M, const size_t row_minuend, const size_t row_sub)
+// row_minuend - уменьшаемая строка, row_sub - вычитаемая строка
+{
+    if(M.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+
+    for(size_t idx = 0; idx < M.cols; ++idx) {
+        M.data[row_minuend * M.cols + idx] -= M.data[row_sub * M.cols + idx];
+    }
+
+    return MAT_OK;
+}
+
+
 Matrix_status matrix_mul_num(Matrix m, const double num)
 {
     for(size_t idx = 0; idx < m.rows * m.cols; ++idx) {
         m.data[idx] *= num;
+    }
+
+    return MAT_OK;
+}
+
+
+Matrix_status matrix_row_mul_num(Matrix M, const size_t row_num, const double num)
+{
+    for(size_t idx = 0; idx < M.cols; ++idx) {
+        M.data[row_num * M.cols + idx] *= num;
     }
 
     return MAT_OK;
@@ -294,76 +321,6 @@ Matrix_status matrix_transp(Matrix m, Matrix m_transp)
     return MAT_OK;
 }
 
-/*
-Matrix_status matrix_det(const Matrix m)  // разложение по первой строке. Стоит сделать отдельную функцию для получения минора 
-{
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
-
-    double det = 0;
-
-    if(m.rows == 2) {
-            det = m.data[0] * m.data[3] - m.data[1] * m.data[2];
-
-            printf("%.3f\n", det);
-            return MAT_OK;
-    }
-
-    for(size_t idx = 0; idx < m.cols; ++idx) {
-        Matrix m_minor;
-        Matrix* m_minor_ptr = &m_minor;
-        short next_col = 0;
-        matrix_alloc(m_minor_ptr, m.rows - 1, m.cols - 1);
-        for(size_t rows_idx = 0; rows_idx < m_minor.rows; ++rows_idx) {
-            for(size_t cols_idx = 0; cols_idx < m_minor.cols; ++cols_idx) {
-                if(cols_idx == idx) {
-                    next_col = 1;
-                }
-                m_minor.data[rows_idx * m_minor.cols + cols_idx] = m.data[(rows_idx + 1) * m.cols + cols_idx + next_col];
-            }
-        }
-
-        if(m_minor.rows == 2) {
-            det += m_minor.data[0] * m_minor.data[2] - m_minor.data[1] * m_minor.data[3];
-            matrix_free(m_minor_ptr);
-        }
-        else matrix_det(m_minor);
-        next_col = 0;
-
-        
-    }
-
-    printf("%.3lf\n", det);
-    return MAT_OK;
-    
-}
-*/
-
-
-Matrix_status matrix_det(Matrix m, Matrix m_upper_triang)  // Метод Гаусса
-{
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
-
-    double r_elem, det = 1;  // r_elem число, на которое умножается строка при сложении с другими строками
-    matrix_copy(m, m_upper_triang);
-
-    for(size_t idx = 0; idx < m.rows - 1; ++idx) {
-        for(size_t rows_idx = idx + 1; rows_idx < m.rows; ++rows_idx) {
-            r_elem = m_upper_triang.data[rows_idx * m_upper_triang.cols + idx] / m_upper_triang.data[idx * m_upper_triang.cols + idx];
-            for(size_t cols_idx = 0; cols_idx < m.cols; ++cols_idx) {
-                m_upper_triang.data[rows_idx * m_upper_triang.cols + cols_idx] -= m_upper_triang.data[idx * m_upper_triang.cols + cols_idx] * r_elem;
-            }
-        }
-    }
-
-    for(size_t idx = 0; idx < m_upper_triang.cols; ++idx) {
-        det *= m_upper_triang.data[idx * m_upper_triang.cols + idx];
-    }
-
-    printf("%.3lf\n", det);
-    return MAT_OK; 
-}
-
-
 
 void matrix_print(const Matrix matrix)
 {
@@ -377,6 +334,50 @@ void matrix_print(const Matrix matrix)
         printf("\n");
     }
     printf("\n");
+}
+
+
+Matrix_status matrix_det(Matrix M)  // Метод Гаусса
+{
+    if(!matrix_is_square(M)) {
+        puts("Матрица не квадратная");
+        return MAT_SIZE_ERR;
+    }
+
+    if(M.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+
+    double det = 1;
+    Matrix M_tmp;
+    Matrix* M_tmp_ptr = &M_tmp;
+    matrix_alloc(M_tmp_ptr, M.rows, M.cols);
+
+    matrix_copy(M_tmp, M);
+
+    for(size_t idx_main = 0; idx_main < M.rows - 1; ++idx_main) {
+
+        for(size_t idx = idx_main; idx < M.rows; ++idx) {
+            det *= M_tmp.data[idx * M.cols + idx_main];
+            printf("%.3f\n", M_tmp.data[idx * M.cols + idx_main]);
+            matrix_row_mul_num(M_tmp, idx, 1.0/M_tmp.data[idx * M.cols + idx_main]);
+            
+            
+        }
+        matrix_print(M_tmp);
+
+        for(size_t idx_2 = idx_main + 1; idx_2 < M.rows ; ++idx_2) {
+            matrix_sub_rows(M_tmp, idx_2, idx_main);
+        }
+        matrix_print(M_tmp);
+        
+    }
+
+    det *= M_tmp.data[M.rows * M.cols - 1];
+    matrix_free(M_tmp_ptr);
+    printf("%.3lf\n", det);
+    return MAT_OK;
 }
 
 
@@ -449,15 +450,15 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
 
 int main(void)
 {
-    Matrix m;
-    Matrix* M_ptr = &m;
+    Matrix M;
+    Matrix* M_ptr = &M;
 
-    Matrix m_res;
-    Matrix* m_res_ptr = &m_res;
+    //Matrix m_upper_triang;
+    //Matrix* m_upper_triang_ptr = &m_upper_triang;
     
-    matrix_alloc(M_ptr, 2, 2);
+    matrix_alloc(M_ptr, 3, 3);
     //matrix_random(m, -6, 6);
-    matrix_alloc(m_res_ptr, 2, 2);
+    //matrix_alloc(m_upper_triang_ptr, 3, 3);
     
     /*
     for(int idx = 0; idx < 4; ++idx) {
@@ -466,29 +467,28 @@ int main(void)
     */
     
 
-    m.data[0] = 6.0;
-    m.data[1] = 4.0;
-    m.data[2] = 5.0;
-    m.data[3] = -4.0;
+    M.data[0] = 15.0;
+    M.data[1] = 14.0;
+    M.data[2] = 12.0;
+    M.data[3] = 6.0;
+    M.data[4] = 7.0;
+    M.data[5] = 1.0;
+    M.data[6] = 54.0;
+    M.data[7] = 5.0;
+    M.data[8] = 7.0;
     
-    /*
-    m.data[4] = 9;
-    m.data[5] = 17;
-    m.data[6] = 2;
-    m.data[7] = 8;
-    m.data[8] = 16;
-    */
-    
-    matrix_print(m);
+    matrix_print(M);
     //matrix_copy(m, m_triang);
-    //matrix_det(m, m_triang);
+    matrix_det(M);
     //matrix_pow(m_res, m, 4);
-    matrix_exp(m_res, m);
-    matrix_print(m_res);
+    //matrix_det(m, m_upper_triang);
+    //matrix_print(m_res);
     //printf("%f\n", matrix_get_max_absolute_element(m));
+    //matrix_row_mul_num(M, 2, 2);
+    //matrix_print(M);
 
     matrix_free(M_ptr);
-    matrix_free(m_res_ptr);
+    //matrix_free(m_upper_triang_ptr);
     
     
     return 0;
