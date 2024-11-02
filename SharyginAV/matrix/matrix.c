@@ -361,8 +361,6 @@ Matrix_status matrix_det(Matrix M)  // Метод Гаусса
         for(size_t idx = idx_main; idx < M.rows; ++idx) {
             det *= M_tmp.data[idx * M.cols + idx_main];
             matrix_row_mul_num(M_tmp, idx, 1.0/M_tmp.data[idx * M.cols + idx_main]);
-            
-            
         }
 
         for(size_t idx_2 = idx_main + 1; idx_2 < M.rows ; ++idx_2) {
