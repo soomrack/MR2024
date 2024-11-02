@@ -360,18 +360,14 @@ Matrix_status matrix_det(Matrix M)  // Метод Гаусса
 
         for(size_t idx = idx_main; idx < M.rows; ++idx) {
             det *= M_tmp.data[idx * M.cols + idx_main];
-            printf("%.3f\n", M_tmp.data[idx * M.cols + idx_main]);
             matrix_row_mul_num(M_tmp, idx, 1.0/M_tmp.data[idx * M.cols + idx_main]);
             
             
         }
-        matrix_print(M_tmp);
 
         for(size_t idx_2 = idx_main + 1; idx_2 < M.rows ; ++idx_2) {
             matrix_sub_rows(M_tmp, idx_2, idx_main);
-        }
-        matrix_print(M_tmp);
-        
+        }  
     }
 
     det *= M_tmp.data[M.rows * M.cols - 1];
@@ -467,14 +463,14 @@ int main(void)
     */
     
 
-    M.data[0] = 15.0;
-    M.data[1] = 14.0;
-    M.data[2] = 12.0;
-    M.data[3] = 6.0;
-    M.data[4] = 7.0;
-    M.data[5] = 1.0;
-    M.data[6] = 54.0;
-    M.data[7] = 5.0;
+    M.data[0] = 73.0;
+    M.data[1] = 7.0;
+    M.data[2] = 6.0;
+    M.data[3] = 110.0;
+    M.data[4] = 16.0;
+    M.data[5] = 19.0;
+    M.data[6] = 148.0;
+    M.data[7] = 10.0;
     M.data[8] = 7.0;
     
     matrix_print(M);
