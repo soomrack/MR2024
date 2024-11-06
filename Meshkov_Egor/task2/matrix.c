@@ -698,7 +698,6 @@ MatrixExceptions matrix_exponent(Matrix *EXPmatrix, const Matrix matrix, const i
         matrix_print_log(LOG_WARNING, "matrix used initialized\n");
         matrix_print_log(LOG_NOTE, "please, declare matrix like this: \"Matrix M = EMPTY;\"\n");
         matrix_free(EXPmatrix);
-        *EXPmatrix = EMPTY;
     }
     
     MatrixExceptions status = matrix_create_unit(EXPmatrix, matrix.rows, matrix.cols);
