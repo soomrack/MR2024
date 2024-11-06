@@ -3,7 +3,7 @@ CC=gcc
 # Флаги
 CFLAGS=-c -Wall
 #Подключение библиотек
-LDFLAGS=-lm
+LDFLAGS=-lm -lcunit
 # Файлы для компиляции
 SOURCES=matrix.c main.c
 # Объектные файлы
