@@ -121,16 +121,4 @@ int main () {
     matrix_free(&A);
     matrix_free(&B);
     matrix_free(&mul_result);
-    //data = malloc(cols * rows * syzeof(data));
-
-
-    //if(data == NULL){
-    //error
-    //}
-    //free(data);
-    // нужно сделать сложение деление вычитание умножение определитель экспонента (экспонента представленная в виде ряда, только вместо x в нем матрица) матриц
-    //функции возвращают статутс выполенения действия над матрицами, а не новую матрицу
-    //memcpy(A.data,B.data,A.cols * A.rows * sizeof(data)) копирование памяти
-    //memset(A.data, A.cols * A.rows * sizeof(data), 0) обнуление памяти
-    //NAN  - не число
 }
