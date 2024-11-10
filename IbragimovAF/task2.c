@@ -11,6 +11,7 @@ struct Matrix {
     double* data;
 } Matrix;
 
+
 struct Matrix matrix_allocreate(const size_t cols, const size_t rows) {
     struct Matrix A = {0, 0, NULL};
     if (cols == 0 || rows == 0)return A;
@@ -25,6 +26,7 @@ struct Matrix matrix_allocreate(const size_t cols, const size_t rows) {
     };
     return A;
 }
+
 
 void matrix_free(struct Matrix *A) {
     if(A == NULL)return;
@@ -63,6 +65,7 @@ void matrix_print(const struct Matrix A) {
     printf("\n");
 }
 
+
 int matrix_add(const struct Matrix A,const struct Matrix B) {
     if(!((A.cols == B.cols) && (A.rows == B.rows)))return 1;
 
@@ -75,7 +78,7 @@ int matrix_add(const struct Matrix A,const struct Matrix B) {
 
 int matrix_sub(const struct Matrix A,const struct Matrix B) {
     if(!((A.cols == B.cols) && (A.rows == B.rows)))return 1;
-
+    
     for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] -= B.data[idx];
     }
@@ -85,6 +88,7 @@ int matrix_sub(const struct Matrix A,const struct Matrix B) {
 
 int matrix_mul(const struct Matrix A,const struct Matrix B, struct Matrix Res) {
     if(!((A.cols == B.rows)))return 1;
+    
     for (size_t B_col = 0; B_col< B.cols; B_col++) {
         for(size_t A_row = 0; A_row < A.rows; A_row++) {
             for(size_t B_row = 0; B_row< B.rows; B_row++) {
@@ -116,7 +120,6 @@ int main () {
     } else {
         matrix_print(mul_result);
     }
-
 
     matrix_free(&A);
     matrix_free(&B);
