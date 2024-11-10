@@ -102,14 +102,14 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 {
     if (A.cols != B.rows)
     {
-        return (struct Matrix){0, 0, NULL}; // Ошибка: количество столбцов A не равно количеству строк B
+        return (struct Matrix){0, 0, NULL};
     }
 
     struct Matrix C = matrix_allocate(B.cols, A.rows);
 
     if (C.data == NULL)
     {
-        return C; // Ошибка выделения памяти
+        return C;
     }
 
     for (size_t i = 0; i < A.rows; ++i)
@@ -165,18 +165,17 @@ double determinant(struct Matrix A)
     // Разложение по первой строке
     for (int i = 0; i < A.cols; i++)
     {
-        // Создаем минор для текущего элемента
         struct Matrix minor = matrix_allocate(A.cols  - 1, A.rows- 1);
 
-        // Заполняем минор, пропуская строку 0 и столбец i
+
         int minor_row = 0;
         for (int j = 1; j < A.rows; j++)
-        { // Пропускаем первую строку
+        {
             int minor_col = 0;
             for (int k = 0; k < A.cols; k++)
-            { // Проходим по столбцам
+            {
                 if (k != i)
-                { // Пропускаем i-й столбец
+                {
                     minor.data[minor_row * (A.cols - 1) + minor_col] = A.data[j * A.cols + k];
                     minor_col++;
                 }
@@ -184,14 +183,10 @@ double determinant(struct Matrix A)
             minor_row++;
         }
 
-        // Рекурсивно вычисляем определитель минорной матрицы
         double minor_det = determinant(minor);
-
-        // Прибавляем или вычитаем значение с учётом знака
 
         det += (i % 2 == 0 ? 1 : -1) * A.data[i] * minor_det;
 
-        // Освобождаем память, занятую минором
         free(minor.data);
     }
 
