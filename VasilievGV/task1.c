@@ -2,10 +2,13 @@
 #include <math.h>
 
 typedef long long int Cash;
+
 typedef double PercentagePt;
-const double INFLATION_RATE = 0.09;
+
 const double INDEXSATION_RATE = 0.07;
 const double DEPOSITE_RATE = 0.2;
+const double INFLATION_RATE = 0.09;
+
 
 typedef struct {
     Cash salary;
@@ -20,8 +23,8 @@ typedef struct {
 typedef struct {
     PercentagePt mortgage_rate;
     Cash sum_of_mortgage;
-    Cash first_pay;
     Cash monthly_pay;
+    Cash first_pay;
     int duration_years;
     int start_year;
     int start_month;
