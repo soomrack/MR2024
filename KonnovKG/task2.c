@@ -37,7 +37,7 @@ Matrix matrix_allocate(const Matrix frame)
         return (Matrix){frame.rows, frame.cols, NULL};
     }
 
-    if (1 > SIZE_MAX / (frame.rows * frame.cols * sizeof(double))) {
+    if (1 >= SIZE_MAX / (frame.rows * frame.cols * sizeof(double))) {
         matrix_error(ERROR, "Memory allocation failed: size_t overflow.\n");
         return MATRIX_ZERO;
     }
@@ -65,9 +65,10 @@ void matrix_pass_array(Matrix *matrix, double array_name[])
 
 void memory_free(Matrix *matrix)
 {
-    if (&matrix != NULL) {
+    if (matrix != NULL) {
         matrix->rows = 0;
         matrix->cols = 0;
+        free(matrix->data);
         matrix->data = NULL;
     }
 }
@@ -97,11 +98,8 @@ void matrix_copy(Matrix destination, const Matrix source) {
         return;
     }
 
-    for (size_t row = 0; row < source.rows; ++row) {
-        for (size_t col = 0; col < source.cols; ++col) {
-            memcpy(destination.data, source.data, source.rows * source.cols * sizeof(double));
-        }
-    }
+    memcpy(destination.data, source.data, source.rows * source.cols * sizeof(double));
+
 }
 
 
@@ -285,8 +283,8 @@ Matrix matrix_identity(const size_t rows, const size_t cols) {
 
     memset(identity_matrix.data, 0, identity_matrix.rows * identity_matrix.cols * sizeof(double));
 
-    for (size_t i = 0; i < identity_matrix.rows; ++i) {
-        identity_matrix.data[i * identity_matrix.cols + i] = 1.0;
+    for (size_t idx = 0; idx < identity_matrix.rows * identity_matrix.cols; idx+=identity_matrix.cols+1) {
+        identity_matrix.data[idx] = 1.0;
     }
 
     return identity_matrix;
