@@ -1,36 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
+#include <limits.h>
 
-
-typedef struct {
+struct Matrix{
     size_t rows;
     size_t cols;
     double *data;
-} Matrix;
+};
+typedef struct Matrix Matrix;
 
 
 Matrix MATRIX_ZERO = {0, 0, NULL};
 
+enum MatrixException {ERROR, WARNING, INFO, DEBUG};
+typedef enum MatrixException MatrixException;
 
-void matrix_error(int error_level, const char *message)
+
+void matrix_error(const enum MatrixException error_level, const char *message)
 {
-    if (error_level == 1) {
-        fprintf(stderr, "Message: %s\n" , message);
+    if (error_level == ERROR) {
+        fprintf(stderr, "ERROR: %s" , message);
     }
-    if (error_level == 2) {
-        fprintf(stderr, "Message: %s\n", message);
+    if (error_level == WARNING) {
+        fprintf(stderr, "WARNING: %s", message);
     }
 }
 
 
-Matrix matrix_allocate(Matrix frame)
+Matrix matrix_allocate(const Matrix frame)
 {
     Matrix matrix = MATRIX_ZERO;
 
     if (frame.rows == 0 || frame.cols == 0) {
-        matrix_error(1, "You have inserted zero matrix.\n");
-        return matrix;
+        return (Matrix){frame.rows, frame.cols, NULL};
+    }
+
+    if (frame.rows * frame.cols > SIZE_MAX / sizeof(double)) {
+        matrix_error(ERROR, "Memory allocation failed: size_t overflow.\n");
+        return MATRIX_ZERO;
     }
 
     matrix.rows = frame.rows;
@@ -38,7 +47,7 @@ Matrix matrix_allocate(Matrix frame)
     matrix.data = malloc((matrix.rows * matrix.cols) * sizeof(double));
 
     if (matrix.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
+        matrix_error(ERROR, "Memory allocation failed.\n");
         matrix = MATRIX_ZERO;
         return matrix;
     }
@@ -50,10 +59,7 @@ Matrix matrix_allocate(Matrix frame)
 void matrix_pass_array(Matrix *matrix, double array_name[])
 {
     *matrix = matrix_allocate(*matrix);
-
-    for (size_t idx = 0; idx < matrix->rows * matrix->cols; idx++) {
-        matrix->data[idx] = array_name[idx];
-    }
+    memcpy(matrix->data, array_name, matrix->rows * matrix->cols * sizeof(double));
 }
 
 
@@ -61,12 +67,14 @@ void memory_free(Matrix *matrix)
 {
     matrix->rows = 0;
     matrix->cols = 0;
-    free(matrix->data);
+    if (matrix->data != NULL) {
+        free(matrix->data);
+    }
     matrix->data = NULL;
 }
 
 
-void matrix_print(Matrix *matrix, const char *message)
+void matrix_print(const Matrix *matrix, const char *message)
 {
     printf("%s", message);
     if (matrix->data == NULL) {
@@ -83,7 +91,13 @@ void matrix_print(Matrix *matrix, const char *message)
 }
 
 
-void matrix_copy(Matrix destination, Matrix source) {
+void matrix_copy(Matrix destination, const Matrix source) {
+
+    if (destination.rows != source.rows || destination.cols != source.cols) {
+        matrix_error(ERROR, "Unable to copy matrixes of different sizes.\n");
+        return;
+    }
+
     for (size_t row = 0; row < source.rows; ++row) {
         for (size_t col = 0; col < source.cols; ++col) {
             destination.data[row * destination.cols + col] = source.data[row * source.cols + col];
@@ -92,200 +106,162 @@ void matrix_copy(Matrix destination, Matrix source) {
 }
 
 
-Matrix matrix_sum (Matrix A, Matrix B)
+Matrix matrix_sum (const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error(ERROR, "Unable to add matrixes of different sizes.\n");
         return MATRIX_ZERO;
     }
 
-    Matrix new_matrix_add = {A.rows, A.cols};
-    new_matrix_add = matrix_allocate(new_matrix_add);
+    Matrix C = {A.rows, A.cols, NULL};
+    C = matrix_allocate(C);
 
-    if (new_matrix_add.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] + B.data[idx];
     }
 
-    for (size_t idx = 0; idx < new_matrix_add.rows * new_matrix_add.cols; idx++) {
-        new_matrix_add.data[idx] = A.data[idx] + B.data[idx];
-    }
-
-    return new_matrix_add;
+    return C;
 }
 
 
-Matrix matrix_subtract (Matrix A, Matrix B)
+Matrix matrix_subtract (const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error(ERROR, "Unable to subtract matrixes of different sizes.\n");
         return MATRIX_ZERO;
     }
 
-    Matrix new_matrix_subtract = {A.rows, A.cols};
-    new_matrix_subtract = matrix_allocate(new_matrix_subtract);
+    Matrix C = {A.rows, A.cols, NULL};
+    C = matrix_allocate(C);
 
-    if (new_matrix_subtract.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] - B.data[idx];
     }
 
-    for (size_t idx = 0; idx < new_matrix_subtract.rows * new_matrix_subtract.cols; idx++) {
-        new_matrix_subtract.data[idx] = A.data[idx] - B.data[idx];
-    }
-
-    return new_matrix_subtract;
+    return C;
 }
 
 
-Matrix matrix_multiply (Matrix A, Matrix B)
+Matrix matrix_multiply (const Matrix A, const Matrix B)
 {
     if (A.cols != B.rows) {
+        matrix_error(ERROR, "Unable to multiply matrixes of given sizes.\n");
         return MATRIX_ZERO;
     }
 
-    Matrix new_matrix_multi = {A.rows, B.cols};
-    new_matrix_multi = matrix_allocate(new_matrix_multi);
+    Matrix C = {A.rows, B.cols, NULL};
+    C = matrix_allocate(C);
 
-    if (new_matrix_multi.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
-    }
-
-    for (size_t row = 0; row < new_matrix_multi.rows; row++) {
-        for (size_t col = 0; col < new_matrix_multi.cols; col++) {
-            new_matrix_multi.data[row * new_matrix_multi.cols + col] = 0;
+    for (size_t row = 0; row < C.rows; row++) {
+        for (size_t col = 0; col < C.cols; col++) {
+            C.data[row * C.cols + col] = 0;
             for (size_t k = 0; k < A.cols; k++) {
-                new_matrix_multi.data[row * new_matrix_multi.cols + col] += A.data[row * A.cols + k] * B.data[k * B.cols + col];
+                C.data[row * C.cols + col] += A.data[row * A.cols + k] * B.data[k * B.cols + col];
             }
         }
     }
-    return new_matrix_multi;
 
+    return C;
 }
 
 
-Matrix matrix_multi_by_number (Matrix A, double number)
+Matrix matrix_multi_by_number (const Matrix A, const double number)
 {
-    Matrix new_matrix_multi_by_number = {A.cols, A.rows};
-    new_matrix_multi_by_number = matrix_allocate(new_matrix_multi_by_number);
+    Matrix C = {A.cols, A.rows, NULL};
+    C = matrix_allocate(C);
 
-    if (new_matrix_multi_by_number.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] * number;
     }
 
-    for (size_t idx = 0; idx < new_matrix_multi_by_number.rows * new_matrix_multi_by_number.cols; idx++) {
-        new_matrix_multi_by_number.data[idx] = A.data[idx] * number;
-    }
-
-    return new_matrix_multi_by_number;
+    return C;
 }
 
 
-Matrix matrix_transpose (Matrix A)
+Matrix matrix_transpose (const Matrix A)
 {
-    Matrix new_matrix_transpose = {A.cols, A.rows};
-    new_matrix_transpose = matrix_allocate(new_matrix_transpose);
+    Matrix T = {A.cols, A.rows, NULL};
+    T = matrix_allocate(T);
 
-    if (new_matrix_transpose.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
-    }
-
-    for (size_t row = 0; row < new_matrix_transpose.rows; row++) {
-        for (size_t col = 0; col < new_matrix_transpose.cols; col++) {
-            new_matrix_transpose.data[row * new_matrix_transpose.cols + col] = A.data[col * new_matrix_transpose.rows + row];
+    for (size_t row = 0; row < T.rows; row++) {
+        for (size_t col = 0; col < T.cols; col++) {
+            T.data[row * T.cols + col] = A.data[col * T.rows + row];
         }
     }
-    return new_matrix_transpose;
+    return T;
 }
 
 
-double matrix_determinant (Matrix A)
+Matrix matrix_get_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) {
+    Matrix submatrix = {A.rows - 1, A.cols - 1, NULL};
+    submatrix = matrix_allocate(submatrix);
+
+    size_t sub_row = 0;
+    for (size_t row = 0; row < A.rows; row++) {
+        if (row == row_exclude) continue;
+        size_t sub_col = 0;
+        for (size_t col = 0; col < A.cols; col++) {
+            if (col == col_exclude) continue;
+            submatrix.data[sub_row * submatrix.cols + sub_col] = A.data[row * A.cols + col];
+            sub_col++;
+        }
+        sub_row++;
+    }
+    return submatrix;
+}
+
+double matrix_determinant (const Matrix A)
 {
-    if (A.cols != A.rows) {
+    if ((A.cols != A.rows) || A.rows == 0 || A.cols == 0) {
         return NAN;
     }
-
     if (A.rows == 1) {
         return A.data[0];
     }
     if (A.rows == 2) {
         return A.data[0] * A.data[3] - A.data[1] * A.data[2]; 
-    } else {
-        double det = 0;
-        double sign = 1.;
-        for (size_t col = 0; col < A.cols; col++) {
-
-            Matrix submatrix = {A.rows - 1, A.cols - 1};
-            submatrix = matrix_allocate(submatrix);
-            if (submatrix.data == NULL) {
-                matrix_error(2, "Memory allocation failed.\n");
-                return NAN;
-            }
-
-            size_t sub_row = 0;
-            for (size_t row = 1; row < A.rows; row++) {
-                size_t sub_col = 0;
-                for (size_t idx = 0; idx < A.cols; idx++) {
-                    if (idx != col) {
-                        continue;
-                    }
-                    submatrix.data[sub_row * submatrix.cols + sub_col] = A.data[row * A.cols + idx];
-                    sub_col++;
-                }
-                sub_row++;
-            }
-
-            det += sign * A.data[col] * matrix_determinant(submatrix);
-            sign = -sign;
-
-            memory_free(&submatrix);
-        }
-        return det;
     }
+    double det = 0;
+    double sign = 1.;
+    for (size_t col = 0; col < A.cols; col++) {
+
+        Matrix submatrix = matrix_get_submatrix(A, 0, col); 
+
+        if (submatrix.data == NULL) {
+            return NAN;
+        }
+
+        if (matrix_determinant(submatrix) == NAN) {
+            memory_free(&submatrix);
+            return NAN;
+        }
+
+        det += sign * A.data[col] * matrix_determinant(submatrix);
+        sign = -sign;
+
+        memory_free(&submatrix);
+    }
+    return det;
+
 }
 
 
-Matrix matrix_inverse (Matrix A)
+Matrix matrix_inverse (const Matrix A)
 {
     double det_A = matrix_determinant(A);
 
-    if (det_A == 0) {
+    if (abs(det_A) < 0.00000001) {
+        matrix_error(ERROR, "Unable to calculate inverse of given matrix. \n");
         return MATRIX_ZERO;
     }
 
     Matrix cofactor_matrix = {A.rows, A.cols};
     cofactor_matrix = matrix_allocate(cofactor_matrix);
-    if (cofactor_matrix.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
-    }
 
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
 
-            Matrix submatrix = {A.rows - 1, A.cols - 1};
-            submatrix = matrix_allocate(submatrix);
-            if (submatrix.data == NULL) {
-                matrix_error(2, "Memory allocation failed.\n");
-                return MATRIX_ZERO;
-            }
-
-            size_t sub_row = 0;
-            for (size_t i = 0; i < A.rows; i++) {
-                if (i == row) {
-                    continue;
-                }
-                size_t sub_col = 0;
-                for (size_t j = 0; j < A.cols; j++) {
-                    if (j == col) {
-                        continue;
-                    }
-                    submatrix.data[sub_row * submatrix.cols + sub_col] = A.data[i * A.cols + j];
-                    sub_col++;
-                }
-                sub_row++;
-            }
+            Matrix submatrix = matrix_get_submatrix(A, row, col);
 
             cofactor_matrix.data[row * cofactor_matrix.cols + col] = ((row + col) % 2 == 0 ? 1 : -1) * matrix_determinant(submatrix);
 
@@ -303,39 +279,39 @@ Matrix matrix_inverse (Matrix A)
 }
 
 
-Matrix matrix_power(Matrix A, unsigned long int n)
-{
-    if (A.rows != A.cols || n < 0) {
-        return MATRIX_ZERO;
-    }
+Matrix matrix_identity(const size_t rows, const size_t cols) {
 
-    if (n == 0) {
-        Matrix identity_matrix = {A.rows, A.cols};
-        identity_matrix = matrix_allocate(identity_matrix);
-        if (identity_matrix.data == NULL) {
-            matrix_error(2, "Memory allocation failed.\n");
-            return MATRIX_ZERO;
-        }
-
-        for (size_t row = 0; row < identity_matrix.rows; ++row) {
-            for (size_t col = 0; col < identity_matrix.cols; ++col) {
-                identity_matrix.data[row * identity_matrix.cols + col] = (row == col) ? 1.0 : 0.0;
-            }
-        }
-        return identity_matrix;
-
-    }
-
-    Matrix matrix_powered_to_n = A;
-    matrix_powered_to_n = matrix_allocate(matrix_powered_to_n);
-    if (matrix_powered_to_n.data == NULL) {
+    Matrix identity_matrix = {rows, cols};
+    identity_matrix = matrix_allocate(identity_matrix);
+    if (identity_matrix.data == NULL) {
         matrix_error(2, "Memory allocation failed.\n");
         return MATRIX_ZERO;
     }
 
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
-        matrix_powered_to_n.data[idx] = A.data[idx];
+    for (size_t row = 0; row < identity_matrix.rows; ++row) {
+        for (size_t col = 0; col < identity_matrix.cols; ++col) {
+            identity_matrix.data[row * identity_matrix.cols + col] = (row == col) ? 1.0 : 0.0;
+        }
     }
+    return identity_matrix;
+}
+
+
+Matrix matrix_power(const Matrix A, const unsigned long long int n)
+{
+    if (A.rows != A.cols || n < 0) {
+        matrix_error(ERROR, "Unable to calculate power of given matrix.\n");
+        return MATRIX_ZERO;
+    }
+
+    if (n == 0) {
+        return matrix_identity(A.rows, A.cols);;
+    }
+
+    Matrix matrix_powered_to_n = A;
+    matrix_powered_to_n = matrix_allocate(matrix_powered_to_n);
+
+    matrix_copy(matrix_powered_to_n, A);
 
     for (unsigned long int power = 1; power < n; power++) {
         Matrix temp = matrix_multiply(matrix_powered_to_n, A);
@@ -347,51 +323,40 @@ Matrix matrix_power(Matrix A, unsigned long int n)
 }
 
 
-Matrix matrix_exponent(Matrix A, long long int n)
+Matrix matrix_exponent(const Matrix A, const unsigned long long int n)
 {
     if (A.rows != A.cols || n < 0) {
+        matrix_error(ERROR, "Unable to calculate exponent of given matrix.\n");
         return MATRIX_ZERO;
     }
 
-    Matrix matrix_exponent_to_n = {A.rows, A.cols};
-    matrix_exponent_to_n = matrix_allocate(matrix_exponent_to_n);
-    if (matrix_exponent_to_n.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
-    }
-
-    for (size_t row = 0; row < matrix_exponent_to_n.rows; ++row) {
-        for (size_t col = 0; col < matrix_exponent_to_n.cols; ++col) {
-            matrix_exponent_to_n.data[row * matrix_exponent_to_n.cols + col] = (row == col) ? 1.0 : 0.0;
-        }
-    }
-
+    Matrix matrix_exponent_term = matrix_identity(A.rows, A.cols);
+    Matrix matrix_exponent_result = matrix_identity(A.rows, A.cols);
+    
     if (n == 0) {
-        return matrix_exponent_to_n;
+        return matrix_exponent_term;
     }
 
-    Matrix power_of_A = {A.rows, A.cols};
-    power_of_A = matrix_allocate(power_of_A);
-    if (power_of_A.data == NULL) {
-        matrix_error(2, "Memory allocation failed.\n");
-        return MATRIX_ZERO;
-    }
-
-    matrix_copy(power_of_A, A);
+    double factorial = 1.0;
 
     for (long long int idx = 1; idx <= n; idx++) {
-        Matrix term = matrix_multi_by_number(power_of_A, 1.0 / idx);
-        matrix_exponent_to_n = matrix_sum(matrix_exponent_to_n, term);
+        Matrix temp = matrix_multiply(matrix_exponent_term, A);
+        memory_free(&matrix_exponent_term);
 
-        Matrix next_power_of_A = matrix_multiply(power_of_A, A);
-        matrix_copy(power_of_A, next_power_of_A);
+        matrix_exponent_term = temp;
+        factorial *= idx;
 
-        memory_free(&term);
-        memory_free(&next_power_of_A);
+        Matrix added = matrix_multi_by_number(matrix_exponent_term, 1.0 / factorial);
+        Matrix newResult = matrix_sum(matrix_exponent_result, added);
+
+        memory_free(&matrix_exponent_result);
+        matrix_exponent_result = newResult;
+        memory_free(&added);
+
     }
 
-    memory_free(&power_of_A);
-    return matrix_exponent_to_n;
+    memory_free(&matrix_exponent_term);
+    return matrix_exponent_result;
 }
 
 
@@ -438,9 +403,9 @@ void make_calculations()
     Matrix power_B = matrix_power(B, 2);
     matrix_print(&power_B, "Result of Matrix B Power: \n");
 
-    Matrix exponent_A = matrix_exponent(A, 2);
+    Matrix exponent_A = matrix_exponent(A, 3);
     matrix_print(&exponent_A, "Result of Matrix A Exponent: \n");
-    Matrix exponent_B = matrix_exponent(B, 2);
+    Matrix exponent_B = matrix_exponent(B, 20);
     matrix_print(&exponent_B, "Result of Matrix B Exponent: \n");
 
     memory_free(&add_A_B);
