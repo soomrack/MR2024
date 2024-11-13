@@ -1,34 +1,37 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Coins; // рассчет в копейках
+typedef long long int Coins;  // ðàññ÷åò â êîïåéêàõ
 
 const double INFLATION = 1.09;
-const double DEPOSIT_PERCENT = 1.0169; // при процентой ставке 20% годовых примерный процент в месяц 1.69%
+const double DEPOSIT_PERCENT = 1.0169;  // ïðè ïðîöåíòîé ñòàâêå 20% ãîäîâûõ ïðèìåðíûé ïðîöåíò â ìåñÿö 1.69%
 
 
-
-
-
-typedef struct  Mortgage {
+struct  Mortgage {
     Coins house_cost;
     Coins sum;
-    Coins first_payment;   //ipoteka
+    Coins first_payment;   // ipoteka
     Coins monthly_payment;
     double mortgage_percent;
-}Mortgage;
-   
-typedef struct Deposit {
-    Coins deposit;          //vklad
-    double deposit_percent; 
-}Deposit;
+};
+typedef struct Mortage Mortgage;
 
-typedef struct Household{
+
+ struct Deposit {
+    Coins deposit;          // vklad
+    double deposit_percent;   
+};
+typedef struct Deposit Deposit;
+
+
+ struct Household{
     Coins food;
-    Coins person_expens; //household expens
-}Household;
+    Coins person_expens;  //household expens
+};
+typedef struct Household Household;
 
-typedef struct Person {
+
+struct Person {
     Coins salary;
     Mortgage mortgage;
     Coins deposit;
@@ -37,20 +40,24 @@ typedef struct Person {
     Coins house_bills;
     Coins rent;
     Coins acaunt;
-}Person;
+};
+typedef struct Person Person;
+
+
 Person alice;
 Person bob;
 
 
-void alice_start_parametrs(){
+void alice_init()
+{
     alice.salary = 200 * 1000 * 100;
     alice.acaunt = 1000 * 1000 * 100;
 
-    alice.mortgage.house_cost = 5600 * 1000 * 100; //s sayta
+    alice.mortgage.house_cost = 5600 * 1000 * 100;                                // s sayta
     alice.mortgage.first_payment = 1000 * 1000 * 100;
     alice.mortgage.sum = alice.mortgage.house_cost - alice.mortgage.first_payment;
-    alice.mortgage.monthly_payment = 24694 * 100;						//l'gotnaya ipoteka 5%
-    alice.house_bills =  2500 * 100; //s sayta, po kadastru
+    alice.mortgage.monthly_payment = 24694 * 100;						          // l'gotnaya ipoteka 5%
+    alice.house_bills =  2500 * 100;                                             // s sayta, po kadastru
     alice.house_timeprice = alice.mortgage.house_cost = 5600 * 1000 * 100;
     
     alice.acaunt -= alice.mortgage.first_payment;
@@ -60,7 +67,9 @@ void alice_start_parametrs(){
     alice.deposit = 0;
 }
 
-void bob_start_parametrs() {
+
+void bob_init() 
+{
     bob.salary = 200 * 1000 * 100;
     bob.acaunt = 1000 * 1000 * 100;
 
@@ -73,94 +82,127 @@ void bob_start_parametrs() {
 }
 
 
-void alice_salary(int month) {
+void alice_salary(const int month)
+{
     alice.acaunt += alice.salary;
-        if (month == 12)
-        {
+        if (month == 12) {
             alice.salary *= INFLATION;
         }
 }
 
-void bob_salary(int month) {
+
+void bob_salary(const int month) 
+{
     bob.acaunt += bob.salary;
-    if (month == 12)
-    {
+    if (month == 12) {
         bob.salary *= INFLATION;
     }
 }
 
 
-void alice_household(int month) {
-    alice.acaunt -= (alice.mortgage.monthly_payment + alice.house_bills + alice.household.food + alice.household.person_expens);
-    if (month == 12)
-    {
+void alice_house(const int month)
+{
+    alice.acaunt -= (alice.mortgage.monthly_payment + alice.house_bills);
+}
+
+
+void bob_house(const int month)
+{
+    bob.acaunt -= (bob.rent + bob.house_bills);
+    
+    if (month == 12) {
+        bob.rent *= INFLATION;
+    }
+}
+
+
+void alice_household(const int month)
+{
+    alice.acaunt -= (alice.household.food + alice.household.person_expens);
+
+    if (month == 12) {
         alice.household.food *= INFLATION;
         alice.household.person_expens *= INFLATION;
     }
 }
 
 
-void bob_household(int month) {
-    bob.acaunt -= (bob.rent + bob.house_bills + bob.household.food + bob.household.person_expens);
-    if (month == 12)
-    {
+void bob_household(const int month) 
+{
+    bob.acaunt -= (bob.household.food + bob.household.person_expens);
+
+    if (month == 12) {
         bob.household.food *= INFLATION;
         bob.household.person_expens *= INFLATION;
     }
 }
 
 
-void alice_deposit(int month) {
+void alice_deposit(const int month) 
+{
     alice.deposit += alice.acaunt;
     alice.acaunt = 0;
-    if (month == 12)
-    {
+
+    if (month == 12) {
         alice.deposit *= DEPOSIT_PERCENT;
     }
 }
 
-void bob_deposit(int month) {
+void bob_deposit(const int month)
+{
     bob.deposit += bob.acaunt;
     bob.acaunt = 0;
-    if (month == 12)
-    {
+
+    if (month == 12) {
         bob.deposit *= DEPOSIT_PERCENT;
     }
 }
 
-void alice_print() {
+void alice_print() 
+{
     printf("Alce status: %lld rubles\n", (alice.deposit + alice.mortgage.house_cost) / 100);
 }
 
-void bob_print() {
+void bob_print()
+{
     printf("Bob status: %lld rubles\n", bob.deposit / 100);
 }
 
 
 
-void life(){
+void life()
+{
     int start_month = 10;
     int start_year = 2024;
     int month = start_month;
     int year = start_year;
-    while (!((year == start_year + 30) && (month == start_month))){
+
+    while (!((year == start_year + 30) && (month == start_month))) {
+        
         alice_salary(month);
-        alice_household(month);
+        alice_house(month);       // alice.mortgage and alice.bills
+        alice_household(month);  // alice.food and alice.person_expens
         alice_deposit(month);
         
         bob_salary(month);
-        bob_household(month);
+        bob_house(month);      // bob.rent and bob.bills
+        bob_household(month);  // bob.food and bob.person_expens
         bob_deposit(month);
+
         month++;
+
         if (month == 13) {
             month = 1;
+
             year++;
         }
     }
 }
+
+
 int main() {
-    alice_start_parametrs();
-    bob_start_parametrs();
+    alice_init();
+    bob_init();
     
     life();
     

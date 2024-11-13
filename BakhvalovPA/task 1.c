@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-typedef long long int Money;    //КОП.
+typedef long long int Money;    
 const double INFLATION_RATE = 1.09;
 const double DEPOSIT_RATE = 0.2;
 
@@ -11,7 +11,6 @@ typedef struct Mortgage {
     Money monthly_payment;
     double mortgage_rate;
 } Mortgage;
-
 
 
 typedef struct Person {
@@ -56,15 +55,15 @@ void bob_init()
 
 void print_alice()
 {
-    printf("Alice account = %lld RUB\n", alice.account / 100);
+    printf("Alice account = %lld RUB\n", alice.deposit / 100);
     printf("Alice house price = %lld RUB\n", alice.house_price / 100);
-    printf("Alice capital = %lld RUB\n", (alice.account + alice.house_price) / 100);
+    printf("Alice capital = %lld RUB\n", (alice.deposit + alice.house_price) / 100);
 }
 
 
 void print_bob()
 {
-    printf("Bob capital = %11d RUB\n", bob.account / 100);
+    printf("Bob capital = %11d RUB\n", bob.deposit / 100);
 }
 
 
@@ -121,19 +120,23 @@ void bob_expenditure(const int month)
 
 void alice_house_price(const int month)
 {
-    if (month == 1) alice.house_price *= INFLATION_RATE;
+    if (month == 12) alice.house_price *= INFLATION_RATE;
 }
 
 
 void alice_deposit(const int month)
 {
-    alice.account += alice.account * DEPOSIT_RATE / 12;
+    alice.deposit += alice.account;
+    alice.account = 0;
+    alice.deposit += alice.deposit * DEPOSIT_RATE / 12;
 }
 
 
 void bob_deposit(const int month)
 {
-    bob.account += bob.account * DEPOSIT_RATE / 12;
+    bob.deposit += bob.account;
+    bob.account = 0;
+    bob.deposit += bob.deposit * DEPOSIT_RATE / 12;
 }
 
 

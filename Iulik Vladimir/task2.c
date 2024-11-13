@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 struct Matrix
 {
     size_t cols;
@@ -30,7 +32,6 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
     return A;
 }
 
-
 // Освобождение памяти для матрицы
 void matrix_free(struct Matrix *A)
 {
@@ -43,18 +44,15 @@ void matrix_free(struct Matrix *A)
     A->rows = 0;
 }
 
-
 // Заполнение матрицы случайными числами
 void matrix_fill_random(struct Matrix A)
 {
     for (size_t i = 0; i < A.rows * A.cols; ++i)
     {
-        A.data[i] = (double)(rand() % 10); // случайное число от 0.0 до 9.9
+        A.data[i] = (double)(rand() % 100);
     }
 }
 
-
-// Печать матрицы
 void matrix_print(const struct Matrix A)
 {
     for (size_t i = 0; i < A.rows; ++i)
@@ -67,8 +65,7 @@ void matrix_print(const struct Matrix A)
     }
 }
 
-
-// Сложение матриц A и B, результат в A
+// Сложение матриц A и B
 int matrix_add(struct Matrix A, struct Matrix B, struct Matrix result)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -81,11 +78,10 @@ int matrix_add(struct Matrix A, struct Matrix B, struct Matrix result)
         result.data[i] = A.data[i] + B.data[i];
     }
 
-    return 0; // Успех
+    return 0;
 }
 
-
-// Вычитание матриц A и B, результат в A
+// Вычитание матриц A и B
 int matrix_subtract(struct Matrix A, struct Matrix B, struct Matrix result)
 {
     if (A.cols != B.cols || A.rows != B.rows)
@@ -98,23 +94,22 @@ int matrix_subtract(struct Matrix A, struct Matrix B, struct Matrix result)
         result.data[i] = A.data[i] - B.data[i];
     }
 
-    return 0; // Успех
+    return 0;
 }
-
 
 // Умножение матриц A и B, результат в новой матрице C
 struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 {
     if (A.cols != B.rows)
     {
-        return (struct Matrix){0, 0, NULL}; // Ошибка: количество столбцов A не равно количеству строк B
+        return (struct Matrix){0, 0, NULL};
     }
 
     struct Matrix C = matrix_allocate(B.cols, A.rows);
 
     if (C.data == NULL)
     {
-        return C; // Ошибка выделения памяти
+        return C;
     }
 
     for (size_t i = 0; i < A.rows; ++i)
@@ -132,13 +127,79 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
     return C;
 }
 
+struct Matrix matrix_transpon(struct Matrix A)
+{
+    struct Matrix result = matrix_allocate(A.rows, A.cols);
+
+    for (size_t i = 0; i < A.rows; ++i)
+    {
+        for (size_t j = 0; j < A.cols; ++j)
+        {
+            result.data[j * A.rows + i] = A.data[i * A.cols + j];
+        }
+    }
+    return result;
+}
+
+double determinant(struct Matrix A)
+{
+    if (A.rows != A.cols)
+    {
+        return -1;
+    }
+
+    // Базовый случай для матрицы 1x1
+    if (A.rows == 1)
+    {
+        return A.data[0];
+    }
+
+    // Базовый случай для матрицы 2x2
+    if (A.rows == 2)
+    {
+        return A.data[0] * A.data[3] - A.data[1] * A.data[2];
+    }
+
+    double det = 0;
+
+    // Разложение по первой строке
+    for (int i = 0; i < A.cols; i++)
+    {
+        struct Matrix minor = matrix_allocate(A.cols  - 1, A.rows- 1);
+
+
+        int minor_row = 0;
+        for (int j = 1; j < A.rows; j++)
+        {
+            int minor_col = 0;
+            for (int k = 0; k < A.cols; k++)
+            {
+                if (k != i)
+                {
+                    minor.data[minor_row * (A.cols - 1) + minor_col] = A.data[j * A.cols + k];
+                    minor_col++;
+                }
+            }
+            minor_row++;
+        }
+
+        double minor_det = determinant(minor);
+
+        det += (i % 2 == 0 ? 1 : -1) * A.data[i] * minor_det;
+
+        free(minor.data);
+    }
+
+    return det;
+}
 
 int main()
 {
     srand(time(NULL)); // Инициализация генератора случайных чисел
 
-    struct Matrix A = matrix_allocate(2, 2);
+    struct Matrix A = matrix_allocate(3, 3);
     struct Matrix B = matrix_allocate(2, 2);
+
     struct Matrix result_add = matrix_allocate(A.cols, A.rows);
     struct Matrix result_subtract = matrix_allocate(A.cols, A.rows);
 
@@ -191,6 +252,20 @@ int main()
     else
     {
         printf("Умножение не удалось (неверные размеры матриц)\n");
+    }
+
+    struct Matrix transpon = matrix_transpon(A);
+    printf("Результат транспонирования\n");
+    matrix_print(transpon);
+    double det = determinant(A);
+    if (det == -1)
+    {
+        printf("Определитель невозможно вычислить (неверные размеры матриц)\n");
+    }
+    else
+    {
+        printf("Результат определителя:\n");
+        printf("%lf", det);
     }
 
     // Освобождаем память

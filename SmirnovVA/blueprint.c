@@ -1,103 +1,128 @@
 #include<stdio.h>
 
+float INFL = 1.13;
 
-float ind = 1.07;
-float infl = 1.13;
-
-typedef double Money;  // RUB
+typedef long long int Money;
 
 typedef struct {
+    int deposit_perc;
+    Money account;
+} Deposit;
+
+typedef struct {
+    char* name;
     Money account;
     Money salary;
-    Money ipoteka_sum;
-    Money ipoteka_perc;
+    Money mortgage_sum;
     Money bytovuha;
-    Money mesyachny_platezh;
+    Money monthly_pay;
     Money downplayment;
-
-
+    Deposit deposit;
 } Person;
 
-Person alice;
-Person bob;
-
-
-
-void alice_init()
+void print_person(Person* pers)
 {
-    alice.account = 1000000;
-    alice.salary = 200 * 1000;
-    alice.ipoteka_sum = 13*1000*1000;
-    alice.downplayment = 900*1000;
-    alice.ipoteka_perc = 16;
-    alice.bytovuha = 30000;
-    alice.mesyachny_platezh = 162715.6;
+    printf("%s account = %d RUB\n", pers->name, pers->account);
 }
 
-
-void alice_salary(const int month)
+void alice_init(Person* pers)
 {
-    alice.account += alice.salary;
+    pers->name = "Alice";
+    pers->account = 100000;
+    pers->salary = 200.0 * 1000.0;
+    pers->mortgage_sum = 13*1000*1000;
+    pers->downplayment = 900*1000;
+    pers->bytovuha = 30000;
+    pers->monthly_pay = 162715;
+    pers->deposit.deposit_perc = 30;
+}
 
+void bob_init(Person* pers)
+{
+    pers->name = "Bob";
+    pers->account = 1000000;
+    pers->salary = 200 * 1000;
+    pers->bytovuha = 30000;
+    pers->monthly_pay = 30000;
+    pers->deposit.deposit_perc = 20;
+    pers->deposit.account = 0;
+}
+
+int deposit_inflation(int perc, int month)
+{
+    if (month==12)
+    {
+        perc*=INFL; 
+    }
+    return perc;
+}
+
+void salary(Person* pers, const int month)
+{
+    pers->account += pers->salary;
     if(month == 12) {
-        alice.salary *= ind;
+        pers->salary *= 1.07;
     }
 }
 
-
-
-void alice_ipoteka_payment()
+void traty(Person* pers, const int month)
 {
-    //  na 12 mesyac
-    alice.ipoteka_sum -= alice.mesyachny_platezh;
-    alice.account -= alice.mesyachny_platezh;
-}
-
-void alice_traty(const int month)
-{
-    alice.account-= alice.bytovuha;
+    pers->account-= pers->bytovuha;
     if (month == 12)
     {
-        alice.bytovuha*=infl;
+        pers->bytovuha*=INFL;
     }
 }
 
-
-void alice_print()
+void mortgage_payment(Person* pers)
 {
-    printf("Alice account = %f RUB\n", alice.account);
+    pers->mortgage_sum -= pers->monthly_pay;
+    pers->account -= pers->monthly_pay;
 }
 
-void simulation()
+void pay_deposit(Person* pers) {
+    pers->account -= pers->salary * pers->deposit.deposit_perc/100;
+}
+
+void simulation(Person* alice, Person* bob)
 {
     int year = 2024;
     int month = 9;
-
     while( !((year == 2024 + 30) && (month == 10)) ) 
     {
+        salary(alice, month);
+        mortgage_payment(alice);
+        traty(alice, month);
 
-        alice_print();
+        // bob_deposit
+        salary(bob, month);
+        traty(bob, month);
+        pay_deposit(bob);
 
-        alice_salary(month);
-        alice_ipoteka_payment();
-        
-        alice_traty(month);
-
-        alice_print();
         ++month;
         if(month == 13) {
             month = 1;
             ++year;
         }
+        
+        print_person(alice);
+        print_person(bob);
     }
 }
 
-
 int main()
 {
-    alice_init();
+    Person alice;
+    Person bob;
 
-    simulation();
+    alice_init(&alice);
+    bob_init(&bob);
+    
+    print_person(&alice);
+    print_person(&bob);
 
-    alice_print();
+    simulation(&alice, &bob);
+
+    print_person(&alice);
+    print_person(&bob);
 }
