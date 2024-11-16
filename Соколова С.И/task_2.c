@@ -175,6 +175,51 @@ Matrix *matrix_multiplication(Matrix *A, Matrix *B)
 }
 
 
+Matrix *matrix_multiplication_on_ratio(Matrix *A, const int ratio)
+{
+    Matrix C = matrix_allocate(A->rows, A->cols);
+
+    for (size_t i = 0; i < A->rows; ++i) {
+        for (size_t j = 0; j < A->cols; ++j) {
+            C.data[i*C.cols + j] = ratio * A->data[i*A->cols+j];
+        }
+    }
+
+    matrix_print(&C);
+    matrix_free(&C);
+    return NULL;
+}
+
+
+Matrix *matrix_determinant(Matrix *A) 
+{
+    if (A->rows == A->cols) {
+
+        double Det;
+
+        if (A->rows == 1) {
+
+            Det = A->data[0];
+            printf("%lf\n", Det);
+            return NULL;
+        }
+
+        else if (A->rows == 2) {
+
+            Det = (A->data[0] * A->data[3]) - (A->data[1] * A->data[2]);
+            printf("%lf\n", Det);
+            return NULL;
+        }
+
+        
+    }
+    else {
+        Matrix_exeption(ERROR, "You can't take a determinant");
+        return NULL;
+    }
+}
+
+
 int main()
 {
     Matrix A,B;
@@ -194,7 +239,7 @@ int main()
     printf("---------------------------- \n");
 
     
-    matrix_multiplication(pa,pb);
+    matrix_multiplication_on_ratio(pa,2);
 
 
     matrix_free(pa);
