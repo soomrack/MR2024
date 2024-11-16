@@ -96,6 +96,7 @@ Matrix *matrix_sum(Matrix *A, Matrix *B)
         }
 
         matrix_print(&C);
+        matrix_free(&C);
         return NULL;
     }
     else {
@@ -118,6 +119,7 @@ Matrix *matrix_substruct(Matrix *A, Matrix *B)
         }
 
         matrix_print(&C);
+        matrix_free(&C);
         return NULL;
     }
 
@@ -128,13 +130,47 @@ Matrix *matrix_substruct(Matrix *A, Matrix *B)
 }
 
 
+Matrix *matrix_transponate(Matrix *A)
+{
+    Matrix At = matrix_allocate(A->rows, A->cols);
+
+    for (size_t i = 0; i < A->rows; ++i) {
+        for (size_t j = 0; j < A->cols; ++j) {
+            At.data[i*At.cols+j] = A->data[j*A->rows + i];
+        }
+    }
+
+    matrix_print(&At);
+    matrix_free(&At);
+    return NULL;
+}
+
+
 Matrix *matrix_multiplication(Matrix *A, Matrix *B)
 {
     if (A->cols == B-> rows) {
 
         Matrix C = matrix_allocate(A->rows, B->cols);
 
-        
+        for (size_t i = 0; i < A->rows; ++i) {
+            for (size_t j = 0; j < B->cols; ++j) {
+
+                C.data[i*C.cols + j] = 0;
+
+                for (size_t k = 0; k < B->rows; ++k) {
+                    C.data[i*C.cols + j] += A->data[i*A->cols + k] * B->data[k*B->cols+j];
+                }
+
+            }
+        }
+
+        matrix_print(&C);
+        matrix_free(&C);
+        return NULL;
+    }
+    else {
+        Matrix_exeption(ERROR, "You can't multiplication matrixs");
+        return NULL;
     }
 }
 
@@ -158,7 +194,7 @@ int main()
     printf("---------------------------- \n");
 
     
-    matrix_substruct(pa,pb);
+    matrix_multiplication(pa,pb);
 
 
     matrix_free(pa);
