@@ -102,7 +102,6 @@ Matrix matrix_identity(size_t size)
 }
 
 
-
 void matrix_print(const Matrix M) // Функция для печати матрицы
 {
     for (size_t row = 0; row < M.rows; row++) {
@@ -212,7 +211,7 @@ Matrix matrix_by_scalar(const Matrix A, double scalar) // Умножение м�
 }
 
 
-double matrix_determinant(const Matrix A) // Определитель матрицы (для 2x2 и 3x3)
+double matrix_determinant(const Matrix A) // Определитель матрицы (для 1x1, 2x2 и 3x3)
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
@@ -247,6 +246,7 @@ double factorial (const unsigned int f)
 }
 
 
+// e ^ A
 Matrix matrix_exponent(const Matrix A, const unsigned int num)
 {
     if (A.rows != A.cols) {
@@ -290,7 +290,6 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
     
     return E;
 }
-
 
 
 int main() 
