@@ -410,6 +410,4 @@ int main()
     printf("Экспонента матрицы \n");
     matrix_print(exp);
     return 0;
-
-
 }
