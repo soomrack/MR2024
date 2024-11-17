@@ -215,7 +215,7 @@ Matrix matrix_by_scalar(const Matrix A, double scalar) // Умножение м�
 double matrix_determinant(const Matrix A) // Определитель матрицы (для 2x2 и 3x3)
 {
     if (A.rows != A.cols) {
-        matrix_exception(WARNING, "Матрица должна быть квадратной для транспонирования.\n");
+        matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
         return NAN;
     }
     
@@ -247,7 +247,6 @@ double factorial (const unsigned int f)
 }
 
 
-// e ^ A
 Matrix matrix_exponent(const Matrix A, const unsigned int num)
 {
     if (A.rows != A.cols) {
@@ -256,34 +255,42 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
     }
 
     Matrix E = matrix_identity(A.rows);
-
+  
     if (E.data == NULL) {
-        return MATRIX_NULL; // Проверка на успешное выделение памяти
+        matrix_exception(ERROR, "Сбой выделения памяти");
+        return MATRIX_NULL;
     }
-
+    
     if (num == 1) {
         return E;
     }
-    
+
+    Matrix tmp = matrix_alloc(A.rows, A.cols);
+    if (tmp.data == NULL) {
+        matrix_free(&E);
+        matrix_exception(ERROR, "Сбой выделения памяти");
+        return MATRIX_NULL;
+    }
+
+
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        Matrix tmp = matrix_power(A, cur_num);
-        if (tmp.data == NULL) {
-            matrix_free(&E); 
-            return MATRIX_NULL;
-        }
+        
+        Matrix power = matrix_power(A, cur_num);
+        
+        tmp = matrix_by_scalar(power, 1.0 / factorial(cur_num));
+        
+        Matrix new_E = matrix_sum(E, tmp);
+        
+        matrix_free(&E);
+        E = new_E;
 
-        Matrix scaled_tmp = matrix_by_scalar(tmp, 1.0 / factorial(cur_num)); 
-
-        Matrix new_E = matrix_sum(E, scaled_tmp);
-        matrix_free(&E); 
-        E = new_E; 
-
-        matrix_free(&tmp); 
-        matrix_free(&scaled_tmp);
+        matrix_free(&power);
+        matrix_free(&tmp);
     }
     
-    return E; // Возвращаем результирующую матрицу
+    return E;
 }
+
 
 
 int main() 
