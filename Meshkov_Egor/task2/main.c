@@ -11,7 +11,7 @@ void init_matrix(Matrix *M, size_t rows, size_t cols, double *data) {
     M->ptr = data;
 }
 
-
+// Тест для функции matrix_alloc
 void test_matrix_alloc() {
     Matrix M = EMPTY;
     CU_ASSERT_EQUAL(matrix_alloc(&M, 3, 3), MAT_OK);
@@ -21,7 +21,7 @@ void test_matrix_alloc() {
     matrix_free(&M);
 }
 
-
+// Тест для функции matrix_create_zero
 void test_matrix_create_zero() {
     Matrix M = EMPTY;
     CU_ASSERT_EQUAL(matrix_create_zero(&M, 3, 3), MAT_OK);
@@ -32,7 +32,7 @@ void test_matrix_create_zero() {
     matrix_free(&M);
 }
 
-
+// Тест для функции matrix_create_unit
 void test_matrix_create_unit() {
     Matrix M = EMPTY;
     CU_ASSERT_EQUAL(matrix_create_unit(&M, 3, 3), MAT_OK);
@@ -49,7 +49,7 @@ void test_matrix_create_unit() {
     matrix_free(&M);
 }
 
-
+// Тест для функции matrix_create_random
 void test_matrix_create_random() {
     Matrix M = EMPTY;
     CU_ASSERT_EQUAL(matrix_create_random(&M, 3, 3, 0.0, 1.0, 2), MAT_OK);
@@ -57,7 +57,7 @@ void test_matrix_create_random() {
     matrix_free(&M);
 }
 
-
+// Тест для функции matrix_free
 void test_matrix_free() {
     Matrix M = EMPTY;
     CU_ASSERT_EQUAL(matrix_alloc(&M, 3, 3), MAT_OK);
@@ -67,7 +67,7 @@ void test_matrix_free() {
     CU_ASSERT_EQUAL(M.cols, 0);
 }
 
-
+// Тест для функции matrix_copy
 void test_matrix_copy() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[9];
@@ -80,17 +80,17 @@ void test_matrix_copy() {
     }
 }
 
-
+// Тест для функции matrix_print
 void test_matrix_print() {
     double data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     Matrix M;
     init_matrix(&M, 3, 3, data);
-    printf("\n");
+    printf("\n\n");
     CU_ASSERT_EQUAL(matrix_print(M, 2), MAT_OK);
-    printf("  ");
+    printf("  ...");
 }
 
-
+// Тест для функции matrix_add
 void test_matrix_add() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
@@ -105,7 +105,7 @@ void test_matrix_add() {
     }
 }
 
-
+// Тест для функции matrix_sub
 void test_matrix_sub() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
@@ -120,7 +120,7 @@ void test_matrix_sub() {
     }
 }
 
-
+// Тест для функции matrix_multi
 void test_matrix_multi() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0};
@@ -135,7 +135,7 @@ void test_matrix_multi() {
     }
 }
 
-
+// Тест для функции matrix_transpoze
 void test_matrix_transpoze() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0};
@@ -148,7 +148,7 @@ void test_matrix_transpoze() {
     }
 }
 
-
+// Тест для функции matrix_multiply_by_scalar
 void test_matrix_multiply_by_scalar() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0};
@@ -161,7 +161,7 @@ void test_matrix_multiply_by_scalar() {
     }
 }
 
-
+// Тест для функции matrix_determinant_gauss_method
 void test_matrix_determinant_gauss_method() {
     double data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     Matrix M;
@@ -171,7 +171,7 @@ void test_matrix_determinant_gauss_method() {
     CU_ASSERT_DOUBLE_EQUAL(det, 0.0, 0.0001);
 }
 
-
+// Тест для функции matrix_calculate_reverse
 void test_matrix_calculate_reverse() {
     double data[] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     Matrix M;
@@ -191,7 +191,7 @@ void test_matrix_calculate_reverse() {
     matrix_free(&R);
 }
 
-
+// Тест для функции matrix_solve_equation
 void test_matrix_solve_equation() {
     double dataA[] = {1.0, 2.0, 3.0, 4.0, 1.0, 6.0, 7.0, 8.0, 9.0};
     double dataB[] = {1.0, 2.0, 3.0};
@@ -206,7 +206,7 @@ void test_matrix_solve_equation() {
     }
 }
 
-
+// Тест для функции matrix_power
 void test_matrix_power() {
     double data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
     Matrix M;
@@ -218,7 +218,7 @@ void test_matrix_power() {
     }
 }
 
-
+// Тест для функции matrix_exponent
 void test_matrix_exponent() {
     double data[] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     Matrix M;
