@@ -67,7 +67,9 @@ void setup() {
   pinMode(LEFT_DIR, OUTPUT);
   pinMode(RIGHT_PWM, OUTPUT);
   pinMode(RIGHT_DIR, OUTPUT);
+
   sensors_calibrate();
+
   pinMode(A2, INPUT);
   while (1)
   {
