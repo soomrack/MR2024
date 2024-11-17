@@ -298,8 +298,8 @@ struct Matrix matrix_identity(struct Matrix M)
 
 double factorial(const int n)
 {
-    size_t fact = 1;
-    for (size_t i = 1; i < n; i++)
+    double fact = 1.0;
+    for (size_t i = 1; i <= n; ++i)
     {
         fact *= i;
     }
@@ -325,7 +325,6 @@ struct Matrix matrix_power(struct Matrix A, int power) // Возведение �
 
     struct Matrix result = matrix_allocate(A.cols, A.rows);
 
-    matrix_zero(result);
     matrix_copy(result, A);
 
     for (int p = 1; p < power; p++)
@@ -346,25 +345,25 @@ struct Matrix matrix_exponent(const struct Matrix A, int terms)
     }
 
     struct Matrix result = matrix_allocate(A.rows, A.cols);
-    result = matrix_identity(result);
-
+    matrix_identity(result);
     struct Matrix temp = matrix_allocate(A.rows, A.cols);
 
     for (int n = 1; n < terms; ++n)
     {
         // Вычисляем temp = A^n
         temp = matrix_power(A, n);
-        int fact = factorial(n);
+        double fact = factorial(n);
 
         // Делим temp на факториал и сохраняем результат в term
         for (size_t i = 0; i < result.rows * result.cols; ++i)
         {
             result.data[i] += temp.data[i] / fact;
         }
+        matrix_print(result);
     }
 
-    // Освобождаем память, выделенную для вспомогательных матриц
     matrix_free(&temp);
+    // Освобождаем память, выделенную для вспомогательных матриц
 
     return result;
 }
@@ -375,16 +374,6 @@ int main()
 
     struct Matrix A = matrix_allocate(3, 3);
     struct Matrix B = matrix_allocate(3, 3);
-    struct Matrix result_add = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_substruct = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_multiply = matrix_allocate(A.rows, B.cols);
-    struct Matrix result_ratio = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_transposition = matrix_allocate(A.rows, A.cols);
-    struct Matrix C = matrix_allocate(A.cols, A.rows);
-    struct Matrix E = matrix_allocate(A.cols, A.rows);
-    struct Matrix result = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_power = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_exponent = matrix_allocate(A.cols, A.rows);
 
     matrix_random(A);
     printf("Матрица A:\n");
@@ -394,50 +383,58 @@ int main()
     printf("Матрица B:\n");
     matrix_print(B);
 
+    struct Matrix result_add = matrix_allocate(A.cols, A.rows);
     result_add = matrix_add(A, B);
     printf("Результат сложения:\n");
     matrix_print(result_add);
+    matrix_free(&result_add);
 
     // Вычитание
+    struct Matrix result_substruct = matrix_allocate(A.cols, A.rows);
     result_substruct = matrix_substruct(A, B);
     printf("Результат вычитания:\n");
     matrix_print(result_substruct);
+    matrix_free(&result_substruct);
 
     // Умножение
+    struct Matrix result_multiply = matrix_allocate(A.rows, B.cols);
     result_multiply = matrix_multiply(A, B);
     printf("Результат умножения:\n");
     matrix_print(result_multiply);
+    matrix_free(&result_multiply);
 
     // Транспонирование
+    struct Matrix result_transposition = matrix_allocate(A.rows, A.cols);
     result_transposition = matrix_transposition(A);
     printf("Транспонированная матрица A:\n");
     matrix_print(result_transposition);
+    matrix_free(&result_transposition);
 
     // Умножение на число
+    struct Matrix result_ratio = matrix_allocate(A.cols, A.rows);
     result_ratio = matrix_ratio(A, RATIO);
-    printf("Матрица A умноженная на %2.f:\n", RATIO);
+    printf("Матрица A умноженная на %d:\n", RATIO);
     matrix_print(result_ratio);
+    matrix_free(&result_ratio);
 
+    struct Matrix C = matrix_allocate(A.cols, A.rows);
     C = matrix_gauss(A);
     double determinate = matrix_determinate(C);
     printf("Определитель матрицы A:\n");
     printf("%f\n", determinate);
+    matrix_free(&C);
 
-    int terms = 10;
+    int terms = 16;
+    struct Matrix result_power = matrix_allocate(A.cols, A.rows);
+    struct Matrix result_exponent = matrix_allocate(A.cols, A.rows);
     result_exponent = matrix_exponent(A, terms);
     printf("Экспонента матрицы A:\n");
     matrix_print(result_exponent);
+    matrix_free(&result_exponent);
+    matrix_free(&result_power);
 
     matrix_free(&A);
     matrix_free(&B);
-    matrix_free(&result_add);
-    matrix_free(&result_substruct);
-    matrix_free(&result_multiply);
-    matrix_free(&result_ratio);
-    matrix_free(&result_transposition);
-    matrix_free(&result_exponent);
-    matrix_free(&C);
-    matrix_free(&E);
 
     return 0;
 }
