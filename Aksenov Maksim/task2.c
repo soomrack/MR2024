@@ -255,39 +255,39 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
     }
 
     Matrix E = matrix_identity(A.rows);
-  
+
     if (E.data == NULL) {
         matrix_exception(ERROR, "Сбой выделения памяти");
         return MATRIX_NULL;
     }
-    
+
     if (num == 1) {
         return E;
     }
 
-    Matrix tmp = matrix_alloc(A.rows, A.cols);
-    if (tmp.data == NULL) {
-        matrix_free(&E);
-        matrix_exception(ERROR, "Сбой выделения памяти");
-        return MATRIX_NULL;
-    }
-
-
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        
-        Matrix power = matrix_power(A, cur_num);
-        
-        tmp = matrix_by_scalar(power, 1.0 / factorial(cur_num));
-        
-        Matrix new_E = matrix_sum(E, tmp);
-        
-        matrix_free(&E);
-        E = new_E;
+        Matrix tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) {
+            matrix_exception(ERROR, "Сбой выделения памяти в matrix_power");
+            matrix_free(&E); 
+            return MATRIX_NULL;
+        }
+        tmp = matrix_by_scalar(tmp, 1.0 / factorial(cur_num)); 
 
-        matrix_free(&power);
+        Matrix exp = matrix_sum(E, tmp);
+        if (exp.data == NULL) {
+            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
+            matrix_free(&E);
+            matrix_free(&tmp); 
+            return MATRIX_NULL;
+        }
+
+        matrix_free(&E);
+        E = exp;
+
         matrix_free(&tmp);
     }
-    
+
     return E;
 }
 
