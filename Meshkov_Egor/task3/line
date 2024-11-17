@@ -1,0 +1,137 @@
+#define LEFT_PWM 6
+#define LEFT_DIR 7
+#define RIGHT_PWM 5
+#define RIGHT_DIR 4
+
+#define K_P 0.23
+#define K_D 2.1
+
+const int default_speed = 250;
+const int max_speed = 255;
+const int min_speed = - 100; // "-" for a better stop tobot 
+
+// sensor_range_values
+int left_sensor_min_value = 1023;
+int left_sensor_max_value = 0;
+int right_sensor_min_value = 1023;
+int right_sensor_max_value = 0;
+const int black_value = 90;
+
+int prev_error = 0;
+
+int count_of_crossroads = 1; // Initial value, always better to take "1"
+const int max_count_of_crossroads = 2;
+
+bool flag = true;
+bool button_old = 1;
+
+
+void drive(int left_motor_speed, int right_motor_speed)
+{
+  digitalWrite(LEFT_DIR, left_motor_speed < 0);
+  digitalWrite(RIGHT_DIR, right_motor_speed < 0);
+
+  analogWrite(LEFT_PWM, abs(left_motor_speed));
+  analogWrite(RIGHT_PWM, abs(right_motor_speed));
+}
+
+
+void sensors_calibrate() {
+  unsigned long int Time = millis();
+  
+  while (millis() - Time < 4000)
+  {
+    drive(120, -120);
+    int left_sensor_value = analogRead(A0);
+    int right_sensor_value = analogRead(A1);
+    if (left_sensor_value < left_sensor_min_value) {
+      left_sensor_min_value = left_sensor_value;
+    }
+    if (left_sensor_value > left_sensor_max_value) {
+      left_sensor_max_value = left_sensor_value;
+    }
+    if (right_sensor_value < right_sensor_min_value) {
+      right_sensor_min_value = right_sensor_value;
+    }
+    if (right_sensor_value > right_sensor_max_value) {
+      right_sensor_max_value = right_sensor_value;      
+    }
+  }
+  
+  drive(0, 0);
+}
+
+
+void setup() {
+  pinMode(LEFT_PWM, OUTPUT);
+  pinMode(LEFT_DIR, OUTPUT);
+  pinMode(RIGHT_PWM, OUTPUT);
+  pinMode(RIGHT_DIR, OUTPUT);
+  sensors_calibrate();
+  pinMode(A2, INPUT);
+  while (1)
+  {
+    if (digitalRead(A2) == 1)
+    {
+      delay(5);
+      if (digitalRead(A2) == 1)
+      {
+        break;
+      }
+    }
+  }
+}
+
+
+// Function stop the robot when count_of_crossroads == max_count_of_crossroads
+void crossroad_counter() {
+  if(count_of_crossroads == max_count_of_crossroads) {
+      flag = !flag;
+      drive(-255, -255);
+      delay(1);
+      return;
+    }
+    
+    unsigned long Time = millis();
+    while(millis() - Time < 225) {
+      drive(250, 250);
+    }
+    
+    count_of_crossroads++;
+}
+
+
+void PD_regulator() {
+  int s1 = map(analogRead(A0), left_sensor_min_value, left_sensor_max_value, 0, 100);
+  int s2 = map(analogRead(A1), right_sensor_min_value, right_sensor_max_value, 0, 100);
+  
+  double error = s1 - s2;
+  double correction = error * K_P + (error - prev_error) * K_D;
+
+  double left_motor_speed = constrain(default_speed + correction, max_speed, min_speed);
+  double right_motor_speed = constrain(default_speed - correction, max_speed, min_speed);
+  drive(left_motor_speed, right_motor_speed);
+  
+  prev_error = error;
+  
+  if (s1 >= black_value && s2 >= black_value) crossroad_counter();
+}
+
+
+// Function to stop/start robot movement after button click 
+void button_launch() {
+  if (digitalRead(A2) == 1 && button_old == 0) {
+    delay(5);
+    if (digitalRead(A2) == 1) flag = !flag;
+  }
+  button_old = digitalRead(A2);
+
+  count_of_crossroads = 1; // New start of robot movement
+}
+
+
+void loop() {
+  if (flag) PD_regulator();
+  //delay(1);
+  button_launch();
+}
