@@ -13,17 +13,12 @@ struct Matrix
 
 typedef struct Matrix Matrix;
 
-typedef enum {
-    ERROR,
-    WARNING
-} MatrixExceptionLevel;
+enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
-
-const Matrix MATRIX_NULL = {0, 0, NULL};
-
+const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
 // Ошибки
-void matrix_error(const MatrixExceptionLevel level, const char* location, const char* msg) {
+void matrix_error(const enum MatrixExceptionLevel level, const char* location, const char* msg) {
     if (level == ERROR) {
         printf("nERRORnLoc: %snText: %sn", location, msg);
     }
@@ -54,7 +49,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols) {
     M.data = (double*)malloc(rows * cols * sizeof(double));
 
     if (M.data == NULL) {
-        matrix_error("WARNING", "matrix_alloc", "Сбой выделения памяти!");
+        matrix_error(WARNING, "matrix_alloc", "Сбой выделения памяти!");
         return MATRIX_NULL;
     }
 
