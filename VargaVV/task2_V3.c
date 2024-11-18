@@ -186,8 +186,12 @@ Matrix matrix_power(const Matrix A, unsigned int power)
         return MATRIX_NULL;
     }
     
-    Matrix result = identity_matrix(A.rows); // Создаем единичную матрицу   
-    // ЕСЛИ не создалась, то выход
+    Matrix result = identity_matrix(A.rows); 
+
+    if (A.data==0) {
+        matrix_error(WARNING, "matrix_power", "Ошибка: Память по матрицу не выделилась!\n");
+        return MATRIX_NULL;
+    }
 
     for (int n = 0; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
