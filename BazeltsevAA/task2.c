@@ -128,9 +128,7 @@ Matrix matrix_zero(const size_t rows, const size_t cols)
 {
 	Matrix C = matrix_memory_alloc(rows, cols);
 	
-	for(size_t index = 0; index < rows * cols; index++) {
-		C.data[index] = 0;           
-	}
+	C = memset(C.data, 0, C.rows * C.cols * sizeof(double));
 
 	return C;
 }
@@ -143,7 +141,7 @@ Matrix matrix_unit(const size_t rows, const size_t cols)
 	Matrix C = matrix_zero(rows, cols);
 	size_t counter = 0;
 
-	for(size_t index = 0; (counter < rows) && (counter < cols); index += C.cols + 1) {
+	for(size_t index = 0; (counter < C.rows) && (counter < C.cols); index += C.cols + 1) {
 		C.data[index] = 1.0;
 		counter++;
 	}
@@ -190,8 +188,12 @@ Matrix matrix_power(const Matrix A, size_t power)
 
 	Matrix C = A;
 
+	tmp = matrix_memory_alloc(A.rows, A.cols);
+
 	for(size_t index = 0; index < power; index++) {
-		C = matrix_multiplication(C, A);
+		tmp = matrix_multiplication(C, A);
+		memcopy(tmp, C);
+		matrix_memory_free(&tmp);
 	}
 
 	return C;
@@ -285,10 +287,18 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 {
 	Matrix C = matrix_unit(A.cols, A.rows);
 	Matrix D = matrix_memory_alloc(A.cols, A.rows);
-
+	tmp = matrix_memory_alloc(A.cols, A.rows);
+	tmp1 = matrix_memory_alloc(A.cols, A.rows);
 	for(size_t index = 1; index <= order; index++) {
        D = matrix_multiplication_ratio(matrix_power(A, index), 1/tgamma(index + 1));
-       C = matrix_sum(C, D);
+
+       memcopy(tmp1, D);
+	   matrix_memory_free(&tmp1);
+
+       tmp = matrix_sum(C, D);
+
+       memcopy(tmp, C);
+	   matrix_memory_free(&tmp);
 	}
 
 	return C;
@@ -301,12 +311,12 @@ float matrix_determinant(const Matrix A)
     float det;
     if (A.rows != A.cols) {
         print_message(WARNING, "Поиск определителя невозможен, так как матрица не квадратная\n");
-        return 0;
+        return NAN;
     }
 
     if (A.rows == 0) {
         print_message(WARNING, "Матрица нулевая\n");
-        return 0;
+        return NAN;
     }
 
     if (A.rows == 1) {
