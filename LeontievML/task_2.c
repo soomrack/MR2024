@@ -358,8 +358,7 @@ struct Matrix matrix_exponent(const struct Matrix A, int terms)
         for (size_t i = 0; i < result.rows * result.cols; ++i)
         {
             result.data[i] += temp.data[i] / fact;
-        }
-        matrix_print(result);
+        }8
     }
 
     matrix_free(&temp);
