@@ -423,4 +423,6 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
         ++k;
     }
 
+    matrix_free(M_tmp_ptr);
+
 }

@@ -13,7 +13,7 @@ int main()
 
     matrix_random(M1, 0, 5);
     matrix_print(M1);
-
+    
     matrix_random(M2, 6, 12);
     matrix_print(M2);
 
