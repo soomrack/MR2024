@@ -190,7 +190,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
 
-    for (int n = 0; n < power; n++) {
+    for (unsigned int n = 0; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
