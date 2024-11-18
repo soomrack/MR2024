@@ -88,6 +88,11 @@ void matrix_memory_free(struct Matrix* M)
     *M = MATRIX_NULL;
 }
 
+void matrix_copy(const Matrix A, Matrix B)
+{
+    memcpy(B.date, A.date, A.cols * A.rows * sizeof(double));    
+    Matrix B = matrix_memory_alloc(A.cols, A.rows);
+}
 
 void matrix_print(const Matrix M)
 {
@@ -142,7 +147,7 @@ Matrix matrix_unit(const size_t rows, const size_t cols)
     size_t counter = 0;
 
     for (size_t index = 0; index < rows; index++) {
-        M.data[index * rows + index] = 1.0;
+        C.data[index * rows + index] = 1.0;
     }
 
     return C;
@@ -286,10 +291,10 @@ Matrix matrix_multiplication_transp(const Matrix A, const Matrix B)
 // экспонента матрицы A
 Matrix matrix_exponent(const Matrix A, const size_t order)
 {
-    Matrix C = matrix_memory_alloc(A.cols, A.rows);
     Matrix C = matrix_unit(A.cols, A.rows);
-    Matrix P = A;
+    Matrix P = matrix_memory_alloc(A.cols, A.rows);
 
+    
     Matrix tmp = matrix_memory_alloc(A.cols, A.rows);
     Matrix tmp1 = matrix_memory_alloc(A.cols, A.rows);
     Matrix tmp2 = matrix_memory_alloc(A.cols, A.rows);
@@ -307,6 +312,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
         matrix_memory_free(&C);
         C = tmp;
     }
+    
     matrix_memory_free(&tmp);
     matrix_memory_free(&tmp1);
     matrix_memory_free(&tmp2);
