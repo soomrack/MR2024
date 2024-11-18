@@ -38,6 +38,10 @@ double matrix_get(const Matrix M, const size_t row_number, const size_t col_numb
     if(row_number > M.rows || col_number > M.cols) {
         puts("Недопустимый индекс");
         return MAT_SIZE_ERR;
+    }
+
+    if(M.cols == 0 || M.rows == 0) {
+        return MAT_SIZE_ERR;
     }   
 
     return M.data[row_number * M.cols + col_number];
@@ -51,6 +55,10 @@ Matrix_status matrix_set(Matrix M, double element, const size_t row_number, cons
         return MAT_SIZE_ERR;
     }
 
+    if(M.cols == 0 || M.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
+
     M.data[row_number * M.cols + col_number] = element;
 
     return MAT_OK;
@@ -59,6 +67,10 @@ Matrix_status matrix_set(Matrix M, double element, const size_t row_number, cons
 
 double matrix_get_max_element(const Matrix M)
 {
+    if(M.cols == 0 || M.rows == 0) {
+        return MAT_SIZE_ERR;
+    }
+
     double max_element = M.data[0];
 
     for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
@@ -71,6 +83,10 @@ double matrix_get_max_element(const Matrix M)
 
 double matrix_get_max_absolute_element(const Matrix M)
 {
+    if(M.cols == 0 || M.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
+
     double max_element = M.data[0];
 
     for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
@@ -87,85 +103,89 @@ unsigned char matrix_is_empty(const Matrix M)
 }
 
 
-unsigned char matrix_equal_size(const Matrix m1, const Matrix m2)
+unsigned char matrix_equal_size(const Matrix M1, const Matrix M2)
 {
-    return (m1.rows == m2.rows && m1.cols == m2.cols);
+    return (M1.rows == M2.rows && M1.cols == M2.cols);
 }
 
 
-unsigned char matrix_is_square(const Matrix m)
+unsigned char matrix_is_square(const Matrix M)
 {
-    return (m.rows == m.cols);
+    return (M.rows == M.cols);
 }
 
 
-unsigned char matrix_compatible(const Matrix m1, const Matrix m2)
+unsigned char matrix_compatible(const Matrix M1, const Matrix M2)
 {
-    return (m1.cols == m2.rows);
+    return (M1.cols == M2.rows);
 }
 
 
-Matrix_status matrix_zeros(Matrix m)
+Matrix_status matrix_zeros(Matrix M)
 {
-    memset(m.data, 0, m.cols * m.rows * sizeof(double));
+    memset(M.data, 0, M.cols * M.rows * sizeof(double));
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_ones(Matrix m)
+Matrix_status matrix_ones(Matrix M)
 {
-    for(size_t idx = 0; idx < m.cols * m.rows; ++idx) {
-        m.data[idx] = 1.0;
+    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
+        M.data[idx] = 1.0;
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_copy(Matrix m_new, const Matrix m)
+Matrix_status matrix_copy(Matrix M_new, const Matrix M)
 {
-    if(!matrix_equal_size(m, m_new)) return MAT_SIZE_ERR;
+    if(!matrix_equal_size(M, M_new)) return MAT_SIZE_ERR;
 
-    for(size_t idx = 0; idx < m.cols * m.rows; ++idx) {
-        m_new.data[idx] = m.data[idx];
+    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
+        M_new.data[idx] = M.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_identity(Matrix m)
+Matrix_status matrix_identity(Matrix M)
 {
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    if(M.cols == 0 || M.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
 
-    for(size_t idx = 0; idx < m.rows; ++idx) {
-        m.data[idx * m.rows + idx] = 1.0;
+    if(!matrix_is_square(M)) return MAT_SIZE_ERR;
+
+    for(size_t idx = 0; idx < M.rows; ++idx) {
+        M.data[idx * M.rows + idx] = 1.0;
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_upper_triangular(Matrix m)
+Matrix_status matrix_upper_triangular(Matrix M)
 {
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    if(!matrix_is_square(M)) return MAT_SIZE_ERR;
 
-    for(size_t rows_idx = 0; rows_idx < m.rows; ++rows_idx) {
+    for(size_t rows_idx = 0; rows_idx < M.rows; ++rows_idx) {
         for(size_t cols_idx = 0; cols_idx < rows_idx; ++cols_idx) {
-            m.data[rows_idx * m.rows + cols_idx] = 0.0;
+            M.data[rows_idx * M.rows + cols_idx] = 0.0;
         }
     }
 }
 
 
-Matrix_status matrix_lower_triangular(Matrix m)
+Matrix_status matrix_lower_triangular(Matrix M)
 {
-    if(!matrix_is_square(m)) return MAT_SIZE_ERR;
+    if(!matrix_is_square(M)) return MAT_SIZE_ERR;
 
-    for(size_t rows_idx = 0; rows_idx < m.rows; ++rows_idx) {
-        for(size_t cols_idx = rows_idx + 1; cols_idx < m.cols; ++cols_idx) {
-            m.data[rows_idx * m.rows + cols_idx] = 0.0;
+    for(size_t rows_idx = 0; rows_idx < M.rows; ++rows_idx) {
+        for(size_t cols_idx = rows_idx + 1; cols_idx < M.cols; ++cols_idx) {
+            M.data[rows_idx * M.rows + cols_idx] = 0.0;
         }
     }
 }
@@ -182,48 +202,64 @@ double factorial(const int n)
 }
 
 
-Matrix_status matrix_sum(Matrix* m_result, Matrix m1, Matrix m2)
+Matrix_status matrix_sum(Matrix* M_result, Matrix M1, Matrix M2)
 {
-    if(!(matrix_equal_size(m1, m2) && matrix_equal_size(*m_result, m1))) return MAT_SIZE_ERR;
+    if(M1.cols == 0 || M1.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
 
-    for(size_t idx = 0; idx < m1.rows * m1.cols; ++idx) {
-        m_result -> data[idx] = m1.data[idx] + m2.data[idx];
+    if(!(matrix_equal_size(M1, M2) && matrix_equal_size(*M_result, M1))) return MAT_SIZE_ERR;
+
+    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
+        M_result -> data[idx] = M1.data[idx] + M2.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_add(Matrix m1, const Matrix m2)
+Matrix_status matrix_add(Matrix M1, const Matrix M2)
 {
-    if(!matrix_equal_size(m1, m2)) return MAT_SIZE_ERR;
+    if(M1.cols == 0 || M1.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
+
+    if(!matrix_equal_size(M1, M2)) return MAT_SIZE_ERR;
         
-    for(size_t idx = 0; idx < m1.rows * m1.cols; ++idx) {
-        m1.data[idx] += m2.data[idx];
+    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
+        M1.data[idx] += M2.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_difference(Matrix* m_result, Matrix m1, Matrix m2)
+Matrix_status matrix_difference(Matrix* M_result, Matrix M1, Matrix M2)
 {
-    if(!(matrix_equal_size(m1, m2) && matrix_equal_size(*m_result, m1))) return MAT_SIZE_ERR;
+    if(M1.cols == 0 || M1.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
 
-    for(size_t idx = 0; idx < m1.rows * m1.cols; ++idx) {
-        m_result -> data[idx] = m1.data[idx] - m2.data[idx];
+    if(!(matrix_equal_size(M1, M2) && matrix_equal_size(*M_result, M1))) return MAT_SIZE_ERR;
+
+    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
+        M_result -> data[idx] = M1.data[idx] - M2.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_sub(Matrix m1, const Matrix m2)
+Matrix_status matrix_sub(Matrix M1, const Matrix M2)
 {
-    if(!matrix_equal_size(m1, m2)) return MAT_SIZE_ERR;
+    if(M1.cols == 0 || M1.rows == 0) {
+        return MAT_SIZE_ERR;
+    } 
+
+    if(!matrix_equal_size(M1, M2)) return MAT_SIZE_ERR;
         
-    for(size_t idx = 0; idx < m1.rows * m1.cols; ++idx) {
-        m1.data[idx] -= m2.data[idx];
+    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
+        M1.data[idx] -= M2.data[idx];
     }
 
     return MAT_OK;
