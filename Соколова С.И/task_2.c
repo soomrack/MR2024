@@ -191,31 +191,60 @@ Matrix *matrix_multiplication_on_ratio(Matrix *A, const int ratio)
 }
 
 
-Matrix *matrix_determinant(Matrix *A) 
+double matrix_determinant(Matrix *A) 
 {
     if (A->rows == A->cols) {
 
-        double Det;
+        double Det, det_sign;
+        det_sign = 0;
 
         if (A->rows == 1) {
 
             Det = A->data[0];
-            printf("%lf\n", Det);
-            return NULL;
+            return Det;
         }
 
         else if (A->rows == 2) {
 
             Det = (A->data[0] * A->data[3]) - (A->data[1] * A->data[2]);
-            printf("%lf\n", Det);
-            return NULL;
+            return Det;
         }
 
-        
+        if (A->rows >= 3) {
+
+            for (size_t col = 0; col < A->cols; ++col) {
+
+                Matrix minor = matrix_allocate(A->rows-1, A->cols-1);
+                size_t minor_row = 0;
+
+                for (size_t row = 1; row < A->rows; ++row) {
+
+                    size_t minor_col = 0;
+
+                    for (size_t k_col=0; k_col < A->cols; ++k_col) {
+                        
+                        if (col != k_col) {
+
+                            minor.data[minor_row*(A->cols-1)+minor_col]=A->data[row*A->cols+k_col];
+                            minor_col++;
+                        }
+                    }
+                    minor_row++;
+                }
+                double minor_det = matrix_determinant(&minor);
+
+                det_sign += (col % 2 == 0 ? 1: -1) * A->data[col] *minor_det;
+
+                free(minor.data);
+            } 
+        }
+    printf("%lf\n", det_sign);
+    return det_sign;
     }
+
     else {
         Matrix_exeption(ERROR, "You can't take a determinant");
-        return NULL;
+        return -1;
     }
 }
 
@@ -239,7 +268,7 @@ int main()
     printf("---------------------------- \n");
 
     
-    matrix_multiplication_on_ratio(pa,2);
+    matrix_determinant(pa);
 
 
     matrix_free(pa);
