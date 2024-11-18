@@ -384,7 +384,7 @@ void matrix_print(Matrix A)
 }
 
 
-int main() 
+void calculations()
 {
     Matrix A = matrix_init(3, 3);
     matrix_fill_random(A);
@@ -400,7 +400,7 @@ int main()
     B = matrix_pow(A, 2);
     printf("Матрица в квадрате \n");
     matrix_print(B);
-    matrix_print(A);
+    
     double det = matrix_det(A);
     printf("Определитель матрицы \n");
     printf("%.f \n", det);
@@ -409,5 +409,11 @@ int main()
     Matrix exp = matrix_exp(B, 3);
     printf("Экспонента матрицы \n");
     matrix_print(exp);
+}
+
+
+int main() 
+{
+    calculations();
     return 0;
 }
