@@ -284,9 +284,8 @@ Matrix matrix_multiplication_transp(const Matrix A, const Matrix B)
 // экспонента матрицы A
 Matrix matrix_exponent(const Matrix A, const size_t order)
 {
+    Matrix C = matrix_memory_alloc(A.cols, A.rows);
     Matrix C = matrix_unit(A.cols, A.rows);
-    Matrix D = matrix_memory_alloc(A.cols, A.rows);
-
     Matrix P = A;
 
     Matrix tmp = matrix_memory_alloc(A.cols, A.rows);
@@ -299,13 +298,16 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
         P = tmp2;
 
         tmp1 = matrix_multiplication_ratio(P, 1/tgamma(index + 1));
-        matrix_memory_free(&D);
-        D = tmp1;
+        matrix_memory_free(&P);
+        P = tmp1;
 
-        tmp = matrix_sum(C, D);
+        tmp = matrix_sum(C, P);
         matrix_memory_free(&C);
         C = tmp;
     }
+    matrix_memory_free(&tmp);
+    matrix_memory_free(&tmp1);
+    matrix_memory_free(&tmp2);
 
     return C;
 }
