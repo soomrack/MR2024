@@ -256,8 +256,8 @@ Matrix matrix_transp(const Matrix A)
 	size_t index = 0;
 
 	for(size_t col = 0; col < A.cols; col ++) {
-		for(size_t row = 0; row <= A.rows * A.cols + 1 - A.cols; row += A.cols) {
-            C.data[index] = A.data[col + row];
+		for(size_t index1 = 0; index1 <= A.rows * A.cols + 1 - A.cols; index1 += A.cols) {
+            C.data[index] = A.data[col + index1];
             index ++;
 		}
 	}
