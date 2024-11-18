@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 
 struct Matrix {
@@ -12,9 +13,6 @@ struct Matrix {
 
 
 typedef struct Matrix Matrix;
-
-
-Matrix *pa, *pb;
 
 
 enum  MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
@@ -50,25 +48,25 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     return A;
 }  
 
-const Matrix *matrix_random(const Matrix *A)
+Matrix matrix_random(const Matrix A)
 {
     int sight;
 
-    for (size_t i =0; i <A->rows; ++i) {
-        for (size_t j = 0; j < A->cols; ++j) {
+    for (size_t i =0; i <A.rows; ++i) {
+        for (size_t j = 0; j < A.cols; ++j) {
             sight = (rand()%2) * 2 - 1;
-            A->data[i*A->cols + j] = (rand()%100) * sight; 
+            A.data[i*A.cols + j] = (rand()%100) * sight; 
         }
     }
     return A;
 }
 
 
-void matrix_print(const Matrix *A) 
+void matrix_print(const Matrix A) 
 {
-    for (size_t row = 0; row<A->rows; ++row) {
-        for (size_t col = 0; col< A->cols; ++col) {
-            printf("%f\t", A->data[row*A->cols + col]);
+    for (size_t row = 0; row<A.rows; ++row) {
+        for (size_t col = 0; col< A.cols; ++col) {
+            printf("%f\t", A.data[row*A.cols + col]);
         }
         printf("\n");
     }
@@ -83,157 +81,142 @@ void matrix_free(Matrix *A)
 }
 
 
-Matrix *matrix_sum(Matrix *A, Matrix *B)
+Matrix matrix_sum(const Matrix A, const Matrix B)
 {
-    if ((A->rows == B->rows) && (A->cols == B->cols)) {
+    if ((A.rows != B.rows) || (A.cols != B.cols)) {
 
-        Matrix C = matrix_allocate(A->rows, A->cols);
-
-        for (size_t row = 0; row<A->rows; ++row) {
-            for (size_t col = 0; col< A->cols; ++col) {
-                C.data[row*C.cols + col] =  A->data[row*A->cols + col] + B->data[row*B->cols + col];
-            }
-        }
-
-        matrix_print(&C);
-        matrix_free(&C);
-        return NULL;
-    }
-    else {
         Matrix_exeption(ERROR, "You can't sum these matrixs. Rows don't equally Cols");
-        return NULL;
+        return (Matrix) {0, 0, NULL};
     }
+
+    Matrix C = matrix_allocate(A.rows, A.cols);
+
+    for (size_t idx = 0; idx < C.rows * C.cols; ++idx) {
+            C.data[idx] =  A.data[idx] + B.data[idx];
+    }
+
+    return C;
 }
 
 
-Matrix *matrix_substruct(Matrix *A, Matrix *B)
+Matrix matrix_substruct(const Matrix A, const Matrix B)
 {
-    if ((A->rows == B->rows) && (A->cols == B->cols)) {
+     if ((A.rows != B.rows) || (A.cols != B.cols)) {
 
-        Matrix C = matrix_allocate(A->rows, A->cols);
-
-        for (size_t row = 0; row<A->rows; ++row) {
-            for (size_t col = 0; col< A->cols; ++col) {
-                C.data[row*C.cols + col] =  A->data[row*A->cols + col] - B->data[row*B->cols + col];
-            }
-        }
-
-        matrix_print(&C);
-        matrix_free(&C);
-        return NULL;
+        Matrix_exeption(ERROR, "You can't sum these matrixs. Rows don't equally Cols");
+        return (Matrix) {0, 0, NULL};
     }
 
-    else {
-        Matrix_exeption(ERROR, "You can't subsruct matrixs. Rows don't equally Cols");
-        return NULL;
+    Matrix C = matrix_allocate(A.rows, A.cols);
+
+    for (size_t idx = 0; idx<C.rows * C.cols; ++idx) {
+            C.data[idx] =  A.data[idx] - B.data[idx];
     }
+
+    return C;
 }
 
 
-Matrix *matrix_transponate(Matrix *A)
+Matrix matrix_transponate(const Matrix A)
 {
-    Matrix At = matrix_allocate(A->rows, A->cols);
+    Matrix At = matrix_allocate(A.rows, A.cols);
 
-    for (size_t i = 0; i < A->rows; ++i) {
-        for (size_t j = 0; j < A->cols; ++j) {
-            At.data[i*At.cols+j] = A->data[j*A->rows + i];
+    for (size_t row = 0; row < A.rows; ++row) {
+        for (size_t col = 0; col < A.cols; ++col) {
+            At.data[row*At.cols+col] = A.data[col*A.rows + row];
         }
     }
 
-    matrix_print(&At);
-    matrix_free(&At);
-    return NULL;
+    return At;
 }
 
 
-Matrix *matrix_multiplication(Matrix *A, Matrix *B)
+Matrix matrix_multiplication(const Matrix A, const Matrix B)
 {
-    if (A->cols == B-> rows) {
+    if (A.cols != B.rows) {
 
-        Matrix C = matrix_allocate(A->rows, B->cols);
-
-        for (size_t i = 0; i < A->rows; ++i) {
-            for (size_t j = 0; j < B->cols; ++j) {
-
-                C.data[i*C.cols + j] = 0;
-
-                for (size_t k = 0; k < B->rows; ++k) {
-                    C.data[i*C.cols + j] += A->data[i*A->cols + k] * B->data[k*B->cols+j];
-                }
-
-            }
-        }
-
-        matrix_print(&C);
-        matrix_free(&C);
-        return NULL;
-    }
-    else {
         Matrix_exeption(ERROR, "You can't multiplication matrixs");
-        return NULL;
+        return (Matrix) {0,0,NULL};
     }
-}
 
+    Matrix C = matrix_allocate(A.rows, B.cols);
 
-Matrix *matrix_multiplication_on_ratio(Matrix *A, const int ratio)
-{
-    Matrix C = matrix_allocate(A->rows, A->cols);
+    for (size_t row = 0; row < C.rows; ++row) {
+        for (size_t col = 0; col < C.cols; ++col) {
 
-    for (size_t i = 0; i < A->rows; ++i) {
-        for (size_t j = 0; j < A->cols; ++j) {
-            C.data[i*C.cols + j] = ratio * A->data[i*A->cols+j];
+            C.data[row*C.cols + col] = 0;
+
+            for (size_t k = 0; k < B.rows; ++k) {
+                C.data[row*C.cols + col] += A.data[row*A.cols + k] * B.data[k*B.cols+col];
+            }
         }
     }
 
-    matrix_print(&C);
-    matrix_free(&C);
-    return NULL;
+    return C;
 }
 
 
-double matrix_determinant(Matrix *A) 
+Matrix matrix_multiplication_on_ratio(const Matrix A, const int ratio)
 {
-    if (A->rows == A->cols) {
+    Matrix C = matrix_allocate(A.rows, A.cols);
+
+    for (size_t idx = 0; idx < C.rows * C.cols; ++idx) {
+            C.data[idx] = ratio * A.data[idx];
+        }
+
+    return C;
+}
+
+
+double matrix_determinant(const Matrix A) 
+{
+    if (A.rows == A.cols) {
 
         double Det, det_sign;
         det_sign = 0;
 
-        if (A->rows == 1) {
+        if (A.rows == 1) {
 
-            Det = A->data[0];
+            Det = A.data[0];
             return Det;
         }
 
-        else if (A->rows == 2) {
+        else if (A.rows == 2) {
 
-            Det = (A->data[0] * A->data[3]) - (A->data[1] * A->data[2]);
+            Det = (A.data[0] * A.data[3]) - (A.data[1] * A.data[2]);
             return Det;
         }
 
-        if (A->rows >= 3) {
+        if (A.rows >= 3) {
 
-            for (size_t col = 0; col < A->cols; ++col) {
+            for (size_t col = 0; col < A.cols; ++col) {
 
-                Matrix minor = matrix_allocate(A->rows-1, A->cols-1);
+                Matrix minor = matrix_allocate(A.rows-1, A.cols-1);
+
+                if (minor.data == NULL) {
+                    Matrix_exeption(ERROR, "Allocation memomry fail");
+                    return NAN;
+                }
+
                 size_t minor_row = 0;
 
-                for (size_t row = 1; row < A->rows; ++row) {
+                for (size_t row = 1; row < A.rows; ++row) {
 
                     size_t minor_col = 0;
 
-                    for (size_t k_col=0; k_col < A->cols; ++k_col) {
+                    for (size_t k_col=0; k_col < A.cols; ++k_col) {
                         
                         if (col != k_col) {
 
-                            minor.data[minor_row*(A->cols-1)+minor_col]=A->data[row*A->cols+k_col];
+                            minor.data[minor_row*(A.cols-1)+minor_col]=A.data[row*A.cols+k_col];
                             minor_col++;
                         }
                     }
                     minor_row++;
                 }
-                double minor_det = matrix_determinant(&minor);
+                double minor_det = matrix_determinant(minor);
 
-                det_sign += (col % 2 == 0 ? 1: -1) * A->data[col] *minor_det;
+                det_sign += (col % 2 == 0 ? 1: -1) * A.data[col] *minor_det;
 
                 free(minor.data);
             } 
@@ -249,6 +232,69 @@ double matrix_determinant(Matrix *A)
 }
 
 
+Matrix matrix_copy(Matrix A)
+{
+    Matrix C = matrix_allocate(A.rows, A.cols);
+
+    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        C.data[idx] = A.data[idx];
+    }
+
+    return C;
+}
+
+
+Matrix matrix_involution(Matrix A, const unsigned  level)
+{
+    if (A.rows != A.cols) {
+
+        Matrix_exeption(ERROR, "You can't multiply");
+        return (Matrix) {0,0,NULL};
+    }
+
+    Matrix C = matrix_allocate(A.rows, A.cols);
+
+    if (level == 0) {
+
+        for (size_t row = 0; row < C.rows; ++row) {
+            for (size_t col = 0; col < C.cols; ++col) {
+
+                if (row == col) {
+                    C.data[row * C.cols + col] = 1;
+                }
+
+                else {
+                    C.data[row * C.cols + col] = 0;
+                }
+            }
+        }
+        return C;
+    }
+
+    C = matrix_copy(A);
+
+    for (int idx = 1; idx < level; ++idx) {
+
+        C = matrix_multiplication(C,A);
+    }
+
+    return C;
+}
+
+Matrix *matrix_exponent(Matrix *A)
+{
+    if (A->rows == A->cols) {
+
+        Matrix *pAe; 
+
+        for (int k =0 ; k = 20; ++k) {
+
+            
+        }
+    }
+}
+
+
 int main()
 {
     Matrix A,B;
@@ -258,19 +304,19 @@ int main()
     A = matrix_allocate(3,3);
     B = matrix_allocate(3,3);
 
+    A = matrix_random(A);
+    B = matrix_random(B);
 
-    pa = matrix_random(&A);
-    pb = matrix_random(&B);
 
-    matrix_print(pa);
+    matrix_print(A);
     printf("---------------------------- \n");
-    matrix_print(pb);
+    matrix_print(B);
     printf("---------------------------- \n");
 
-    
-    matrix_determinant(pa);
+    Matrix C = matrix_involution(A, 0);
+    matrix_print(C);
 
 
-    matrix_free(pa);
-    matrix_free(pb);
+    matrix_free(&A);
+    matrix_free(&B);
 }
