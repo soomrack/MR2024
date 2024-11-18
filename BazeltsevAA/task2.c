@@ -88,10 +88,19 @@ void matrix_memory_free(struct Matrix* M)
     *M = MATRIX_NULL;
 }
 
-void matrix_copy(const Matrix A, Matrix B)
-{
+void matrix_copy(const Matrix A, const Matrix B)
+{  
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        print_message(ERROR, "Выделенная память не одинакова\n");
+        return;
+    }
+
+    if (B.data == NULL) {
+        print_message(ERROR, "Обращение к недопутимой области памяти\n");
+        return;
+    }
+   
     memcpy(B.date, A.date, A.cols * A.rows * sizeof(double));    
-    Matrix B = matrix_memory_alloc(A.cols, A.rows);
 }
 
 void matrix_print(const Matrix M)
@@ -294,6 +303,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
     Matrix C = matrix_unit(A.cols, A.rows);
     Matrix P = matrix_memory_alloc(A.cols, A.rows);
 
+    matrix_copy(A, P);
     
     Matrix tmp = matrix_memory_alloc(A.cols, A.rows);
     Matrix tmp1 = matrix_memory_alloc(A.cols, A.rows);
@@ -316,6 +326,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
     matrix_memory_free(&tmp);
     matrix_memory_free(&tmp1);
     matrix_memory_free(&tmp2);
+    matrix_memory_free(&P);
 
     return C;
 }
