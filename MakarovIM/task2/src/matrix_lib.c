@@ -173,7 +173,7 @@ MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
         return MAT_MEMORY_ERR;
     }
 
-    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
         result->data[idx] = A.data[idx] + B.data[idx];
     }
 
@@ -193,7 +193,7 @@ MatrixStatus matrix_subtract(Matrix* result, const Matrix A, const Matrix B)
         return MAT_MEMORY_ERR;
     }
 
-    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
         result->data[idx] = A.data[idx] - B.data[idx];
     }
 
@@ -233,7 +233,7 @@ MatrixStatus matrix_scalar_multiply(Matrix* result, Matrix M, double scalar)
         return MAT_MEMORY_ERR;
     }
 
-    for(size_t idx = 0; idx < M.rows * M.cols; ++idx) {
+    for (size_t idx = 0; idx < M.rows * M.cols; ++idx) {
         result->data[idx] = M.data[idx] * scalar;
     }
 
