@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
 
 enum MatrixExceptionLevel {ERROR, DEBUG};
 
@@ -87,7 +88,7 @@ int matrix_add(struct Matrix A, struct Matrix B, struct Matrix result)
     if (A.cols != B.cols || A.rows != B.rows)
     {
         matrix_error(ERROR, "C = A + B", "размеры матриц не совпадают для сложения");
-        return -1; // Ошибка: размеры матриц не совпадают
+        return NAN;
     }
 
     for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
@@ -104,7 +105,7 @@ int matrix_subtract(struct Matrix A, struct Matrix B, struct Matrix result)
     if (A.cols != B.cols || A.rows != B.rows)
     {
         matrix_error(ERROR, "C = A - B", "размеры матриц не совпадают для вычитания");
-        return -1; // Ошибка: размеры матриц не совпадают
+        return NAN;
     }
 
     for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
@@ -175,7 +176,7 @@ double determinant(struct Matrix A)
     if (A.rows != A.cols)
     {
         matrix_error(ERROR, "|A|", "Определитель невозможно вычислить (неверные размеры матриц)");
-        return -1;
+        return 0;
     }
 
     // Базовый случай для матрицы 1x1
@@ -218,7 +219,7 @@ double determinant(struct Matrix A)
 
         free(minor.data);
     }
-
+    
     return det;
 }
 
@@ -249,14 +250,14 @@ int main()
     matrix_print(B);
 
     // Складываем матрицы с проверкой на ошибку
-    if (matrix_add(A, B, result_add) != -1)
+    if (matrix_add(A, B, result_add) != NAN)
     {
         printf("Результат A + B:\n");
         matrix_print(result_add);
     }
 
     // Вычитаем матрицы с проверкой на ошибку
-    if (matrix_subtract(A, B, result_subtract) != -1)
+    if (matrix_subtract(A, B, result_subtract) != NAN)
     {
         printf("Результат A - B:\n");
         matrix_print(result_subtract);
@@ -286,7 +287,7 @@ int main()
     
 
     double det = determinant(A);
-    if (det == -1)
+    if (det == 0)
     {
         printf("Определитель невозможно вычислить (неверные размеры матриц)\n");
     }
