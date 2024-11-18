@@ -23,9 +23,8 @@ typedef struct
 //Степень матрицы (натуральное число) +
 //Нахождение определителя матрицы +
 //Транспонирование матрицы +
-//Единичная матрица +
-//Нахождение миноров 
-//Деление матриц
+//Единичная матрица + 
+//Деление матриц +
 //Экспонента матрицы
 
 
@@ -40,7 +39,7 @@ void matrix_init(Matrix *A, const int rows, const int cols)
 void matrix_fill(Matrix *A)
 {
     for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = (i + 1) * (i + 1);
+        A->data[i] = (i + 1);
     }
 }
 
@@ -164,7 +163,7 @@ double matrix_det(Matrix A)
     unit_matrix(&C, A.rows, A.cols);
     double result = 1;
     if(B.rows == B.cols) {
-        for (size_t col_nul = 0; col_nul < B.cols - 1; col_nul++) {
+        for (size_t col_nul = 0; col_nul < B.cols; col_nul++) {
             for (size_t row = col_nul + 1; row < B.rows; row++) {
                 double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
                 for (size_t col = col_nul; col < B.cols; col++) {
@@ -173,7 +172,6 @@ double matrix_det(Matrix A)
                 }
             }
             result *= (double)B.data[col_nul * B.cols + col_nul];
-            matrix_print(B);
         }
     }
     return result;
@@ -182,48 +180,127 @@ double matrix_det(Matrix A)
 
 void matrix_reverse(Matrix *result, Matrix A)
 {
+    printf("Matrix reverse\n\n");
     Matrix B;
     matrix_clone(&B, A);
-    Matrix C;
-    unit_matrix(&C, A.rows, A.cols);
+    unit_matrix(&*result, A.rows, A.cols);
+   
     if(B.rows == B.cols) {
-        for (size_t col_nul = 0; col_nul < B.cols - 1; col_nul++) {
+        for (size_t col_nul = 0; col_nul <= B.cols; col_nul++) {
             for (size_t row = col_nul + 1; row < B.rows; row++) {
                 double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
-                for (size_t col = col_nul; col < B.cols; col++) {
+                for (size_t col = 0; col < B.cols; col++) {
                     B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
-                    C.data[row * C.cols + col] -= (double)C.data[col_nul * C.cols + col] * proportion;
+                    result -> data[row * B.cols + col] -= (double) result -> data[col_nul * B.cols + col] * proportion;
                 }
             }
             matrix_print(B);
+            matrix_print(*result);
         }
-        for (size_t col_nul = B.cols - 1; col_nul > 0; col_nul--) {
-            for (size_t row = col_nul - 1; row >= 0; row--) {
-                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
-                for (size_t col = col_nul; col >= 0; col--) {
-                    B.data[row  * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
-                    C.data[row * C.cols + col] -= (double)C.data[col_nul * C.cols + col] * proportion;
-                }
+        for (int row = 0; row < B.rows; row++){
+            double koef = B.data[row * B.cols + row];
+            for (int col = 0; col < B.cols; col++){
+                B.data[row * B.cols + col] /= koef;
+                result -> data[row * B.cols + col] /= koef;
             }
             matrix_print(B);
-        }   
-    } 
+            matrix_print(*result);
+        }
+        for (int col_nul = B.cols - 1; col_nul >= 0; col_nul--) {
+            for (int row = col_nul - 1; row >= 0; row--) {
+                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
+                for (int col = B.cols - 1; col >= 0; col--) {
+                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
+                    result -> data[row * B.cols + col] -= (double) result -> data[col_nul * B.cols + col] * proportion;
+                }   
+            }
+            matrix_print(B);
+            matrix_print(*result);
+        }  
+    }   
+}
+
+
+void matrix_div(Matrix *result, Matrix A, Matrix B)
+{
+    printf("Matrix multiply\n\n");
+    Matrix D;
+    matrix_clone(&D, B);
+    printf("Matrix multiply clone\n\n");
+    matrix_print(D);
+    matrix_reverse(&D, B);
+    printf("Matrix multiply reverse and normal matrix\n\n");
+    matrix_print(D);
+    matrix_print(A);
+    matrix_mul(&*result, A, D);
+}
+
+
+int factorial(int num)
+{
+    int fact = 1;
+    for (int i = 1; i <= num; i++)
+    {
+        fact *= i;
+    }
+    return fact;
+}
+
+
+void matrix_exponent(Matrix *result, Matrix A, int num)
+{
+    Matrix E;
+    unit_matrix(&E, A.rows, A.cols);
+
+    for (int cur_num = 1; cur_num < num; cur_num++)
+    {
+        Matrix temporary;
+        Matrix temporary2;
+        matrix_clone(&temporary, A);
+        matrix_pow(&temporary, A, cur_num);
+        matrix_clone(&temporary2, temporary);
+        matrix_mul_num(&temporary2, temporary, (double) 1.0 / factorial(cur_num));
+        Matrix E_copy;
+        matrix_clone(&E_copy, E);
+        matrix_sum(&E, E_copy, temporary2);
+    }
+    matrix_clone(&*result, E);
+    
 }
 
 
 int main()  
 {
+    /*
     Matrix first_matrix;
-    Matrix second_matrix;
-    Matrix third_matrix;
+    
     matrix_init(&first_matrix, 3, 3);
     matrix_fill(&first_matrix);
     matrix_print(first_matrix);
-    printf("%f" ,matrix_det(first_matrix));
+    printf("%f\n\n", matrix_det(first_matrix));
     Matrix D;
-     matrix_init(&D, 3, 3);
+    Matrix C;
+    Matrix E;
+    Matrix F;
+    matrix_init(&F, 3, 3);
+    matrix_fill(&F);
+    matrix_init(&E, 3, 3);
+    matrix_fill(&E);
+    matrix_init(&D, 3, 3);
     matrix_reverse(&D, first_matrix);
-
+    matrix_print(D);
+    matrix_div(&C, E, F);
+    matrix_print(C);
+    */
+    Matrix second_matrix;
+    Matrix third_matrix;
+    matrix_init(&second_matrix, 3, 3);
+    matrix_fill(&second_matrix);
+    matrix_print(second_matrix);
+    matrix_init(&third_matrix, 3, 3);
+    matrix_fill(&third_matrix);
+    matrix_exponent(&third_matrix, second_matrix, 3);
+    matrix_print(third_matrix);
     return 0;
 
 }
