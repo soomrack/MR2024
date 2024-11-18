@@ -92,16 +92,20 @@ Matrix identity_matrix(size_t size)
 
 
 //Copy
-Matrix matrix_copy(const Matrix A) {
-    Matrix copy = matrix_alloc(A.rows, A.cols);
-    for (size_t rows = 0; rows < A.rows; rows++) {
-        for (size_t cols = 0; cols < A.cols; cols++) {
-            copy.data[rows * A.cols + cols] = A.data[rows * A.cols + cols];
-        }
+void matrix_copy(const Matrix B, const Matrix A) {
+    
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        matrix_error(ERROR, "matrix_copy", "Матрицы различных размеров");
+        return;
     }
-    return copy;
-}
 
+    if (B.data == NULL) {
+        matrix_error(ERROR, "matrix_copy", "Ошибка при выделение памяти");
+        return;
+    }
+
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
+}
 
 
 void matrix_print(const Matrix M) // print
@@ -168,7 +172,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) // *
 Matrix matrix_transpose(const Matrix A) // Т
 {
     Matrix T = matrix_alloc(A.cols, A.rows);
-    
+
     for (size_t row = 0; row < T.rows; row++) {
         for (size_t col = 0; col < T.cols; col++) {
             T.data[col * T.cols + row] = A.data[row * A.cols + col];
@@ -247,13 +251,12 @@ Matrix matrix_exponential(const Matrix A) // Exp
 
     Matrix result = matrix_alloc(A.rows, A.cols);
     result=identity_matrix(A.rows);    //1
-    Matrix current_power = matrix_alloc(A.rows, A.cols);
-    current_power = matrix_copy(A); // Копируем A в current_power
-
+    Matrix current_power = identity_matrix(A.rows);   // Копируем A в current_power
+    matrix_copy(current_power, A); 
     double factorial = 1.0;
     int n = 1;
 
-    for (n <= 40; n++;) {  
+    for (;n <= 40; n++) {  
         factorial *= n;
 
         Matrix term = matrix_by_multiplier(current_power, 1.0 / factorial);
@@ -261,10 +264,10 @@ Matrix matrix_exponential(const Matrix A) // Exp
 
         matrix_free(&result); //
         result = temp_result;  
-
         Matrix temp_power = matrix_multiply(current_power, A);
         matrix_free(&current_power); // 
-        current_power = temp_power;   
+        current_power = temp_power; 
+        matrix_free(&term);
 
     }
 
