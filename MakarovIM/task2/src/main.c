@@ -24,40 +24,40 @@ int main() {
     matrix_print(B);
 
     Matrix result;
-    if (matrix_sum(A, B, &result) == MAT_OK) {
+    if (matrix_sum(&result, A, B) == MAT_OK) {
         printf("Сумма матриц:\n");
         matrix_print(result);
         matrix_free(&result);
     }
 
-    if (matrix_subtract(A, B, &result) == MAT_OK) {
+    if (matrix_subtract(&result, A, B) == MAT_OK) {
         printf("Разность матриц:\n");
         matrix_print(result);
         matrix_free(&result);
     }
 
-    if (matrix_multiply(A, B, &result) == MAT_OK) {
+    if (matrix_multiply(&result, A, B) == MAT_OK) {
         printf("Произведение матриц:\n");
         matrix_print(result);
         matrix_free(&result);
     }
 
     double scalar = 2.5;
-    if (matrix_scalar_multiply(A, scalar, &result) == MAT_OK) {
+    if (matrix_scalar_multiply(&result, A, scalar) == MAT_OK) {
         printf("Умножение матрицы на %0.2f:\n", scalar);
         matrix_print(result);
         matrix_free(&result);
     }
 
     int power = 4;
-    if (matrix_power(A, 4, &result) == MAT_OK) {
+    if (matrix_power(&result, A, 4) == MAT_OK) {
         printf("Возведение в %d степень матрицы A:\n", power);
         matrix_print(result);
         matrix_free(&result);
     }
 
 
-    if (matrix_copy(A, &B) == MAT_OK) {
+    if (matrix_copy(&A, B) == MAT_OK) {
         printf("Копирование матриц:\n");
         printf("src:\n");
         matrix_print(A);
@@ -67,7 +67,7 @@ int main() {
     
 
     int num = 10;
-    if (matrix_exponent(A, num, &result) == MAT_OK) {
+    if (matrix_exponent(&result, A, num) == MAT_OK) {
         printf("Экспонента матрицы А:\n");
         matrix_print(result);
         matrix_free(&result); 
