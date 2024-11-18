@@ -221,7 +221,7 @@ MatrixExceptions matrix_copy(const Matrix dest, const Matrix src) {
         return MAT_EMPTY_MATRIX_ERROR;
     }
 
-    if(((dest.rows == src.rows) && (dest.cols == src.cols)) == 0) {
+    if((dest.rows != src.rows) || (dest.cols != src.cols)) {
         matrix_print_log(LOG_ERROR, "matrix size must be equal\n");
         return MAT_SIZE_ERROR;
     }
@@ -351,7 +351,7 @@ MatrixExceptions matrix_transpoze(const Matrix res_matrix, const Matrix src_matr
 static size_t matrix_find_max_element_row_in_column_below_diagonal(const Matrix M, const size_t current_row) {
     size_t row_max_element = current_row;
 
-    for (size_t row = current_row; row < M.rows; row++) {
+    for (size_t row = current_row + 1; row < M.rows; row++) {
         if (fabs(M.ptr[row * M.cols + current_row]) > fabs(M.ptr[row_max_element * M.cols + current_row])) {
             row_max_element = row;
         }
@@ -367,11 +367,12 @@ static void matrix_swap_rows(const Matrix M, const size_t current_row, const siz
         return;
     }
 
-    for (size_t col = current_row; col < M.cols; col++) {
-        double temp = M.ptr[row_max_element * M.cols + col];
-        M.ptr[row_max_element * M.cols + col] = M.ptr[current_row * M.cols + col];
-        M.ptr[current_row * M.cols + col] = temp;
-    }
+    double buf_row[M.cols];
+    size_t size = sizeof(double) * M.cols;
+
+    memcpy(buf_row, M.ptr + current_row * M.cols, size);
+    memcpy(M.ptr + current_row * M.cols, M.ptr + row_max_element * M.cols, size);
+    memcpy(M.ptr + row_max_element * M.cols, buf_row, size);
 }
 
 
@@ -380,13 +381,9 @@ static void matrix_zeroing_elements_in_column_below_diagonal(const Matrix matrix
     for (size_t row = current_row + 1; row < matrix.rows; row++) {
         // The coefficient by which the strings are multiplied
         double factor = matrix.ptr[row * matrix.cols + current_row] / matrix.ptr[current_row * matrix.cols + current_row];
-
+    
         for (size_t col = current_row; col < matrix.cols; col++) {
-            if (current_row == col) {
-                matrix.ptr[row * matrix.cols + col] = 0;
-            } else {
-                matrix.ptr[row * matrix.cols + col] -= factor * matrix.ptr[current_row * matrix.cols + col];
-            }
+            matrix.ptr[row * matrix.cols + col] -= factor * matrix.ptr[current_row * matrix.cols + col];
         }
     }
 }
@@ -408,11 +405,12 @@ static double matrix_triangular_det(const Matrix M) {
 static int matrix_make_zero_down_triangular_matrix(const Matrix matrix) {
     size_t row_max_element = 0;
     int count_of_swap = 0;
+    double error = pow(10, -9);
 
     for (size_t current_row = 0; current_row < matrix.rows; current_row++) {
         row_max_element = matrix_find_max_element_row_in_column_below_diagonal(matrix, current_row);
      
-        if(matrix.ptr[row_max_element * matrix.cols + current_row] == 0) {
+        if(fabs(matrix.ptr[row_max_element * matrix.cols + current_row]) < error) {
             return 0;
         }
 
@@ -464,12 +462,12 @@ MatrixExceptions matrix_determinant_gauss_method(double *det, const Matrix matri
 // Auxilary function to function reverse_matrix
 static void matrix_create_extend(const Matrix matrix, const Matrix extend_matrix) {
     for(size_t row = 0; row < extend_matrix.rows; ++row) { 
-        for(size_t col = 0; col < extend_matrix.cols; ++col) {
-            if(col >= matrix.cols) {
-                extend_matrix.ptr[row * extend_matrix.cols + col] = (row == col - matrix.cols) ? 1 : 0;
-            } else {
-                extend_matrix.ptr[row * extend_matrix.cols + col] = matrix.ptr[row * matrix.cols + col];
-            }
+        for(size_t col = 0; col < matrix.cols; ++col) {
+            extend_matrix.ptr[row * extend_matrix.cols + col] = matrix.ptr[row * matrix.cols + col];
+        }
+
+        for(size_t col = matrix.cols; col < extend_matrix.cols; ++col) {
+            extend_matrix.ptr[row * extend_matrix.cols + col] = (row == col - matrix.cols) ? 1 : 0;
         }
     }
 }
@@ -488,8 +486,10 @@ static void matrix_extract_inverse_matrix(const Matrix reverse_matrix, const Mat
 // Auxilary function to function reverse_matrix
 static void matrix_zeroing_elements_in_column_above_diagonal(const Matrix matrix, const size_t current_row) {
     double factor = 0;
+
     for(size_t row = 0; row < current_row; row++) {
         factor = matrix.ptr[row * matrix.cols + current_row] / matrix.ptr[current_row * matrix.cols + current_row];
+        
         for(size_t col = current_row; col < matrix.cols; col++) {
             matrix.ptr[row * matrix.cols + col] -= factor * matrix.ptr[current_row * matrix.cols + col];
         }
@@ -557,12 +557,12 @@ MatrixExceptions matrix_calculate_reverse(const Matrix reverse_matrix, const Mat
     }
 
     matrix_create_extend(matrix, extend_matrix);
-
+    
     if(matrix_transform_extend_matrix(extend_matrix) == 0) {
         matrix_print_log(LOG_ERROR, "determinant of reverse matrix must not be zero\n");
         return MAT_ZERO_DETERMINANT_REVERSE_MATRIX_ERROR;
     }
-
+    
     matrix_extract_inverse_matrix(reverse_matrix, extend_matrix);
 
     matrix_free(&extend_matrix);
@@ -659,8 +659,9 @@ MatrixExceptions matrix_power(const Matrix matrix, const unsigned int degree) {
     }
 
     if(degree == 0) {
-        for (size_t idx = 0; idx < matrix.rows * matrix.cols; idx++) {
-            matrix.ptr[idx] = (idx % (matrix.cols + 1) == 0) ? 1 : 0;
+        memset(matrix.ptr, 0, matrix.rows * matrix.cols * sizeof(double));
+        for (size_t row = 0; row < matrix.rows; row++) {
+            matrix.ptr[row] = 1;
         }
         return MAT_OK;
     }
@@ -695,9 +696,9 @@ MatrixExceptions matrix_exponent(Matrix *EXPmatrix, const Matrix matrix, const i
     }
     
     if(EXPmatrix->ptr != NULL) {
-        matrix_print_log(LOG_WARNING, "matrix used initialized\n");
-        matrix_print_log(LOG_NOTE, "please, declare matrix like this: \"Matrix M = EMPTY;\"\n");
-        matrix_free(EXPmatrix);
+        matrix_print_log(LOG_ERROR, "an initialized matrix is used\n");
+        matrix_print_log(LOG_NOTE, "please, declare matrix like this: \"matrix M = EMPTY\";\n");
+        return MAT_NULL_POINTER_ERROR;
     }
     
     MatrixExceptions status = matrix_create_unit(EXPmatrix, matrix.rows, matrix.cols);

@@ -102,6 +102,7 @@ Matrix matrix_identity(size_t size)
 }
 
 
+
 void matrix_print(const Matrix M) // Функция для печати матрицы
 {
     for (size_t row = 0; row < M.rows; row++) {
@@ -190,7 +191,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
 
-    for (unsigned int n = 0; n < power; n++) {
+    for (int n = 0; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
@@ -211,7 +212,7 @@ Matrix matrix_by_scalar(const Matrix A, double scalar) // Умножение м�
 }
 
 
-double matrix_determinant(const Matrix A) // Определитель матрицы (для 1x1, 2x2 и 3x3)
+double matrix_determinant(const Matrix A) // Определитель матрицы (для 2x2 и 3x3)
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
@@ -254,40 +255,31 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         return MATRIX_NULL;
     }
 
-    Matrix E = matrix_identity(A.rows);
-
+    Matrix E = matrix_alloc(A.rows, A.cols);   
+  
     if (E.data == NULL) {
         matrix_exception(ERROR, "Сбой выделения памяти");
         return MATRIX_NULL;
     }
+    
+    matrix_free(&E);
+    E = matrix_identity(A.rows);
 
     if (num == 1) {
         return E;
     }
-
+    
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        Matrix tmp = matrix_power(A, cur_num);
-        if (tmp.data == NULL) {
-            matrix_exception(ERROR, "Сбой выделения памяти в matrix_power");
-            matrix_free(&E); 
-            return MATRIX_NULL;
-        }
-        tmp = matrix_by_scalar(tmp, 1.0 / factorial(cur_num)); 
+        Matrix tmp = matrix_power(A,cur_num);
+        tmp = matrix_by_scalar(tmp, 1/factorial(cur_num));
 
         Matrix exp = matrix_sum(E, tmp);
-        if (exp.data == NULL) {
-            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
-            matrix_free(&E);
-            matrix_free(&tmp); 
-            return MATRIX_NULL;
-        }
-
-        matrix_free(&E);
-        E = exp;
-
+        memcpy(E.data, exp.data, exp.rows * exp.cols * sizeof(double));
+        
         matrix_free(&tmp);
-    }
-
+        matrix_free(&exp);
+        }
+    
     return E;
 }
 
