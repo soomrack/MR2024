@@ -132,6 +132,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 {
     if (A.cols != B.rows)
     {
+        matrix_error(ERROR, "C = A * B", "Умножение двух матриц не удалось (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
     }
 
@@ -227,8 +228,8 @@ int main()
 {
     srand(time(NULL)); // Инициализация рандома
 
-    struct Matrix A = matrix_allocate(3, 2);
-    struct Matrix B = matrix_allocate(2, 2);
+    struct Matrix A = matrix_allocate(3, 3);
+    struct Matrix B = matrix_allocate(3, 3);
 
     struct Matrix result_add = matrix_allocate(A.cols, A.rows);
     struct Matrix result_subtract = matrix_allocate(A.cols, A.rows);
@@ -276,10 +277,6 @@ int main()
         printf("Результат A * B:\n");
         matrix_print(C);;
     }
-    else
-    {
-        printf("Умножение двух матриц не удалось (неверные размеры матриц)\n");
-    }
 
     struct Matrix transpon = matrix_transpon(A);
     printf("Результат транспонирования\n");
@@ -287,11 +284,7 @@ int main()
     
 
     double det = determinant(A);
-    if (det == 0)
-    {
-        printf("Определитель невозможно вычислить (неверные размеры матриц)\n");
-    }
-    else
+    if (det != NAN)
     {
         printf("Результат определителя:\n");
         printf("%lf", det);
