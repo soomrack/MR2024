@@ -32,7 +32,7 @@ struct Matrix matrix_allocation(const size_t rows, const size_t cols)
     double* data = (double*)malloc(rows * cols * sizeof(double));
 
     if (data == NULL) {
-        matrix_exception(ERROR, "matrix allocation : allocation overflow");
+        matrix_exception(ERROR, "matrix allocation : ERROR data NULL");
         return Matrix{ 0, 0, NULL };
     }
     return Matrix{ cols, rows, data };
