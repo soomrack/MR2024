@@ -287,8 +287,10 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 {
 	Matrix C = matrix_unit(A.cols, A.rows);
 	Matrix D = matrix_memory_alloc(A.cols, A.rows);
+
 	tmp = matrix_memory_alloc(A.cols, A.rows);
 	tmp1 = matrix_memory_alloc(A.cols, A.rows);
+	
 	for(size_t index = 1; index <= order; index++) {
        D = matrix_multiplication_ratio(matrix_power(A, index), 1/tgamma(index + 1));
 
