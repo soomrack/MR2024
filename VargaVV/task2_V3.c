@@ -17,7 +17,7 @@ enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
 const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
-// Ошибки
+// Errors
 void matrix_error(const enum MatrixExceptionLevel level, const char* location, const char* msg) {
     if (level == ERROR) {
         printf("nERRORnLoc: %snText: %sn", location, msg);
@@ -36,14 +36,14 @@ Matrix matrix_alloc(const size_t rows, const size_t cols) {
         return (Matrix){rows, cols, NULL};
     }
 
-    if (SIZE_MAX / cols < rows) { // Проверка переполнения
+    if (SIZE_MAX / cols < rows) { 
         matrix_error(ERROR, "matrix_alloc", "Число строк или столбцов равно 0\n");
-        return (Matrix){0, 0, NULL}; // Возвращаем пустую матрицу
+        return (Matrix){0, 0, NULL}; 
     }
 
     if (SIZE_MAX / (cols * sizeof(double)) < rows) { 
         matrix_error(ERROR, "matrix_alloc", "Не хватит места для выделения памяти под строки и столбцы\n");
-        return (Matrix){0, 0, NULL}; // Возвращаем пустую матрицу
+        return (Matrix){0, 0, NULL}; 
     }
 
     M.data = (double*)malloc(rows * cols * sizeof(double));
@@ -59,7 +59,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols) {
 }
 
 
-void matrix_free(Matrix* M)  // Освобождение памяти матрицы
+void matrix_free(Matrix* M)  // mem_free
 {
     if (M == NULL) {
         return;
@@ -70,7 +70,7 @@ void matrix_free(Matrix* M)  // Освобождение памяти матри
 }
 
 
-// Создание единичной матрицы
+// 1
 Matrix identity_matrix(size_t size) 
 {
     Matrix identity = {size, size, (double*)malloc(size * size * sizeof(double))}; 
@@ -91,7 +91,7 @@ Matrix identity_matrix(size_t size)
 }
 
 
-//Копирование матрицы
+//Copy
 Matrix matrix_copy(const Matrix A) {
     Matrix copy = matrix_alloc(A.rows, A.cols);
     for (size_t rows = 0; rows < A.rows; rows++) {
@@ -104,7 +104,7 @@ Matrix matrix_copy(const Matrix A) {
 
 
 
-void matrix_print(const Matrix M) // Вывод
+void matrix_print(const Matrix M) // print
 {
     for (size_t row = 0; row < M.rows; row++) {
         for (size_t col = 0; col < M.cols; col++) {
@@ -115,7 +115,7 @@ void matrix_print(const Matrix M) // Вывод
     printf("\n");
 }
  
-Matrix matrix_sum(const Matrix A, const Matrix B) // Сложение матриц
+Matrix matrix_sum(const Matrix A, const Matrix B) // +
 {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_error(WARNING, "matrix_sum", "Размеры матриц не подходят для сложения!\n");
@@ -131,7 +131,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B) // Сложение матри
 }
 
 
-Matrix matrix_subtract(const Matrix A, const Matrix B) // Вычитание матриц
+Matrix matrix_subtract(const Matrix A, const Matrix B) // -
 {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_error(WARNING, "matrix_substract", "Размеры матриц не подходят для вычитания!\n");
@@ -144,7 +144,7 @@ Matrix matrix_subtract(const Matrix A, const Matrix B) // Вычитание м�
     }
     return C;
 }
-Matrix matrix_multiply(const Matrix A, const Matrix B) // Умножение матриц
+Matrix matrix_multiply(const Matrix A, const Matrix B) // *
 {
     if (A.cols != B.rows) {
         matrix_error(WARNING, "matrix_multiply", "Число столбцов первой матрицы не равно числу строк второй матрицы!\n");
@@ -165,7 +165,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) // Умножение м�
 }
 
 
-Matrix matrix_transpose(const Matrix A) // Транспонирование матрицы
+Matrix matrix_transpose(const Matrix A) // Т
 {
     Matrix T = matrix_alloc(A.cols, A.rows);
     
@@ -178,7 +178,7 @@ Matrix matrix_transpose(const Matrix A) // Транспонирование ма
 }
 
 
-// Возведение матрицы в степень
+// ^k
 Matrix matrix_power(const Matrix A, unsigned int power) 
 {
     if (A.rows != A.cols) {
@@ -189,7 +189,7 @@ Matrix matrix_power(const Matrix A, unsigned int power)
     Matrix result = identity_matrix(A.rows); 
 
     if (A.data==0) {
-        matrix_error(WARNING, "matrix_power", "Ошибка: Память по матрицу не выделилась!\n");
+        matrix_error(WARNING, "matrix_power", "Ошибка: Память на матрицу не выделилась!\n");
         return MATRIX_NULL;
     }
 
@@ -202,8 +202,8 @@ Matrix matrix_power(const Matrix A, unsigned int power)
     return result;
 }
 
-// C = A * k
-Matrix matrix_by_multiplier(const Matrix A, double multiplier) // Умножение матрицы на число
+
+Matrix matrix_by_multiplier(const Matrix A, double multiplier) // *k
 {
     Matrix C = matrix_alloc(A.rows, A.cols);
     
@@ -214,7 +214,7 @@ Matrix matrix_by_multiplier(const Matrix A, double multiplier) // Умножен
 }
 
 
-double matrix_determinant(const Matrix A) // Определитель матрицы 
+double matrix_determinant(const Matrix A) // det
 {
     if (A.rows != A.cols || A.cols != A.rows) {
         matrix_error(WARNING, "matrix_determinant", "Матрица должна быть квадратной для транспонирования!\n");
@@ -238,7 +238,7 @@ double matrix_determinant(const Matrix A) // Определитель матри
 }
 
 
-Matrix matrix_exponential(const Matrix A) // Экспонента
+Matrix matrix_exponential(const Matrix A) // Exp
 {
     if (A.rows != A.cols) {
         printf("Ошибка: Матрица должна быть квадратной для вычисления экспоненты!n");
@@ -246,7 +246,7 @@ Matrix matrix_exponential(const Matrix A) // Экспонента
     }
 
     Matrix result = matrix_alloc(A.rows, A.cols);
-    result=identity_matrix(A.rows);  
+    result=identity_matrix(A.rows);    //1
     Matrix current_power = matrix_alloc(A.rows, A.cols);
     current_power = matrix_copy(A); // Копируем A в current_power
 
@@ -288,53 +288,53 @@ int main()
     memcpy(A.data, data_A, 4 * sizeof(double));
     memcpy(B.data, data_B, 4 * sizeof(double));
 
-    // Печать исходных матриц
+    // Print
     printf("Матрица A:\n");
     matrix_print(A);
     printf("Матрица B:\n");
     matrix_print(B);
 
-    // Сложение
+    // +
     Matrix Sum = matrix_sum(A, B);
     printf("Результат сложения:\n");
     matrix_print(Sum);
 
-    // Вычитание
+    // -
     Matrix Sub = matrix_subtract(A, B);
     printf("Результат вычитания:\n");
     matrix_print(Sub);
 
-    // Умножение
+    // *
     Matrix M = matrix_multiply(A, B);
     printf("Результат умножения:\n");
     matrix_print(M);
 
-    // Транспонирование
+    // Т
     Matrix T = matrix_transpose(A);
     printf("Транспонированная матрица A:\n");
     matrix_print(T);
 
-    // Возведение в степень
+    // ^
     int power = 3;
     Matrix P = matrix_power(A, power);
     printf("Матрица A в степени %d:\n", power);
     matrix_print(P);
 
-    // Умножение на число
+    // *k
     double multiplier= 5;
     Matrix Mult = matrix_by_multiplier(A, multiplier);
     printf("Матрица A умноженная на %2.f:\n", multiplier);
     matrix_print(Mult);
     
-    // Определитель
+    // Det
     printf("Определитель матрицы A: %2.f \n", matrix_determinant(A));
     
-    // Матричная экспонента
+    // Exp
     Matrix Exp = matrix_exponential(A);
     printf("Матричная экспонента от A:\n");
     matrix_print(Exp);
 
-    // Освобождение памяти
+    // mem_free
     matrix_free(&A);
     matrix_free(&B);
     matrix_free(&Sum);
