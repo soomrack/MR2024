@@ -3,12 +3,13 @@
 #define M2_DIR 7
 #define M2_PWM 6
 
-int  ld_black, ld_white, rd_black, rd_white, ld_sr, rd_sr, lm, rm, ld, rd;
+int  ld_sr, rd_sr, ld, rd;
 bool r_stat, r_last_stat, l_stat, l_last_stat, flag;
 uint32_t sec, tim;
 
 
 void button_calibrate() {
+  int ld_black, ld_white, rd_black, rd_white;
   while (digitalRead(8) == 0) {
     ld_black = analogRead(A2);
     rd_black = analogRead(A3);
@@ -22,12 +23,6 @@ void button_calibrate() {
   rd_sr = (rd_black + rd_white) / 2;
 }
 
-
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  button_calibrate();
-}
 
 void Motors(int Speed1, int Speed2)
 {
@@ -69,6 +64,8 @@ void linesensor_read () {
 
 
 void line_drive() {
+  int lm, rm;  
+  if ( l_stat == 0 & r_stat == 0) return;
   if ( l_stat == 1 && r_stat == 0) {
     lm = 255;
     rm = 70;
@@ -89,6 +86,8 @@ void line_drive() {
 
 
 void line_find() {
+  int lm, rm;
+  if ( l_stat != 0 & r_stat != 0) return;
   if (flag == 0) {
     tim = sec;
     flag = 1;
@@ -113,12 +112,19 @@ void line_find() {
     lm = 0;
     rm = 0;
   }
-  Motors(lm, rm);
+Motors(lm, rm);
 }
+
+
+void setup() {
+  Serial.begin(9600);
+  button_calibrate();
+}
+
 
 void loop() {
   sec = millis();
   linesensor_read ();
-  if ( l_stat != 0 & r_stat != 0)line_drive();
-  else line_find();
+  line_drive();
+  line_find();
 }
