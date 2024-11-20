@@ -161,8 +161,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
         return MATRIX_ZERO;
     }
 
-    Matrix C = {A.rows, A.cols, NULL};
-    C = matrix_allocate(C);
+    Matrix C = matrix_allocate((Matrix){A.rows, A.cols, NULL});
 
     for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
         C.data[idx] = A.data[idx] + B.data[idx];
@@ -184,8 +183,7 @@ Matrix matrix_subtract(const Matrix A, const Matrix B)
         return MATRIX_ZERO;
     }
 
-    Matrix C = {A.rows, A.cols, NULL};
-    C = matrix_allocate(C);
+    Matrix C = matrix_allocate((Matrix){A.rows, A.cols, NULL});
 
     for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
         C.data[idx] = A.data[idx] - B.data[idx];
@@ -207,8 +205,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
         return MATRIX_ZERO;
     }
 
-    Matrix C = {A.rows, B.cols, NULL};
-    C = matrix_allocate(C);
+    Matrix C = matrix_allocate((Matrix){A.rows, B.cols, NULL});
 
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < C.cols; col++) {
@@ -225,8 +222,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
 
 Matrix matrix_multi_by_number(const Matrix A, const double number)
 {
-    Matrix C = {A.cols, A.rows, NULL};
-    C = matrix_allocate(C);
+    Matrix C = matrix_allocate((Matrix){A.rows, B.cols, NULL});
 
     for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
         C.data[idx] = A.data[idx] * number;
@@ -238,8 +234,7 @@ Matrix matrix_multi_by_number(const Matrix A, const double number)
 
 Matrix matrix_transpose(const Matrix A)
 {
-    Matrix T = {A.cols, A.rows, NULL};
-    T = matrix_allocate(T);
+    Matrix T = matrix_allocate((Matrix){A.cols, A.rows, NULL});
 
     for (size_t row = 0; row < T.rows; row++) {
         for (size_t col = 0; col < T.cols; col++) {
@@ -252,8 +247,7 @@ Matrix matrix_transpose(const Matrix A)
 
 Matrix marix_minor(const Matrix A, size_t row_exclude, size_t col_exclude) 
 {
-    Matrix submatrix = {A.rows - 1, A.cols - 1, NULL};
-    submatrix = matrix_allocate(submatrix);
+    Matrix minor = matrix_allocate((Matrix){A.rows - 1, A.cols - 1, NULL});
 
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
@@ -261,12 +255,12 @@ Matrix marix_minor(const Matrix A, size_t row_exclude, size_t col_exclude)
         size_t sub_col = 0;
         for (size_t col = 0; col < A.cols; col++) {
             if (col == col_exclude) continue;
-            submatrix.data[sub_row * submatrix.cols + sub_col] = A.data[row * A.cols + col];
+            minor.data[sub_row * minor.cols + sub_col] = A.data[row * A.cols + col];
             sub_col++;
         }
         sub_row++;
     }
-    return submatrix;
+    return minor;
 }
 
 double matrix_determinant(const Matrix A) 
@@ -341,9 +335,7 @@ Matrix matrix_inverse(const Matrix A)
 
 Matrix matrix_identity(const size_t rows, const size_t cols) 
 {
-
-    Matrix identity_matrix = {rows, cols};
-    identity_matrix = matrix_allocate(identity_matrix);
+    Matrix identity_matrix = matrix_allocate((Matrix){rows, cols});
 
     memset(identity_matrix.data, 0, identity_matrix.rows * identity_matrix.cols * sizeof(double));
 
