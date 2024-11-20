@@ -64,7 +64,7 @@ Matrix matrix_allocate(const Matrix frame)
         return matrix;
     }
 
-    if (frame.rows * frame.cols * sizeof(double) > SIZE_MAX) {
+    if (1 >= SIZE_MAX / (frame.rows * frame.cols * sizeof(double))) {
         matrix_log(ERROR, "Memory allocation failed: size_t overflow.\n");
         return MATRIX_ZERO;
     }
@@ -96,12 +96,11 @@ void matrix_pass_array(Matrix *matrix, const double array_name[])
 
 void memory_free(Matrix *matrix)
 {
-    if (matrix != NULL) {
-        matrix->rows = 0;
-        matrix->cols = 0;
-        free(matrix->data);
-        matrix->data = NULL;
-    }
+    if (matrix == NULL) return;
+    free(matrix->data);
+    matrix->rows = 0;
+    matrix->cols = 0;
+    matrix->data = NULL;
 }
 
 
@@ -134,17 +133,8 @@ void matrix_copy(Matrix *destination, const Matrix source)
         return;
     }
 
-    if (destination->data != NULL) {
-        free(destination->data);
-    }
+    if (destination->data != NULL) return;
 
-    destination->rows = source.rows;
-    destination->cols = source.cols;
-    destination->data = malloc(source.rows * source.cols * sizeof(double));
-    if (destination->data == NULL) {
-        matrix_log(ERROR, "Memory allocation failed.\n");
-        return;
-    }
     memcpy(destination->data, source.data, source.rows * source.cols * sizeof(double));
 }
 
@@ -245,10 +235,15 @@ Matrix matrix_transpose(const Matrix A)
 }
 
 
-Matrix marix_minor(const Matrix A, size_t row_exclude, size_t col_exclude) 
+Matrix matrix_minor(const Matrix A, size_t row_exclude, size_t col_exclude) 
 {
     Matrix minor = matrix_allocate((Matrix){A.rows - 1, A.cols - 1, NULL});
 
+    if (minor.data == NULL) {
+        matrix_log(ERROR, "Unable to calculate inverse of given matrix. Memory allocation error.\n");
+        return MATRIX_ZERO;
+    }
+    
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
         if (row == row_exclude) continue;
@@ -262,6 +257,7 @@ Matrix marix_minor(const Matrix A, size_t row_exclude, size_t col_exclude)
     }
     return minor;
 }
+
 
 double matrix_determinant(const Matrix A) 
 {
@@ -278,7 +274,7 @@ double matrix_determinant(const Matrix A)
     double det = 0;
     double sign = 1.0;
     for (size_t col = 0; col < A.cols; col++) {
-        Matrix minor = marix_minor(A, 0, col);
+        Matrix minor = matrix_minor(A, 0, col);
         if (minor.data == NULL) {
             memory_free(&minor);
             return NAN;
@@ -303,12 +299,21 @@ Matrix matrix_inverse(const Matrix A)
         matrix_log(ERROR, "Unable to calculate inverse of given matrix. Matrix's determinant is small.\n");
         return MATRIX_ZERO;
     }
+    if isnan(det_A) {
+        matrix_log(ERROR, "Unable to calculate inverse of given matrix. Matrix's determinant is NaN.\n");
+        return MATRIX_ZERO;
+    }
 
-    Matrix cofactor_matrix = matrix_allocate((Matrix){A.rows, A.cols});
+    Matrix cofactor_matrix = matrix_allocate((Matrix){A.rows, A.cols, NULL});
 
+    if (cofactor_matrix.data == NULL) {
+        matrix_log(ERROR, "Unable to calculate inverse of given matrix. Memory allocation error.\n");
+        return MATRIX_ZERO;
+    }
+    
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
-            Matrix minor = marix_minor(A, row, col);
+            Matrix minor = matrix_minor(A, row, col);
             if (minor.data == NULL) {
                 memory_free(&cofactor_matrix);
                 return MATRIX_ZERO;
@@ -363,9 +368,13 @@ Matrix matrix_power(const Matrix A, unsigned long long int n)
 
     while (n > 0) {
         if (n % 2 == 1) {
-            result = matrix_multiply(result, base);
+            Matrix temp_result = matrix_multiply(result, base);
+            memory_free(&result);
+            result = temp_result;
         }
-        base = matrix_multiply(base, base);
+        Matrix temp_base = matrix_multiply(base, base);
+        memory_free(&base);
+        base = temp_base;
         n /= 2;
     }
 
@@ -412,8 +421,8 @@ void make_calculations()
     Matrix A = {2, 2};
     Matrix B = {2, 2};
 
-    matrix_pass_array(&A, (double[]){8, 2, 4, 0});
-    matrix_pass_array(&B, (double[]){2, 1, 4, 6});
+    matrix_pass_array(&A, (double[]){1, 3, 5, 7});
+    matrix_pass_array(&B, (double[]){1, 2, 3, 4});
 
     Matrix add_A_B = matrix_sum(A, B);
     matrix_print(&add_A_B, "Result of Matrix Addition: \n");
@@ -472,9 +481,6 @@ void make_calculations()
     Matrix exponent_B = matrix_exponent(B, 20);
     matrix_print(&exponent_B, "Result of Matrix B Exponent: \n");
     memory_free(&exponent_B);
-
-    memory_free(&A);
-    memory_free(&B);
 }
 
 
