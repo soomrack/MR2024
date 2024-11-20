@@ -129,7 +129,8 @@ void matrix_copy(Matrix *destination, const Matrix source)
             ERROR, 
             "Unable to copy matrices of different sizes."
             "Expected equal sizes, got %dx%d and %dx%d\n", 
-            destination->rows, destination->cols, source.rows, source.cols);
+            destination->rows, destination->cols, source.rows, source.cols
+        );
         return;
     }
 
@@ -151,7 +152,12 @@ void matrix_copy(Matrix *destination, const Matrix source)
 Matrix matrix_sum(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
-        matrix_log(ERROR, "Unable to add matrixes of different sizes.\n");
+        matrix_log(
+            ERROR, 
+            "Unable to copy matrices of different sizes."
+            "Expected equal sizes, got %dx%d and %dx%d\n", 
+            A.rows, A.cols, B.rows, B.cols
+        );
         return MATRIX_ZERO;
     }
 
@@ -169,7 +175,12 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
 Matrix matrix_subtract(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
-        matrix_log(ERROR, "Unable to subtract matrixes of different sizes.\n");
+        matrix_log(
+            ERROR, 
+            "Unable to copy matrices of different sizes."
+            "Expected equal sizes, got %dx%d and %dx%d\n", 
+            A.rows, A.cols, B.rows, B.cols
+        );
         return MATRIX_ZERO;
     }
 
@@ -187,7 +198,12 @@ Matrix matrix_subtract(const Matrix A, const Matrix B)
 Matrix matrix_multiply(const Matrix A, const Matrix B)
 {
     if (A.cols != B.rows) {
-        matrix_log(ERROR, "Unable to multiply matrixes of given sizes.\n");
+        matrix_log(
+            ERROR, 
+            "Unable to copy matrices of different sizes."
+            "Expected equal sizes, got %dx%d and %dx%d\n", 
+            A.rows, A.cols, B.rows, B.cols
+        );
         return MATRIX_ZERO;
     }
 
@@ -290,7 +306,7 @@ Matrix matrix_inverse(const Matrix A)
     double det_A = matrix_determinant(A);
 
     if (fabs(det_A) < 0.00000001) {
-        matrix_log(ERROR, "Unable to calculate inverse of given matrix.\n");
+        matrix_log(ERROR, "Unable to calculate inverse of given matrix. Matrix's determinant is small.\n");
         return MATRIX_ZERO;
     }
 
