@@ -223,18 +223,13 @@ int matrix_add(struct Matrix A, struct Matrix B)
 
 // A = A * n
 struct Matrix matrix_mult_number(const struct Matrix A, const double n) {
-    if (A.data == NULL) {
-        matrix_error(ERROR, "Matrix NULL\n");
-        return MATRIX_NULL;
-    }
+    if (A.data == NULL)  return MATRIX_NULL;
 
     struct Matrix Num = matrix_create(A.cols, A.rows);
-    if (Num.data == NULL) {
-        matrix_error(ERROR, "Memory allocation failed\n");
-        return MATRIX_NULL;
-    }
 
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
+    if (Num.data == NULL) return MATRIX_NULL;
+
+    for (size_t idx = 0; idx < Num.cols * Num.rows; ++idx) {
         Num.data[idx] = A.data[idx] * n;
     }
 
