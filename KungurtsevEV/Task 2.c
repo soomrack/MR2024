@@ -67,12 +67,13 @@ void matrix_error(const enum MatrixException error_level, const char* message)
 
 void matrix_delete(struct Matrix* A)
 {
-    if (A != NULL) {
-        free(A->data);
+    if (A == NULL) return;
 
-        A->rows = 0;
-        A->cols = 0;
-        A->data = NULL;
+    free(A->data);
+
+    A->rows = 0;
+    A->cols = 0;
+    A->data = NULL;
     }
 }
 
@@ -221,15 +222,23 @@ int matrix_add(struct Matrix A, struct Matrix B)
 
 
 // A = A * n
-struct Matrix matrix_mult_number(struct Matrix A, const double n) {
-    if (A.cols == NULL) {
+struct Matrix matrix_mult_number(const struct Matrix A, const double n) {
+    if (A.data == NULL) {
         matrix_error(ERROR, "Matrix NULL\n");
         return MATRIX_NULL;
     }
 
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
-        A.data[idx] *= n;
+    struct Matrix Num = matrix_create(A.cols, A.rows);
+    if (Num.data == NULL) {
+        matrix_error(ERROR, "Memory allocation failed\n");
+        return MATRIX_NULL;
     }
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
+        Num.data[idx] = A.data[idx] * n;
+    }
+
+    return Num; 
 }
 
 
