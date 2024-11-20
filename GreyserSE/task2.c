@@ -364,6 +364,11 @@ Matrix matrix_exp(const Matrix A, const size_t n)
 Matrix matrix_inverse(Matrix A)
 {
     double det_A = matrix_det(A);
+	
+	if (det_A == NAN) {
+        matrix_exception(ERROR, "Unable to inverse: determinant is NAN");
+        return MATRIX_NULL;
+    }
 
     if (abs(det_A) < 0.00000001) {
         matrix_exception(ERROR, "Unable to inverse: determinant is equal to 0 \n");
