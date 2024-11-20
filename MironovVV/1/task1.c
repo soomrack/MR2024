@@ -1,31 +1,34 @@
 #include <stdio.h>
 
-typedef long long int money;
+typedef long long int Money;
 
 struct Person {
-    money account;
-    money deposit;
-    money salary;
-    money monthly_expenses;
+    Money account;
+    Money deposit;
+    Money salary;
+    Money monthly_expenses;
     float indexation;
 };
 typedef struct Person Person;
 
 struct Finance{
-    money mortgage_payment;
-    money rent;
-    money house_cost;
+    Money mortgage_payment;
+    Money rent;
+    Money house_cost;
     float inflation;
     float deposit_rate;
 };
 typedef struct Finance Finance;
 
 
-Person alice, bob;
+Person alice;
+Person bob;
 Finance finance;
 
 
-void initialize_person(Person* person, const money account, const money salary, const float indexation, const money monthly_expenses) {
+void initialize_person(Person* person, const Money account, const Money salary, const float indexation,
+const Money monthly_expenses)
+{
     person->account = account;
     person->deposit = 0;
     person->salary = salary;
@@ -33,13 +36,16 @@ void initialize_person(Person* person, const money account, const money salary, 
     person->monthly_expenses = monthly_expenses;
 }
 
-void initialize_finance(Finance* finance, const float mortgage_payment, const float deposit_rate, money rent, const float inflation, const money house_cost) {
+
+void initialize_finance(Finance* finance, const float mortgage_payment, const float deposit_rate, Money rent,
+const float inflation, const Money house_cost) {
     finance->mortgage_payment = mortgage_payment;
     finance->deposit_rate = deposit_rate;
     finance->rent = rent;
     finance->inflation = inflation;
     finance->house_cost = house_cost;
 }
+
 
 void alice_salary(const int current_month, const int indexation_month) {
     alice.account += alice.salary;
@@ -75,11 +81,11 @@ void bob_expenses() {
     bob.account -= bob.monthly_expenses;
 }
 
-void alice_housing(const money payment) {
+void alice_housing(const Money payment) {
     alice.account -= finance.mortgage_payment;
 }
 
-void bob_housing(const money payment) {
+void bob_housing(const Money payment) {
     bob.account -= finance.rent;
 }
 
@@ -103,23 +109,20 @@ void simulate() {
     while( !((year == 2024 + 30) && (month == 10)) ) {
 
         alice_salary(month, indexation_month);
-        bob_salary(month, indexation_month);
-
         alice_expenses(alice.monthly_expenses);
-        bob_expenses(bob.monthly_expenses);
-
         alice_housing(finance.mortgage_payment);
-        bob_housing(finance.rent);
-
         alice_deposit(finance.deposit_rate);
+
+
+        bob_salary(month, indexation_month);
+        bob_expenses(bob.monthly_expenses);
+        bob_housing(finance.rent);
         bob_deposit(finance.deposit_rate);
-        
-        
         check_bob_purchase(&bob, &finance);
 
-        if(month == indexation_month){
-            update_inflation(&finance);
-        }
+        // if(month == indexation_month){
+        //     update_inflation(&finance);
+        // }
 
         ++month;
         if(month == 13) {
@@ -130,8 +133,8 @@ void simulate() {
 }
 
 void compare_final_capital() {
-    money alice_final = alice.deposit + finance.house_cost;
-    money bob_final = bob.deposit + (finance.rent == 0 ? finance.house_cost : 0);
+    Money alice_final = alice.deposit + finance.house_cost;
+    Money bob_final = bob.deposit + (finance.rent == 0 ? finance.house_cost : 0);
 
     printf("Alice capital: %lld\n", alice_final);
     printf("Bob capital: %lld\n", bob_final);
