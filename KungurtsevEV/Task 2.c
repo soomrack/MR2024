@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -9,8 +9,7 @@
 
 
 typedef double MatrixItem;
-struct Matrix
-{
+struct Matrix {
     size_t cols;
     size_t rows;
     MatrixItem* data;
@@ -26,10 +25,12 @@ struct Matrix matrix_create(const size_t cols, const size_t rows)
         struct Matrix A = { cols,rows, NULL };
         return A;
     }
+
     if (rows >= SIZE_MAX / sizeof(MatrixItem) / cols) return MATRIX_NULL;
     struct Matrix A = { cols,rows, NULL };
     size_t total = sizeof(MatrixItem) * A.cols * A.rows;
     A.data = (MatrixItem*)malloc(total);
+
     if (A.data == NULL) return MATRIX_NULL;
     return A;
 }
@@ -50,67 +51,89 @@ void matrix_set_one(struct Matrix A)
 }
 
 
-void matrix_error()
+enum MatrixException { ERROR, WARNING, INFO, DEBUG };
+typedef enum MatrixException MatrixException;
+
+void matrix_error(const enum MatrixException error_level, const char* message)
 {
-    printf("Error: different number of columns or rows\n");
+    if (error_level == ERROR) {
+        fprintf(stderr, "ERROR: %s", message);
+    }
+    if (error_level == WARNING) {
+        fprintf(stderr, "WARNING: %s", message);
+    }
 }
 
 
 void matrix_delete(struct Matrix* A)
 {
-    A->rows = 0;
-    A->cols = 0;
-    free(A->data);
-    A->data = NULL;
-}
+    if (A != NULL) {
+        free(A->data);
 
-
-void matrix_fill(struct Matrix A, const MatrixItem values[])
-{
-    for (size_t row = 0; row < A.rows; row++) {
-        for (size_t col = 0; col < A.cols; col++) {
-            A.data[col * A.rows + row] = values[row * A.cols + col];
-        }
+        A->rows = 0;
+        A->cols = 0;
+        A->data = NULL;
     }
 }
+
+
+void matrix_fill(struct Matrix* A, const MatrixItem values[])
+{
+    if (A == NULL || values == NULL) {
+        return;
+    }
+
+    size_t num_elements = A->rows * A->cols;
+
+    if (num_elements == 0 || A->data == NULL) {
+        return;
+    }
+
+    memcpy(A->data, values, num_elements * sizeof(MatrixItem));
+}
+
 
 
 // A = B + C
-void matrix_sum(const struct Matrix A, const struct Matrix B, const struct Matrix C)
+struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B, const struct Matrix C)
 {
-    if (B.cols != C.cols || B.rows != C.rows || B.cols != A.cols || B.rows != A.rows) {
-        matrix_error();
-        return;
+    if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error(ERROR, "Unable to add matrixes of different sizes.\n");
+        return MATRIX_NULL;
     }
-    for (size_t idx = 0; idx < B.cols * B.rows; ++idx) {
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         A.data[idx] = B.data[idx] + C.data[idx];
     }
 }
 
 // A = B - C
-void matrix_substraction(const struct Matrix A, const struct Matrix B, const struct Matrix C)
+struct Matrix matrix_substraction(const struct Matrix A, const struct Matrix B, const struct Matrix C)
 {
-    if (B.cols != C.cols || B.rows != C.rows || B.cols != A.cols || B.rows != A.rows) {
-        matrix_error();
-        return;
+    if (A.cols != B.cols || A.rows != B.rows) {
+        matrix_error(ERROR, "Unable to subtract matrixes of different sizes.\n");
+        return MATRIX_NULL;
     }
-    for (size_t idx = 0; idx < B.cols * B.rows; ++idx) {
+
+    for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         A.data[idx] = B.data[idx] - C.data[idx];
     }
 }
 
 
 // A = B * C
-void matrix_mult(const struct Matrix A, const struct Matrix B, const struct Matrix C)
+struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B, const struct Matrix C)
 {
-    if (B.cols != C.rows || B.rows != A.rows || A.rows != C.cols)
-    {
-        matrix_error();
+    if (A.cols != B.rows) {
+        matrix_error(ERROR, "Unable to multiply matrixes of given sizes.\n");
+        return MATRIX_NULL;
     }
+
     struct Matrix Mult = matrix_create(A.rows, A.cols);
     MatrixItem data_old;
-    for (size_t row = 0; row < B.rows; row++) {
-        for (size_t col = 0; col < B.cols; col++) {
+
+    for (size_t row = 0; row < Mult.rows; row++) {
+        for (size_t col = 0; col < Mult.cols; col++) {
             data_old = 0;
             for (size_t idx = 0; idx < C.rows; idx++) {
                 data_old += B.data[idx * B.rows + col] * C.data[row * C.cols + idx];
@@ -118,6 +141,7 @@ void matrix_mult(const struct Matrix A, const struct Matrix B, const struct Matr
             Mult.data[row * B.cols + col] = data_old;
         }
     }
+
     memcpy(A.data, Mult.data, sizeof(MatrixItem) * Mult.cols * Mult.rows);
     matrix_delete(&Mult);
 }
@@ -139,33 +163,38 @@ struct Matrix Minor(const struct Matrix A, const size_t row, const size_t col)
 {
     struct Matrix Minor = matrix_create(A.rows - 1, A.cols - 1);
     size_t idx = 0;
-    for (size_t rowA = 0; rowA < A.rows; ++rowA) {
+
+    for (size_t rowA = 0; rowA < Minor.rows; ++rowA) {
         if (rowA == row) continue;
-        for (size_t colA = 0; colA < A.cols; ++colA) {
+        for (size_t colA = 0; colA < Minor.cols; ++colA) {
             if (colA == col) continue;
             Minor.data[idx] = A.data[rowA * A.cols + colA];
             ++idx;
         }
     }
+
     return Minor;
 }
 
 
 // DET A
-double matrix_determinant(const struct Matrix A) {
-    if (A.rows != A.cols) {
-        matrix_error();
+double matrix_determinant(const struct Matrix A)
+{
+    if ((A.cols != A.rows) || A.rows == 0 || A.cols == 0) {
         return NAN;
     }
+
     double det = 0;
-    int k = 1;
+    int sign = 1;
+
     if (A.rows == 0) return NAN;
     if (A.rows == 1) return A.data[0];
     if (A.rows == 2) return (A.data[0] * A.data[3] - A.data[2] * A.data[1]);
+
     for (size_t idx = 0; idx < A.rows; idx++) {
         struct Matrix temp = Minor(A, 0, idx);
-        det += k * A.data[idx] * matrix_determinant(temp);
-        k = -k;
+        det += sign * A.data[idx] * matrix_determinant(temp);
+        sign = -sign;
         matrix_delete(&temp);
     }
     return det;
@@ -192,23 +221,25 @@ int matrix_add(struct Matrix A, struct Matrix B)
 
 
 // A = A * n
-void matrix_mult_number(struct Matrix A, const double n) {
-    if (A.data == NULL) {
-        matrix_error();
-        return;
+struct Matrix matrix_mult_number(struct Matrix A, const double n) {
+    if (A.cols == NULL) {
+        matrix_error(ERROR, "Matrix NULL\n");
+        return MATRIX_NULL;
     }
+
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         A.data[idx] *= n;
     }
 }
 
 
-// A = A*(-1)
+// A = A^(-1)
 struct Matrix matrix_inverse(const struct Matrix B) {
-    if (B.rows != B.cols) {
-        matrix_error();
+    if (B.cols != B.rows) {
+        matrix_error(ERROR, "The matrix is ​​not square.\n");
         return MATRIX_NULL;
     }
+
     double det = matrix_determinant(B);
     if (det == 0) {
         printf("Error: Matrix is singular and cannot be inverted.\n");
@@ -218,8 +249,8 @@ struct Matrix matrix_inverse(const struct Matrix B) {
     struct Matrix Inv = matrix_create(B.rows, B.cols);
     if (Inv.data == NULL) return MATRIX_NULL;
 
-    for (size_t row = 0; row < B.rows; row++) {
-        for (size_t col = 0; col < B.cols; col++) {
+    for (size_t row = 0; row < Inv.rows; row++) {
+        for (size_t col = 0; col < Inv.cols; col++) {
             struct Matrix MinorMatrix = Minor(B, row, col);
             Inv.data[col * B.rows + row] = pow(-1, row + col) * matrix_determinant(MinorMatrix) / det;
             matrix_delete(&MinorMatrix);
@@ -230,8 +261,8 @@ struct Matrix matrix_inverse(const struct Matrix B) {
 
 
 struct Matrix matrix_exponent(const struct Matrix A, const unsigned long long int n) {
-    if (A.rows != A.cols || n < 0) {
-        matrix_error();
+    if (A.cols != A.rows) {
+        matrix_error(ERROR, "The matrix is ​​not square.\n");
         return MATRIX_NULL;
     }
 
@@ -256,9 +287,9 @@ struct Matrix matrix_exponent(const struct Matrix A, const unsigned long long in
         matrix_exponent_term = temp;
         factorial *= idx;
 
-        struct Matrix added = matrix_create(A.rows, A.cols);
         matrix_mult_number(matrix_exponent_term, 1.0 / factorial);
 
+        struct Matrix added = matrix_create(A.rows, A.cols);
         matrix_sum(added, matrix_exponent_result, matrix_exponent_term);
 
         matrix_delete(&matrix_exponent_result);
@@ -314,9 +345,9 @@ void calculation()
     struct Matrix Exp = matrix_exponent(A, 3);
 
 
-    matrix_fill(A, values_A);
-    matrix_fill(B, values_B);
-    matrix_fill(K, values_A);
+    matrix_fill(&A, values_A);
+    matrix_fill(&B, values_B);
+    matrix_fill(&K, values_A);
 
     matrix_sum(C, A, B);
 
