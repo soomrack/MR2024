@@ -1,25 +1,31 @@
 #include <stdio.h>
 
-typedef struct {
-    long long int account;          // Счет
-    long long int deposit;          // Депозитный счет
-    long long int salary;           // Месячная зарплата
-    float indexation;               // Индексация зарплаты
-    long long int monthly_expenses; // Месячные расходы
-} Person;
+typedef long long int money;
 
-typedef struct {
-    float mortgage_rate;            // Ипотечная ставка
-    float deposit_rate;             // Депозитная ставка
-    long long int rent;             // Аренда
-    float inflation;                // Инфляция
-    long long int house_cost;       // Стоимость квартиры
-} Finance;
+struct Person {
+    money account;
+    money deposit;
+    money salary;
+    money monthly_expenses;
+    float indexation;
+};
+typedef struct Person Person;
+
+struct Finance{
+    money mortgage_payment;
+    money rent;
+    money house_cost;
+    float inflation;
+    float deposit_rate;
+};
+typedef struct Finance Finance;
+
 
 Person alice, bob;
 Finance finance;
 
-void initialize_person(Person* person, long long int account, long long int salary, float indexation, long long int monthly_expenses) {
+
+void initialize_person(Person* person, const money account, const money salary, const float indexation, const money monthly_expenses) {
     person->account = account;
     person->deposit = 0;
     person->salary = salary;
@@ -27,96 +33,106 @@ void initialize_person(Person* person, long long int account, long long int sala
     person->monthly_expenses = monthly_expenses;
 }
 
-void initialize_finance(Finance* finance, float mortgage_rate, float deposit_rate, long long int rent, float inflation, long long int house_cost) {
-    finance->mortgage_rate = mortgage_rate;
+void initialize_finance(Finance* finance, const float mortgage_payment, const float deposit_rate, money rent, const float inflation, const money house_cost) {
+    finance->mortgage_payment = mortgage_payment;
     finance->deposit_rate = deposit_rate;
     finance->rent = rent;
     finance->inflation = inflation;
     finance->house_cost = house_cost;
 }
 
-// Функция для начисления зарплаты и индексации
-void process_salary(Person* person, int current_month, int indexation_month) {
-    person->account += person->salary; // начисление месячной зарплаты
-    if (current_month == indexation_month) { // индексация зарплаты в девятый месяц
-        person->salary *= person->indexation;
+void alice_salary(const int current_month, const int indexation_month) {
+    alice.account += alice.salary;
+    if (current_month == indexation_month) {
+        alice.salary *= alice.indexation;
     }
 }
 
-// Функция для управления депозитом: остаток на счету переводится на депозит, начисляются проценты
-void process_deposit(Person* person, float deposit_rate) {
-    person->deposit += person->account; // перевод остатка на депозитный счет
-    person->account = 0; // очищаем основной счет
-    person->deposit *= deposit_rate; // начисление процентов на депозит
+void bob_salary(const int current_month, const int indexation_month) {
+    bob.account += bob.salary;
+    if (current_month == indexation_month) {
+        bob.salary *= bob.indexation;
+    }
 }
 
-// Функция для расходов: снятие денег за еду и жильё
-void process_expenses(Person* person, long long int expenses) {
-    person->account -= expenses;
+void alice_deposit() {
+    alice.deposit += alice.account;
+    alice.account = 0;
+    alice.deposit *= finance.deposit_rate;
 }
 
-// Функция для платежей по ипотеке или аренде
-void process_housing(Person* person, long long int payment) {
-    person->account -= payment;
+void bob_deposit() {
+    bob.deposit += bob.account;
+    bob.account = 0;
+    bob.deposit *= finance.deposit_rate;
 }
 
-// Ежегодное обновление расходов и стоимости квартиры с учетом инфляции
-void update_inflation(Finance* finance) {
-    finance->house_cost *= finance->inflation;     // увеличение стоимости квартиры
-    finance->rent *= finance->inflation;           // увеличение арендной платы
+void alice_expenses() {
+    alice.account -= alice.monthly_expenses;
 }
 
-// Проверка, может ли Боб купить квартиру
+void bob_expenses() {
+    bob.account -= bob.monthly_expenses;
+}
+
+void alice_housing(const money payment) {
+    alice.account -= finance.mortgage_payment;
+}
+
+void bob_housing(const money payment) {
+    bob.account -= finance.rent;
+}
+
+void update_inflation() {
+    finance.house_cost *= finance.inflation;
+    finance.rent *= finance.inflation;
+}
+
 void check_bob_purchase(Person* bob, Finance* finance) {
     if (bob->deposit >= finance->house_cost) {
-        bob->deposit -= finance->house_cost; // покупка квартиры
-        finance->rent = 0;                   // Боб больше не платит аренду
+        bob->deposit -= finance->house_cost;
+        finance->rent = 0;
     }
 }
 
-// Вывод текущих капиталов
-void print_capital(int year) {
-    printf("Year %d:\n", year);
-    printf("Alice account = %lld, Deposit = %lld\n", alice.account, alice.deposit);
-    printf("Bob account = %lld, Deposit = %lld\n", bob.account, bob.deposit);
-}
+void simulate() {
+    int year = 2024;
+    int month = 9;
+    const int indexation_month = 9;
 
-// Функция для моделирования одного года
-void simulate_year(int year, int indexation_month) {
-    for (int month = 1; month <= 12; ++month) {
-        // Зарплата и индексация
-        process_salary(&alice, month, indexation_month);
-        process_salary(&bob, month, indexation_month);
+    while( !((year == 2024 + 30) && (month == 10)) ) {
 
-        // Траты на еду и другие расходы
-        process_expenses(&alice, alice.monthly_expenses);
-        process_expenses(&bob, bob.monthly_expenses);
+        alice_salary(month, indexation_month);
+        bob_salary(month, indexation_month);
 
-        // Ипотека для Алисы и аренда для Боба
-        process_housing(&alice, finance.house_cost * (finance.mortgage_rate - 1) / 12);
-        process_housing(&bob, finance.rent);
+        alice_expenses(alice.monthly_expenses);
+        bob_expenses(bob.monthly_expenses);
 
-        // Перевод остатка на депозит и начисление процентов
-        process_deposit(&alice, finance.deposit_rate);
-        process_deposit(&bob, finance.deposit_rate);
+        alice_housing(finance.mortgage_payment);
+        bob_housing(finance.rent);
+
+        alice_deposit(finance.deposit_rate);
+        bob_deposit(finance.deposit_rate);
+        
+        
+        check_bob_purchase(&bob, &finance);
+
+        if(month == indexation_month){
+            update_inflation(&finance);
+        }
+
+        ++month;
+        if(month == 13) {
+            month = 1;
+            ++year;
+        }
     }
-
-    // Обновление стоимости квартиры и арендной платы
-    update_inflation(&finance);
-
-    // Проверка, может ли Боб купить квартиру
-    check_bob_purchase(&bob, &finance);
-
-    // Вывод результатов по окончании года
-    // print_capital(year);
 }
 
-// Функция для окончательного сравнения капиталов
-void compare_final_capital(int years) {
-    long long alice_final = alice.deposit + finance.house_cost;
-    long long bob_final = bob.deposit + (finance.rent == 0 ? finance.house_cost : 0);
+void compare_final_capital() {
+    money alice_final = alice.deposit + finance.house_cost;
+    money bob_final = bob.deposit + (finance.rent == 0 ? finance.house_cost : 0);
 
-    printf("\n--- After %d years ---\n", years);
     printf("Alice capital: %lld\n", alice_final);
     printf("Bob capital: %lld\n", bob_final);
 
@@ -132,18 +148,13 @@ void compare_final_capital(int years) {
 }
 
 int main() {
-    // Инициализация начальных данных
-    initialize_person(&alice, 1200000, 200000, 1.1, 40000); // Алиса
-    initialize_person(&bob, 1200000, 200000, 1.07, 40000);  // Боб
-    initialize_finance(&finance, 1.16, 1.15, 40000, 1.1, 13000000); // Финансовые параметры
+    initialize_person(&alice, 1200000, 200000, 1.1, 40000);
+    initialize_person(&bob, 1200000, 200000, 1.1, 40000);
+    initialize_finance(&finance, 40000, 1.15, 40000, 1.1, 13000000);
 
-    // Запуск симуляции на 30 лет
-    for (int year = 2024; year < 2024 + 30; ++year) {
-        simulate_year(year, 9); // Индексация зарплаты в сентябре каждого года (9-й месяц)
-    }
+    simulate();
 
-    // Сравнение результатов по завершении симуляции
-    compare_final_capital(30);
+    compare_final_capital();
 
     return 0;
 }
