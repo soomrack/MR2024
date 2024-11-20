@@ -222,7 +222,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
 
 Matrix matrix_multi_by_number(const Matrix A, const double number)
 {
-    Matrix C = matrix_allocate((Matrix){A.rows, B.cols, NULL});
+    Matrix C = matrix_allocate((Matrix){A.rows, A.cols, NULL});
 
     for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
         C.data[idx] = A.data[idx] * number;
