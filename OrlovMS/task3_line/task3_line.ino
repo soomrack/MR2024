@@ -5,19 +5,19 @@ const uint8_t PIN_PWM_LEFT = 6;
 const uint8_t PIN_DIR_LEFT = 7;
 const uint8_t PIN_PWM_RIGHT = 5;
 const uint8_t PIN_DIR_RIGHT = 4;
-const uint8_t PIN_BUTTON = A0;
-const uint8_t PINS_ANALOG[3] = {A3, A2, A1};
+const uint8_t PIN_BUTTON = A2;
+const uint8_t PINS_ANALOG[2] = {A0, A1};
 
 
 const int DEBOUNCE_DELAY_MS = 5;
 
 
 //PD regilator coefficients
-const float K_P = 5.0;
-const float K_D = 20.0;
+const float K_P = 7.0;
+const float K_D = 30.0;
 
 
-const int SPEED = 190; //basic movement speed
+const int SPEED = 100; //basic movement speed
 
 
 //driving speed limits
@@ -25,10 +25,10 @@ const int SPEED_MAX = 250;
 const int SPEED_MIN = -100;
 
 
-const int U_SEEK_LINE = 100; //u when seeking line
+const int U_SEEK_LINE = 140; //u when seeking line
 
 
-const int BLACK_THRESHOLD = 40; //threshold for detecting black line
+const int BLACK_THRESHOLD = 50; //threshold for detecting black line
 
 
 struct Limit
@@ -44,9 +44,9 @@ struct Limit
 };
 
 
-Limit calibration_data[3];
-int sensors_data_raw[3];
-int sensors_data[3];
+Limit calibration_data[2];
+int sensors_data_raw[2];
+int sensors_data[2];
 
 
 void pins_init()
@@ -65,8 +65,8 @@ void motors_set_speed(int left, int right)
     left = constrain(left, -(int)UINT8_MAX, (int)UINT8_MAX);
     right = constrain(right, -(int)UINT8_MAX, (int)UINT8_MAX);
 
-    digitalWrite(PIN_DIR_LEFT, left > 0);
-    digitalWrite(PIN_DIR_RIGHT, left > 0);
+    digitalWrite(PIN_DIR_LEFT, left < 0);
+    digitalWrite(PIN_DIR_RIGHT, right < 0);
 
     analogWrite(PIN_PWM_LEFT, abs(left));
     analogWrite(PIN_PWM_RIGHT, abs(right));
@@ -103,7 +103,7 @@ bool button_is_pressed()
 
 void sensors_read_raw()
 {
-    for(uint8_t idx = 0; idx < 3; idx++) {
+    for(uint8_t idx = 0; idx < 2; idx++) {
         sensors_data_raw[idx] = analogRead(PINS_ANALOG[idx]);
     }
 }
@@ -114,7 +114,7 @@ void sensors_calibrate()
     sensors_read_raw();
 
     //update limits
-    for(uint8_t idx = 0; idx < 3; idx++) {
+    for(uint8_t idx = 0; idx < 2; idx++) {
         if(sensors_data_raw[idx] < calibration_data[idx].min) {
             calibration_data[idx].min = sensors_data_raw[idx];
         }
@@ -144,18 +144,10 @@ void sensors_read()
 {
     sensors_read_raw();
 
-    for(uint8_t idx = 0; idx < 3; idx++) {
+    for(uint8_t idx = 0; idx < 2; idx++) {
         //make sensors output range 0 - 100
         sensors_data[idx] = map(sensors_data_raw[idx], calibration_data[idx].min, calibration_data[idx].max, 0, 100);
     }
-}
-
-
-void setup()
-{
-    pins_init();
-
-    calibration();
 }
 
 
@@ -163,8 +155,8 @@ bool is_on_line()
 {
     bool line = 0;
 
-    for(uint8_t idx = 0; idx < 3; idx++) {
-        if(sensors_data[idx] < BLACK_THRESHOLD) line = 1;
+    for(uint8_t idx = 0; idx < 2; idx++) {
+        if(sensors_data[idx] > BLACK_THRESHOLD) line = 1;
     }
 
     return line;
@@ -180,6 +172,7 @@ int regulator()
     float u = err * K_P + (err - err_old) * K_D;
     err_old = err;
 
+//    if(!is_on_line()) return u_old;
     if(!is_on_line()) return (u_old > 0) ? U_SEEK_LINE : -U_SEEK_LINE;
 
     u_old = u;
@@ -194,9 +187,17 @@ void drive_line()
 
     int u = regulator();
 
-    int left_speed = constrain(SPEED + u, SPEED_MAX, -SPEED_MIN);
-    int right_speed = constrain(SPEED - u, SPEED_MAX, -SPEED_MIN);
+    int left_speed = constrain(SPEED + u, SPEED_MIN, SPEED_MAX);
+    int right_speed = constrain(SPEED - u, SPEED_MIN, SPEED_MAX);
     motors_set_speed(left_speed, right_speed);
+}
+
+
+void setup()
+{
+    pins_init();
+
+    calibration();
 }
 
 
