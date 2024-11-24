@@ -106,7 +106,7 @@ Matrix_status matrix_transp(Matrix m, Matrix m_transp);
 void matrix_print(const Matrix matrix);
 
 
-Matrix_status matrix_det(Matrix M);  // Метод Гаусса
+double matrix_det(Matrix M);  // Метод Гаусса
 
 
 Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow);

@@ -13,14 +13,18 @@ Matrix_status matrix_alloc(Matrix* M_ptr, const size_t rows, const size_t cols)
 {
     if(M_ptr == NULL) return MAT_EMPTY_ERR;
 
-    if(rows != 0 && cols != 0) {
-        if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
-        M_ptr -> data = (double*)malloc(rows * cols * sizeof(double));
-        if(M_ptr -> data == NULL) return MAT_ALLOC_ERR;
+    if(rows == 0 || cols == 0) {
+        *M_ptr = EMPTY;
+        return MAT_SIZE_ERR;
     }
     
-    M_ptr -> rows = rows;
-    M_ptr -> cols = cols;
+    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) return MAT_SIZE_ERR;
+
+    M_ptr->data = (double*)malloc(rows * cols * sizeof(double));
+    if(M_ptr->data == NULL) return MAT_ALLOC_ERR;
+    
+    M_ptr->rows = rows;
+    M_ptr->cols = cols;
 
     return MAT_OK;
 }
@@ -28,7 +32,7 @@ Matrix_status matrix_alloc(Matrix* M_ptr, const size_t rows, const size_t cols)
 
 Matrix_status matrix_free(Matrix* M_ptr)
 {
-    free(M_ptr -> data);
+    free(M_ptr->data);
     return MAT_OK;
 }
 
@@ -103,9 +107,9 @@ unsigned char matrix_is_empty(const Matrix M)
 }
 
 
-unsigned char matrix_equal_size(const Matrix M1, const Matrix M2)
+unsigned char matrix_equal_size(const Matrix A, const Matrix B)
 {
-    return (M1.rows == M2.rows && M1.cols == M2.cols);
+    return (A.rows == B.rows && A.cols == B.cols);
 }
 
 
@@ -115,9 +119,9 @@ unsigned char matrix_is_square(const Matrix M)
 }
 
 
-unsigned char matrix_compatible(const Matrix M1, const Matrix M2)
+unsigned char matrix_compatible(const Matrix A, const Matrix B)
 {
-    return (M1.cols == M2.rows);
+    return (A.cols == B.rows);
 }
 
 
@@ -202,64 +206,64 @@ double factorial(const int n)
 }
 
 
-Matrix_status matrix_sum(Matrix* M_result, Matrix M1, Matrix M2)
+Matrix_status matrix_sum(Matrix* M_result, Matrix A, Matrix B)
 {
-    if(M1.cols == 0 || M1.rows == 0) {
+    if(A.cols == 0 || A.rows == 0) {
         return MAT_SIZE_ERR;
     } 
 
-    if(!(matrix_equal_size(M1, M2) && matrix_equal_size(*M_result, M1))) return MAT_SIZE_ERR;
+    if(!(matrix_equal_size(A, B) && matrix_equal_size(*M_result, A))) return MAT_SIZE_ERR;
 
-    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
-        M_result -> data[idx] = M1.data[idx] + M2.data[idx];
+    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        M_result -> data[idx] = A.data[idx] + B.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_add(Matrix M1, const Matrix M2)
+Matrix_status matrix_add(Matrix A, const Matrix B)
 {
-    if(M1.cols == 0 || M1.rows == 0) {
+    if(A.cols == 0 || A.rows == 0) {
         return MAT_SIZE_ERR;
     } 
 
-    if(!matrix_equal_size(M1, M2)) return MAT_SIZE_ERR;
+    if(!matrix_equal_size(A, B)) return MAT_SIZE_ERR;
         
-    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
-        M1.data[idx] += M2.data[idx];
+    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        A.data[idx] += B.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_difference(Matrix* M_result, Matrix M1, Matrix M2)
+Matrix_status matrix_difference(Matrix* M_result, Matrix A, Matrix B)
 {
-    if(M1.cols == 0 || M1.rows == 0) {
+    if(A.cols == 0 || A.rows == 0) {
         return MAT_SIZE_ERR;
     } 
 
-    if(!(matrix_equal_size(M1, M2) && matrix_equal_size(*M_result, M1))) return MAT_SIZE_ERR;
+    if(!(matrix_equal_size(A, B) && matrix_equal_size(*M_result, A))) return MAT_SIZE_ERR;
 
-    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
-        M_result -> data[idx] = M1.data[idx] - M2.data[idx];
+    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        M_result -> data[idx] = A.data[idx] - B.data[idx];
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_sub(Matrix M1, const Matrix M2)
+Matrix_status matrix_sub(Matrix A, const Matrix B)
 {
-    if(M1.cols == 0 || M1.rows == 0) {
+    if(A.cols == 0 || A.rows == 0) {
         return MAT_SIZE_ERR;
     } 
 
-    if(!matrix_equal_size(M1, M2)) return MAT_SIZE_ERR;
+    if(!matrix_equal_size(A, B)) return MAT_SIZE_ERR;
         
-    for(size_t idx = 0; idx < M1.rows * M1.cols; ++idx) {
-        M1.data[idx] -= M2.data[idx];
+    for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        A.data[idx] -= B.data[idx];
     }
 
     return MAT_OK;
@@ -282,10 +286,10 @@ Matrix_status matrix_sub_rows(Matrix M, const size_t row_minuend, const size_t r
 }
 
 
-Matrix_status matrix_mul_num(Matrix m, const double num)
+Matrix_status matrix_mul_num(Matrix M, const double num)
 {
-    for(size_t idx = 0; idx < m.rows * m.cols; ++idx) {
-        m.data[idx] *= num;
+    for(size_t idx = 0; idx < M.rows * M.cols; ++idx) {
+        M.data[idx] *= num;
     }
 
     return MAT_OK;
@@ -302,14 +306,14 @@ Matrix_status matrix_row_mul_num(Matrix M, const size_t row_num, const double nu
 }
 
 
-Matrix_status matrix_mul(Matrix* m_result, const Matrix m1, const Matrix m2)
+Matrix_status matrix_mul(Matrix* M_result, const Matrix A, const Matrix B)
 {
-    if(!(matrix_compatible(m1, m2) && (m_result->rows == m1.rows) && (m_result->cols == m2.cols))) return MAT_SIZE_ERR;
+    if(!(matrix_compatible(A, B) && (M_result->rows == A.rows) && (M_result->cols == B.cols))) return MAT_SIZE_ERR;
 
-    for(size_t idx_rows = 0; idx_rows < m_result->rows; ++idx_rows) {
-        for(size_t idx_cols = 0; idx_cols < m_result->cols; ++idx_cols) {
-            for(size_t idx = 0; idx < m1.cols; ++idx) {
-                m_result->data[idx_rows * m_result->rows + idx_cols] += m1.data[idx_rows * m1.rows + idx] * m2.data[idx * m2.cols + idx_cols];
+    for(size_t idx_rows = 0; idx_rows < M_result->rows; ++idx_rows) {
+        for(size_t idx_cols = 0; idx_cols < M_result->cols; ++idx_cols) {
+            for(size_t idx = 0; idx < A.cols; ++idx) {
+                M_result->data[idx_rows * M_result->rows + idx_cols] += A.data[idx_rows * A.rows + idx] * B.data[idx * B.cols + idx_cols];
             }
         }
     }
@@ -318,24 +322,24 @@ Matrix_status matrix_mul(Matrix* m_result, const Matrix m1, const Matrix m2)
 }
 
 
-Matrix_status matrix_random(Matrix m, const long int lower_limit, const long int higher_limit)
+Matrix_status matrix_random(Matrix M, const long int lower_limit, const long int higher_limit)
 {
     srand(time(NULL));
 
-    for(size_t idx = 0; idx < m.cols * m.rows; ++idx) {
-        m.data[idx] = lower_limit + rand() % (higher_limit - lower_limit + 1);
+    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
+        M.data[idx] = lower_limit + rand() % (higher_limit - lower_limit + 1);
     }
 
     return MAT_OK;
 }
 
 
-Matrix_status matrix_transp(Matrix m, Matrix m_transp)
+Matrix_status matrix_transp(Matrix M, Matrix M_transp)
 {   
 
-    for(size_t rows_idx = 0; rows_idx < m.rows; ++rows_idx) {
-        for(size_t cols_idx = 0; cols_idx < m.cols; ++cols_idx) {
-            m_transp.data[cols_idx * m.rows + rows_idx] = m.data[rows_idx * m.cols + cols_idx];
+    for(size_t rows_idx = 0; rows_idx < M.rows; ++rows_idx) {
+        for(size_t cols_idx = 0; cols_idx < M.cols; ++cols_idx) {
+            M_transp.data[cols_idx * M.rows + rows_idx] = M.data[rows_idx * M.cols + cols_idx];
         }
     }
 
@@ -343,13 +347,13 @@ Matrix_status matrix_transp(Matrix m, Matrix m_transp)
 }
 
 
-void matrix_print(const Matrix matrix)
+void matrix_print(const Matrix M)
 {
-    for(int row_idx = 0; row_idx < matrix.rows; ++row_idx) {
-        for(int col_idx = 0; col_idx < matrix.cols; ++col_idx) {
+    for(int row_idx = 0; row_idx < M.rows; ++row_idx) {
+        for(int col_idx = 0; col_idx < M.cols; ++col_idx) {
             if(col_idx == 0) printf("[ ");
-            (col_idx == matrix.cols - 1) ? printf("%-8.3f ]", matrix.data[row_idx * matrix.cols + col_idx]) : 
-            printf("%-8.3f ", matrix.data[row_idx * matrix.cols + col_idx]);
+            (col_idx == M.cols - 1) ? printf("%-8.3f ]", M.data[row_idx * M.cols + col_idx]) : 
+            printf("%-8.3f ", M.data[row_idx * M.cols + col_idx]);
         }
 
         printf("\n");
@@ -358,16 +362,16 @@ void matrix_print(const Matrix matrix)
 }
 
 
-Matrix_status matrix_det(Matrix M)  // Метод Гаусса
+double matrix_det(Matrix M)  // Метод Гаусса
 {
     if(!matrix_is_square(M)) {
         puts("Матрица не квадратная");
-        return MAT_SIZE_ERR;
+        return 0;
     }
 
     if(M.data == NULL) {
         puts("Ошибка NULL pointer");
-        return MAT_NULL_ERR;
+        return 0;
     }
 
     double det = 1;
@@ -391,8 +395,8 @@ Matrix_status matrix_det(Matrix M)  // Метод Гаусса
 
     det *= M_tmp.data[M.rows * M.cols - 1];
     matrix_free(M_tmp_ptr);
-    printf("%.3lf\n", det);
-    return MAT_OK;
+    
+    return det;
 }
 
 
