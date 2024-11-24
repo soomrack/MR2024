@@ -147,9 +147,7 @@ Matrix_status matrix_copy(Matrix M_new, const Matrix M)
 {
     if(!matrix_equal_size(M, M_new)) return MAT_SIZE_ERR;
 
-    for(size_t idx = 0; idx < M.cols * M.rows; ++idx) {
-        M_new.data[idx] = M.data[idx];
-    }
+    memcpy(M_new.data, M.data, M.cols * M.cols * sizeof(M.data[0]));
 
     return MAT_OK;
 }
@@ -286,6 +284,35 @@ Matrix_status matrix_sub_rows(Matrix M, const size_t row_minuend, const size_t r
 }
 
 
+Matrix_status matrix_add_col(Matrix M, const size_t col_increased, const size_t col_added)
+// row_minuend - уменьшаемая строка, row_sub - вычитаемая строка
+{
+    if(M.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+
+    for(size_t idx = 0; idx < M.cols; ++idx) {
+        M.data[idx * M.cols + col_increased] += M.data[idx * M.cols + col_added];
+    }
+
+    return MAT_OK;
+}
+
+
+Matrix_status matrix_swap_rows(Matrix M, const size_t row_num_1, const size_t row_num_2)
+{
+    double tmp_row[M.cols];
+    size_t size = M.cols * sizeof(double);
+
+    memcpy(tmp_row, M.data + row_num_1 * M.cols, size);
+    memcpy(M.data + row_num_1 * M.cols, M.data + row_num_2 * M.cols, size);
+    memcpy(M.data + row_num_2 * M.cols, tmp_row, size);
+
+    return MAT_OK;
+}
+
+
 Matrix_status matrix_mul_num(Matrix M, const double num)
 {
     for(size_t idx = 0; idx < M.rows * M.cols; ++idx) {
@@ -379,6 +406,12 @@ double matrix_det(Matrix M)  // Метод Гаусса
     Matrix* M_tmp_ptr = &M_tmp;
     matrix_alloc(M_tmp_ptr, M.rows, M.cols);
 
+    if(M.data[0] > -0.001 && M.data[0] < 0.001) {
+        matrix_add_col(M, 0, 1);
+    }
+    puts("Вывод из det");
+    matrix_print(M);
+
     matrix_copy(M_tmp, M);
 
     for(size_t idx_main = 0; idx_main < M.rows - 1; ++idx_main) {
@@ -449,20 +482,13 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
     matrix_alloc(M_tmp_ptr, M.cols, M.rows);
     int k = 0;
 
-    while(1) {
+    for(int k = 0; k <= 20; ++k) {
         matrix_pow(M_tmp, M, k);
         matrix_mul_num(M_tmp, 1.0/factorial(k));
         matrix_add(M_exp, M_tmp);
-
-        if(matrix_get_max_absolute_element(M_tmp) < 0.001) {
-            matrix_free(M_tmp_ptr);
-            return MAT_OK;
-        }
-
         matrix_zeros(M_tmp);
-        ++k;
     }
 
     matrix_free(M_tmp_ptr);
-
+    return MAT_OK;
 }
