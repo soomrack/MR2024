@@ -6,7 +6,11 @@ const uint8_t PIN_DIR_LEFT = 7;
 const uint8_t PIN_PWM_RIGHT = 5;
 const uint8_t PIN_DIR_RIGHT = 4;
 const uint8_t PIN_BUTTON = A2;
-const uint8_t PINS_ANALOG[2] = {A0, A1};
+const uint8_t PIN_BUZZER = 9;
+
+
+const uint8_t PINS_ANALOG[] = {A0, A1};
+const uint8_t SENSORS_NUM = sizeof(PINS_ANALOG);
 
 
 const int DEBOUNCE_DELAY_MS = 5;
@@ -25,7 +29,8 @@ const int SPEED_MAX = 250;
 const int SPEED_MIN = -100;
 
 
-const int U_SEEK_LINE = 140; //u when seeking line
+const int U_SEEK_LINE = 140; //u when start seek line
+const unsigned long SEEK_TIME = 5000; //ms
 
 
 const int BLACK_THRESHOLD = 50; //threshold for detecting black line
@@ -44,9 +49,9 @@ struct Limit
 };
 
 
-Limit calibration_data[2];
-int sensors_data_raw[2];
-int sensors_data[2];
+Limit calibration_data[SENSORS_NUM];
+int sensors_data_raw[SENSORS_NUM];
+int sensors_data[SENSORS_NUM];
 
 
 void pins_init()
@@ -57,6 +62,8 @@ void pins_init()
     pinMode(PIN_DIR_RIGHT, OUTPUT);
 
     pinMode(PIN_BUTTON, INPUT);
+
+    pinMode(PIN_BUZZER, OUTPUT);
 }
 
 
@@ -103,7 +110,7 @@ bool button_is_pressed()
 
 void sensors_read_raw()
 {
-    for(uint8_t idx = 0; idx < 2; idx++) {
+    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
         sensors_data_raw[idx] = analogRead(PINS_ANALOG[idx]);
     }
 }
@@ -114,7 +121,7 @@ void sensors_calibrate()
     sensors_read_raw();
 
     //update limits
-    for(uint8_t idx = 0; idx < 2; idx++) {
+    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
         if(sensors_data_raw[idx] < calibration_data[idx].min) {
             calibration_data[idx].min = sensors_data_raw[idx];
         }
@@ -144,7 +151,7 @@ void sensors_read()
 {
     sensors_read_raw();
 
-    for(uint8_t idx = 0; idx < 2; idx++) {
+    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
         //make sensors output range 0 - 100
         sensors_data[idx] = map(sensors_data_raw[idx], calibration_data[idx].min, calibration_data[idx].max, 0, 100);
     }
@@ -155,7 +162,7 @@ bool is_on_line()
 {
     bool line = 0;
 
-    for(uint8_t idx = 0; idx < 2; idx++) {
+    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
         if(sensors_data[idx] > BLACK_THRESHOLD) line = 1;
     }
 
@@ -163,33 +170,78 @@ bool is_on_line()
 }
 
 
-int regulator()
+int PD_regulator()
 {
-    static int u_old = 0;
     static float err_old = 0.0f;
 
     float err = sensors_data[0] - sensors_data[1];
     float u = err * K_P + (err - err_old) * K_D;
     err_old = err;
 
-//    if(!is_on_line()) return u_old;
-    if(!is_on_line()) return (u_old > 0) ? U_SEEK_LINE : -U_SEEK_LINE;
-
-    u_old = u;
-
     return u;
 }
 
 
-void drive_line()
+bool seek_line(int* u)
+{
+    static unsigned long time_start_seek = 0;
+    static int u_old_sign = 0;
+
+    if(!is_on_line()) {
+        if(time_start_seek == 0) {
+            time_start_seek = millis();
+        }
+
+        *u = u_old_sign * U_SEEK_LINE * expf(-(float)(millis() - time_start_seek) / 2000.0f);
+
+        if((millis() - time_start_seek) > SEEK_TIME) return 0;
+    }
+    else {
+        time_start_seek = 0;
+    }
+    u_old_sign = (*u > 0) ? 1 : -1;
+
+    return 1;
+}
+
+
+bool drive_line()
 {
     sensors_read();
 
-    int u = regulator();
+    int u = PD_regulator();
+
+    if(!seek_line(&u)) return 0;
 
     int left_speed = constrain(SPEED + u, SPEED_MIN, SPEED_MAX);
     int right_speed = constrain(SPEED - u, SPEED_MIN, SPEED_MAX);
     motors_set_speed(left_speed, right_speed);
+
+    return 1;
+}
+
+
+bool buzz()
+{
+    static unsigned long start_time = 0;
+
+    if(start_time == 0) {
+        start_time = millis();
+    }
+
+    if((millis() - start_time) > 5100) {
+        start_time = 0;
+        return 0;
+    }
+
+    if((millis() - start_time) % 2000 < 1000) {
+        analogWrite(PIN_BUZZER, 128);
+    }
+    else {
+        digitalWrite(PIN_BUZZER, 0);
+    }
+
+    return 1;
 }
 
 
@@ -204,12 +256,20 @@ void setup()
 void loop()
 {
     static bool is_running = 0;
+    static bool is_buzzing = 0;
 
     if(is_running) {
-        drive_line();
+        if(!drive_line()) {
+            is_running = 0;
+            is_buzzing = 1;
+        }
     }
     else {
         motors_set_speed(0, 0);
+    }
+
+    if(is_buzzing) {
+        is_buzzing = buzz();
     }
 
     if(button_is_pressed()) {
