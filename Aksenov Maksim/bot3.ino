@@ -1,22 +1,22 @@
-#define DIR_R 4
-#define DIR_L 7
+#define PIN_DIR_R 4
+#define PIN_DIR_L 7
 
-#define PWR_R 5     
-#define PWR_L 6
+#define PIN_PWR_R 5     
+#define PIN_PWR_L 6
 
-#define BTN 8
+#define PIN_BTN 8
 
-#define PIEZO 9
+#define PIN_PIEZO 9
 
-typedef unsigned int colour;
+typedef unsigned int Colour;
 
-colour black, white;
+Colour black, white;
 
-colour right_sensor, left_sensor;
+Colour right_sensor, left_sensor;
 
-colour lastseen;
+Colour lastseen;
 
-colour border;
+Colour border;
 
 unsigned int search_time = 0;
 
@@ -26,24 +26,24 @@ void pin_initialization()
     pinMode(A0, INPUT);
     pinMode(A2, INPUT);
 
-    pinMode(DIR_R, OUTPUT);
-    pinMode(PWR_R, OUTPUT);
-    pinMode(PWR_L, OUTPUT);
-    pinMode(DIR_L, OUTPUT);
-    pinMode(PIEZO, OUTPUT);
+    pinMode(PIN_DIR_R, OUTPUT);
+    pinMode(PIN_PWR_R, OUTPUT);
+    pinMode(PIN_PWR_L, OUTPUT);
+    pinMode(PIN_DIR_L, OUTPUT);
+    pinMode(PIN_PIEZO, OUTPUT);
 }
 
 
 void calibration()
 {
-    while (!digitalRead(BTN)) {}
+    while (!digitalRead(PIN_BTN)) {}
 
     right_sensor = analogRead(A0);
     left_sensor = analogRead(A2);
     white = (right_sensor + left_sensor) / 2;
     delay(500);
     
-    while (!digitalRead(BTN)) {}
+    while (!digitalRead(PIN_BTN)) {}
 
     right_sensor = analogRead(A0);
     left_sensor = analogRead(A2);
@@ -52,18 +52,19 @@ void calibration()
 
     delay(500);  
 
-    while (!digitalRead(BTN)) {}
+    while (!digitalRead(PIN_BTN)) {}
 }
 
 
 void forward()  //вперёд
 {
-    digitalWrite(DIR_R, 1);
-    digitalWrite(DIR_L, 1);
+    digitalWrite(PIN_DIR_R, 1);
+    digitalWrite(PIN_DIR_L, 1);
 
-    for (int idx = 50; idx <= 230; idx += 6) {
-        analogWrite(PWR_R, idx);
-        analogWrite(PWR_L, idx);
+    //Велчины 50 и 230 подобраны эмпирически
+    for (int idx = 50; idx <= 230; idx += 6) {   
+        analogWrite(PIN_PWR_R, idx);
+        analogWrite(PIN_PWR_L, idx);
     }
 
     lastseen = left_sensor;
@@ -71,41 +72,37 @@ void forward()  //вперёд
 }
 
 
-void leftward()  //поворот влево     
+void leftward()  //поворот налево     
 {
-    digitalWrite(DIR_R, 1);
-    digitalWrite(DIR_L, 0);
+    digitalWrite(PIN_DIR_R, 1);
+    digitalWrite(PIN_DIR_L, 0);
 
     for (int i = 0; i <= 150; i += 6) {
-        analogWrite(PWR_R, i);
+        analogWrite(PIN_PWR_R, i);
     }
 
     for (int i = 0; i <= 150; i += 6) {
-        analogWrite(PWR_L, i);
+        analogWrite(PIN_PWR_L, i);
     }
 
     search_time = 0;
-
-    delay(15);
 }
 
 
-void rightward()  //поворот вправо   
+void rightward()  //поворот направо   
 {
-    digitalWrite(DIR_R, 0);
-    digitalWrite(DIR_L, 1);
+    digitalWrite(PIN_DIR_R, 0);
+    digitalWrite(PIN_DIR_L, 1);
 
     for (int i = 0; i <= 150; i += 6) {
-        analogWrite(PWR_R, i);
+        analogWrite(PIN_PWR_R, i);
     }
 
     for (int i = 0; i <= 150; i += 6) {
-        analogWrite(PWR_L, i);
+        analogWrite(PIN_PWR_L, i);
     }
 
     search_time = 0;
-
-    delay(15);
 }
 
 
@@ -115,10 +112,11 @@ void out_of_line()   //сход с линии
     delay(1);
 
     if (lastseen > border) {
-        digitalWrite(DIR_R, 0);
-        analogWrite(PWR_R, 250);
-        digitalWrite(DIR_L, 0);
-        analogWrite(PWR_L, 50);
+        //Велчины 50 и 250 подобраны эмпирически
+        digitalWrite(PIN_DIR_R, 0);
+        analogWrite(PIN_PWR_R, 250);
+        digitalWrite(PIN_DIR_L, 0);
+        analogWrite(PIN_PWR_L, 50);
 
         if (search_time > 5000) {
             stop();
@@ -126,16 +124,18 @@ void out_of_line()   //сход с линии
     }
 
     else {
-        digitalWrite(DIR_R,0);
-        analogWrite(PWR_R,50);
-        digitalWrite(DIR_L,0);
-        analogWrite(PWR_L,250);
+        //Велчины 50 и 250 подобраны эмпирически
+        digitalWrite(PIN_DIR_R,0);
+        analogWrite(PIN_PWR_R,50);
+        digitalWrite(PIN_DIR_L,0);
+        analogWrite(PIN_PWR_L,250);
 
         if (search_time > 5000) {
             stop();
         }
     }
 }
+
 
 void setup() 
 {
@@ -146,16 +146,16 @@ void setup()
 
 void stop() 
 {     
-    digitalWrite(DIR_R, 0);
-    analogWrite(PWR_R, 0);
-    digitalWrite(DIR_L, 0);
-    analogWrite(PWR_L, 0);
+    digitalWrite(PIN_DIR_R, 0);
+    analogWrite(PIN_PWR_R, 0);
+    digitalWrite(PIN_DIR_L, 0);
+    analogWrite(PIN_PWR_L, 0);
     
-    tone(PIEZO, 1000, 500);
+    tone(PIN_PIEZO, 1000, 500);
 
     search_time = 0;
 
-    while (!digitalRead(BTN)) {}
+    while (!digitalRead(PIN_BTN)) {}
 
     delay (500);
 
@@ -181,6 +181,8 @@ void loop()
     }
   
     else if (left_sensor < border && right_sensor < border) { //сход с линии
-        out_of_line();           
+        out_of_line();  
     }
+
+    delay (15);          
 }
