@@ -7,8 +7,7 @@
 #define SOUND                     8
 
 
-int light = 0;
-int time;
+int left_light = 0;
 
 
 void setup() 
@@ -27,7 +26,7 @@ int binarize(int detect)
 }
 
 
-void forward(int speed)
+void forward(unsigned int speed)
 {
   digitalWrite(RIGHT_DIRECTION, HIGH);
   digitalWrite(LEFT_DIRECTION, HIGH);
@@ -37,22 +36,18 @@ void forward(int speed)
 }
 
 
-void stop() { 
+void stop() 
+{ 
   analogWrite(RIGHT_SPEED, LOW); 
   analogWrite(LEFT_SPEED, LOW); 
   
   while (true) {
     digitalWrite(SOUND, HIGH);
 
-    if ((binarize(analogRead(LIGHT_RIGHT))==1)  ||  (binarize(analogRead(LIGHT_LEFT) == 1)))
-    {
+    if ((binarize(analogRead(LIGHT_RIGHT))==1)  ||  (binarize(analogRead(LIGHT_LEFT) == 1))) {
       digitalWrite(SOUND, LOW);
       break;
     }
-    delay(300);
-
-    digitalWrite(SOUND, LOW);
-
     delay(300);
   };
 } 
@@ -72,20 +67,34 @@ void turn(int right, int left, int speed)
 } 
 
 
-void search() {
+void play_sound()
+{
+    const unsigned long sound_duration = 500; // Duration of the sound in milliseconds
+    unsigned long start_time = millis();
+
+    while (millis() - start_time < sound_duration) {
+        digitalWrite(SOUND, HIGH);
+    }
+
+    digitalWrite(SOUND, LOW);
+}
+
+
+void search() 
+{
+  play_sound();
   unsigned long time = millis();
   int speed_increment = 100;
-  while ((binarize(analogRead(LIGHT_RIGHT)) == 0) && (binarize(analogRead(LIGHT_LEFT)) == 0))
-  { 
+  while ((binarize(analogRead(LIGHT_RIGHT)) == 0) && (binarize(analogRead(LIGHT_LEFT)) == 0)) { 
     delay(100); 
-    turn(!light, light, 150);
+    turn(!left_light, left_light, 150);
     delay(100); 
     forward(speed_increment); 
-
 
     if (speed_increment > 150) { 
       speed_increment = 150; 
     } 
+    
     speed_increment += 1; 
 
     if (millis() - time > 10000) {
@@ -97,8 +106,9 @@ void search() {
 }
 
 
-void loop() {
-  while (1) {
+void loop() 
+{
+  while (true) {
     if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
       forward(255);
     
@@ -111,7 +121,7 @@ void loop() {
     if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
       search();
 
-    light = binarize(analogRead(LIGHT_LEFT));
+    left_light = binarize(analogRead(LIGHT_LEFT));
 
     delay(5);
   }  

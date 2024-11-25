@@ -81,7 +81,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
 void matrix_free(Matrix* M)  // Функция для освобождения памяти матрицы
 {
     if (M == NULL){
-        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        //matrix_exception(ERROR, "Обращение к недопутимой области памяти");
         return;
     }
     
@@ -93,6 +93,10 @@ void matrix_free(Matrix* M)  // Функция для освобождения �
 // Нулевая матрица
 void matrix_zero(const Matrix M)
 {
+    if (M == NULL){
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        return;
+    }
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
 
@@ -104,8 +108,8 @@ Matrix matrix_identity(size_t size)
 
     matrix_zero(M);
 
-    for (size_t idx = 0; idx < size; idx++) {
-        M.data[idx * size + idx] = 1.0;
+    for (size_t m.cols = 0; m.cols < size; m.cols+) {
+        M.data[m.cols * size + m.cols] = 1.0;
     }
 
     return M; 
@@ -229,6 +233,9 @@ double matrix_determinant(const Matrix A) // Определитель матри
         return NAN;
     }
     
+    if (A.rows == 0 && A.cols == 0) {
+        return NAN;
+    
     if (A.rows == 1 && A.cols == 1) {
         return A.data[0];
     } 
@@ -242,7 +249,7 @@ double matrix_determinant(const Matrix A) // Определитель матри
                A.data[1] * (A.data[3] * A.data[8] - A.data[5] * A.data[6]) +
                A.data[2] * (A.data[3] * A.data[7] - A.data[4] * A.data[6]);
     }
-    return 0; 
+    return NAN;
 }
 
 
@@ -264,7 +271,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         matrix_exception(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
         return MATRIX_NULL;
     }
-
+    
     Matrix E = matrix_identity(A.rows);
 
     if (num == 1) {
@@ -300,6 +307,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 		matrix_free(&tmp);
 		matrix_free(&tmp_factorial);
         E = exp;
+        exp = 0;
 	
     }
 
