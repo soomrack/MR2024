@@ -17,7 +17,7 @@ enum MatrixExceptionLevel {
 };
 typedef enum MatrixExceptionLevel;
 
-// Обработчик ошибок
+
 void matrix_handle_exception(const MatrixExceptionLevel level, const char* message) {
     switch (level) {
     case MATRIX_ERROR:
@@ -32,7 +32,7 @@ void matrix_handle_exception(const MatrixExceptionLevel level, const char* messa
     }
 }
 
-// Создание матрицы
+
 Matrix matrix_create(const size_t rows, const size_t cols) {
     if (rows == 0 || cols == 0) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions cannot be zero");
@@ -53,7 +53,7 @@ Matrix matrix_create(const size_t rows, const size_t cols) {
     return mat;
 }
 
-// Освобождение памяти
+
 void matrix_free(Matrix* mat) {
     if (mat == NULL || mat->data == NULL) {
         return;
@@ -64,7 +64,7 @@ void matrix_free(Matrix* mat) {
     mat->cols = 0;
 }
 
-// Превращение в единичную матрицу
+
 void matrix_identity(Matrix mat) {
     if (mat.rows != mat.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for identity operation");
@@ -76,7 +76,7 @@ void matrix_identity(Matrix mat) {
     }
 }
 
-// Сложение матриц
+
 Matrix matrix_add(Matrix A, Matrix B) {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions must match for addition");
@@ -93,7 +93,7 @@ Matrix matrix_add(Matrix A, Matrix B) {
     return result;
 }
 
-// Умножение матриц
+
 Matrix matrix_multiply(Matrix A, Matrix B) {
     if (A.cols != B.rows) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions are invalid for multiplication");
@@ -116,7 +116,7 @@ Matrix matrix_multiply(Matrix A, Matrix B) {
     return result;
 }
 
-// Нахождение экспоненты матрицы
+
 Matrix matrix_exponent(Matrix mat) {
     if (mat.rows != mat.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for exponentiation");
@@ -165,7 +165,7 @@ Matrix matrix_exponent(Matrix mat) {
     return result;
 }
 
-// Инициализация матрицы
+
 void matrix_set(Matrix mat, const double* values) {
     if (mat.data == NULL || values == NULL) {
         matrix_handle_exception(MATRIX_WARNING, "Invalid pointer in matrix_set");
@@ -174,7 +174,7 @@ void matrix_set(Matrix mat, const double* values) {
     memcpy(mat.data, values, mat.rows * mat.cols * sizeof(double));
 }
 
-// Функция вывода матрицы на экран
+
 void matrix_print(const Matrix mat, const char* title) {
     if (mat.data == NULL) {
         matrix_handle_exception(MATRIX_WARNING, "Matrix is empty");
@@ -189,22 +189,22 @@ void matrix_print(const Matrix mat, const char* title) {
     }
 }
 
-// Главная функция
+
 int main() {
-    // Создание матрицы
+    
     Matrix A = matrix_create(2, 2);
     matrix_set(A, (double[]) {
         0.0, 1.0,
             -1.0, 0.0
     });
 
-    // Нахождение экспоненты
+    
     Matrix expA = matrix_exponent(A);
     if (expA.data) {
         matrix_print(expA, "Matrix exponent (e^A)");
     }
 
-    // Освобождение памяти
+    
     matrix_free(&A);
     matrix_free(&expA);
 
