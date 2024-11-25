@@ -95,7 +95,7 @@ void matrix_zero(const Matrix M)
 {
     if (M.rows == 0 || M.cols == 0) {
         matrix_exception(INFO, "Матрица содержит 0 столбцов или строк");
-        return (Matrix) {rows, cols, NULL};
+        return;
     }
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
