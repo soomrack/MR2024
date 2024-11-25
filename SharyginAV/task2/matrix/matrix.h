@@ -71,7 +71,7 @@ Matrix_status matrix_upper_triangular(Matrix m);
 Matrix_status matrix_lower_triangular(Matrix m);
 
 
-double factorial(const int n);
+double factorial(const unsigned int n);
 
 
 Matrix_status matrix_sum(Matrix* m_result, Matrix m1, Matrix m2);

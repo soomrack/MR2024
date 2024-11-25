@@ -193,9 +193,9 @@ Matrix_status matrix_lower_triangular(Matrix M)
 }
 
 
-double factorial(const int n)
+double factorial(const int unsigned n)
 {
-    long double result = 1;
+    double result = 1;
     for(int idx = 2; idx <= n; ++idx) {
         result *= (double)idx;
     }
@@ -213,7 +213,7 @@ Matrix_status matrix_sum(Matrix* M_result, Matrix A, Matrix B)
     if(!(matrix_equal_size(A, B) && matrix_equal_size(*M_result, A))) return MAT_SIZE_ERR;
 
     for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
-        M_result -> data[idx] = A.data[idx] + B.data[idx];
+        M_result->data[idx] = A.data[idx] + B.data[idx];
     }
 
     return MAT_OK;
@@ -245,7 +245,7 @@ Matrix_status matrix_difference(Matrix* M_result, Matrix A, Matrix B)
     if(!(matrix_equal_size(A, B) && matrix_equal_size(*M_result, A))) return MAT_SIZE_ERR;
 
     for(size_t idx = 0; idx < A.rows * A.cols; ++idx) {
-        M_result -> data[idx] = A.data[idx] - B.data[idx];
+        M_result->data[idx] = A.data[idx] - B.data[idx];
     }
 
     return MAT_OK;
@@ -335,7 +335,14 @@ Matrix_status matrix_row_mul_num(Matrix M, const size_t row_num, const double nu
 
 Matrix_status matrix_mul(Matrix* M_result, const Matrix A, const Matrix B)
 {
+    if(M_result->data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+
     if(!(matrix_compatible(A, B) && (M_result->rows == A.rows) && (M_result->cols == B.cols))) return MAT_SIZE_ERR;
+
+    matrix_zeros(*M_result);
 
     for(size_t idx_rows = 0; idx_rows < M_result->rows; ++idx_rows) {
         for(size_t idx_cols = 0; idx_cols < M_result->cols; ++idx_cols) {
@@ -361,8 +368,14 @@ Matrix_status matrix_random(Matrix M, const long int lower_limit, const long int
 }
 
 
-Matrix_status matrix_transp(Matrix M, Matrix M_transp)
+Matrix_status matrix_transp(Matrix M_transp, const Matrix M)
 {   
+    if(M.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+
+    if(!(matrix_equal_size(M, M_transp))) return MAT_SIZE_ERR;
 
     for(size_t rows_idx = 0; rows_idx < M.rows; ++rows_idx) {
         for(size_t cols_idx = 0; cols_idx < M.cols; ++cols_idx) {
@@ -393,24 +406,26 @@ double matrix_det(Matrix M)  // Метод Гаусса
 {
     if(!matrix_is_square(M)) {
         puts("Матрица не квадратная");
-        return 0;
+        return NAN;
     }
 
     if(M.data == NULL) {
         puts("Ошибка NULL pointer");
-        return 0;
+        return NAN;
     }
 
-    double det = 1;
+    double det = 1.0;
     Matrix M_tmp;
-    Matrix* M_tmp_ptr = &M_tmp;
-    matrix_alloc(M_tmp_ptr, M.rows, M.cols);
+    matrix_alloc(&M_tmp, M.rows, M.cols);
+
+    if(M_tmp.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
 
     if(M.data[0] > -0.001 && M.data[0] < 0.001) {
         matrix_add_col(M, 0, 1);
     }
-    puts("Вывод из det");
-    matrix_print(M);
 
     matrix_copy(M_tmp, M);
 
@@ -427,7 +442,7 @@ double matrix_det(Matrix M)  // Метод Гаусса
     }
 
     det *= M_tmp.data[M.rows * M.cols - 1];
-    matrix_free(M_tmp_ptr);
+    matrix_free(&M_tmp);
     
     return det;
 }
@@ -435,10 +450,13 @@ double matrix_det(Matrix M)  // Метод Гаусса
 
 Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
 {
+    if(M_result.data == NULL) {
+        puts("Ошибка NULL pointer");
+        return MAT_NULL_ERR;
+    }
+    
     if(!matrix_is_square(M)) return MAT_SIZE_ERR;
     if(!matrix_equal_size(M_result, M)) return MAT_SIZE_ERR;
-
-    Matrix* M_result_ptr = &M_result;
 
     Matrix M_temp;
     Matrix* M_temp_ptr = &M_temp;
@@ -446,27 +464,26 @@ Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow)
 
     if(pow == 0) {
         matrix_identity(M_result);
+        matrix_free(&M_temp);
         return MAT_OK;
     }
 
     if(pow == 1) {
         matrix_copy(M_result, M);
+        matrix_free(&M_temp);
         return MAT_OK;
     }
 
     matrix_copy(M_temp, M);
     
     for(int idx = 2; idx <= pow; ++idx) {
-        matrix_mul(M_result_ptr, M, M_temp);
-
-        if(idx == pow) {
-            matrix_free(M_temp_ptr);
-            return MAT_OK;
-        }
-
+        matrix_mul(&M_result, M, M_temp);
         matrix_copy(M_temp, M_result);
         matrix_zeros(M_result);
     }
+
+    matrix_free(&M_temp);
+    return MAT_OK;
 }
 
 
@@ -486,7 +503,6 @@ Matrix_status matrix_exp(Matrix M_exp, const Matrix M)
         matrix_pow(M_tmp, M, k);
         matrix_mul_num(M_tmp, 1.0/factorial(k));
         matrix_add(M_exp, M_tmp);
-        matrix_zeros(M_tmp);
     }
 
     matrix_free(M_tmp_ptr);
