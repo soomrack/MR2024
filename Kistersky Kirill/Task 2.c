@@ -93,9 +93,9 @@ void matrix_free(Matrix* M)  // Функция для освобождения �
 // Нулевая матрица
 void matrix_zero(const Matrix M)
 {
-    if (M == NULL){
-        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
-        return;
+    if (M.rows == 0 || M.cols == 0) {
+        matrix_exception(INFO, "Матрица содержит 0 столбцов или строк");
+        return (Matrix) {rows, cols, NULL};
     }
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
@@ -307,7 +307,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 		matrix_free(&tmp);
 		matrix_free(&tmp_factorial);
         E = exp;
-        exp = 0;
+        matrix_free(&exp);
 	
     }
 
