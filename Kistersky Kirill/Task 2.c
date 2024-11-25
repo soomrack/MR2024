@@ -310,7 +310,8 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 	
     }
     
-    matrix_free(&E);
+    matrix_free(&tmp);
+    matrix_free(&tmp_factorial);
     matrix_free(&exp);
     return E;
 }
