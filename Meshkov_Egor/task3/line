@@ -29,7 +29,10 @@ const int SPEED_MAX = 250;
 const int SPEED_MIN = -100; // For better maneuverability
 
 
-const int SEARCH_SPEED = -80; // Adding speed when seeking line
+const int SEARCH_SPEED_MIN = 20;
+const int SEARCH_SPEED_MAX = 80; 
+const int SEARCH_STEP = 2;
+static int search_speed = SEARCH_SPEED_MIN; // Adding speed when seeking line
 
 
 const int BLACK_THRESHOLD = 60; // Threshold for detecting black line
@@ -172,7 +175,7 @@ int PD_regulator()
     float u = err * K_P + (err - err_old) * K_D;
     err_old = err;
 
-    if(!is_on_line()) return (u_old > 0) ? SEARCH_SPEED : -SEARCH_SPEED;
+    if(!is_on_line()) return (u_old > 0) ? search_speed : -search_speed;
 
     u_old = u;
 
@@ -189,7 +192,10 @@ bool line_is_not_found() {
       is_running = 0;
       return 1;
     }
+    search_speed = SEARCH_SPEED_MAX - SEARCH_STEP * ((time_end - millis()) / 100); // For spiral spinning
+    if(search_speed < SEARCH_SPEED_MIN) search_speed = SEARCH_SPEED_MIN;
   } else {
+    search_speed = SEARCH_SPEED_MIN;
     time_end = 4000 + millis();
   }
 
