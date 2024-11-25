@@ -1,25 +1,23 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
 
 struct Matrix {
-    size_t rows;
     size_t cols;
+    size_t rows;
     double *data;
 };
 
-
 typedef struct Matrix Matrix;
-
 
 enum  MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
 
-void Matrix_exeption(const enum MatrixExceptionLevel level, char *msg)
-{
+void matrix_exception(const enum MatrixExceptionLevel level, char *msg) {
     if (level == ERROR) {
         printf("ERROR %s", msg);
     }
@@ -29,44 +27,61 @@ void Matrix_exeption(const enum MatrixExceptionLevel level, char *msg)
 }
 
 
-Matrix matrix_allocate(const size_t rows, const size_t cols)
-{
-    Matrix A = {0, 0, NULL};
+Matrix matrix_allocreate(const size_t cols, const size_t rows) {
+    struct Matrix A = {0, 0, NULL};
 
-    if (rows == 0 || cols == 0) {
-        return (Matrix){rows, cols, NULL};
+    if (cols == 0 || rows == 0) return (struct Matrix) {
+        cols,rows,NULL
+    };
+
+    if(((double)SIZE_MAX / A.cols / A.rows / sizeof(double)) < 1.) {
+        matrix_exception(ERROR, "OVERFLOW: Data overflow");
+        return (struct Matrix) {
+            0,0, NULL
+        };
     }
 
-    A.data = malloc(rows*cols*sizeof(double));
-    if (A.data == NULL) {
-        Matrix_exeption(ERROR, "Allocation memory fail");
-        return A;
-    }
-
-    A.rows = rows;
     A.cols = cols;
-    return A;
-}  
-
-Matrix matrix_random(const Matrix A)
-{
-    int sight;
-
-    for (size_t i =0; i <A.rows; ++i) {
-        for (size_t j = 0; j < A.cols; ++j) {
-            sight = (rand()%2) * 2 - 1;
-            A.data[i*A.cols + j] = (rand()%100) * sight; 
-        }
+    A.rows = rows;
+    A.data = (double*)malloc(cols * rows * sizeof(double));
+    if(A.data == NULL) {
+        matrix_exception(ERROR, "Allocation memory fail");
+        return (struct Matrix) {
+            0,0, NULL
+        };
     }
     return A;
 }
 
+int matrix_free(struct Matrix *A) {
+    if(A == NULL) {
+        matrix_exception(ERROR, "NULL matrix");
+        return 1;
+    }
 
-void matrix_print(const Matrix A) 
-{
-    for (size_t row = 0; row<A.rows; ++row) {
-        for (size_t col = 0; col< A.cols; ++col) {
-            printf("%f\t", A.data[row*A.cols + col]);
+    free(A->data);
+    *A = (struct Matrix) {
+        0,0, NULL
+    };
+}
+
+
+void matrix_zeros(struct Matrix A) {
+    memset(A.data, 0, A.cols * A.rows * sizeof(A.data));
+}
+
+
+void matrix_random(struct Matrix A) {
+    for (size_t index = 0; index < A.cols * A.rows; index++)
+        A.data[index] = (double)(rand() % 5);
+}
+
+
+void matrix_print(const struct Matrix A) {
+    printf("\n");
+    for (size_t row = 0; row < A.rows ; row++) {
+        for (size_t col = 0; col < A.cols ; col++) {
+            printf("%lf ", A.data[row * A.cols + col]);
         }
         printf("\n");
     }
@@ -74,249 +89,323 @@ void matrix_print(const Matrix A)
 }
 
 
-void matrix_free(Matrix *A) 
-{
-    free(A->data);
-    *A = (Matrix){0,0,NULL}; 
+int matrix_copy(Matrix C, const Matrix A) {
+    if((C.cols != A.cols) || (C.rows != A.rows)) {
+        matrix_exception(ERROR, "Cant copy matrix");
+        return 1;
+    }
+    memcpy(C.data, A.data, A.cols * A.rows * sizeof(double));
 }
 
 
-Matrix matrix_sum(const Matrix A, const Matrix B)
-{
-    if ((A.rows != B.rows) || (A.cols != B.cols)) {
-
-        Matrix_exeption(ERROR, "You can't sum these matrixs. Rows don't equally Cols");
-        return (Matrix) {0, 0, NULL};
+Matrix matrix_add(struct Matrix sum_matrix, const struct Matrix A,const struct Matrix B) {
+    if(!((A.cols == B.cols) && (A.rows == B.rows))) {
+        matrix_exception(ERROR, "The size of the matrices does not correspond to the multiplication operation");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(&A == &sum_matrix || &B == &sum_matrix || &B == &A) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(!((sum_matrix.cols == B.cols) && (sum_matrix.rows == B.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
 
-    Matrix C = matrix_allocate(A.rows, A.cols);
-
-    for (size_t idx = 0; idx < C.rows * C.cols; ++idx) {
-            C.data[idx] =  A.data[idx] + B.data[idx];
+    for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
+        sum_matrix.data[idx] = A.data[idx] + B.data[idx];
     }
-
-    return C;
+    return sum_matrix;
 }
 
 
-Matrix matrix_substruct(const Matrix A, const Matrix B)
-{
-     if ((A.rows != B.rows) || (A.cols != B.cols)) {
-
-        Matrix_exeption(ERROR, "You can't sum these matrixs. Rows don't equally Cols");
-        return (Matrix) {0, 0, NULL};
+Matrix matrix_sub(struct Matrix sub_matrix, const struct Matrix A,const struct Matrix B) {
+    if(!((A.cols == B.cols) && (A.rows == B.rows))) {
+        matrix_exception(ERROR, "The size of the matrices does not correspond to the substract operation");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(&A == &sub_matrix || &B == &sub_matrix || &B == &A) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(!((sub_matrix.cols == B.cols) && (sub_matrix.rows == B.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
 
-    Matrix C = matrix_allocate(A.rows, A.cols);
 
-    for (size_t idx = 0; idx<C.rows * C.cols; ++idx) {
-            C.data[idx] =  A.data[idx] - B.data[idx];
+    for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
+        sub_matrix.data[idx] = A.data[idx] - B.data[idx];
     }
-
-    return C;
+    return sub_matrix;
 }
 
 
-Matrix matrix_transponate(const Matrix A)
-{
-    Matrix At = matrix_allocate(A.rows, A.cols);
-
-    for (size_t row = 0; row < A.rows; ++row) {
-        for (size_t col = 0; col < A.cols; ++col) {
-            At.data[row*At.cols+col] = A.data[col*A.rows + row];
-        }
+Matrix matrix_mul(struct Matrix mul_res, const struct Matrix A,const struct Matrix B) {
+    if(!((A.cols == B.rows))) {
+        matrix_exception(ERROR, "The size of the matrices does not correspond to the multiplication operation");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(&A == &mul_res || &B == &mul_res || &B == &A) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
 
-    return At;
-}
-
-
-Matrix matrix_multiplication(const Matrix A, const Matrix B)
-{
-    if (A.cols != B.rows) {
-
-        Matrix_exeption(ERROR, "You can't multiplication matrixs");
-        return (Matrix) {0,0,NULL};
+    if(!((mul_res.cols == B.cols) && (mul_res.rows == A.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
 
-    Matrix C = matrix_allocate(A.rows, B.cols);
-
-    for (size_t row = 0; row < C.rows; ++row) {
-        for (size_t col = 0; col < C.cols; ++col) {
-
-            C.data[row*C.cols + col] = 0;
-
-            for (size_t k = 0; k < B.rows; ++k) {
-                C.data[row*C.cols + col] += A.data[row*A.cols + k] * B.data[k*B.cols+col];
+    matrix_zeros(mul_res);
+    for (size_t B_col = 0; B_col< B.cols; B_col++) {
+        for(size_t A_row = 0; A_row < A.rows; A_row++) {
+            for(size_t B_row = 0; B_row< B.rows; B_row++) {
+                mul_res.data[A_row * mul_res.cols + B_col] += A.data[A_row * A.cols + B_row] * B.data[B_row * B.cols + B_col];
             }
         }
     }
-
-    return C;
+    return mul_res;
 }
 
 
-Matrix matrix_multiplication_on_ratio(const Matrix A, const int ratio)
-{
-    Matrix C = matrix_allocate(A.rows, A.cols);
-
-    for (size_t idx = 0; idx < C.rows * C.cols; ++idx) {
-            C.data[idx] = ratio * A.data[idx];
+double matrix_gaus_det(const struct Matrix A) {
+    double det = 1;
+    if(!((A.cols == A.rows))) {
+        matrix_exception(ERROR, "The size of the matrix does not correspond to the determinant operation");
+        return NAN;
+    }
+    for(size_t col = 0; col < A.cols; col++) {
+        double max = fabs(A.data[col * A.cols + col]);
+        size_t index = col;
+        for(size_t row = col + 1; row < A.rows; row++) {
+            if(max < fabs(A.data[col * A.cols + row])) {
+                max = fabs(A.data[col * A.cols + row]);
+                index = row;
+            }
         }
-
-    return C;
+        if(index != col) { //  замена столбцов
+            for(size_t row = col; row <A.rows; row++) {
+                double dat = A.data[row * A.cols + col];
+                A.data[row * A.cols + col] = A.data[row * A.cols + index];
+                A.data[row * A.cols + index] = dat;
+            }
+            det *= -1;
+        }
+        for(size_t row = col + 1; row < A.rows; row++) {
+            double t = A.data[row * A.cols + col] / A.data[col * A.cols + col];
+            for(size_t idx = col; idx < A.cols; idx++) {
+                A.data[row * A.cols + idx] = A.data[row * A.cols + idx] - t * A.data[col * A.cols + idx];
+            }
+        }
+    }
+    for(size_t idx = 0; idx <= A.cols - 1; idx++) {
+        det *= A.data[idx * A.cols + idx];
+    }
+    return det;
 }
 
 
-double matrix_determinant(const Matrix A) 
-{
-    if (A.rows == A.cols) {
-
-        double Det, det_sign;
-        det_sign = 0;
-
-        if (A.rows == 1) {
-
-            Det = A.data[0];
-            return Det;
-        }
-
-        else if (A.rows == 2) {
-
-            Det = (A.data[0] * A.data[3]) - (A.data[1] * A.data[2]);
-            return Det;
-        }
-
-        if (A.rows >= 3) {
-
-            for (size_t col = 0; col < A.cols; ++col) {
-
-                Matrix minor = matrix_allocate(A.rows-1, A.cols-1);
-
-                if (minor.data == NULL) {
-                    Matrix_exeption(ERROR, "Allocation memomry fail");
-                    return NAN;
-                }
-
-                size_t minor_row = 0;
-
-                for (size_t row = 1; row < A.rows; ++row) {
-
-                    size_t minor_col = 0;
-
-                    for (size_t k_col=0; k_col < A.cols; ++k_col) {
-                        
-                        if (col != k_col) {
-
-                            minor.data[minor_row*(A.cols-1)+minor_col]=A.data[row*A.cols+k_col];
-                            minor_col++;
-                        }
-                    }
-                    minor_row++;
-                }
-                double minor_det = matrix_determinant(minor);
-
-                det_sign += (col % 2 == 0 ? 1: -1) * A.data[col] *minor_det;
-
-                free(minor.data);
-            } 
-        }
-    printf("%lf\n", det_sign);
-    return det_sign;
+Matrix matrix_identity(Matrix identity_res) {
+    if(!((identity_res.cols == identity_res.rows))) {
+        matrix_exception(ERROR, "The size of the matrix does not correspond to the matrix identity operation");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
-
-    else {
-        Matrix_exeption(ERROR, "You can't take a determinant");
-        return -1;
+    for (size_t row = 0; row < identity_res.rows; row++) {
+        for (size_t col = 0; col < identity_res.cols; col++) {
+            if (row == col)
+                identity_res.data[row * identity_res.cols + col] = 1;
+            else
+                identity_res.data[row * identity_res.cols + col] = 0;
+        }
     }
+    return identity_res;
 }
 
 
-Matrix matrix_copy(Matrix A)
-{
-    Matrix C = matrix_allocate(A.rows, A.cols);
-
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
-        C.data[idx] = A.data[idx];
+Matrix matrix_involution(Matrix involution_res,const Matrix A, const unsigned int level) {
+    if(!((A.cols == A.rows))) {
+        matrix_exception(ERROR, "The size of the matrix does not correspond to the involution operation");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
-
-    return C;
-}
-
-
-Matrix matrix_involution(Matrix A, const unsigned  level)
-{
-    if (A.rows != A.cols) {
-
-        Matrix_exeption(ERROR, "You can't multiply");
-        return (Matrix) {0,0,NULL};
+    if(&A == &involution_res) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
     }
-
-    Matrix C = matrix_allocate(A.rows, A.cols);
+    if(!((involution_res.cols == A.cols) && (involution_res.rows == A.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
 
     if (level == 0) {
-
-        for (size_t row = 0; row < C.rows; ++row) {
-            for (size_t col = 0; col < C.cols; ++col) {
-
-                if (row == col) {
-                    C.data[row * C.cols + col] = 1;
-                }
-
-                else {
-                    C.data[row * C.cols + col] = 0;
-                }
-            }
-        }
-        return C;
+        matrix_identity(involution_res);
+        return involution_res;
     }
 
-    C = matrix_copy(A);
+    matrix_copy(involution_res, A);
+    Matrix C = matrix_allocreate(A.cols,A.rows);
 
-    for (int idx = 1; idx < level; ++idx) {
-
-        C = matrix_multiplication(C,A);
+    for (unsigned int idx = 1; idx < level; idx++) {
+        matrix_zeros(C);
+        C = matrix_mul(C, involution_res, A);
+        matrix_copy(involution_res, C);
     }
-
-    return C;
-}
-
-Matrix *matrix_exponent(Matrix *A)
-{
-    if (A->rows == A->cols) {
-
-        Matrix *pAe; 
-
-        for (int k =0 ; k = 20; ++k) {
-
-            
-        }
-    }
+    matrix_free(&C);
+    return involution_res;
 }
 
 
-int main()
-{
-    Matrix A,B;
+Matrix matrix_div(struct Matrix div_matrix, const struct Matrix A,const double delitel) {
+    if(delitel < 0.00000001 & delitel > 0.00000001) {
+        matrix_exception(ERROR, "The delitel cant be = 0");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(&A == &div_matrix) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(!((div_matrix.cols == A.cols) && (div_matrix.rows == A.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
 
-    srand(time(NULL));
-
-    A = matrix_allocate(3,3);
-    B = matrix_allocate(3,3);
-
-    A = matrix_random(A);
-    B = matrix_random(B);
+    for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
+        div_matrix.data[idx] = A.data[idx] / delitel;
+    }
+    return div_matrix;
+}
 
 
+static double fact(int num) {
+    double f = 1;
+    if(num == 0) return f;
+    for(double i = 1; i <= num; i++)f *= i;
+    return f;
+}
+
+
+Matrix matrix_exp(Matrix exp_res,const Matrix A, const unsigned int level) {
+    if(!((A.cols == A.rows))) {
+        matrix_exception(ERROR, "The size of the matrix does not correspond to the exponent operation");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(&A == &exp_res) {
+        matrix_exception(ERROR, "You cannot pass identical matrices to a function");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+    if(!((exp_res.cols == A.cols) && (exp_res.rows == A.rows))) {
+        matrix_exception(ERROR, "The output matrix does not match in size");
+        return (Matrix) {
+            0,0,NULL
+        };
+    }
+
+    Matrix D = matrix_allocreate(A.rows, A.cols);
+
+    for (int idx = 0; idx <= level; idx++) {
+        matrix_involution(D, A, idx);
+        matrix_div(D, D, fact(idx));
+        exp_res = matrix_add(exp_res, exp_res, D);
+    }
+    matrix_free(&D);
+    return exp_res;
+}
+
+
+int main () {
+
+    struct Matrix A;
+    A = matrix_allocreate (2, 2);
+    matrix_random(A);
+
+    struct Matrix B;
+    B = matrix_allocreate (2, 2);
+    matrix_random(B);
+
+    printf("%s ","Matrix A:");
     matrix_print(A);
-    printf("---------------------------- \n");
+    printf("%s ","Matrix B:");
     matrix_print(B);
-    printf("---------------------------- \n");
 
-    Matrix C = matrix_involution(A, 0);
-    matrix_print(C);
+    struct Matrix sum_result = matrix_allocreate(A.cols,A.rows);
+
+    printf("%s ","Summ result:");
+    sum_result = matrix_add(sum_result, A, B);
+    matrix_print(sum_result);
+
+
+    struct Matrix mul_result = matrix_allocreate(B.cols,A.rows);
+
+    printf("%s ","Mul result:");
+    mul_result = matrix_mul(mul_result, A, B);
+    matrix_print(mul_result);
+
+
+    struct Matrix sub_result = matrix_allocreate(A.cols,A.rows);
+
+    printf("%s ","Sub result:");
+    sub_result = matrix_sub(sub_result, A, B);
+    matrix_print(sub_result);
+
+    struct Matrix involution_result = matrix_allocreate(A.cols,A.rows);
+
+    printf("%s ","Involution result:");
+    involution_result = matrix_involution(involution_result, A, 3);
+    matrix_print(involution_result);
+
+
+    struct Matrix exp_result = matrix_allocreate(A.cols,A.rows);
+
+    printf("%s ","Exponent result:");
+    exp_result = matrix_exp(exp_result, A, 20);
+    matrix_print(exp_result);
+
+    double det;
+
+    printf("%s ","Det A result:");
+    det = matrix_gaus_det(A);
+    printf("%f ", det);
 
 
     matrix_free(&A);
     matrix_free(&B);
+    matrix_free(&mul_result);
+    matrix_free(&sum_result);
+    matrix_free(&involution_result);
+    matrix_free(&exp_result);
 }
