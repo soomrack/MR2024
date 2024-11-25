@@ -274,10 +274,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
     
     Matrix E = matrix_identity(A.rows);
 
-    if (num == 1) {
-        return E;
-    }
-
+    
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
         Matrix tmp = matrix_power(A, cur_num);
         if (tmp.data == NULL) {
