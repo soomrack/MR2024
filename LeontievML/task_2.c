@@ -73,7 +73,7 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 }
 
 
-void matrix_free(struct Matrix *M)
+void matrix_free(const struct Matrix *M)
 {
     if (M == NULL) {
         matrix_exception(ERROR, "Обращение к недопутимой области памяти");
@@ -81,6 +81,7 @@ void matrix_free(struct Matrix *M)
     }
 
     free(M->data);
+    M->data = 0;
     M->cols = 0;
     M->rows = 0; // bag
     return;
@@ -93,7 +94,7 @@ void matrix_zero(const struct Matrix M)
 }
 
 
-void matrix_random(struct Matrix A)
+void matrix_random(const struct Matrix A)
 {
     for (size_t elem = 0; elem < A.rows * A.cols; ++elem)
         A.data[elem] = (double)(rand() % 10);
@@ -113,7 +114,7 @@ int matrix_print(const struct Matrix M)
 }
 
 
-struct Matrix matrix_add(struct Matrix A, struct Matrix B)
+struct Matrix matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_exception(WARNING, "Размеры матриц не подходят для сложения.\n");
@@ -130,7 +131,7 @@ struct Matrix matrix_add(struct Matrix A, struct Matrix B)
 }
 
 
-struct Matrix matrix_substruct(struct Matrix A, struct Matrix B)
+struct Matrix matrix_substruct(const struct Matrix A, const struct Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_exception(WARNING, "Размеры матриц не подходят для сложения.\n");
@@ -147,7 +148,7 @@ struct Matrix matrix_substruct(struct Matrix A, struct Matrix B)
 }
 
 
-struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
+struct Matrix matrix_multiply(const struct Matrix A,const struct Matrix B)
 {
     if (A.cols != B.rows) {
         matrix_exception(WARNING, "Число столбцов первой матрицы не равно числу строк второй матрицы.\n");
@@ -155,6 +156,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
     }
 
     struct Matrix result = matrix_allocate(A.rows, B.cols);
+    matrix_zero(result);
 
     for (size_t row = 0; row < result.rows; ++row) {
         for (size_t col = 0; col < result.cols; ++col) {
@@ -168,7 +170,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 }
 
 
-struct Matrix matrix_scalar(struct Matrix A, double scalar)
+struct Matrix matrix_scalar(const struct Matrix A, double scalar)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
 
@@ -180,7 +182,7 @@ struct Matrix matrix_scalar(struct Matrix A, double scalar)
 }
 
 
-struct Matrix matrix_transposition(struct Matrix A)
+struct Matrix matrix_transposition(const struct Matrix A)
 {
     struct Matrix result = matrix_allocate(A.cols, A.rows);
 
@@ -194,7 +196,7 @@ struct Matrix matrix_transposition(struct Matrix A)
 }
 
 
-double matrix_determinate(struct Matrix A)
+double matrix_determinate(const struct Matrix A)
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
@@ -225,7 +227,7 @@ double matrix_determinate(struct Matrix A)
 }
 
 
-struct Matrix matrix_identity(struct Matrix M)
+struct Matrix matrix_identity(const struct Matrix M)
 {
     struct Matrix I = matrix_allocate(M.cols, M.rows);
     matrix_zero(I);
@@ -267,7 +269,7 @@ struct Matrix matrix_copy(const struct Matrix src)
 }
 
 
-struct Matrix matrix_power(struct Matrix A, unsigned power) // Возведение матрицы в степень
+struct Matrix matrix_power(const struct Matrix A, unsigned power) // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
