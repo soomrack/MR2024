@@ -81,7 +81,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
 void matrix_free(Matrix* M)  // Функция для освобождения памяти матрицы
 {
     if (M == NULL){
-        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        //matrix_exception(ERROR, "Обращение к недопутимой области памяти");
         return;
     }
     
