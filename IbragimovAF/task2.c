@@ -79,13 +79,13 @@ void matrix_print(const struct Matrix A) {
 }
 
 
-Matrix matrix_copy(Matrix C, const Matrix A)
+Matrix matrix_copy(Matrix* C, const Matrix A)
 {
-    C = matrix_allocreate(A.rows, A.cols);
-    for (size_t idx = 0; idx < A.rows * A.cols; idx ++) {
-        C.data[idx] = A.data[idx];
-    }
-    return C;
+	if((C->cols != A.cols) || (C->rows != A.rows)){
+    	Matrix_exception(ERROR, "Cant copy matrix");
+    	return (Matrix) {0,0,NULL};
+	}
+    memcpy(C->data, A.data, A.cols * A.rows * sizeof(double));
 }
 
 
@@ -157,7 +157,6 @@ double matrix_gaus_det(const struct Matrix A, double det) {
         }
         for(size_t row = col + 1; row < A.rows; row++) {
             double t = A.data[row * A.cols + col] / A.data[col * A.cols + col];
-            //A.data[row * A.cols + col] = 0;
             for(size_t idx = col; idx < A.cols; idx++) {
                 A.data[row * A.cols + idx] = A.data[row * A.cols + idx] - t * A.data[col * A.cols + idx];
             }
@@ -170,29 +169,39 @@ double matrix_gaus_det(const struct Matrix A, double det) {
 }
 
 
+Matrix matrix_identity(Matrix identity_res){
+	if(!((identity_res.cols == identity_res.rows))){
+    	Matrix_exception(ERROR, "The size of the matrix does not correspond to the matrix identity operation");
+    	return (Matrix) {0,0,NULL};
+	}
+	for (size_t row = 0; row < identity_res.rows; row++) {
+            for (size_t col = 0; col < identity_res.cols; col++) {
+                if (row == col) 
+					identity_res.data[row * identity_res.cols + col] = 1;
+                else 
+					identity_res.data[row * identity_res.cols + col] = 0;
+
+            }
+        }
+        return identity_res;
+}
+
+
 Matrix matrix_involution(Matrix involution_res,const Matrix A, const unsigned  level){
 	if(!((A.cols == A.rows))){
     	Matrix_exception(ERROR, "The size of the matrix does not correspond to the involution operation");
     	return (Matrix) {0,0,NULL};
 	}
 	if (level == 0) {
-        for (size_t row = 0; row < involution_res.rows; row++) {
-            for (size_t col = 0; col < involution_res.cols; col++) {
-                if (row == col) 
-					involution_res.data[row * involution_res.cols + col] = 1;
-                else 
-					involution_res.data[row * involution_res.cols + col] = 0;
-
-            }
-        }
+        matrix_identity(involution_res);
         return involution_res;
     }
-    involution_res = matrix_copy(involution_res, A);
+    matrix_copy(&involution_res, A);
     Matrix C = matrix_allocreate(A.cols,A.rows);
     for (size_t idx = 1; idx < level; idx++) {
     	matrix_zeros(C);
         C = matrix_mul(C, involution_res, A);
-        involution_res = matrix_copy(involution_res, C);
+        matrix_copy(&involution_res, C);
     }
     matrix_free(&C);
     return involution_res;
@@ -200,6 +209,10 @@ Matrix matrix_involution(Matrix involution_res,const Matrix A, const unsigned  l
 
 
 Matrix matrix_div(struct Matrix div_matrix, const struct Matrix A,const float delitel){
+	if(delitel == 0){
+    	Matrix_exception(ERROR, "The delitel cant be = 0");
+    	return (Matrix) {0,0,NULL};
+	}
 	for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
         div_matrix.data[idx] = A.data[idx] / delitel;    
     }
@@ -207,22 +220,29 @@ Matrix matrix_div(struct Matrix div_matrix, const struct Matrix A,const float de
 }
 
 
-float fact(float num) {
-    float f = 1;
-	for(float i = 1; i < num; i++)f *= i;
+static double fact(int num) {
+    double f = 1;
+    if(num == 0) return f;
+	for(double i = 1; i <= num; i++)f *= i;
     return f;
 }
 
 
 Matrix matrix_exp(Matrix exp_res,const Matrix A, const int  level){
-	exp_res = matrix_involution(exp_res, exp_res, 0);
-	Matrix D = matrix_allocreate(A.cols,A.rows);
-	for (int idx = 0; idx < level; idx ++){
-		D = matrix_copy(D, A);
-		D = matrix_div(D, A, fact(idx));
-		exp_res = matrix_add(exp_res,exp_res,D);
+	if(!((A.cols == A.rows))){
+    	Matrix_exception(ERROR, "The size of the matrix does not correspond to the exponent operation");
+    	return (Matrix) {0,0,NULL};
 	}
-	matrix_free(&D);
+	
+	Matrix D = matrix_allocreate(A.rows, A.cols);
+	
+	for (int idx = 0; idx <= level; idx++){
+		matrix_copy(&D, A);             
+		matrix_involution(D, A, idx);
+		matrix_div(D, D, fact(idx));
+		exp_res = matrix_add(exp_res, exp_res, D);
+	}                                 
+	matrix_free(&D);                 
     return exp_res;
 }
 
@@ -230,11 +250,11 @@ Matrix matrix_exp(Matrix exp_res,const Matrix A, const int  level){
 int main () {
 
     struct Matrix A;
-    A = matrix_allocreate (3, 3);
+    A = matrix_allocreate (2, 2);
     matrix_random(A);
 
     struct Matrix B;
-    B = matrix_allocreate (3, 3);
+    B = matrix_allocreate (2, 2);
     matrix_random(B);
     
     printf("%s ","Matrix A:");
@@ -244,43 +264,44 @@ int main () {
     
     struct Matrix sum_result = matrix_allocreate(A.cols,A.rows);
     
-    sum_result = matrix_add(sum_result, A, B);
     printf("%s ","Summ result:");
+    sum_result = matrix_add(sum_result, A, B);
     matrix_print(sum_result);
     
     
 	struct Matrix mul_result = matrix_allocreate(B.cols,A.rows);
     matrix_zeros(mul_result);
     
-    mul_result = matrix_mul(mul_result, A, B);
     printf("%s ","Mul result:");
+    mul_result = matrix_mul(mul_result, A, B);
     matrix_print(mul_result);
     
     
     struct Matrix sub_result = matrix_allocreate(A.cols,A.rows);
     
-    sub_result = matrix_sub(sub_result, A, B);
     printf("%s ","Sub result:");
+    sub_result = matrix_sub(sub_result, A, B);
     matrix_print(sub_result);
     
     struct Matrix involution_result = matrix_allocreate(A.cols,A.rows);
     matrix_zeros(involution_result);
     
-    involution_result = matrix_involution(involution_result, A, 4);
     printf("%s ","Involution result:");
+    involution_result = matrix_involution(involution_result, A, 3);
     matrix_print(involution_result);
     
     
     struct Matrix exp_result = matrix_allocreate(A.cols,A.rows);
     matrix_zeros(exp_result);
     
-    exp_result = matrix_exp(exp_result, A, 100);
-    printf("%s ","Exponent result:");      
+    printf("%s ","Exponent result:"); 
+    exp_result = matrix_exp(exp_result, A, 20);     
     matrix_print(exp_result);
     
     double det;
-    det = matrix_gaus_det(A,det);
+    
     printf("%s ","Det A result:");
+    det = matrix_gaus_det(A,det);
     printf("%f ", det);
 
 
