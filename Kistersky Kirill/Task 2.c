@@ -101,6 +101,23 @@ void matrix_zero(const Matrix M)
 }
 
 
+//Copy
+void matrix_copy(const Matrix B, const Matrix A) {
+    
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        matrix_error(ERROR, "matrix_copy", "Матрицы различных размеров");
+        return;
+    }
+
+    if (B.data == NULL) {
+        matrix_error(ERROR, "matrix_copy", "Ошибка при выделение памяти");
+        return;
+    }
+
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
+}
+
+
 // Единичная матрица
 Matrix matrix_identity(size_t size)
 {
@@ -303,7 +320,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 
 		matrix_free(&tmp);
 		matrix_free(&tmp_factorial);
-        E = exp;
+        matrix_copy(exp,E);
 	
     }
     
