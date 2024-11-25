@@ -264,12 +264,13 @@ struct Matrix matrix_copy(const struct Matrix src)
     }
 
     struct Matrix dest = matrix_allocate(src.cols, src.rows);
+    
     memcpy(dest.data, src.data, src.cols * src.rows * sizeof(double));
     return dest;
 }
 
 
-struct Matrix matrix_power(const struct Matrix A, unsigned power) // Возведение матрицы в степень
+struct Matrix matrix_power(const struct Matrix A, unsigned int power) // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
@@ -287,7 +288,7 @@ struct Matrix matrix_power(const struct Matrix A, unsigned power) // Возве�
         return temp;
     }
 
-    for (int k = 2; k < power; ++k) {
+    for (unsigned int k = 2; k < power; ++k) {
         struct Matrix result = matrix_multiply(temp, A);
         matrix_free(&temp);
         temp = result;
