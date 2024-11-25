@@ -1,12 +1,13 @@
 #include "matrix.h"
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
 #include <time.h>
 
 // Факториал
-static double factorial(int n)
+static double factorial(unsigned int n)
 {
     return (n < 2) ? 1 : n * factorial(n-1);
 }
@@ -48,12 +49,13 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 // Освобождение памяти для матрицы
 void matrix_free(struct Matrix *A)
 {
-    if (A->data != NULL){
-        free(A->data);
-        A->data = NULL;
+    if (A == NULL){
+        matrix_error(ERROR,"f2f2f" ,"Обращение к недопутимой области памяти");
+        return;
     }
-    A->cols = 0;
-    A->rows = 0;
+    
+    free(A->data);
+    *A = (struct Matrix){0, 0, NULL};
 }
 
 
@@ -89,7 +91,7 @@ struct Matrix matrix_add(struct Matrix A, struct Matrix B)
     }
     struct Matrix C = matrix_allocate(A.rows, A.cols);
 
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx){
+    for (size_t idx = 0; idx < C.rows * C.cols; ++idx){
         C.data[idx] = A.data[idx] + B.data[idx];
     }
 
@@ -107,7 +109,7 @@ struct Matrix matrix_subtract(struct Matrix A, struct Matrix B)
 
 	struct Matrix C = matrix_allocate(A.rows, A.cols);
 	
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx){
+    for (size_t idx = 0; idx < C.rows * C.cols; ++idx){
         C.data[idx] = A.data[idx] - B.data[idx];
     }
 
@@ -120,9 +122,7 @@ struct Matrix matrix_copy(struct Matrix A)
 {
     struct Matrix C = matrix_allocate(A.rows, A.cols);
 
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx){
-        C.data[idx] = A.data[idx];
-    }
+    memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
 
     return C;
 }
@@ -132,7 +132,7 @@ struct Matrix matrix_copy(struct Matrix A)
 struct Matrix matrix_multipliy_const(struct Matrix A, double constant)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx){
+    for (size_t idx = 0; idx < result.rows * result.cols; ++idx){
         result.data[idx] = A.data[idx] * constant;
     }
 
@@ -154,15 +154,40 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
         return C;
     }
 
-    for (size_t row = 0; row < A.rows; ++row){
-        for (size_t col = 0; col < B.cols; ++col){
+    for (size_t row = 0; row < C.rows; ++row){
+        for (size_t col = 0; col < C.cols; ++col){
             C.data[row * C.cols + col] = 0;
-            for (size_t k_col = 0; k_col < A.cols; ++k_col){
+            for (size_t k_col = 0; k_col < C.cols; ++k_col){
                 C.data[row * C.cols + col] += A.data[row * A.cols + k_col] * B.data[k_col * B.cols + col];
             }
         }
     }
 
+    return C;
+}
+
+
+//Единичная матрица
+struct Matrix matrix_unit(struct Matrix A)
+{
+	if (A.rows != A.cols) {
+        matrix_error(ERROR, "f2f2" ,"Невозможно сделать единичную матрицу");
+        return (struct Matrix){0, 0, NULL};
+    }
+    
+    struct Matrix C = matrix_allocate(A.rows, A.cols);
+    C = matrix_copy(A);
+    
+    for (size_t row = 0; row < C.rows; ++row){
+        for (size_t col = 0; col < C.cols; ++col){
+            if (row == col){
+                C.data[row * C.cols + col] = 1;
+            }
+            else{
+                C.data[row * C.cols + col] = 0;
+            }
+        }
+    }
     return C;
 }
 
@@ -190,12 +215,12 @@ struct Matrix matrix_pow(struct Matrix A, const size_t degree)
             }
         }
     }
+    
     for (size_t idx = 1; idx < degree; ++idx)
     {
         struct Matrix temp = matrix_multiply(A, C);
         matrix_free(&C);
-        C = matrix_copy(temp);
-        matrix_free(&temp);
+        C = temp;
     }
     return C;
 }
@@ -206,9 +231,9 @@ struct Matrix matrix_transpon(struct Matrix A)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
 
-    for (size_t row = 0; row < A.rows; ++row)
+    for (size_t row = 0; row < result.rows; ++row)
     {
-        for (size_t col = 0; col < A.cols; ++col)
+        for (size_t col = 0; col < result.cols; ++col)
         {
             result.data[col * A.rows + row] = A.data[row * A.cols + col];
         }
@@ -228,15 +253,20 @@ struct Matrix matrix_exp(struct Matrix A)
     struct Matrix C = matrix_allocate(A.rows, A.cols);
     struct Matrix E = matrix_allocate(A.rows, A.cols);
     struct Matrix E_SUM = matrix_allocate(A.rows, A.cols);
-    E_SUM = matrix_pow(A,0);
+    E_SUM = matrix_unit(A);
 
     for (int idx = 1; idx <= 20; ++idx){
-        C = matrix_pow(A,idx);
+    	C = matrix_pow(A,idx);
         E = matrix_multipliy_const(C,1/factorial(idx));
-        E_SUM = matrix_add(E_SUM, E);
+        
+        struct Matrix temp = matrix_add(E_SUM, E);
+        matrix_free(&E_SUM); 
+        E_SUM = temp;
+        
         matrix_free(&C);
         matrix_free(&E);
     }
+    
     return E_SUM;
 }
 

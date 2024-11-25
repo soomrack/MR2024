@@ -67,8 +67,11 @@ void matrix_set(const Matrix A, const double *values)
 }
 
 
-void matrix_free(Matrix *A)// проверка на NULL
+void matrix_free(Matrix *A)
 {
+  if (A->data == NULL) {
+       matrix_error(NULL_ERR, "Incorrect matrix\n");
+    };
   free(A -> data);
   A->data = NULL;
   A->rows = 0;
@@ -96,12 +99,13 @@ Matrix  matrix_sum(const Matrix A, const Matrix B )
     if (!((A.cols == B.cols) && (A.rows == B.rows))) {
         matrix_error(SIZE_ERR, "Matrix size not equals\n");
     }
-    Matrix C = matrix_init(A.cols, A.rows );
+    Matrix C = matrix_init(A.cols, A.rows);
     for(size_t idx = 0; idx < A.cols * A.rows; idx ++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
     matrix_print(C);
-    return C;   
+    return C;
+
 }
 
 // B = k*A 
@@ -146,7 +150,6 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
     return C;    
 }
 
-
 //B = (A)t
 Matrix matrix_transp(const Matrix A)
 {
@@ -160,6 +163,7 @@ Matrix matrix_transp(const Matrix A)
     matrix_print(B);
 }
 
+//Определитель
 double matrix_det(const Matrix A)
 {   
     if (!(A.cols == A.rows)) {
@@ -183,7 +187,7 @@ double matrix_det(const Matrix A)
         det *= -1;
     }
     
-    for (size_t col_0= 0; col_0 < A.cols-1; col_0++){ 
+    for (size_t col_0 = 0; col_0 < A.cols-1; col_0++){ 
         for(size_t row_0 = col_0 + 1; row_0 < A.rows; row_0++) {
             double k = A.data[row_0 * A.cols + col_0]/A.data[col_0 * A.cols + col_0];
             for(size_t col = col_0; col < A.cols; col++) {
@@ -217,7 +221,7 @@ double factorial(const  int k)
     for (size_t i = 1; i <= k; ++i) {
        factorial *= i;
     }
-
+    printf("%f", factorial);
     return factorial;
 }
 
@@ -230,9 +234,12 @@ Matrix identity_matrix(Matrix A)
             if (i==j){
                 B.data[i * A.cols + i] = 1;
             }
-            B.data[i * A.cols + j] = 0;
+            else {
+                B.data[i * A.cols + j] = 0;
+            }
         }
     }
+    return B;
 }
 
 // Возведение матрицы в степень
@@ -267,18 +274,18 @@ Matrix matrix_exp(const  Matrix A, int k)
 {
     if (A.rows != A.cols) {
         matrix_error(SIZE_ERR, "Incorrect matrix size \n");
-    
     }
 
     Matrix result = matrix_init(A.rows, A.cols);
     Matrix matrix_to_power = matrix_init(A.rows, A.cols);
+    Matrix E = identity_matrix(A); 
 
     for (int n = 0; n < k; ++n) {
         matrix_to_power = matrix_pow(A, n);
         double fact = factorial(n);
 
         for (size_t i = 0; i < result.rows * result.cols; ++i) {
-            result.data[i] += matrix_to_power.data[i] / fact;
+            result.data[i] += (matrix_to_power.data[i] / fact + E.data[i]) ;
         }
 
         matrix_free(&matrix_to_power);
@@ -289,10 +296,10 @@ Matrix matrix_exp(const  Matrix A, int k)
 
 int main()
 {
-   Matrix A, B,C;
+   Matrix A, B,C,M;
     A = matrix_init(3, 3);  
     B = matrix_init(3, 3);  
-    //C = matrix_init(3, 3);
+    C = matrix_init(2, 2);
     matrix_set(A, (double[]){
             3., 4., 5., 
             7., 8., 9., 
@@ -303,11 +310,19 @@ int main()
             0., 1., 1.,
             1., 1., 1.
         });
+    matrix_set(C, (double[]){
+            1., 0.,  
+            0., 1.
+        });
     matrix_print(A);
     matrix_print(B);
     //C = matrix_multiply(B,B);
-    C = matrix_pow(B,2);
-    matrix_print(C);
+    //C = matrix_pow(B,2);
+    //C = identity_matrix(A);
+    M = matrix_exp(C, 2);
+    matrix_print(M);
+    
+    
     //double det = matrix_det(A);
     //printf("%f",det);
     

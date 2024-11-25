@@ -4,11 +4,12 @@
 #define LEFT_DIRECTION            7 
 #define LIGHT_RIGHT               1
 #define LIGHT_LEFT                0
-#define SOUND                     8
+#define SOUND                     A3
+#define BUTTON                    A2
 
 
 int left_light = 0;
-
+static bool is_on = 0;
 
 void setup() 
 {
@@ -82,7 +83,6 @@ void play_sound()
 
 void search() 
 {
-  play_sound();
   unsigned long time = millis();
   int speed_increment = 100;
   while ((binarize(analogRead(LIGHT_RIGHT)) == 0) && (binarize(analogRead(LIGHT_LEFT)) == 0)) { 
@@ -106,23 +106,54 @@ void search()
 }
 
 
+bool button_is_pressed()
+{
+    static bool old_state = 0;
+    static bool is_pressed = 0;
+    static unsigned long timeout_end = 0;
+
+
+    bool state = digitalRead(BUTTON);
+
+    if(!is_pressed) {
+        if(state && !old_state) { // Positive edge detection
+            is_pressed = 1;
+            timeout_end = millis() + 5;
+        }
+        old_state = state;
+    }
+    else {
+        if(millis() > timeout_end) {
+            is_pressed = 0;
+            if(state) return 1;
+        }
+    }
+
+    return 0;
+}
+
+
 void loop() 
 {
-  while (true) {
-    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
-      forward(255);
+    if (is_on) {
+        if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
+            forward(200);
     
-    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
-      turn(0, 1, 255);
+        if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
+            turn(0, 1, 200);
     
-    if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
-      turn(1, 0, 255);
+        if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
+            turn(1, 0, 200);
 
-    if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
-      search();
+        if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
+            search();
 
-    left_light = binarize(analogRead(LIGHT_LEFT));
+        left_light = binarize(analogRead(LIGHT_LEFT));
+    }
+    
+    delay(1);
 
-    delay(5);
-  }  
-}
+    if (button_is_pressed()) {
+        is_on = !is_on;
+    }
+}  

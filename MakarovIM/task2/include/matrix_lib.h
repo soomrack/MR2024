@@ -22,6 +22,7 @@ typedef struct {
     double* data;
 } Matrix;
 
+bool pointer_on_matrix_is_null(const Matrix* M);
 bool matrix_is_empty(const Matrix M);
 bool matrix_is_square(const Matrix M);
 MatrixStatus matrix_zero(Matrix* M);
