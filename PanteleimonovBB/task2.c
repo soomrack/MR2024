@@ -1,175 +1,498 @@
-#include <stdio.h>
+#include <stdio.h> 
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
-typedef struct Matrix {
-    int row;
-    int col;
-    double *array;
-} Matrix;
 
-void give_matrix_memory(Matrix *matrix) {
-    matrix->array = (double *) malloc(matrix->row * matrix->col * sizeof(double));
-}
+struct Matrix {
+    size_t rows;
+    size_t cols;
+    double* data;
+};
 
-void free_matrix_memory(Matrix *matrix) {
-    free(matrix->array);
-}
+typedef struct Matrix Matrix;
 
-void input_matrix(Matrix *matrix, int ROW, int COL, double input[][COL]) {
-    matrix->row = ROW;
-    matrix->col = COL;
 
-    give_matrix_memory(matrix);
+const Matrix MATRIX_NULL = {0, 0, NULL};
 
-    for (int row = 0; row < matrix->row; row++) {
-        for (int col = 0; col < matrix->col; col++)
-            matrix->array[row * matrix->col + col] = input[row][col];
+
+enum Matrix_message_level {ERROR, WARNING, INFO, DEBUG};
+
+
+void print_message(const enum Matrix_message_level level, char *msg)
+{
+    if(level == ERROR) {
+        printf("ERROR: %s", msg);
+    }
+
+    if(level == WARNING) {
+        printf("WARNING: %s", msg);
+    }
+    
+    if(level == INFO) {
+        printf("INFO: %s", msg);
+    }
+        
+    if(level == DEBUG) {
+        printf("DEBUG: %s", msg);
     }
 }
 
-void matrix_to_array(Matrix *matrix, double array[matrix->row][matrix->col]) {
-    for (int row = 0; row < matrix->row; row++) {
-        for (int col = 0; col < matrix->col; col++) {
-           array[row][col] = matrix->array[row * matrix->col + col];
-        }
+
+Matrix matrix_memory_alloc(const size_t rows, const size_t cols)
+{
+    Matrix M;
+
+    if (rows == 0 || cols == 0) {
+        print_message(WARNING, "В матрице 0 строк или 0 столбцов\n");
+        return (Matrix) {rows, cols, NULL};
     }
+
+    size_t size = rows * cols;
+
+    if (size / rows != cols) {
+        print_message(ERROR, "Переполнение количества элементов\n");
+        return MATRIX_NULL;
+    }
+
+       size_t size_bytes = size * sizeof(double);
+
+    if (size_bytes / sizeof(double) != size) {
+        print_message(ERROR, "Переполнение выделенной памяти\n");
+        return MATRIX_NULL;
+    }
+
+       M.data = malloc(rows * cols * sizeof(double));
+
+    if (M.data == NULL) {
+        print_message(ERROR, "Сбой выделенния памяти\n");
+        return MATRIX_NULL;
+    }
+
+    M.rows = rows; 
+    M.cols = cols; 
+
+    return M;
 }
 
-void fill_zero(Matrix *matrix) {
-    for (int item = 0; item < (matrix->row * matrix->col); item++)
-        matrix->array[item] = 0;
-}
 
-void print_matrix(const Matrix *matrix) {
-    if (matrix == NULL)
+void matrix_memory_free(struct Matrix* M)
+{
+    if (M == NULL) {
+        print_message(ERROR, "Обращение к недопутимой области памяти\n");
         return;
+    }
+    
+    free(M->data);
 
-    for (int item = 0; item < (matrix->row * matrix->col); item++) {
-        if ((item != 0) && ((item % matrix->col) == 0)) {
-            printf("\n");
+    *M = MATRIX_NULL;
+}
+
+void matrix_copy(const Matrix A, const Matrix B)
+{  
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        print_message(ERROR, "Выделенная память не одинакова\n");
+        return;
+    }
+
+    if (B.data == NULL) {
+        print_message(ERROR, "Обращение к недопутимой области памяти\n");
+        return;
+    }
+   
+    memcpy(B.date, A.date, A.cols * A.rows * sizeof(double));    
+}
+
+void matrix_print(const Matrix M)
+{
+    for (size_t row = 0; row < M.rows; row++) {
+        for (size_t col = 0; col < M.cols; col++) {
+            printf("%.2f ", M.data[row * M.cols + col]);
         }
-        printf("%6.2f ", matrix->array[item]);
-    }
-    printf("\n");
-}
-
-void exception(int error_code) {
-    switch (error_code) {
-        case 1:
-            printf("\nMatrices have different sizes. Addition not possible\n");
-            break;
-        case 2:
-            printf("\nMatrices have different sizes. Subtraction not possible\n");
-            break;
-        case 3:
-            printf("\nThe number of columns doesn't match the number of rows. Multiplication not possible\n");
-            break;
-        case 4:
-            printf("\nThe matrix isn't square. The determinant can't be calculated\n");
-            break;
-        default:
-            printf("ERROR");
+        printf("\n");
     }
 }
 
-// Prototype of the det_calc function to prevent compilation errors
-double det_calc(int N, double array[N][N]);
 
-// Defining the det_calc function to calculate the determinant of the matrix
-double det_calc(int N, double array[N][N]) {
-    double det = 0;
-    
-    if (N == 2) {
-        return array[0][0] * array[1][1] - array[0][1] * array[1][0];
+Matrix matrix_enter()
+{
+    size_t rows, cols;
+
+    printf("Введите количество строк: ");
+    scanf("%zu", &rows);
+
+    printf("Введите количество столбцов: ");
+    scanf("%zu", &cols);
+
+    Matrix M = matrix_memory_alloc(rows, cols);
+
+    printf("Введите элементы матрицы, разделённые пробелами и переходами на новую строку:");
+    for (size_t row = 0; row < rows; row++) {
+        for (size_t col = 0; col < cols; col++) {
+            scanf("%lf", &M.data[row * M.cols + col]);
+        }
     }
-    
-    double minor[N - 1][N - 1];
-    int offset = 0;
+    matrix_print(M);
+    return M;       
+}
 
-    for (int i = 0; i < N; i++) {
-        for (int row = 0; row < N - 1; row++) {
-            for (int col = 0; col < N; col++) {
-                if (col == i) {
-                    offset = 1;
-                }
-                minor[row][col] = array[row + 1][col + offset];
+
+// создание нулевой матрицы
+Matrix matrix_zero(const size_t rows, const size_t cols)
+{
+    Matrix C = matrix_memory_alloc(rows, cols);
+       
+    memset(C.data, 0, C.rows * C.cols * sizeof(double));
+
+    return C;
+}
+
+
+
+// создание единичной матрицы
+Matrix matrix_unit(const size_t rows, const size_t cols)
+{
+    Matrix C = matrix_zero(rows, cols);
+    size_t counter = 0;
+
+    for (size_t index = 0; index < rows; index++) {
+        C.data[index * rows + index] = 1.0;
+    }
+
+    return C;
+}
+
+
+// умножение матриц A * B
+Matrix matrix_multiplication(const Matrix A, const Matrix B)
+{
+    if (A.cols != B.rows) {
+        print_message(WARNING, "Умножение невозможно, так как количество столбцов матрицы A не равно количеству строк матрицы B\n");
+        return MATRIX_NULL;
+    }
+
+    Matrix C = matrix_memory_alloc(A.rows, B.cols);
+       
+    for(size_t row = 0; row < C.rows; row++) {
+        for(size_t col = 0; col < C.cols; col++) {
+            C.data[row * C.cols + col] = 0;
+            for (size_t index = 0; index < A.cols; index++) {
+                C.data[row * C.cols + col] += A.data[row * A.cols + index] * B.data[index * B.cols + col];
             }
-            offset = 0;
         }
-        det += pow(-1, i) * array[0][i] * det_calc(N - 1, minor);
     }
+
+    return C;
+}
+
+
+// возведение в степень A^p
+Matrix matrix_power(const Matrix A, size_t power)
+{
+    if (A.cols != A.rows) {
+        print_message(WARNING, "Возведение невозможно, так как матрица не квадратная\n");
+        return MATRIX_NULL;
+    }
+
+    if (power == 0) {
+        Matrix C = matrix_unit(A.cols, A.rows);
+        return C;
+    }
+
+    Matrix tmp = matrix_memory_alloc(A.rows, A.cols);
+
+    Matrix C = A;
+    
+    for(size_t index = 0; index < power; index++) {
+        tmp = matrix_multiplication(C, A);
+        matrix_memory_free(&C);
+        C = tmp;
+    }
+    
+    matrix_memory_free(&tmp);
+
+    return C;
+}
+
+
+// умножение матрицы на число A * r
+Matrix matrix_multiplication_ratio(const Matrix A, double ratio)
+{
+    Matrix C = matrix_memory_alloc(A.rows, A.cols);
+       
+    for(size_t index = 0; index < C.rows * C.cols; index++) {
+        C.data[index] = A.data[index] * ratio;
+    }
+
+    return C;
+}
+
+
+// сложение матриц A + B
+Matrix matrix_sum(const Matrix A, const Matrix B)
+{
+    if (A.rows != B.rows || A.cols != B.cols) {
+        print_message(WARNING, "Сложение невозможно, так как у матриц разная размерность\n");
+        return MATRIX_NULL;
+    }
+
+    Matrix C = matrix_memory_alloc(A.rows, A.cols);
+       
+    for(size_t index = 0; index < C.rows * C.cols; index++) {
+        C.data[index] = A.data[index] + B.data[index];
+    }
+
+    return C;
+}
+
+
+// вычитание матриц A - B
+Matrix matrix_difference(const Matrix A, const Matrix B)
+{
+    if ((A.rows != B.rows) || (A.cols != B.cols)) {
+        print_message(WARNING, "Разность невозможна, так как у матриц разная размерность\n");
+        return MATRIX_NULL;
+    }
+
+    Matrix C = matrix_memory_alloc(A.rows, A.cols);
+       
+    for(size_t index = 0; index < C.rows * C.cols; index++) {
+        C.data[index] = A.data[index] - B.data[index];
+    }
+
+    return C;
+}
+
+
+// транспонирование матрицы A
+Matrix matrix_transp(const Matrix A)
+{
+    Matrix C = matrix_memory_alloc(A.cols, A.rows);
+    size_t index = 0;
+
+    for(size_t col = 0; col < A.cols; col ++) {
+        for(size_t index1 = 0; index1 <= A.rows * A.cols + 1 - A.cols; index1 += A.cols) {
+            C.data[index] = A.data[col + index1];
+            index ++;
+        }
+    }
+
+    return C;
+}
+
+
+// умножение матрицы A на матрицу B транспонированную
+Matrix matrix_multiplication_transp(const Matrix A, const Matrix B)
+{
+    Matrix C = matrix_transp(B);
+       
+    if (A.cols != C.rows) {
+        print_message(WARNING, "Умножение невозможно, так как количество столбцов матрицы A не равно количеству строк транспонированной матрицы B\n");
+        return MATRIX_NULL;
+    }
+       
+    C = matrix_multiplication(A, C);
+
+    return C;
+}
+
+
+// экспонента матрицы A
+Matrix matrix_exponent(const Matrix A, const size_t order)
+{
+    Matrix C = matrix_unit(A.cols, A.rows);
+    Matrix P = matrix_memory_alloc(A.cols, A.rows);
+
+    matrix_copy(A, P);
+    
+    Matrix tmp = matrix_memory_alloc(A.cols, A.rows);
+    Matrix tmp1 = matrix_memory_alloc(A.cols, A.rows);
+    Matrix tmp2 = matrix_memory_alloc(A.cols, A.rows);
+
+    for(size_t index = 1; index <= order; index++) {
+        tmp2 = matrix_power(P, index);
+        matrix_memory_free(&P);
+        P = tmp2;
+
+        tmp1 = matrix_multiplication_ratio(P, 1/tgamma(index + 1));
+        matrix_memory_free(&P);
+        P = tmp1;
+
+        tmp = matrix_sum(C, P);
+        matrix_memory_free(&C);
+        C = tmp;
+    }
+    
+    matrix_memory_free(&tmp);
+    matrix_memory_free(&tmp1);
+    matrix_memory_free(&tmp2);
+    matrix_memory_free(&P);
+
+    return C;
+}
+
+
+// определитель матрицы A
+float matrix_determinant(const Matrix A)
+{
+    float det;
+    if (A.rows != A.cols) {
+        print_message(WARNING, "Поиск определителя невозможен, так как матрица не квадратная\n");
+        return NAN;
+    }
+
+    if (A.rows == 0) {
+        print_message(WARNING, "Матрица нулевая\n");
+        return NAN;
+    }
+
+    if (A.rows == 1) {
+        det = A.data[0];
+    }
+
+    if (A.rows == 2) {
+        det = A.data[0] * A.data[3] - A.data[1] * A.data[2];
+    }
+
+    if (A.rows == 3) {
+        det = A.data[0] * A.data[4] * A.data[8] 
+        + A.data[1] * A.data[5] * A.data[6] 
+        + A.data[3] * A.data[7] * A.data[2] 
+        - A.data[2] * A.data[4] * A.data[6] 
+        - A.data[3] * A.data[1] * A.data[8] 
+        - A.data[0] * A.data[5] * A.data[7];
+    }
+
     return det;
 }
 
-Matrix *determinant_matrix(struct Matrix *matrix) {
-    if (matrix->row != matrix->col) {
-        exception(4);
-        return NULL;
+
+void matrix_operation(size_t number, const Matrix A, const Matrix B)
+{
+
+    if (number == 2 || number == 1) {
+        Matrix C = matrix_sum(A, B);
+        printf("Результат сложения матриц A и B :\n");
+
+        matrix_print(C);
+
+        matrix_memory_free(&C);
     }
 
-    double array[matrix->row][matrix->col];
-    matrix_to_array(matrix, array);
+    if (number == 3 || number == 1) {
+        Matrix D = matrix_difference(A, B);
+        printf("Результат разности матрицы A и B:\n");
 
-    static Matrix determinant;
-    determinant.row = 1;
-    determinant.col = 1;
-    give_matrix_memory(&determinant);
+        matrix_print(D);
 
-    determinant.array[0] = det_calc(matrix->row, array);
-
-    return &determinant;
-}
-
-// Utility function to extract a row as a separate array
-void get_row_as_array(const Matrix *matrix, int row, double *row_array) {
-    for (int col = 0; col < matrix->col; col++) {
-        row_array[col] = matrix->array[row * matrix->col + col];
+        matrix_memory_free(&D);
     }
-}
+       
+    if (number == 4 || number == 1) {
+        Matrix E = matrix_multiplication(A, B);
+        printf("Результат умножения матрицы A на B:\n");
 
-// Utility function to extract a column as a separate array
-void get_col_as_array(const Matrix *matrix, int col, double *col_array) {
-    for (int row = 0; row < matrix->row; row++) {
-        col_array[row] = matrix->array[row * matrix->col + col];
+        matrix_print(E);
+
+        matrix_memory_free(&E);
     }
-}
+       
+    if (number == 5 || number == 1) {
+        Matrix F = matrix_multiplication_transp(A, B);
+        printf("Результат умножения матрицы A на B транспонированную:\n");
 
-void check() {
-    Matrix matrix1;
-    Matrix matrix2;
+        matrix_print(F);
 
-    double test3x3[3][3] = {{1, 2, 3},
-                            {4, 5, 6},
-                            {7, 8, 1}};
+        matrix_memory_free(&F);
+    }
+       
+    if (number == 6 || number == 1) {
+        Matrix G = matrix_transp(A);
+        printf("Транспонированная матрица A:\n");
 
-    double test2x2[2][2] = {{2, 4},
-                            {6, 8}};
+        matrix_print(G);
 
-    // Test determinant function for 3x3 matrix
-    input_matrix(&matrix1, 3, 3, test3x3);
-    Matrix *det3x3 = determinant_matrix(&matrix1);
-    printf("Determinant of 3x3 matrix:\n");
-    print_matrix(det3x3);
+        matrix_memory_free(&G);
+    }
+       
+    if (number == 7 || number == 1) {
+        size_t power;
+        printf("Введите целое неотрицательное число p"); 
+        scanf("%zu", &power);
+        Matrix H = matrix_power(A, power);
+        printf("Результат возведения матрицы A в степень %zu:\n", power);
 
-    // Test determinant function for 2x2 matrix
-    input_matrix(&matrix2, 2, 2, test2x2);
-    Matrix *det2x2 = determinant_matrix(&matrix2);
-    printf("Determinant of 2x2 matrix:\n");
-    print_matrix(det2x2);
+        matrix_print(H);
 
-    // Free memory
-    free_matrix_memory(&matrix1);
-    free_matrix_memory(&matrix2);
+        matrix_memory_free(&H);
+    }
+       
+    if (number == 8 || number == 1) {
+        double ratio;
+        printf("Введите число r"); 
+        scanf("%lf", &ratio);
+        Matrix I = matrix_multiplication_ratio(A, ratio);
+        printf("Результат умножения матрицы A на число %2.f:\n", ratio);
 
-    if (det3x3 != NULL)
-        free_matrix_memory(det3x3);
+        matrix_print(I);
 
-    if (det2x2 != NULL)
-        free_matrix_memory(det2x2);
-}
+        matrix_memory_free(&I);
+    }
 
-int main() {
-    check();
+    if (number == 9 || number == 1) {
+        size_t order;
+        printf("Введите целое неотрицательное число o"); 
+        scanf("%zu", &order);
+        Matrix J = matrix_exponent(A, order);
+        printf("Экспонента матрицы A порядка %zu:\n", order);
+
+        matrix_print(J);
+
+        matrix_memory_free(&J);
+    }
+
+    if (number == 10 || number == 1) {
+        printf("Определитель матрицы A: %2.f\n", matrix_determinant(A));
+    }
+}       
+
+int main() 
+{
+    printf("Укажите номер операции, которую вы хотите выполнить:\n");
+    printf("1. Выполнить все доступные операции\n");
+    printf("2. Сложение матриц A и B\n");
+    printf("3. Разность матриц A и B\n");
+    printf("4. Умножение матриц A и B\n");
+    printf("5. Умножения матрицы A на B транспонированную\n");
+    printf("6. Транспонированная матрицы A\n");
+    printf("7. Возведения матрицы A в степень p\n");
+    printf("8. Умножения матрицы A на число r\n");
+    printf("9. Экспонента матрицы A порядка o\n");
+    printf("10. Вычисление определителя матрицы A\n");
+
+    size_t number;
+    scanf("%zu", &number);
+
+    if (number < 1 || number > 10) {
+        printf("Такой операции нет\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("Ввод матрицы A\n");
+    Matrix A = matrix_enter();
+    Matrix B;
+    if (number < 6) {
+        printf("Ввод матрицы B\n");
+        Matrix B = matrix_enter();
+    }
+    else {
+        Matrix B = MATRIX_NULL;
+    }
+
+    matrix_operation(number, A, B);
+
+    matrix_memory_free(&A);
+    matrix_memory_free(&B);
+
+    return 0;
 }
