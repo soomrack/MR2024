@@ -221,7 +221,7 @@ double factorial(const  int k)
     for (size_t i = 1; i <= k; ++i) {
        factorial *= i;
     }
-
+    printf("%f", factorial);
     return factorial;
 }
 
@@ -274,18 +274,18 @@ Matrix matrix_exp(const  Matrix A, int k)
 {
     if (A.rows != A.cols) {
         matrix_error(SIZE_ERR, "Incorrect matrix size \n");
-    
     }
 
     Matrix result = matrix_init(A.rows, A.cols);
     Matrix matrix_to_power = matrix_init(A.rows, A.cols);
+    Matrix E = identity_matrix(A); 
 
     for (int n = 0; n < k; ++n) {
         matrix_to_power = matrix_pow(A, n);
         double fact = factorial(n);
 
         for (size_t i = 0; i < result.rows * result.cols; ++i) {
-            result.data[i] += matrix_to_power.data[i] / fact;
+            result.data[i] += (matrix_to_power.data[i] / fact + E.data[i]) ;
         }
 
         matrix_free(&matrix_to_power);
@@ -296,10 +296,10 @@ Matrix matrix_exp(const  Matrix A, int k)
 
 int main()
 {
-   Matrix A, B,C;
+   Matrix A, B,C,M;
     A = matrix_init(3, 3);  
     B = matrix_init(3, 3);  
-    //C = matrix_init(3, 3);
+    C = matrix_init(2, 2);
     matrix_set(A, (double[]){
             3., 4., 5., 
             7., 8., 9., 
@@ -310,12 +310,18 @@ int main()
             0., 1., 1.,
             1., 1., 1.
         });
+    matrix_set(C, (double[]){
+            1., 0.,  
+            0., 1.
+        });
     matrix_print(A);
     matrix_print(B);
     //C = matrix_multiply(B,B);
     //C = matrix_pow(B,2);
-    C = identity_matrix(A);
-    matrix_print(C);
+    //C = identity_matrix(A);
+    M = matrix_exp(C, 2);
+    matrix_print(M);
+    
     
     //double det = matrix_det(A);
     //printf("%f",det);
