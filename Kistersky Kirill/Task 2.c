@@ -309,7 +309,8 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         E = exp;
 	
     }
-
+    
+    matrix_free(&E);
     matrix_free(&exp);
     return E;
 }
