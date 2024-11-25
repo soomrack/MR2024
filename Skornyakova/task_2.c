@@ -249,13 +249,12 @@ Matrix matrix_pow( Matrix A, int pow)
     }
 
     Matrix matrix_to_power = matrix_copy(A);
-    matrix_print(matrix_to_power);
     Matrix result = matrix_init(A.rows, A.cols);
 
     for (int i = 1; i < pow; ++i) {
         result = matrix_multiply(matrix_to_power, A);
         matrix_free(&matrix_to_power);
-        matrix_to_power = result; 
+        matrix_to_power =  matrix_copy(result); 
         
     }
 
@@ -306,8 +305,8 @@ int main()
         });
     matrix_print(A);
     matrix_print(B);
-    C = matrix_multiply(B,B);
-    //C = matrix_pow(B,2);
+    //C = matrix_multiply(B,B);
+    C = matrix_pow(B,2);
     matrix_print(C);
     //double det = matrix_det(A);
     //printf("%f",det);
