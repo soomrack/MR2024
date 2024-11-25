@@ -8,6 +8,15 @@
 #include <limits.h>
 #include <stdint.h>
 
+bool pointer_on_matrix_is_null(const Matrix* M)
+{
+    if (M == NULL) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+}  
+
+
 bool matrix_is_empty(const Matrix M) 
 {
     return (M.data == NULL);
@@ -97,7 +106,7 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     }
 
     if (rows >= SIZE_MAX / sizeof(double) / cols) {
-		return (Matrix) {rows, cols, NULL};
+		return (Matrix) {0, 0, NULL};
     }
 
     M.data = malloc(rows * cols * sizeof(double));
@@ -129,9 +138,6 @@ MatrixStatus matrix_zero(Matrix* M)
 Matrix matrix_identity(size_t size) 
 {
     Matrix I = matrix_allocate(size, size);
-    if (I.data == NULL) {
-        return (Matrix) {0, 0, NULL};
-    }
 
     matrix_zero(&I);
     for (size_t idx = 0; idx < I.rows * I.cols; idx += I.cols + 1) {
@@ -143,6 +149,10 @@ Matrix matrix_identity(size_t size)
 
 MatrixStatus matrix_copy(Matrix* dest, const Matrix src) 
 {
+    if (!(pointer_on_matrix_is_null(dest))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу dest NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
     if (!matrix_equal_size(src, *dest)) {
         matrix_log(ERROR, __func__, "Размеры матриц не совпадают при копировании\n");
         return MAT_DIMENSION_ERR;
@@ -151,10 +161,7 @@ MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
         matrix_log(ERROR, __func__, "Матрица src пустая\n");
         return MAT_OK;
     }
-    if (dest == NULL) {
-        matrix_log(ERROR, __func__, "Матрица dest NULL\n");
-        return MAT_UNINITIALIZED_ERR;
-    }
+
 
     memcpy(dest->data, src.data, src.rows * src.cols * sizeof(double));
     return MAT_OK;
@@ -163,6 +170,11 @@ MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
 
 MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_equal_size(A, B)) {
         matrix_log(ERROR, __func__, "Матрицы должны быть одинаковых измерений\n");
         return MAT_DIMENSION_ERR;
@@ -183,6 +195,11 @@ MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
 
 MatrixStatus matrix_subtract(Matrix* result, const Matrix A, const Matrix B) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_equal_size(A, B)) {
         matrix_log(ERROR, __func__, "Матрицы должны быть одинаковых измерений");
         return MAT_DIMENSION_ERR;
@@ -203,6 +220,11 @@ MatrixStatus matrix_subtract(Matrix* result, const Matrix A, const Matrix B)
 
 MatrixStatus matrix_multiply(Matrix* result, const Matrix A, const Matrix B) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_equal_size(A, B)) {
         matrix_log(ERROR, __func__, "Измерения матриц не пригодны для умножения");
         return MAT_DIMENSION_ERR;
@@ -212,10 +234,10 @@ MatrixStatus matrix_multiply(Matrix* result, const Matrix A, const Matrix B)
     if (result->data == NULL) {
         return MAT_MEMORY_ERR;
     }
-
+    
+    matrix_zero(result);
     for (size_t row = 0; row < A.rows; ++row) {
         for (size_t col = 0; col < B.cols; ++col) {
-            matrix_zero(result);
             for (size_t k = 0; k < A.cols; ++k) {
                 result->data[row * result->cols + col] += matrix_get(A, row, k) * matrix_get(B, k, col);
             }
@@ -227,7 +249,11 @@ MatrixStatus matrix_multiply(Matrix* result, const Matrix A, const Matrix B)
 
 MatrixStatus matrix_scalar_multiply(Matrix* result, Matrix M, double scalar) 
 {
-
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+    
     *result = matrix_allocate(M.rows, M.cols);
     if (result->data == NULL) {
         return MAT_MEMORY_ERR;
@@ -243,6 +269,11 @@ MatrixStatus matrix_scalar_multiply(Matrix* result, Matrix M, double scalar)
 
 MatrixStatus matrix_transpose(Matrix* result, const Matrix M) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+    
     *result = matrix_allocate(M.rows, M.cols);
     for (size_t row = 0; row < M.rows; ++row) {
         for (size_t col = 0; col < M.cols; ++col) {
@@ -255,8 +286,6 @@ MatrixStatus matrix_transpose(Matrix* result, const Matrix M)
 
 double matrix_determinant(const Matrix M) 
 {
-    matrix_log(WARNING, __func__, "Определитель может быть вычислен только для третьего порядка и ниже!!!\n");
-
     if (!matrix_is_square(M)) {
         matrix_log(ERROR, __func__, "Определитель может быть вычислен только для квадратных матриц\n");
         return NAN; 
@@ -286,12 +315,20 @@ double matrix_determinant(const Matrix M)
             - M.data[0] * M.data[5] * M.data[7];
         return det;
     }
+
+    matrix_log(WARNING, __func__, "Определитель может быть вычислен только для третьего порядка и ниже!!!\n");
+
     return NAN;
 }
 
 
 MatrixStatus matrix_power(Matrix* result, const Matrix M, int power) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_is_square(M)) {
         matrix_log(ERROR, __func__, "В степень возводятся только квадратные матрицы");
         return MAT_DIMENSION_ERR; 
@@ -340,6 +377,11 @@ double factorial(unsigned int n)
 
 MatrixStatus matrix_exponent(Matrix* result, const Matrix A, unsigned int num) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_is_square(A)) {
         matrix_log(WARNING, __func__, "Матрица должна быть квадратной для вычисления экспоненты");
         return MAT_DIMENSION_ERR;
