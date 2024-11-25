@@ -67,8 +67,11 @@ void matrix_set(const Matrix A, const double *values)
 }
 
 
-void matrix_free(Matrix *A)// проверка на NULL
+void matrix_free(Matrix *A)
 {
+  if (A->data == NULL) {
+       matrix_error(NULL_ERR, "Incorrect matrix\n");
+    };
   free(A -> data);
   A->data = NULL;
   A->rows = 0;
@@ -96,12 +99,13 @@ Matrix  matrix_sum(const Matrix A, const Matrix B )
     if (!((A.cols == B.cols) && (A.rows == B.rows))) {
         matrix_error(SIZE_ERR, "Matrix size not equals\n");
     }
-    Matrix C = matrix_init(A.cols, A.rows );
+    Matrix C = matrix_init(A.cols, A.rows);
     for(size_t idx = 0; idx < A.cols * A.rows; idx ++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
     matrix_print(C);
-    return C;   
+    return C;
+
 }
 
 // B = k*A 
@@ -146,7 +150,6 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
     return C;    
 }
 
-
 //B = (A)t
 Matrix matrix_transp(const Matrix A)
 {
@@ -160,6 +163,7 @@ Matrix matrix_transp(const Matrix A)
     matrix_print(B);
 }
 
+//Определитель
 double matrix_det(const Matrix A)
 {   
     if (!(A.cols == A.rows)) {
@@ -183,7 +187,7 @@ double matrix_det(const Matrix A)
         det *= -1;
     }
     
-    for (size_t col_0= 0; col_0 < A.cols-1; col_0++){ 
+    for (size_t col_0 = 0; col_0 < A.cols-1; col_0++){ 
         for(size_t row_0 = col_0 + 1; row_0 < A.rows; row_0++) {
             double k = A.data[row_0 * A.cols + col_0]/A.data[col_0 * A.cols + col_0];
             for(size_t col = col_0; col < A.cols; col++) {
@@ -230,9 +234,12 @@ Matrix identity_matrix(Matrix A)
             if (i==j){
                 B.data[i * A.cols + i] = 1;
             }
-            B.data[i * A.cols + j] = 0;
+            else {
+                B.data[i * A.cols + j] = 0;
+            }
         }
     }
+    return B;
 }
 
 // Возведение матрицы в степень
@@ -306,8 +313,10 @@ int main()
     matrix_print(A);
     matrix_print(B);
     //C = matrix_multiply(B,B);
-    C = matrix_pow(B,2);
+    //C = matrix_pow(B,2);
+    C = identity_matrix(A);
     matrix_print(C);
+    
     //double det = matrix_det(A);
     //printf("%f",det);
     
