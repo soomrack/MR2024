@@ -11,7 +11,6 @@
 bool pointer_on_matrix_is_null(const Matrix* M)
 {
     if (M == NULL) {
-        matrix_log(ERROR, __func__, "Указатель на матрицу NULL\n");
         return MAT_UNINITIALIZED_ERR;
     }
 }  
