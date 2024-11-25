@@ -80,10 +80,8 @@ void matrix_free(const struct Matrix *M)
         return;
     }
 
-    free(M->data);
-    M->data = 0;
-    M->cols = 0;
-    M->rows = 0; // bag
+    free(matrix->data);
+    *matrix = MATRIX_NULL;
     return;
 }
 
@@ -270,6 +268,13 @@ struct Matrix matrix_copy(const struct Matrix src)
 }
 
 
+void matrix_copy_void(const struct Matrix src, const struct Matrix dest)
+{
+    memcpy(src.data, dest.data, dest.cols * dest.rows * sizeof(double));
+    return;
+}
+
+
 struct Matrix matrix_power(const struct Matrix A, unsigned int power) // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
@@ -306,14 +311,16 @@ struct Matrix matrix_exponent(const struct Matrix A, int terms)
     }
 
     struct Matrix result = matrix_allocate(A.rows, A.cols);
-    struct Matrix temp = matrix_allocate(A.rows, A.cols);
 
     for (int n = 0; n < terms; ++n) {
-        temp = matrix_power(A, n);
+        struct Matrix temp = matrix_power(A, n);
         double fact = 1 / factorial(n);
 
-        result = matrix_scalar(temp, fact);
+        struct Matrix result_new = matrix_scalar(temp, fact);
+        matrix_copy_void(result, result_new);
+
         matrix_free(&temp);
+        matrix_free(&result_new);
     }
 
     return result;
