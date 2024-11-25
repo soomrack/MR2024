@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include <math.h>
 
 
 typedef struct 
@@ -10,12 +11,57 @@ typedef struct
     double *data;
 } Matrix;
 
+enum MatrixExceptionType {ERROR, WARNING, INFO};
+
+const Matrix MATRIX_NULL = {0, 0, NULL};
+
+
+
+void matrix_exception(enum MatrixExceptionType type, char *message)
+{
+    if (type == ERROR) {
+        printf("ERROR: %s\n", message);
+    }
+
+    if (type == ERROR) {
+        printf("WARNING: %s\n", message);
+
+    }
+    if (type == ERROR) {
+        printf("INFO: %s\n", message);
+    }
+    
+}
+
 
 Matrix matrix_init(const int rows, const int cols)
 {
     Matrix A;
 
+    if (rows == 0 || cols == 0) {
+        matrix_exception(INFO, "Матрица без строк и столбцов");
+        return (Matrix) {rows, cols, NULL};
+    }
+    
+    int size = rows * cols;
+    if (size / rows  != cols) {
+        matrix_exception(ERROR, "OVERFLOW - Переполнение количества элементов.");
+        return MATRIX_NULL;
+    }
+
+    int size_in_bytes = size * sizeof(double);
+    if (size_in_bytes / sizeof(double) != size) {
+        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти");
+        return MATRIX_NULL;
+    }
+
     A.data = (double *)malloc(rows * cols * sizeof(double));
+
+    if (A.data == NULL) {
+        matrix_exception(ERROR, "Сбой выделения памяти");
+        return MATRIX_NULL;
+    }
+    
     A.rows = rows;
     A.cols = cols;
     
@@ -26,10 +72,17 @@ Matrix matrix_init(const int rows, const int cols)
 void matrix_fill(Matrix *A)
 {
     for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = (i + 1)*(i + 1);
+        A->data[i] = (i + 1);
     }
 }
 
+
+void matrix_fill_power(Matrix *A, int power)
+{
+    for (size_t i = 0; i < A->rows * A->cols; i++) {
+        A->data[i] = pow((i + 1), power);
+    }
+}
 
 
 Matrix unit_matrix(int rows, int cols)
@@ -274,12 +327,12 @@ Matrix matrix_exponent(Matrix A, int num)
     for (int cur_num = 1; cur_num < num; cur_num++)
     {
         Matrix temporary = matrix_clone(A);
-        Matrix temporary2 = matrix_clone(temporary);
         
         temporary = matrix_pow(A, cur_num);
-        temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
+        matrix_print(temporary);
+        temporary = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
         Matrix E_copy = matrix_clone(E);
-        E = matrix_sum(E_copy, temporary2);
+        E = matrix_sum(E_copy, temporary);
     }
     result = matrix_clone(E);
     
@@ -295,9 +348,9 @@ int main()
     Matrix D;
 
     A = matrix_init(3, 3);
-    matrix_fill(&A);
+    matrix_fill_power(&A, 2);
     B = matrix_init(3, 3);
-    matrix_fill(&B);
+    matrix_fill_power(&B, 2);
     printf("");
     matrix_print(A);
     matrix_print(B);
@@ -307,9 +360,13 @@ int main()
     C = matrix_init(3, 3);
     matrix_fill(&C);
     D = matrix_init(3, 3);
-    matrix_fill(&D);
+    matrix_fill_power(&D, 2);
 
+    C = matrix_exponent(C, 3);
+    matrix_print(C);
 
+    matrix_print(D);
+    printf("Matrix determinate = %f\n" , matrix_det(D));
 
 
 
