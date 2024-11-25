@@ -317,11 +317,10 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
             matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
             return MATRIX_NULL;
         }
-
-		matrix_free(&tmp);
-		matrix_free(&tmp_factorial);
+	matrix_free(&E);
+	matrix_free(&tmp);
+	matrix_free(&tmp_factorial);
         matrix_copy(exp,E);
-	
     }
     
     matrix_free(&tmp);
