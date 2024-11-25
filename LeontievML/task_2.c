@@ -288,7 +288,7 @@ struct Matrix matrix_power(struct Matrix A, unsigned power) // Возведен�
         return temp;
     }
 
-    for (int i = 2; i < power; ++i) {
+    for (int k = 2; k < power; ++k) {
         struct Matrix result = matrix_multiply(temp, A);
         matrix_free(&temp);
         temp = result;
