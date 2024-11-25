@@ -81,7 +81,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
 void matrix_free(Matrix* M)  // Функция для освобождения памяти матрицы
 {
     if (M == NULL){
-        //matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
         return;
     }
     
@@ -102,19 +102,19 @@ void matrix_zero(const Matrix M)
 
 
 //Copy
-void matrix_copy(const Matrix B, const Matrix A) {
-    
+void matrix_copy(const Matrix A, const Matrix B)
+{  
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
-        matrix_error(ERROR, "matrix_copy", "Матрицы различных размеров");
+        matrix_exception(ERROR, "Выделенная память не одинакова\n");
         return;
     }
 
     if (B.data == NULL) {
-        matrix_error(ERROR, "matrix_copy", "Ошибка при выделение памяти");
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти\n");
         return;
     }
-
-    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
+   
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));    
 }
 
 
@@ -289,7 +289,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         return MATRIX_NULL;
     }
     
-    Matrix E = matrix_identity(A.rows);
+    Matrix E = matrix_identity(A.rows); 
 
     
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
