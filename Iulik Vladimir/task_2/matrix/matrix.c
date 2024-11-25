@@ -171,7 +171,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 struct Matrix matrix_unit(struct Matrix A)
 {
 	if (A.rows != A.cols) {
-        matrix_error(ERROR, "f2f2" ,"Невозможно сделать единичную матрицу");
+        matrix_error(ERROR, "f2f2" ,"Невозможно сделать единичную матрицу (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
     }
     
@@ -266,6 +266,9 @@ struct Matrix matrix_exp(struct Matrix A)
         matrix_free(&C);
         matrix_free(&E);
     }
+    
+    matrix_free(&C);
+    matrix_free(&E);
     
     return E_SUM;
 }
