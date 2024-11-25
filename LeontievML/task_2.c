@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -173,10 +172,8 @@ struct Matrix matrix_scalar(struct Matrix A, double scalar)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
 
-    for (size_t row = 0; row < result.rows; ++row) {
-        for (size_t col = 0; col < result.cols; ++col) {
-            result.data[row * result.cols + col] = A.data[row * A.cols + col] * scalar;
-        }
+    for (size_t elem = 0; elem < result.rows * result.cols; ++elem) {
+        result.data[elem] = A.data[elem] * scalar;
     }
 
     return result;
