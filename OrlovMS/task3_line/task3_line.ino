@@ -21,7 +21,7 @@ const float K_P = 7.0;
 const float K_D = 30.0;
 
 
-const int SPEED = 100; //basic movement speed
+const int SPEED = 180; //basic movement speed
 
 
 //driving speed limits
@@ -29,11 +29,11 @@ const int SPEED_MAX = 250;
 const int SPEED_MIN = -100;
 
 
-const int U_SEEK_LINE = 140; //u when start seek line
-const unsigned long SEEK_TIME = 5000; //ms
+const int U_SEEK_LINE = 190; //u when start seek line
+const unsigned long SEEK_TIME = 4000; //ms
 
 
-const int BLACK_THRESHOLD = 50; //threshold for detecting black line
+const int BLACK_THRESHOLD = 70; //threshold for detecting black line
 
 
 struct Limit
@@ -192,7 +192,7 @@ bool seek_line(int* u)
             time_start_seek = millis();
         }
 
-        *u = u_old_sign * U_SEEK_LINE * expf(-(float)(millis() - time_start_seek) / 2000.0f);
+        *u = (float)u_old_sign * (float)U_SEEK_LINE * expf(-(float)(millis() - time_start_seek) / 4000.0f);
 
         if((millis() - time_start_seek) > SEEK_TIME) return 0;
     }
