@@ -333,7 +333,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
         if (exp.data == NULL) {
             matrix_memory_free(&tmp_factorial);
             matrix_memory_free(&tmp);
-            matrix_memory_free(&E);
+            matrix_memory_free(&C);
             matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
             return MATRIX_NULL;
         }
