@@ -296,34 +296,20 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
     
         
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        tmp = matrix_power(A, cur_num);
-        if (tmp.data == NULL) {
-            matrix_exception(ERROR, "Сбой выделения памяти в matrix_power");
-            matrix_free(&E);
-            return MATRIX_NULL;
-        }
+        matrix_free(&tmp); 
+	tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) { E= MATRIX_NULL; break; }
         
-        tmp_factorial = matrix_by_scalar(tmp, 1.0 / factorial(cur_num));
+        matrix_free(&tmp_factorial);   
+	tmp_factorial = matrix_by_scalar(tmp, 1.0 / factorial(cur_num));
+        if(tmp_factorial.data == NULL) { E= MATRIX_NULL; break; }
 
-        if(tmp_factorial.data == NULL) {
-            matrix_free(&tmp);
-            matrix_free(&E);
-            matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
-            return MATRIX_NULL;
-        }
-
+	matrix_free(&exp);
         exp = matrix_sum(E, tmp_factorial);
-        if (exp.data == NULL) {
-            matrix_free(&tmp_factorial);
-            matrix_free(&tmp);
-            matrix_free(&E);
-            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
-            return MATRIX_NULL;
-        }
-	matrix_free(&E);
-	matrix_free(&tmp);
-	matrix_free(&tmp_factorial);
-        E = exp;
+	if (exp.data == NULL) { E= MATRIX_NULL; break; }
+	
+	matrix_free(&E);    
+        E = exp;	    
 	exp = MATRIX_NULL;
     }
     
