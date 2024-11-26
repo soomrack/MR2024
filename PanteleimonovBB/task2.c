@@ -290,40 +290,65 @@ Matrix matrix_multiplication_transp(const Matrix A, const Matrix B)
     return C;
 }
 
+double factorial (const unsigned int f) 
+{
+    unsigned long long int res = 1;
+    for (unsigned int idx = 1; idx <= f; idx++) {
+        res *= idx;
+    }
 
-// экспонента матрицы A
+    return res;
+}
+
+
+// экспонента матрицы A                                                                                                             
 Matrix matrix_exponent(const Matrix A, const size_t order)
 {
-    Matrix C = matrix_unit(A.cols, A.rows);
-    Matrix P = matrix_memory_alloc(A.cols, A.rows);
-
-    matrix_copy(A, P);
+    if (A.rows != A.cols) {
+        print_message(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
+        return MATRIX_NULL;
+    }
     
-    Matrix tmp = matrix_memory_alloc(A.cols, A.rows);
-    Matrix tmp1 = matrix_memory_alloc(A.cols, A.rows);
-    Matrix tmp2 = matrix_memory_alloc(A.cols, A.rows);
+    Matrix C = matrix_unit(A.rows); 
 
-    for(size_t index = 1; index <= order; index++) {
-        tmp2 = matrix_power(P, index);
-        matrix_memory_free(&P);
-        P = tmp2;
+    
+    for (size_t cur_num = 1; cur_num < num; ++cur_num) {
+        Matrix tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) {
+            print_message(ERROR, "Сбой выделения памяти в matrix_power");
+            matrix_memory_free(&C);
+            return MATRIX_NULL;
+        }
+        
+        Matrix tmp_factorial = matrix_multiplication_ratio(tmp, 1.0 / factorial(cur_num));
 
-        tmp1 = matrix_multiplication_ratio(P, 1/tgamma(index + 1));
-        matrix_memory_free(&P);
-        P = tmp1;
+        if(tmp_factorial.data == NULL) {
+          matrix_memory_free(&tmp);
+          matrix_memory_free(&C);
+          matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
+          return MATRIX_NULL;
+        }
 
-        tmp = matrix_sum(C, P);
-        matrix_memory_free(&C);
-        C = tmp;
+        Matrix exp = matrix_sum(C, tmp_factorial);
+        if (exp.data == NULL) {
+            matrix_memory_free(&tmp_factorial);
+            matrix_memory_free(&tmp);
+            matrix_memory_free(&E);
+            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
+            return MATRIX_NULL;
+        }
+	matrix_memory_free(&C);
+	matrix_memory_free(&tmp);
+	matrix_memory_free(&tmp_factorial);
+        matrix_copy(exp,C);
     }
     
     matrix_memory_free(&tmp);
-    matrix_memory_free(&tmp1);
-    matrix_memory_free(&tmp2);
-    matrix_memory_free(&P);
-
+    matrix_memory_free(&tmp_factorial);
+    matrix_memory_free(&exp);
     return C;
 }
+
 
 
 // определитель матрицы A
