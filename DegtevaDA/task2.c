@@ -83,20 +83,18 @@ void matrix_print(Matrix A)
 }
 
 
-int matrix_copy(const Matrix B, const Matrix A) 
+Matrix matrix_copy(const Matrix A) 
 {
-    if ((A.cols != B.cols) || (A.rows != B.rows)) {
-        matrix_exception(ERROR, "Unable to copy matrixes with different size \n");
-        return 0;
-    }
+    Matrix copy = matrix_allocate(A.rows, A.cols);
 
     if (A.data == NULL) {
         matrix_exception(ERROR, "Unable to copy: Data of source matrix is NULL \n");
-        return 0;
     }
 
-    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
-    return 1;
+    memcpy(copy.data, A.data, A.cols * A.rows * sizeof(double));
+
+    return copy;
+
 }
 
 
@@ -256,7 +254,7 @@ Matrix matrix_identity(const size_t rows, const size_t cols) {
 Matrix matrix_power(const Matrix A, const unsigned long long int n)
 {
     if (A.rows != A.cols) {
-        matrix_exception(ERROR, "Unable to calculate power of given matrix.\n");
+        matrix_exception(ERROR, "Unable to calculate power of given matrix\n");
         return MATRIX_ZERO;
     }
 
@@ -264,10 +262,17 @@ Matrix matrix_power(const Matrix A, const unsigned long long int n)
         return matrix_identity(A.rows, A.cols);;
     }
 
-    Matrix matrix_powered_to_n = matrix_allocate(A.rows, A.cols);;
-    matrix_copy(matrix_powered_to_n, A);
-    for ( unsigned long int power = 1; power < n; power++) {
-        matrix_powered_to_n = matrix_multiply(matrix_powered_to_n, A);
+    Matrix matrix_powered_to_n = matrix_copy(A);
+
+    if (matrix_powered_to_n.data == NULL) {
+        matrix_exception(ERROR, "Unable to calculate power of given matrix\n");
+        return MATRIX_ZERO;
+    } 
+
+    for (unsigned long long int pow = 1; pow < n; pow++) {
+        Matrix temp = matrix_multiply(matrix_powered_to_n, A);
+        memory_free(&matrix_powered_to_n);
+        matrix_powered_to_n =temp;
     }
 
     return matrix_powered_to_n;
@@ -308,37 +313,38 @@ Matrix matrix_inverse(const Matrix A)
 
 Matrix matrix_exponent(const Matrix A, const unsigned long long int n)
 {
-    if (A.rows != A.cols || n < 0) {
+    if (A.rows != A.cols) {
         matrix_exception(ERROR, "Unable to calculate exponent\n");
         return MATRIX_ZERO;
     }
 
-    Matrix matrix_exp_term = matrix_identity(A.rows, A.cols);
     Matrix matrix_exp_result = matrix_identity(A.rows, A.cols);
-    
-    if (n == 0) {
-        return matrix_exp_result;
-    }
-
+    Matrix temp;
+    Matrix temp2;
+    Matrix exp_result;
     double factorial = 1.0;
 
-    for (unsigned long int idx = 1; idx <= n; idx++) {
-        Matrix temp = matrix_multiply(matrix_exp_term, A);
-        memory_free(&matrix_exp_term);
-
-        matrix_exp_term = temp;
+    for (unsigned long long int idx = 1; idx <= n; idx++) {
+        memory_free(&temp);
+        temp = matrix_power(A, idx);
+        
         factorial *= idx;
 
-        Matrix added = matrix_multiplying_by_number(matrix_exp_term, 1.0 / factorial);
-        Matrix Result = matrix_sum(matrix_exp_result, added);
+        memory_free(&temp2);
+        temp2 = matrix_multiplying_by_number(temp, 1.0 / factorial);
 
+        memory_free(&exp_result);
+        exp_result = matrix_sum(matrix_exp_result, temp2);
+        
         memory_free(&matrix_exp_result);
-        matrix_exp_result = Result;
-        memory_free(&added);
+        matrix_exp_result = exp_result;
+        exp_result = MATRIX_ZERO;
 
     }
 
-    memory_free(&matrix_exp_term);
+    memory_free(&temp);
+    memory_free(&temp2);
+    memory_free(&exp_result);
     return matrix_exp_result;
 }
 
