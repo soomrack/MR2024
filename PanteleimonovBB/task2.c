@@ -9,6 +9,7 @@ struct Matrix {
     size_t cols;
     double* data;
 };
+
 typedef struct Matrix Matrix;
 
 
@@ -310,37 +311,25 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
     }
     
     Matrix C = matrix_unit(A.rows); 
-
+    Matrix tmp; 
+    Matrix tmp_factorial;
+    Matrix exp;
     
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
-        Matrix tmp = matrix_power(A, cur_num);
-        if (tmp.data == NULL) {
-            print_message(ERROR, "Сбой выделения памяти в matrix_power");
-            matrix_memory_free(&C);
-            return MATRIX_NULL;
-        }
+        matrix_memory_free(&tmp);
+        tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) { C= MATRIX_NULL; break;}
         
-        Matrix tmp_factorial = matrix_multiplication_ratio(tmp, 1.0 / factorial(cur_num));
+        tmp_factorial = matrix_multiplication_ratio(tmp, 1.0 / factorial(cur_num));
+        if(tmp_factorial.data == NULL) { C= MATRIX_NULL; break;}
+        
+        matrix_memory_free(&exp);
+        exp = matrix_memory_free(C, tmp_factorial);
+        if (exp.data == NULL) { C= MATRIX_NULL; break; }
 
-        if(tmp_factorial.data == NULL) {
-          matrix_memory_free(&tmp);
-          matrix_memory_free(&C);
-          matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
-          return MATRIX_NULL;
-        }
-
-        Matrix exp = matrix_sum(C, tmp_factorial);
-        if (exp.data == NULL) {
-            matrix_memory_free(&tmp_factorial);
-            matrix_memory_free(&tmp);
-            matrix_memory_free(&C);
-            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
-            return MATRIX_NULL;
-        }
-	matrix_memory_free(&C);
-	matrix_memory_free(&tmp);
-	matrix_memory_free(&tmp_factorial);
-        matrix_copy(exp,C);
+        matrix_free(&C);    
+        C = exp;	    
+	    exp = MATRIX_NULL;
     }
     
     matrix_memory_free(&tmp);
@@ -348,7 +337,6 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
     matrix_memory_free(&exp);
     return C;
 }
-
 
 
 // определитель матрицы A
