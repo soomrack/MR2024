@@ -446,6 +446,7 @@ Matrix matrix_exponent(Matrix A, int num) // Нахождение експоне
     {
         matrix_free(&temporary);
         temporary = matrix_pow(A, cur_num);
+        
 
         matrix_free(&temporary2);
         temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
