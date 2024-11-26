@@ -13,7 +13,7 @@ typedef struct
 
 enum MatrixExceptionType {ERROR, WARNING, INFO};
 
-const Matrix MATRIX_NULL = {0, 0, NULL};
+const Matrix NULL_MATRIX = {0, 0, NULL}; // Нулевая матрица
 
 
 
@@ -40,13 +40,13 @@ void matrix_free(Matrix* M) //Функция для освобождения п�
     }
     
     free(M->data);
-    *M = MATRIX_NULL;
+    *M = NULL_MATRIX;
 }
 
 
 Matrix matrix_init(const int rows, const int cols) //Инициализация матрицы
 {
-    Matrix A;
+    Matrix M1;
 
     if (rows == 0 || cols == 0) {
         matrix_exception(INFO, "Матрица без строк и столбцов - Инициализация матрицы");
@@ -56,26 +56,26 @@ Matrix matrix_init(const int rows, const int cols) //Инициализация 
     int size = rows * cols;
     if (size / rows  != cols) {
         matrix_exception(ERROR, "OVERFLOW - Переполнение количества элементов - Инициализация матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
     int size_in_bytes = size * sizeof(double);
     if (size_in_bytes / sizeof(double) != size) {
         matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти - Инициализация матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    A.data = (double *)malloc(rows * cols * sizeof(double));
+    M1.data = (double *)malloc(rows * cols * sizeof(double));
 
-    if (A.data == NULL) {
+    if (M1.data == NULL) {
         matrix_exception(ERROR, "Сбой выделения памяти - Инициализация матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
     
-    A.rows = rows;
-    A.cols = cols;
+    M1.rows = rows;
+    M1.cols = cols;
     
-    return A;
+    return M1;
 }
 
 
@@ -88,7 +88,7 @@ void matrix_create_zero(const Matrix M) //Создание нулевой мат
 Matrix matrix_create_unit(unsigned int rows) // Создание единичной матрицы
 {
     if (rows == 0) {
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
     Matrix I = matrix_init(rows, rows);
@@ -106,63 +106,63 @@ Matrix matrix_create_unit(unsigned int rows) // Создание единичн�
 }
 
 
-void matrix_fill(Matrix *A) //Заполнение матрицы арифмитической последовательностью
+void matrix_fill(Matrix *M1) //Заполнение матрицы арифмитической последовательностью
 {
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = (i + 1);
+    for (size_t i = 0; i < M1->rows * M1->cols; i++) {
+        M1->data[i] = (i + 1);
     }
 }
 
 
-void matrix_fill_power(Matrix *A, int power) //Заполенение матрицы арифмитической прогрессией power-порядка
+void matrix_fill_power(Matrix *M1, int power) //Заполенение матрицы арифмитической прогрессией power-порядка
 {
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = pow((i + 1), power);
+    for (size_t i = 0; i < M1->rows * M1->cols; i++) {
+        M1->data[i] = pow((i + 1), power);
     }
 }
 
 
-Matrix matrix_clone(Matrix A) // Клонирование матрицы
+Matrix matrix_clone(Matrix M1) // Клонирование матрицы
 {
-    Matrix result = matrix_init(A.rows, A.cols);
+    Matrix result = matrix_init(M1.rows, M1.cols);
 
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i];
+    for (size_t i = 0; i < M1.rows * M1.cols; i++) {
+        result.data[i] = M1.data[i];
     }
 
     return result;     
 }
 
 
-Matrix matrix_sum(Matrix A, Matrix B) // Суммирование матриц
+Matrix matrix_sum(Matrix M1, Matrix M2) // Суммирование матриц
 {   
-    if (A.rows != B.rows && A.cols != B.cols){
+    if (M1.rows != M2.rows && M1.cols != M2.cols){
         matrix_exception(ERROR, "Разные размеры матриц - Сложение матриц");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    Matrix result = matrix_init(A.rows, A.cols);
+    Matrix result = matrix_init(M1.rows, M1.cols);
     
-    for(size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] + B.data[i];   
+    for(size_t i = 0; i < M1.rows * M1.cols; i++) {
+        result.data[i] = M1.data[i] + M2.data[i];   
     }
 
     return result;
 }
 
 
-Matrix matrix_sub(Matrix A, Matrix B) // Вычитание матриц
+Matrix matrix_sub(Matrix M1, Matrix M2) // Вычитание матриц
 {   
-    if (A.rows != B.rows && A.cols != B.cols){
+    if (M1.rows != M2.rows && M1.cols != M2.cols){
         matrix_exception(ERROR, "Разные размеры матриц - Вычитание матриц");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    Matrix result = matrix_init(A.rows, A.cols);;
+    Matrix result = matrix_init(M1.rows, M1.cols);;
 
-    if (A.rows == B.rows & A.cols == B.cols) {
-        for (size_t i = 0; i < A.rows * A.cols; i++) {
-            result.data[i] = A.data[i] - B.data[i];   
+    if (M1.rows == M2.rows & M1.cols == M2.cols) {
+        for (size_t i = 0; i < M1.rows * M1.cols; i++) {
+            result.data[i] = M1.data[i] - M2.data[i];   
         }
     }
 
@@ -170,46 +170,46 @@ Matrix matrix_sub(Matrix A, Matrix B) // Вычитание матриц
 }
 
 
-Matrix matrix_mul_num(Matrix A, double num) // Умножение матрицы на число
+Matrix matrix_mul_num(Matrix M1, double num) // Умножение матрицы на число
 {
-    Matrix result;
+    Matrix result = matrix_init(M1.rows, M1.cols);
 
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] * num;
+    for (size_t i = 0; i < M1.rows * M1.cols; i++) {
+        result.data[i] = M1.data[i] * num;
     }
 
     return result;
 }
 
 
-Matrix matrix_div_num(Matrix A, double num) // Деление матрицы на число
+Matrix matrix_div_num(Matrix M1, double num) // Деление матрицы на число
 {
-    Matrix result;
+    Matrix result = matrix_init(M1.rows, M1.cols);;
 
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] / num;
+    for (size_t i = 0; i < M1.rows * M1.cols; i++) {
+        result.data[i] = (double)M1.data[i] / (double)num;
     }
 
     return result;
 }
 
 
-Matrix matrix_mul(Matrix A, Matrix B) // Умножение матрицы
+Matrix matrix_mul(Matrix M1, Matrix M2) // Умножение матрицы
 {
-    if (A.cols != B.rows) {
+    if (M1.cols != M2.rows) {
         matrix_exception(ERROR, "Количество столбцов первой матрицы не равно числу строк второй матрицы - Умножение матриц");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
     
-    Matrix result;
+    Matrix result = matrix_init(M1.rows, M1.cols);;
 
-    if (A.cols == B.rows) {
-        result = matrix_init(A.rows, B.cols);
-        for (size_t row = 0; row < A.rows; row++) {
-            for (size_t col = 0; col < B.cols; col++) {
+    if (M1.cols == M2.rows) {
+        result = matrix_init(M1.rows, M2.cols);
+        for (size_t row = 0; row < M1.rows; row++) {
+            for (size_t col = 0; col < M2.cols; col++) {
                 result.data[row * result.cols + col] = 0;
-                for (size_t i = 0; i < A.cols; i++) {
-                    result.data[row * result.cols + col] += (double)A.data[row * A.cols + i] * B.data[i * B.cols + col];
+                for (size_t i = 0; i < M1.cols; i++) {
+                    result.data[row * result.cols + col] += (double)M1.data[row * M1.cols + i] * M2.data[i * M2.cols + col];
                 }
             }
         }
@@ -219,36 +219,36 @@ Matrix matrix_mul(Matrix A, Matrix B) // Умножение матрицы
 }
 
 
-Matrix matrix_pow(Matrix A, unsigned int power) // Возведение матрицы в степень
+Matrix matrix_pow(Matrix M1, unsigned int power) // Возведение матрицы в степень
 {
     
-    if (A.cols != A.rows && power != 1) {
+    if (M1.cols != M1.rows && power != 1) {
         matrix_exception(ERROR, "Матрица должна быть квадратной - Возведение в степень");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
     if (power == 0) {
-        return matrix_create_unit(A.rows);
+        return matrix_create_unit(M1.rows);
     }
 
-    Matrix result = matrix_clone(A);
+    Matrix result = matrix_clone(M1);
 
     for (size_t i = 1; i < power; i++) {
-            result = matrix_mul(result, A);
+            result = matrix_mul(result, M1);
     }
 
     return result;
 }
 
 
-void matrix_print(Matrix A) // Вывод матриц в консоль
+void matrix_print(Matrix M1) // Вывод матриц в консоль
 {   
-    for (size_t i = 0; i < A.cols * A.rows; i++) {
-        if ((i) % A.cols == 0) {
+    for (size_t i = 0; i < M1.cols * M1.rows; i++) {
+        if ((i) % M1.cols == 0) {
             printf("|");
         }
-        printf("%.2f|", A.data[i]);
-        if ((i) % A.cols == A.cols - 1) {
+        printf("%.2f|", M1.data[i]);
+        if ((i) % M1.cols == M1.cols - 1) {
             printf("\n");
         }
     }
@@ -258,114 +258,114 @@ void matrix_print(Matrix A) // Вывод матриц в консоль
 
 void matrix_transp(Matrix *A) // Транспонирование матрицы
 {
-    Matrix B = matrix_clone(*A);
+    Matrix M = matrix_clone(*A);
     *A = matrix_init(A->cols, A->rows);
     
-    for (int i = 0; i < B.cols * B.rows; i++) {
-        A->data[B.rows * (i % B.cols) + i / B.cols] = B.data[i];
+    for (int i = 0; i < M.cols * M.rows; i++) {
+        A->data[M.rows * (i % M.cols) + i / M.cols] = M.data[i];
     }
-    matrix_free(&B);
+    matrix_free(&M);
 }
 
 
-double matrix_det(Matrix A) // Нахождение определителя матрицы
+double matrix_det(Matrix M1) // Нахождение определителя матрицы
 {
-    if(A.data == NULL) {
+    if(M1.data == NULL) {
         matrix_exception(ERROR, "Матрица не должна быть пустой - Нахождение определителя");
         return NAN;
     }
-    if(A.cols != A.rows) {
+    if(M1.cols != M1.rows) {
         matrix_exception(ERROR, "Матрица должна быть квадратной - Нахождение определителя");
         return NAN;
     }
 
-    Matrix B = matrix_clone(A);
+    Matrix M2 = matrix_clone(M1);
     
     double result = 1;
-    if(B.rows == B.cols) {
-        for (size_t col_nul = 0; col_nul < B.cols; col_nul++) {
-            for (size_t row = col_nul + 1; row < B.rows; row++) {
-                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
-                for (size_t col = col_nul; col < B.cols; col++) {
-                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
+    if(M2.rows == M2.cols) {
+        for (size_t col_nul = 0; col_nul < M2.cols; col_nul++) {
+            for (size_t row = col_nul + 1; row < M2.rows; row++) {
+                double proportion = (double)M2.data[row * M2.cols + col_nul] / M2.data[col_nul * M2.cols + col_nul];
+                for (size_t col = col_nul; col < M2.cols; col++) {
+                    M2.data[row * M2.cols + col] -= (double)M2.data[col_nul * M2.cols + col] * proportion;
                 }
             }
-            result *= (double)B.data[col_nul * B.cols + col_nul];
+            result *= (double)M2.data[col_nul * M2.cols + col_nul];
         }
     }
 
-    matrix_free(&B);
+    matrix_free(&M2);
     return result;
 }
 
 
-Matrix matrix_reverse(Matrix A) // Нахождение обратной матрицы
+Matrix matrix_reverse(Matrix M1) // Нахождение обратной матрицы
 {
-    if(A.data == NULL) {
+    if(M1.data == NULL) {
         matrix_exception(ERROR, "Матрица не должна быть пустой - Нахождение обратной матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
-    if(A.cols != A.rows) {
+    if(M1.cols != M1.rows) {
         matrix_exception(ERROR, "Матрица должна быть квадратной - Нахождение обратной матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
-    if(matrix_det(A) == 0) {
+    if(matrix_det(M1) == 0) {
         matrix_exception(WARNING, "Определитель матрицы равен 0 - Нахождение обратной матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    Matrix result = matrix_create_unit(A.rows);
-    Matrix B = matrix_clone(A);
+    Matrix result = matrix_create_unit(M1.rows);
+    Matrix M2 = matrix_clone(M1);
    
-    if(B.rows == B.cols) {  
-        for (size_t col_nul = 0; col_nul <= B.cols; col_nul++) {
-            for (size_t row = col_nul + 1; row < B.rows; row++) {
-                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
-                for (size_t col = 0; col < B.cols; col++) {
-                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
-                    result.data[row * B.cols + col] -= (double) result.data[col_nul * B.cols + col] * proportion;
+    if(M2.rows == M2.cols) {  
+        for (size_t col_nul = 0; col_nul <= M2.cols; col_nul++) {
+            for (size_t row = col_nul + 1; row < M2.rows; row++) {
+                double proportion = (double)M2.data[row * M2.cols + col_nul] / M2.data[col_nul * M2.cols + col_nul];
+                for (size_t col = 0; col < M2.cols; col++) {
+                    M2.data[row * M2.cols + col] -= (double)M2.data[col_nul * M2.cols + col] * proportion;
+                    result.data[row * M2.cols + col] -= (double) result.data[col_nul * M2.cols + col] * proportion;
                 }
             }
         }
-        for (int row = 0; row < B.rows; row++){
-            double koef = B.data[row * B.cols + row];
-            for (int col = 0; col < B.cols; col++){
-                B.data[row * B.cols + col] /= koef;
-                result.data[row * B.cols + col] /= koef;
+        for (int row = 0; row < M2.rows; row++){
+            double koef = M2.data[row * M2.cols + row];
+            for (int col = 0; col < M2.cols; col++){
+                M2.data[row * M2.cols + col] /= koef;
+                result.data[row * M2.cols + col] /= koef;
             }
         }
-        for (int col_nul = B.cols - 1; col_nul >= 0; col_nul--) {
+        for (int col_nul = M2.cols - 1; col_nul >= 0; col_nul--) {
             for (int row = col_nul - 1; row >= 0; row--) {
-                double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
-                for (int col = B.cols - 1; col >= 0; col--) {
-                    B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
-                    result.data[row * B.cols + col] -= (double) result.data[col_nul * B.cols + col] * proportion;
+                double proportion = (double)M2.data[row * M2.cols + col_nul] / M2.data[col_nul * M2.cols + col_nul];
+                for (int col = M2.cols - 1; col >= 0; col--) {
+                    M2.data[row * M2.cols + col] -= (double)M2.data[col_nul * M2.cols + col] * proportion;
+                    result.data[row * M2.cols + col] -= (double) result.data[col_nul * M2.cols + col] * proportion;
                 }   
             }
         }  
     }  
 
-    matrix_free(&B);
+    matrix_free(&M2);
 
     return result; 
 }
 
 
-Matrix matrix_div(Matrix A, Matrix B) // Деление матриц
+Matrix matrix_div(Matrix M1, Matrix M2) // Деление матриц
 {
-    if (B.data == NULL || A.data == NULL) {
+    if (M2.data == NULL || M1.data == NULL) {
         matrix_exception(ERROR, "Матрицы не должны быть пустыми - Деление матриц");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
-    if (A.cols != B.cols && A.rows != B.rows) {
+    if (M1.cols != M2.cols && M1.rows != M2.rows) {
         matrix_exception(ERROR, "Количество столбцов первой матрицы не равно числу строк второй матрицы - Деление матриц");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    Matrix result;
-    Matrix D = matrix_reverse(B);
-    result = matrix_mul(A, D);
-    matrix_free(&D);
+    Matrix result = matrix_init(M1.rows, M1.cols);
+    Matrix M3 = matrix_reverse(M2);
+    result = matrix_mul(M1, M3);
+    matrix_free(&M3);
 
     return result;
 }
@@ -382,61 +382,88 @@ int factorial(const unsigned int num) // Нахождение факториал
 }
 
 
-Matrix matrix_exponent(Matrix A, int num) // Нахождение експоненты матрицы
+Matrix matrix_exponent(Matrix M1, int num) // Нахождение експоненты матрицы
 {
-    if (A.rows != A.cols) {
+    if (M1.rows != M1.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной - Экспонента матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
-    Matrix E = matrix_create_unit(A.rows);
+    Matrix E1 = matrix_create_unit(M1.rows);
 
-    if (E.data == NULL) {
+    if (E1.data == NULL) {
         matrix_exception(ERROR, "Сбой выделения памяти - Экспонента матрицы");
-        return MATRIX_NULL;
+        return NULL_MATRIX;
     }
 
     for (int cur_num = 1; cur_num < num; cur_num++)
     {
-        Matrix temporary = matrix_clone(A);
-        temporary = matrix_pow(A, cur_num);
+        Matrix temporary = matrix_clone(M1);
+        temporary = matrix_pow(M1, cur_num);
         matrix_print(temporary);
         temporary = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
-        Matrix E_copy = matrix_clone(E);
-        E = matrix_sum(E_copy, temporary);
+        Matrix E_copy = matrix_clone(E1);
+        E1 = matrix_sum(E_copy, temporary);
         matrix_free(&E_copy);
         matrix_free(&temporary);
     }
     
-    return E;
+    return E1;
 }
 
 
 int main()  
 {
-    Matrix A;
-    Matrix B;
-    Matrix C;
-    Matrix D;
+    Matrix A = matrix_init(2, 2);;
+    Matrix B = matrix_init(2, 2);;
+    Matrix C = matrix_init(3, 3);;
+    Matrix D = matrix_init(3, 3);;
+    Matrix E = matrix_init(3, 3);;
+    Matrix F = matrix_init(3, 3);;
+    Matrix G = matrix_init(3, 3);;
 
-    A = matrix_init(3, 3);
-    matrix_fill_power(&A, 2);
-    B = matrix_init(3, 3);
+    matrix_fill(&A);
     matrix_fill_power(&B, 2);
-    printf("");
+    //Вывод матриц A и B
+    printf("Матрица A:\n");
     matrix_print(A);
+    printf("Матрица B:\n");
     matrix_print(B);
-    A = matrix_sum(A, B);
+
+    //Умножение матрицы на число
+    A = matrix_mul_num(A, 3);
+    printf("Умноженная на 3 матрица A:\n");
     matrix_print(A);
 
-    C = matrix_init(3, 3);
-    matrix_fill(&C);
-    D = matrix_init(3, 3);
-    matrix_fill(&D);
-    C = matrix_exponent(C, 3);
+    //Деление матрицы на число
+    B = matrix_div_num(B, 2);
+    printf("Поделённая на 2 матрица B:\n");
+    matrix_print(B);
+
+    //Суммирование матриц
+    A = matrix_sum(A, B);
+    printf("Сложение матрицы A и B:\n");
+    matrix_print(A);
+
+    matrix_fill_power(&C, 3);
+    matrix_fill_power(&D, 2);
+
+    //Вывод матриц C и D
+    printf("Матрица C:\n");
+    matrix_print(C);
+    printf("Матрица D:\n");
+    matrix_print(D);
+
+    //Вычитание матриц
+    C = matrix_sub(C, D);
+    printf("Вычитание матриц C и D:\n");
     matrix_print(C);
 
-    matrix_print(D);
+
+    
+    matrix_fill_power(&E, 2);
+    matrix_fill_power(&F, 2);
+    matrix_fill_power(&G, 2);
 
     return 0;
 }
