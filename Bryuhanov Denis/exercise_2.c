@@ -17,48 +17,58 @@ const Matrix MATRIX_NULL = {0, 0, NULL};
 
 
 
-void matrix_exception(enum MatrixExceptionType type, char *message)
+void matrix_exception(enum MatrixExceptionType type, char *message) //Сообщение об ошибке
 {
     if (type == ERROR) {
         printf("ERROR: %s\n", message);
     }
-
-    if (type == ERROR) {
+    else if (type == WARNING) {
         printf("WARNING: %s\n", message);
-
-    }
-    if (type == ERROR) {
+    } 
+    else if (type == INFO) {
         printf("INFO: %s\n", message);
     }
     
 }
 
 
-Matrix matrix_init(const int rows, const int cols)
+void matrix_free(Matrix* M) //Функция для освобождения памяти матриц
+{
+    if (M == NULL){
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти - Освобождение памяти");
+        return;
+    }
+    
+    free(M->data);
+    *M = MATRIX_NULL;
+}
+
+
+Matrix matrix_init(const int rows, const int cols) //Инициализация матрицы
 {
     Matrix A;
 
     if (rows == 0 || cols == 0) {
-        matrix_exception(INFO, "Матрица без строк и столбцов");
+        matrix_exception(INFO, "Матрица без строк и столбцов - Инициализация матрицы");
         return (Matrix) {rows, cols, NULL};
     }
     
     int size = rows * cols;
     if (size / rows  != cols) {
-        matrix_exception(ERROR, "OVERFLOW - Переполнение количества элементов.");
+        matrix_exception(ERROR, "OVERFLOW - Переполнение количества элементов - Инициализация матрицы");
         return MATRIX_NULL;
     }
 
     int size_in_bytes = size * sizeof(double);
     if (size_in_bytes / sizeof(double) != size) {
-        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти");
+        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти - Инициализация матрицы");
         return MATRIX_NULL;
     }
 
     A.data = (double *)malloc(rows * cols * sizeof(double));
 
     if (A.data == NULL) {
-        matrix_exception(ERROR, "Сбой выделения памяти");
+        matrix_exception(ERROR, "Сбой выделения памяти - Инициализация матрицы");
         return MATRIX_NULL;
     }
     
@@ -69,28 +79,22 @@ Matrix matrix_init(const int rows, const int cols)
 }
 
 
-void matrix_fill(Matrix *A)
+void matrix_create_zero(const Matrix M) //Создание нулевой матрицы
 {
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = (i + 1);
-    }
+    memset(M.data, 0, M.cols * M.rows * sizeof(double));    
 }
 
 
-void matrix_fill_power(Matrix *A, int power)
+Matrix matrix_create_unit(unsigned int rows) // Создание единичной матрицы
 {
-    for (size_t i = 0; i < A->rows * A->cols; i++) {
-        A->data[i] = pow((i + 1), power);
+    if (rows == 0) {
+        return MATRIX_NULL;
     }
-}
 
-
-Matrix unit_matrix(int rows, int cols)
-{
-    Matrix I = matrix_init(rows, cols);
+    Matrix I = matrix_init(rows, rows);
 
     for (int i = 0; i < I.cols * I.rows; i ++) {
-        if (i / cols == i % cols) {
+        if (i / rows == i % rows) {
             I.data[i] = (double)1;
         }
         else {
@@ -102,7 +106,23 @@ Matrix unit_matrix(int rows, int cols)
 }
 
 
-Matrix matrix_clone(Matrix A)
+void matrix_fill(Matrix *A) //Заполнение матрицы арифмитической последовательностью
+{
+    for (size_t i = 0; i < A->rows * A->cols; i++) {
+        A->data[i] = (i + 1);
+    }
+}
+
+
+void matrix_fill_power(Matrix *A, int power) //Заполенение матрицы арифмитической прогрессией power-порядка
+{
+    for (size_t i = 0; i < A->rows * A->cols; i++) {
+        A->data[i] = pow((i + 1), power);
+    }
+}
+
+
+Matrix matrix_clone(Matrix A) // Клонирование матрицы
 {
     Matrix result = matrix_init(A.rows, A.cols);
 
@@ -114,23 +134,31 @@ Matrix matrix_clone(Matrix A)
 }
 
 
-Matrix matrix_sum(Matrix A, Matrix B)
-{
+Matrix matrix_sum(Matrix A, Matrix B) // Суммирование матриц
+{   
+    if (A.rows != B.rows && A.cols != B.cols){
+        matrix_exception(ERROR, "Разные размеры матриц - Сложение матриц");
+        return MATRIX_NULL;
+    }
+
     Matrix result = matrix_init(A.rows, A.cols);
     
-    if (A.rows == B.rows & A.cols == B.cols) {
-        for (size_t i = 0; i < A.rows * A.cols; i++) {
-            result.data[i] = A.data[i] + B.data[i];   
-        }
+    for(size_t i = 0; i < A.rows * A.cols; i++) {
+        result.data[i] = A.data[i] + B.data[i];   
     }
 
     return result;
 }
 
 
-Matrix matrix_sub(Matrix A, Matrix B)
-{
-    Matrix result;
+Matrix matrix_sub(Matrix A, Matrix B) // Вычитание матриц
+{   
+    if (A.rows != B.rows && A.cols != B.cols){
+        matrix_exception(ERROR, "Разные размеры матриц - Вычитание матриц");
+        return MATRIX_NULL;
+    }
+
+    Matrix result = matrix_init(A.rows, A.cols);;
 
     if (A.rows == B.rows & A.cols == B.cols) {
         for (size_t i = 0; i < A.rows * A.cols; i++) {
@@ -142,7 +170,7 @@ Matrix matrix_sub(Matrix A, Matrix B)
 }
 
 
-Matrix matrix_mul_num(Matrix A, double num)
+Matrix matrix_mul_num(Matrix A, double num) // Умножение матрицы на число
 {
     Matrix result;
 
@@ -154,7 +182,7 @@ Matrix matrix_mul_num(Matrix A, double num)
 }
 
 
-Matrix matrix_div_num(Matrix A, double num)
+Matrix matrix_div_num(Matrix A, double num) // Деление матрицы на число
 {
     Matrix result;
 
@@ -166,8 +194,13 @@ Matrix matrix_div_num(Matrix A, double num)
 }
 
 
-Matrix matrix_mul(Matrix A, Matrix B)
+Matrix matrix_mul(Matrix A, Matrix B) // Умножение матрицы
 {
+    if (A.cols != B.rows) {
+        matrix_exception(ERROR, "Количество столбцов первой матрицы не равно числу строк второй матрицы - Умножение матриц");
+        return MATRIX_NULL;
+    }
+    
     Matrix result;
 
     if (A.cols == B.rows) {
@@ -186,20 +219,29 @@ Matrix matrix_mul(Matrix A, Matrix B)
 }
 
 
-Matrix matrix_pow(Matrix A, int power){
-    Matrix result;
+Matrix matrix_pow(Matrix A, unsigned int power) // Возведение матрицы в степень
+{
     
-    if (A.cols == A.rows && power > 0) {
-        for (size_t i = 1; i < power; i++) {
+    if (A.cols != A.rows && power != 1) {
+        matrix_exception(ERROR, "Матрица должна быть квадратной - Возведение в степень");
+        return MATRIX_NULL;
+    }
+
+    if (power == 0) {
+        return matrix_create_unit(A.rows);
+    }
+
+    Matrix result = matrix_clone(A);
+
+    for (size_t i = 1; i < power; i++) {
             result = matrix_mul(result, A);
-        }
     }
 
     return result;
 }
 
 
-void matrix_print(Matrix A)
+void matrix_print(Matrix A) // Вывод матриц в консоль
 {   
     for (size_t i = 0; i < A.cols * A.rows; i++) {
         if ((i) % A.cols == 0) {
@@ -214,20 +256,30 @@ void matrix_print(Matrix A)
 }
 
 
-void matrix_transp(Matrix *A)
+void matrix_transp(Matrix *A) // Транспонирование матрицы
 {
     Matrix B = matrix_clone(*A);
     *A = matrix_init(A->cols, A->rows);
+    
     for (int i = 0; i < B.cols * B.rows; i++) {
         A->data[B.rows * (i % B.cols) + i / B.cols] = B.data[i];
     }
+    matrix_free(&B);
 }
 
 
-double matrix_det(Matrix A)
+double matrix_det(Matrix A) // Нахождение определителя матрицы
 {
+    if(A.data == NULL) {
+        matrix_exception(ERROR, "Матрица не должна быть пустой - Нахождение определителя");
+        return NAN;
+    }
+    if(A.cols != A.rows) {
+        matrix_exception(ERROR, "Матрица должна быть квадратной - Нахождение определителя");
+        return NAN;
+    }
+
     Matrix B = matrix_clone(A);
-    Matrix C = unit_matrix(A.rows, A.cols);
     
     double result = 1;
     if(B.rows == B.cols) {
@@ -236,23 +288,34 @@ double matrix_det(Matrix A)
                 double proportion = (double)B.data[row * B.cols + col_nul] / B.data[col_nul * B.cols + col_nul];
                 for (size_t col = col_nul; col < B.cols; col++) {
                     B.data[row * B.cols + col] -= (double)B.data[col_nul * B.cols + col] * proportion;
-                    C.data[row * C.cols + col] -= (double)C.data[col_nul * C.cols + col] * proportion;
                 }
             }
             result *= (double)B.data[col_nul * B.cols + col_nul];
         }
     }
+
+    matrix_free(&B);
     return result;
 }
 
 
-Matrix matrix_reverse(Matrix A)
+Matrix matrix_reverse(Matrix A) // Нахождение обратной матрицы
 {
-    Matrix result;
+    if(A.data == NULL) {
+        matrix_exception(ERROR, "Матрица не должна быть пустой - Нахождение обратной матрицы");
+        return MATRIX_NULL;
+    }
+    if(A.cols != A.rows) {
+        matrix_exception(ERROR, "Матрица должна быть квадратной - Нахождение обратной матрицы");
+        return MATRIX_NULL;
+    }
+    if(matrix_det(A) == 0) {
+        matrix_exception(WARNING, "Определитель матрицы равен 0 - Нахождение обратной матрицы");
+        return MATRIX_NULL;
+    }
 
-    printf("Matrix reverse\n\n");
+    Matrix result = matrix_create_unit(A.rows);
     Matrix B = matrix_clone(A);
-    result = unit_matrix(A.rows, A.cols);
    
     if(B.rows == B.cols) {  
         for (size_t col_nul = 0; col_nul <= B.cols; col_nul++) {
@@ -279,34 +342,36 @@ Matrix matrix_reverse(Matrix A)
                     result.data[row * B.cols + col] -= (double) result.data[col_nul * B.cols + col] * proportion;
                 }   
             }
-            matrix_print(B);
-            matrix_print(result);
         }  
     }  
+
+    matrix_free(&B);
 
     return result; 
 }
 
 
-Matrix matrix_div(Matrix A, Matrix B)
+Matrix matrix_div(Matrix A, Matrix B) // Деление матриц
 {
-    Matrix result;
+    if (B.data == NULL || A.data == NULL) {
+        matrix_exception(ERROR, "Матрицы не должны быть пустыми - Деление матриц");
+        return MATRIX_NULL;
+    }
+    if (A.cols != B.cols && A.rows != B.rows) {
+        matrix_exception(ERROR, "Количество столбцов первой матрицы не равно числу строк второй матрицы - Деление матриц");
+        return MATRIX_NULL;
+    }
 
-    printf("Matrix multiply\n\n");
-    Matrix D = matrix_clone(B);
-    printf("Matrix multiply clone\n\n");
-    matrix_print(D);
-    D = matrix_reverse(B);
-    printf("Matrix multiply reverse and normal matrix\n\n");
-    matrix_print(D);
-    matrix_print(A);
+    Matrix result;
+    Matrix D = matrix_reverse(B);
     result = matrix_mul(A, D);
+    matrix_free(&D);
 
     return result;
 }
 
 
-int factorial(int num)
+int factorial(const unsigned int num) // Нахождение факториала
 {
     int fact = 1;
     for (int i = 1; i <= num; i++)
@@ -317,26 +382,33 @@ int factorial(int num)
 }
 
 
-Matrix matrix_exponent(Matrix A, int num)
+Matrix matrix_exponent(Matrix A, int num) // Нахождение експоненты матрицы
 {
-    Matrix result;
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "Матрица должна быть квадратной - Экспонента матрицы");
+        return MATRIX_NULL;
+    }
 
-    Matrix E;
-    E = unit_matrix(A.rows, A.cols);
+    Matrix E = matrix_create_unit(A.rows);
+
+    if (E.data == NULL) {
+        matrix_exception(ERROR, "Сбой выделения памяти - Экспонента матрицы");
+        return MATRIX_NULL;
+    }
 
     for (int cur_num = 1; cur_num < num; cur_num++)
     {
         Matrix temporary = matrix_clone(A);
-        
         temporary = matrix_pow(A, cur_num);
         matrix_print(temporary);
         temporary = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
         Matrix E_copy = matrix_clone(E);
         E = matrix_sum(E_copy, temporary);
+        matrix_free(&E_copy);
+        matrix_free(&temporary);
     }
-    result = matrix_clone(E);
     
-    return result;
+    return E;
 }
 
 
@@ -360,15 +432,11 @@ int main()
     C = matrix_init(3, 3);
     matrix_fill(&C);
     D = matrix_init(3, 3);
-    matrix_fill_power(&D, 2);
-
+    matrix_fill(&D);
     C = matrix_exponent(C, 3);
     matrix_print(C);
 
     matrix_print(D);
-    printf("Matrix determinate = %f\n" , matrix_det(D));
-
-
 
     return 0;
 }
