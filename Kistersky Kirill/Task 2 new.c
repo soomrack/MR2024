@@ -306,10 +306,10 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
         tmp_factorial = matrix_by_scalar(tmp, 1.0 / factorial(cur_num));
 
         if(tmp_factorial.data == NULL) {
-          matrix_free(&tmp);
-          matrix_free(&E);
-          matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
-          return MATRIX_NULL;
+            matrix_free(&tmp);
+            matrix_free(&E);
+            matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
+            return MATRIX_NULL;
         }
 
         exp = matrix_sum(E, tmp_factorial);
@@ -320,10 +320,11 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
             matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
             return MATRIX_NULL;
         }
-	      matrix_free(&E);
-	      matrix_free(&tmp);
-	      matrix_free(&tmp_factorial);
-        matrix_copy(exp,E);
+	matrix_free(&E);
+	matrix_free(&tmp);
+	matrix_free(&tmp_factorial);
+        E = exp;
+	exp = MATRIX_NULL;
     }
     
     matrix_free(&tmp);
