@@ -169,7 +169,7 @@ void alice_pet_expense(const int current_year, const int current_month)
     static int has_cat = 0;
     
     if (current_year == 2025 && current_month == 3) {
-        alice_cat_init(current_year, current_month);
+        cat_init(current_year, current_month);
         alice.deposit -= alice_cat.cost;
         has_cat = 1;
     }
