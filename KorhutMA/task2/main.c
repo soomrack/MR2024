@@ -3,7 +3,7 @@
 #include <time.h>
 
 int main() {
-	srand(time(NULL));
+    srand(time(NULL));
 
     // A
     struct Matrix A = matrix_allocate(3, 3);
