@@ -9,7 +9,6 @@ struct Matrix {
     size_t cols;
     double* data;
 };
-
 typedef struct Matrix Matrix;
 
 
@@ -153,8 +152,6 @@ Matrix matrix_zero(const size_t rows, const size_t cols)
 Matrix matrix_unit(const size_t rows, const size_t cols)
 {
     Matrix C = matrix_zero(rows, cols);
-    size_t counter = 0;
-
     for (size_t index = 0; index < rows; index++) {
         C.data[index * rows + index] = 1.0;
     }
@@ -268,12 +265,9 @@ Matrix matrix_difference(const Matrix A, const Matrix B)
 Matrix matrix_transp(const Matrix A)
 {
     Matrix C = matrix_memory_alloc(A.cols, A.rows);
-    size_t index = 0;
-
-    for(size_t col = 0; col < A.cols; col ++) {
-        for(size_t index1 = 0; index1 <= A.rows * A.cols + 1 - A.cols; index1 += A.cols) {
-            C.data[index] = A.data[col + index1];
-            index ++;
+    for (size_t row = 0; row < A.rows; row++) {
+        for (size_t col = 0; col < A.cols; col++) {
+            C.data[col * T.cols + row] = A.data[row * A.cols + col];
         }
     }
 
