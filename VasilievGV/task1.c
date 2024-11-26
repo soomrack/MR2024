@@ -224,6 +224,7 @@ void alice_expense(const int month) {
     if (month == 12) {
         alice.food *= 1. + INFLATION_RATE;
         alice.person_expense *= 1. + INFLATION_RATE;
+        alice.deposit -= alice.cat;
     }
 }
 
