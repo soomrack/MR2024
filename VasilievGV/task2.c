@@ -8,6 +8,7 @@ struct Matrix {
     size_t cols;
     double* data;
 };
+
 typedef struct Matrix Matrix;
 
 
