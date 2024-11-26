@@ -171,8 +171,8 @@ Matrix matrix_unit(const size_t rows, const size_t cols)
     }
     matrix_matrix_unit(C);
 
-    for (size_t i = 0; i < I.cols; i ++) {  // через нулевую матрицу 
-        I.data[i * I.cols + i] = 1.0;
+    for (size_t i = 0; i < C.cols; i ++) {  // через нулевую матрицу 
+        C.data[i * C.cols + i] = 1.0;
     }
 
     return C;
