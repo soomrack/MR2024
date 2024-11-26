@@ -441,17 +441,16 @@ Matrix matrix_exponent(Matrix A, int num) // Нахождение експоне
 
     for (size_t cur_num = 1; cur_num < num; cur_num++)
     {
-        Matrix temporary = matrix_clone(A);
-        temporary = matrix_pow(A, cur_num);
-        Matrix temporary2 =  matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
+        Matrix temporary = matrix_pow(A, cur_num);
+        Matrix temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
         matrix_free(&temporary);
         temporary = temporary2;
-        matrix_free(&temporary2); 
         Matrix E_copy = matrix_sum(E, temporary);
         matrix_free(&E);
+        matrix_free(&temporary);
         E = E_copy;
         matrix_free(&E_copy);
-        matrix_free(&temporary);
+        matrix_free(&temporary2); 
     }
     
     return E;
