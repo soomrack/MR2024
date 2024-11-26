@@ -433,6 +433,9 @@ Matrix matrix_exponent(Matrix A, int num) // Нахождение експоне
     }
 
     Matrix E = matrix_create_unit(A.rows);
+    Matrix temporary;
+    Matrix temporary2;
+    Matrix E_copy;
 
     if (E.data == NULL) {
         matrix_exception(ERROR, "Сбой выделения памяти - Экспонента матрицы");
@@ -441,18 +444,23 @@ Matrix matrix_exponent(Matrix A, int num) // Нахождение експоне
 
     for (size_t cur_num = 1; cur_num < num; cur_num++)
     {
-        Matrix temporary = matrix_pow(A, cur_num);
-        Matrix temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
         matrix_free(&temporary);
-        temporary = temporary2;
-        Matrix E_copy = matrix_sum(E, temporary);
-        matrix_free(&E);
-        matrix_free(&temporary);
-        E = E_copy;
+        temporary = matrix_pow(A, cur_num);
+
+        matrix_free(&temporary2);
+        temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
+
         matrix_free(&E_copy);
-        matrix_free(&temporary2); 
+        E_copy = matrix_sum(E, temporary2);
+        
+        matrix_free(&E);
+        E = E_copy;
+        E_copy = NULL_MATRIX;
     }
-    
+
+    matrix_free(&temporary);
+    matrix_free(&temporary2);
+    matrix_free(&E_copy);
     return E;
 }
 
