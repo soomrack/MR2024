@@ -76,7 +76,7 @@ void fill_mat(struct Mat* M, const Element values[]) {
 
 struct Mat multiply_mat(const struct Mat A, const struct Mat B) {
     if (A.cols != B.rows) {
-        mat_error(ERR, "Unable to multiply matrices of given sizes.");
+        mat_error(ERR, "Невозможно умножить матрицы заданных размеров.");
         return NULL_MAT;
     }
 
@@ -98,7 +98,7 @@ struct Mat multiply_mat(const struct Mat A, const struct Mat B) {
 
 struct Mat subtract_mat(const struct Mat A, const struct Mat B) {
     if (A.cols != B.cols || A.rows != B.rows) {
-        mat_error(ERR, "Unable to subtract matrices of different sizes.");
+        mat_error(ERR, "Невозможно вычитать матрицы разных размеров.");
         return NULL_MAT;
     }
 
@@ -111,7 +111,7 @@ struct Mat subtract_mat(const struct Mat A, const struct Mat B) {
 
 struct Mat add_mat(const struct Mat A, const struct Mat B) {
     if (A.cols != B.cols || A.rows != B.rows) {
-        mat_error(ERR, "Unable to add matrices of different sizes.");
+        mat_error(ERR, "Невозможно добавить матрицы разных размеров.");
         return NULL_MAT;
     }
 
@@ -196,13 +196,13 @@ struct Mat multiply_by_scalar(const struct Mat A, const double scalar) {
 
 struct Mat inverse_mat(const struct Mat B) {
     if (B.cols != B.rows) {
-        mat_error(ERR, "The matrix is not square.");
+        mat_error(ERR, "Матрица не является квадратной.");
         return NULL_MAT;
     }
 
     double det = gauss_determinant(B);
     if (det == 0) {
-        printf("Error: Matrix is singular and cannot be inverted.\n");
+        printf("Error: Матрица не и.меет обратной матрицы, определитель равен 0.\n");
         return NULL_MAT;
     }
 
@@ -244,7 +244,7 @@ struct Mat inverse_mat(const struct Mat B) {
 
 struct Mat exponent_mat(const struct Mat A, const unsigned long long int n) {
     if (A.cols != A.rows) {
-        mat_error(ERR, "The matrix is not square.");
+        mat_error(ERR, "Матрица не является квадратной.");
         return NULL_MAT;
     }
 
