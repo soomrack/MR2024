@@ -26,6 +26,7 @@ void matrix_exception (const enum MatrixException level, const char *result)
     }
 }
 
+
 Matrix matrix_allocate(const size_t rows, const size_t cols)
 {
     Matrix matrix = MATRIX_ZERO;
@@ -35,7 +36,7 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
         return (Matrix) {rows, cols, NULL};   
     }
 
-    if (rows >= SIZE_MAX / (rows * cols * sizeof(double))) {
+    if (((double)SIZE_MAX / cols / rows / sizeof(double)) < 1) {
 		matrix_exception(ERROR, "Memory allocation failed \n");
         return MATRIX_ZERO;
     }
@@ -53,20 +54,23 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     return A;
 }
 
+
 void memory_free(Matrix *A)
 {
-    if (A != NULL) {
-        A->rows = 0;
-        A->cols = 0;
-        free(A->data);
-        A->data = NULL;
-    }
+    if (A == NULL) return;
+
+    free(A->data);
+     A->rows = 0;
+     A->cols = 0;
+    A->data = NULL;
 }
+
 
 void matrix_fill(const Matrix A, const double array[])
 {   
     memcpy(A.data, array, A.cols * A.rows * sizeof(double));
 }
+
 
 void matrix_print(Matrix A)
 {
@@ -78,20 +82,23 @@ void matrix_print(Matrix A)
     printf("\n");
 }
 
-void matrix_copy(const Matrix B, const Matrix A) 
+
+int matrix_copy(const Matrix B, const Matrix A) 
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
         matrix_exception(ERROR, "Unable to copy matrixes with different size \n");
-        return;
+        return 0;
     }
 
     if (A.data == NULL) {
         matrix_exception(ERROR, "Unable to copy: Data of source matrix is NULL \n");
-        return;
+        return 0;
     }
 
     memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
+    return 1;
 }
+
 
 Matrix matrix_sum(const Matrix A, const Matrix B)
 {
@@ -109,6 +116,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
     return C;
 }
 
+
 Matrix matrix_subtract(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
@@ -124,6 +132,7 @@ Matrix matrix_subtract(const Matrix A, const Matrix B)
 
     return C;
 }
+
 
 Matrix matrix_multiply(const Matrix A, const Matrix B)
 {
@@ -145,6 +154,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
     return C;
 }
 
+
 Matrix matrix_multiplying_by_number(const Matrix A, const double number)
 {
     Matrix C = matrix_allocate(A.rows, A.cols);
@@ -155,6 +165,7 @@ Matrix matrix_multiplying_by_number(const Matrix A, const double number)
 
     return C;
 }
+
 
 Matrix matrix_trans(const Matrix A)
 {
@@ -168,8 +179,15 @@ Matrix matrix_trans(const Matrix A)
     return T;
 }
 
+
 Matrix matrix_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) {
+
     Matrix submatrix = matrix_allocate(A.rows-1, A.cols-1);
+
+    if (submatrix.data == NULL) {
+        matrix_exception(ERROR, "Unable to calculate inverse of given matrix \n");
+        return MATRIX_ZERO;
+    }
 
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
@@ -184,6 +202,7 @@ Matrix matrix_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) 
     }
     return submatrix;
 }
+
 
 double matrix_determinant(const Matrix A)
 {
@@ -214,9 +233,15 @@ double matrix_determinant(const Matrix A)
     return det;
 }
 
+
 Matrix matrix_identity(const size_t rows, const size_t cols) {
 
-    Matrix identity_matrix =matrix_allocate(rows, cols);
+    Matrix identity_matrix = matrix_allocate(rows, cols);
+
+    if (identity_matrix.data == NULL) {
+        matrix_exception(ERROR, "Unable to calculate inverse of given matrix \n");
+        return MATRIX_ZERO;
+    }
   
     memset(identity_matrix.data, 0, identity_matrix.rows * identity_matrix.cols * sizeof(double));
 
@@ -226,6 +251,7 @@ Matrix matrix_identity(const size_t rows, const size_t cols) {
 
     return identity_matrix;
 }
+
 
 Matrix matrix_power(const Matrix A, const unsigned long long int n)
 {
@@ -239,13 +265,14 @@ Matrix matrix_power(const Matrix A, const unsigned long long int n)
     }
 
     Matrix matrix_powered_to_n = matrix_allocate(A.rows, A.cols);;
-    matrix_powered_to_n = A;
-    for (long long int power = 1; power < n; power++) {
+    matrix_copy(matrix_powered_to_n, A);
+    for ( unsigned long int power = 1; power < n; power++) {
         matrix_powered_to_n = matrix_multiply(matrix_powered_to_n, A);
     }
 
     return matrix_powered_to_n;
 }
+
 
 Matrix matrix_inverse(const Matrix A)
 {
