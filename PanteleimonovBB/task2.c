@@ -140,7 +140,7 @@ Matrix matrix_enter()
 // создание нулевой матрицы
 Matrix matrix_zero(const size_t rows, const size_t cols)
 {
-    Matrix C = matrix_memory_alloc(rows, cols);
+    Matrix C = matrix_memory_alloc(C.rows, C.cols);
        
     memset(C.data, 0, C.rows * C.cols * sizeof(double));
 
@@ -152,7 +152,7 @@ Matrix matrix_zero(const size_t rows, const size_t cols)
 // создание единичной матрицы
 Matrix matrix_unit(const size_t rows, const size_t cols)
 {
-    Matrix C = matrix_zero(rows, cols);
+    Matrix C = matrix_zero(C.rows, C.cols);
     for (size_t index = 0; index < rows; index++) {
         C.data[index * rows + index] = 1.0;
     }
@@ -205,6 +205,7 @@ Matrix matrix_power(const Matrix A, size_t power)
         tmp = matrix_multiplication(C, A);
         matrix_memory_free(&C);
         C = tmp;
+        tmp = MATRIX_NULL;
     }
     
     matrix_memory_free(&tmp);
@@ -266,9 +267,10 @@ Matrix matrix_difference(const Matrix A, const Matrix B)
 Matrix matrix_transp(const Matrix A)
 {
     Matrix C = matrix_memory_alloc(A.cols, A.rows);
-    for (size_t row = 0; row < A.rows; row++) {
+
+    for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
-            C.data[col * T.cols + row] = A.data[row * A.cols + col];
+            C.data[col *C.cols + row] = A.data[row * A.cols + col];
         }
     }
 
@@ -276,26 +278,11 @@ Matrix matrix_transp(const Matrix A)
 }
 
 
-// умножение матрицы A на матрицу B транспонированную
-Matrix matrix_multiplication_transp(const Matrix A, const Matrix B)
-{
-    Matrix C = matrix_transp(B);
-       
-    if (A.cols != C.rows) {
-        print_message(WARNING, "Умножение невозможно, так как количество столбцов матрицы A не равно количеству строк транспонированной матрицы B\n");
-        return MATRIX_NULL;
-    }
-       
-    C = matrix_multiplication(A, C);
-
-    return C;
-}
-
 double factorial (const unsigned int f) 
 {
     unsigned long long int res = 1;
     for (unsigned int idx = 1; idx <= f; idx++) {
-    res *= idx;
+        res *= idx;
     }
 
     return res;
@@ -329,7 +316,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 
         matrix_free(&C);    
         C = exp;	    
-        exp = MATRIX_NULL;
+	    exp = MATRIX_NULL;
     }
     
     matrix_memory_free(&tmp);
@@ -342,7 +329,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 // определитель матрицы A
 float matrix_determinant(const Matrix A)
 {
-    float det;
+    double det;
     if (A.rows != A.cols) {
         print_message(WARNING, "Поиск определителя невозможен, так как матрица не квадратная\n");
         return NAN;
@@ -370,7 +357,7 @@ float matrix_determinant(const Matrix A)
         - A.data[0] * A.data[5] * A.data[7];
     }
 
-    return det;
+    return NAN;
 }
 
 
