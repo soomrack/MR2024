@@ -19,7 +19,7 @@ typedef struct {
     Cash food;
     Cash person_expense;
     Cash transport;
-    Cash pet_expense;
+    Cash pet;
 } Person;
 
 
