@@ -275,7 +275,7 @@ int main() {
     alice_init();
     bob_init();
     transport_init();
-    pet_init();
+    cat_init();
 
     simulation(2024, 9, 30);
 
