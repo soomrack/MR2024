@@ -88,7 +88,7 @@ void matrix_memory_free(struct Matrix* M)
     *M = MATRIX_NULL;
 }
 
-void matrix_copy(const Matrix A, const Matrix B)
+void matrix_copy(const Matrix B, const Matrix A)
 {  
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
         print_message(ERROR, "Выделенная память не одинакова\n");
@@ -140,7 +140,15 @@ Matrix matrix_enter()
 // создание нулевой матрицы
 Matrix matrix_zero(const size_t rows, const size_t cols)
 {
+    if (rows == 0) {
+        return NULL_MATRIX;
+    }
+    
     Matrix C = matrix_memory_alloc(C.rows, C.cols);
+    if (C == NULL) {
+        print_message(ERROR, "Обращение к недопутимой области памяти\n");
+        return;
+    }
        
     memset(C.data, 0, C.rows * C.cols * sizeof(double));
 
@@ -152,9 +160,19 @@ Matrix matrix_zero(const size_t rows, const size_t cols)
 // создание единичной матрицы
 Matrix matrix_unit(const size_t rows, const size_t cols)
 {
-    Matrix C = matrix_zero(C.rows, C.cols);
-    for (size_t index = 0; index < rows; index++) {
-        C.data[index * rows + index] = 1.0;
+    if (rows == 0) {
+        return NULL_MATRIX;
+    }
+
+    Matrix C = matrix_unit(rows, rows);
+    if (C.data == NULL) {
+        print_message(ERROR, "Ошибка выделения памяти - создания единичной матрицы");
+        return NULL_MATRIX;
+    }
+    matrix_matrix_unit(C);
+
+    for (size_t i = 0; i < I.cols; i ++) {  // через нулевую матрицу 
+        I.data[i * I.cols + i] = 1.0;
     }
 
     return C;
