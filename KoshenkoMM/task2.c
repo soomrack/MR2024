@@ -14,7 +14,25 @@ struct Mat {
 
 const struct Mat NULL_MAT = { 0, 0, NULL };
 
-struct Mat create_mat(const size_t cols, const size_t rows) {
+enum MatException { ERR, WARN, INFO, DEBUG };
+typedef enum MatException MatException;
+
+void mat_error(const enum MatException level, const char* msg) {
+    if (level == ERR) {
+        fprintf(stderr, "ERROR: %s\n", msg);
+    }
+    if (level == WARN) {
+        fprintf(stderr, "WARNING: %s\n", msg);
+    }
+    if (level == INFO) {
+        fprintf(stderr, "INFO: %s\n", msg);
+    }
+    if (level == DEBUG) {
+        fprintf(stderr, "DEBUG: %s\n", msg);
+    }
+}
+
+struct Mat mat_create(const size_t cols, const size_t rows) {
     if (cols == 0 || rows == 0) {
         struct Mat M = { cols, rows, NULL };
         return M;
@@ -29,30 +47,18 @@ struct Mat create_mat(const size_t cols, const size_t rows) {
     return M;
 }
 
-void zero_mat(struct Mat M) {
+void mat_zero(struct Mat M) {
     if (M.data == NULL) return;
     memset(M.data, 0, sizeof(Element) * M.cols * M.rows);
 }
 
-void identity_mat(struct Mat M) {
-    zero_mat(M);
+void mat_identity(struct Mat M) {
+    mat_zero(M);
     for (size_t idx = 0; idx < M.cols * M.rows; idx += M.cols + 1)
         M.data[idx] = 1;
 }
 
-enum MatException { ERR, WARN, INFO, DEBUG };
-typedef enum MatException MatException;
-
-void mat_error(const enum MatException level, const char* msg) {
-    if (level == ERR) {
-        fprintf(stderr, "ERROR: %s\n", msg);
-    }
-    if (level == WARN) {
-        fprintf(stderr, "WARNING: %s\n", msg);
-    }
-}
-
-void delete_mat(struct Mat* M) {
+void mat_delete(struct Mat* M) {
     if (M == NULL) return;
     free(M->data);
     M->rows = 0;
@@ -60,7 +66,7 @@ void delete_mat(struct Mat* M) {
     M->data = NULL;
 }
 
-void fill_mat(struct Mat* M, const Element values[]) {
+void mat_fill(struct Mat* M, const Element values[]) {
     if (M == NULL || values == NULL) {
         return;
     }
@@ -74,13 +80,13 @@ void fill_mat(struct Mat* M, const Element values[]) {
     memcpy(M->data, values, num_elements * sizeof(Element));
 }
 
-struct Mat multiply_mat(const struct Mat A, const struct Mat B) {
+struct Mat mat_multiply(const struct Mat A, const struct Mat B) {
     if (A.cols != B.rows) {
         mat_error(ERR, "Невозможно умножить матрицы заданных размеров.");
         return NULL_MAT;
     }
 
-    struct Mat result = create_mat(B.cols, A.rows);
+    struct Mat result = mat_create(B.cols, A.rows);
     Element sum;
 
     for (size_t row = 0; row < result.rows; row++) {
@@ -96,33 +102,37 @@ struct Mat multiply_mat(const struct Mat A, const struct Mat B) {
     return result;
 }
 
-struct Mat subtract_mat(const struct Mat A, const struct Mat B) {
+struct Mat mat_subtract(const struct Mat A, const struct Mat B) {
     if (A.cols != B.cols || A.rows != B.rows) {
         mat_error(ERR, "Невозможно вычитать матрицы разных размеров.");
         return NULL_MAT;
     }
 
-    struct Mat result = create_mat(A.cols, A.rows);
+    struct Mat result = mat_create(A.cols, A.rows);
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         result.data[idx] = A.data[idx] - B.data[idx];
     }
     return result;
 }
 
-struct Mat add_mat(const struct Mat A, const struct Mat B) {
+struct Mat mat_add(const struct Mat A, const struct Mat B) {
     if (A.cols != B.cols || A.rows != B.rows) {
         mat_error(ERR, "Невозможно добавить матрицы разных размеров.");
         return NULL_MAT;
     }
 
-    struct Mat result = create_mat(A.cols, A.rows);
+    struct Mat result = mat_create(A.cols, A.rows);
     for (size_t idx = 0; idx < A.cols * A.rows; ++idx) {
         result.data[idx] = A.data[idx] + B.data[idx];
     }
     return result;
 }
 
-void transpose_mat(struct Mat A, struct Mat T) {
+void mat_transpose(struct Mat A, struct Mat T) {
+    if (T.rows != A.cols || T.cols != A.rows) {
+        mat_error(ERR, "Размеры матрицы T не соответствуют размерам транспонированной матрицы A.");
+        return;
+    }
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
             T.data[col * A.rows + row] = A.data[row * A.cols + col];
@@ -130,12 +140,15 @@ void transpose_mat(struct Mat A, struct Mat T) {
     }
 }
 
-double gauss_determinant(struct Mat A) {
+double mat_gauss_determinant(struct Mat A) {
     if (A.cols != A.rows || A.rows == 0) {
         return NAN;
     }
 
-    struct Mat temp = create_mat(A.cols, A.rows);
+    struct Mat temp = mat_create(A.cols, A.rows);
+    if (temp.data == NULL) {
+        return NAN;
+    }
     memcpy(temp.data, A.data, sizeof(Element) * A.cols * A.rows);
 
     double det = 1;
@@ -148,7 +161,7 @@ double gauss_determinant(struct Mat A) {
                 j++;
             }
             if (j == A.rows) {
-                delete_mat(&temp);
+                mat_delete(&temp);
                 return 0;
             }
             for (size_t k = 0; k < A.cols; k++) {
@@ -170,20 +183,20 @@ double gauss_determinant(struct Mat A) {
         det *= temp.data[i * A.cols + i];
     }
 
-    delete_mat(&temp);
+    mat_delete(&temp);
     return sign * det;
 }
 
-void print_determinant(struct Mat A, const char* text) {
+void mat_print_determinant(struct Mat A, const char* text) {
     printf("%s\n", text);
-    printf("%f\n", gauss_determinant(A));
+    printf("%f\n", mat_gauss_determinant(A));
     printf("\n");
 }
 
-struct Mat multiply_by_scalar(const struct Mat A, const double scalar) {
+struct Mat mat_multiply_by_scalar(const struct Mat A, const double scalar) {
     if (A.data == NULL)  return NULL_MAT;
 
-    struct Mat result = create_mat(A.cols, A.rows);
+    struct Mat result = mat_create(A.cols, A.rows);
 
     if (result.data == NULL) return NULL_MAT;
 
@@ -194,22 +207,22 @@ struct Mat multiply_by_scalar(const struct Mat A, const double scalar) {
     return result;
 }
 
-struct Mat inverse_mat(const struct Mat B) {
+struct Mat mat_inverse(const struct Mat B) {
     if (B.cols != B.rows) {
         mat_error(ERR, "Матрица не является квадратной.");
         return NULL_MAT;
     }
 
-    double det = gauss_determinant(B);
+    double det = mat_gauss_determinant(B);
     if (det == 0) {
-        printf("Error: Матрица не и.меет обратной матрицы, определитель равен 0.\n");
+        printf("Error: Матрица не имеет обратной матрицы, определитель равен 0.\n");
         return NULL_MAT;
     }
 
-    struct Mat Inv = create_mat(B.rows, B.cols);
+    struct Mat Inv = mat_create(B.rows, B.cols);
     if (Inv.data == NULL) return NULL_MAT;
 
-    struct Mat temp = create_mat(B.rows, B.cols * 2);
+    struct Mat temp = mat_create(B.rows, B.cols * 2);
     for (size_t i = 0; i < B.rows; i++) {
         for (size_t j = 0; j < B.cols; j++) {
             temp.data[i * temp.cols + j] = B.data[i * B.cols + j];
@@ -238,49 +251,50 @@ struct Mat inverse_mat(const struct Mat B) {
         }
     }
 
-    delete_mat(&temp);
+    mat_delete(&temp);
     return Inv;
 }
 
-struct Mat exponent_mat(const struct Mat A, const unsigned long long int n) {
+struct Mat mat_exponent(const struct Mat A, const unsigned long long int n) {
     if (A.cols != A.rows) {
         mat_error(ERR, "Матрица не является квадратной.");
         return NULL_MAT;
     }
 
-    struct Mat term = create_mat(A.rows, A.cols);
-    identity_mat(term);
+    struct Mat term = mat_create(A.rows, A.cols);
+    mat_identity(term);
 
-    struct Mat result = create_mat(A.rows, A.cols);
-    zero_mat(result);
+    struct Mat result = mat_create(A.rows, A.cols);
+    mat_zero(result);
 
     if (n == 0) {
-        delete_mat(&result);
+        mat_delete(&result);
         return term;
     }
 
     double factorial = 1.0;
 
     for (unsigned long long int idx = 1; idx <= n; idx++) {
-        struct Mat temp = multiply_mat(term, A);
-        delete_mat(&term);
+        struct Mat temp = mat_multiply(term, A);
+        mat_delete(&term);
 
         term = temp;
         factorial *= idx;
 
-        term = multiply_by_scalar(term, 1.0 / factorial);
+        struct Mat scaled = mat_multiply_by_scalar(term, 1.0 / factorial);
+        mat_delete(&term);
+        term = scaled;
 
-        struct Mat added = add_mat(result, term);
-
-        delete_mat(&result);
+        struct Mat added = mat_add(result, term);
+        mat_delete(&result);
         result = added;
     }
 
-    delete_mat(&term);
+    mat_delete(&term);
     return result;
 }
 
-void print_mat(const struct Mat A, const char* text) {
+void mat_print(const struct Mat A, const char* text) {
     printf("%s\n", text);
     for (size_t row = 0; row < A.rows; ++row) {
         printf("[");
@@ -296,51 +310,51 @@ void perform_calculations() {
     Element values_A[] = { 1., 2., 3., 4. };
     Element values_B[] = { 1., 1., 2., 2. };
 
-    struct Mat A = create_mat(2, 2);
-    struct Mat B = create_mat(2, 2);
-    struct Mat E = create_mat(2, 2);
-    identity_mat(E);
+    struct Mat matA = mat_create(2, 2);
+    struct Mat matB = mat_create(2, 2);
+    struct Mat matE = mat_create(2, 2);
+    mat_identity(matE);
 
-    struct Mat C = create_mat(2, 2);
-    struct Mat D = create_mat(2, 2);
-    struct Mat P = create_mat(2, 2);
-    struct Mat T = create_mat(2, 2);
-    struct Mat K = create_mat(2, 2);
-    struct Mat InvA = inverse_mat(A);
-    struct Mat Exp = exponent_mat(A, 3);
+    struct Mat matC = mat_create(2, 2);
+    struct Mat matD = mat_create(2, 2);
+    struct Mat matP = mat_create(2, 2);
+    struct Mat matT = mat_create(2, 2);
+    struct Mat matK = mat_create(2, 2);
+    struct Mat matInvA = mat_inverse(matA);
+    struct Mat matExp = mat_exponent(matA, 3);
 
-    fill_mat(&A, values_A);
-    fill_mat(&B, values_B);
-    fill_mat(&K, values_A);
+    mat_fill(&matA, values_A);
+    mat_fill(&matB, values_B);
+    mat_fill(&matK, values_A);
 
-    P = multiply_mat(A, B);
-    D = subtract_mat(A, B);
-    C = add_mat(A, B);
-    transpose_mat(A, T);
-    K = multiply_by_scalar(A, 2.0);
+    matP = mat_multiply(matA, matB);
+    matD = mat_subtract(matA, matB);
+    matC = mat_add(matA, matB);
+    mat_transpose(matA, matT);
+    matK = mat_multiply_by_scalar(matA, 2.0);
 
-    print_mat(A, "Matrix A");
-    print_mat(B, "Matrix B");
-    print_mat(C, "C = A + B");
-    print_mat(D, "D = A - B");
-    print_mat(P, "P = A * B");
-    print_mat(T, "T = A^T");
-    print_mat(K, "K = 2 * A");
-    print_mat(E, "Matrix E");
-    print_determinant(A, "det A = ");
-    print_mat(Exp, "Matrix Exp^A=");
-    print_mat(InvA, "Inverse of A");
+    mat_print(matA, "Matrix A");
+    mat_print(matB, "Matrix B");
+    mat_print(matC, "C = A + B");
+    mat_print(matD, "D = A - B");
+    mat_print(matP, "P = A * B");
+    mat_print(matT, "T = A^T");
+    mat_print(matK, "K = 2 * A");
+    mat_print(matE, "Matrix E");
+    mat_print_determinant(matA, "det A = ");
+    mat_print(matExp, "Matrix Exp^A=");
+    mat_print(matInvA, "Inverse of A");
 
-    delete_mat(&A);
-    delete_mat(&B);
-    delete_mat(&C);
-    delete_mat(&D);
-    delete_mat(&P);
-    delete_mat(&T);
-    delete_mat(&E);
-    delete_mat(&K);
-    delete_mat(&InvA);
-    delete_mat(&Exp);
+    mat_delete(&matA);
+    mat_delete(&matB);
+    mat_delete(&matC);
+    mat_delete(&matD);
+    mat_delete(&matP);
+    mat_delete(&matT);
+    mat_delete(&matE);
+    mat_delete(&matK);
+    mat_delete(&matInvA);
+    mat_delete(&matExp);
 }
 
 int main() {
