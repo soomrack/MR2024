@@ -262,7 +262,9 @@ Matrix matrix_pow(Matrix A, unsigned int power) // Возведение матр
     }
 
     for (size_t i = 1; i < power; i++) {
-        result = matrix_mul(result, A);
+        Matrix temporary = matrix_mul(result, A);
+        matrix_free(&result);
+        result = temporary; 
     }
 
     return result;
@@ -441,12 +443,13 @@ Matrix matrix_exponent(Matrix A, int num) // Нахождение експоне
     {
         Matrix temporary = matrix_clone(A);
         temporary = matrix_pow(A, cur_num);
-        Matrix temporary2 =  matrix_clone(temporary);
-        temporary2 = matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
+        Matrix temporary2 =  matrix_mul_num(temporary, (double) 1.0 / factorial(cur_num));
+        matrix_free(&temporary);
         temporary = temporary2;
         matrix_free(&temporary2); 
-        Matrix E_copy = matrix_clone(E);
-        E = matrix_sum(E_copy, temporary);
+        Matrix E_copy = matrix_sum(E, temporary);
+        matrix_free(&E);
+        E = E_copy;
         matrix_free(&E_copy);
         matrix_free(&temporary);
     }
