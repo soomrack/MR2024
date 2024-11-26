@@ -201,7 +201,7 @@ void bob_car(const int month, const int year) {
             + bob_transport.maintance_cost;
 
         if (month == 12) {
-            bob.deposit -= bob_gelic.car_tax;
+            bob.deposit -= bob_transport.car_tax;
             bob_transport.benzin_per_month_cost *= 1. + INFLATION_RATE;
             bob_transport.washing_per_month_cost *= 1. + INFLATION_RATE;
             bob_transport.maintance_cost *= 1. + INFLATION_RATE;
