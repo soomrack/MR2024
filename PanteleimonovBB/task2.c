@@ -295,7 +295,7 @@ double factorial (const unsigned int f)
 {
     unsigned long long int res = 1;
     for (unsigned int idx = 1; idx <= f; idx++) {
-        res *= idx;
+    res *= idx;
     }
 
     return res;
@@ -329,7 +329,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 
         matrix_free(&C);    
         C = exp;	    
-	    exp = MATRIX_NULL;
+        exp = MATRIX_NULL;
     }
     
     matrix_memory_free(&tmp);
