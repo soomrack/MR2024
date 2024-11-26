@@ -102,7 +102,7 @@ void matrix_zero(const Matrix M)
 
 
 //Copy
-void matrix_copy(const Matrix A, const Matrix B)
+void matrix_copy(const Matrix B, const Matrix A)
 {  
     if ((A.cols != B.cols) || (A.rows != B.rows )) {
         matrix_exception(ERROR, "Выделенная память не одинакова\n");
@@ -125,8 +125,8 @@ Matrix matrix_identity(size_t size)
 
     matrix_zero(M);
 
-    for (size_t m.cols = 0; m.cols < size; m.cols+) {
-        M.data[m.cols * size + m.cols] = 1.0;
+    for (size_t idx = 0; idx < size; idx++) {
+        M.data[idx * size + idx] = 1.0;
     }
 
     return M; 
@@ -213,7 +213,7 @@ Matrix matrix_transpose(const Matrix A) // Транспонирование ма
 }
 
 
-Matrix matrix_power(const Matrix A, int power)  // Возведение матрицы в степень
+Matrix matrix_power(const Matrix A, unsigned int power)  // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
@@ -222,7 +222,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
 
-    for (unsigned int n = 0; n < power; n++) {
+    for (unsigned int n = 1; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
