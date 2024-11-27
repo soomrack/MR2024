@@ -222,7 +222,7 @@ Matrix matrix_power(const Matrix A, size_t power)  // Возведение ма�
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
 
-    for (unsigned int n = 1; n < power; n++) {
+    for (size_t n = 1; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
