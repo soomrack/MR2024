@@ -277,7 +277,7 @@ Matrix matrix_inverse(const Matrix A)  // inverse = A^(-1)
 
 Matrix matrix_identity(const size_t rows, const size_t cols) {
 
-    Matrix identity_matrix = (Matrix) { rows, cols, NULL };  // bug
+    Matrix identity_matrix = (Matrix) { rows, cols, NULL };  // bug (fixed)
     identity_matrix = matrix_allocate(identity_matrix);  // cheeck
 
     memset(identity_matrix.data != 0, 0, identity_matrix.rows * identity_matrix.cols * sizeof(double));
