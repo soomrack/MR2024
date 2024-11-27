@@ -263,7 +263,7 @@ Matrix matrix_power(const Matrix A, const unsigned long long int n)
     }
 
     Matrix matrix_powered_to_n = matrix_copy(A);
-    Matrix temp;
+    Matrix temp = MATRIX_ZERO;
 
     if (matrix_powered_to_n.data == NULL) {
         matrix_exception(ERROR, "Unable to calculate power of given matrix\n");
@@ -273,8 +273,11 @@ Matrix matrix_power(const Matrix A, const unsigned long long int n)
     for (unsigned long long int pow = 1; pow < n; pow++) {
         memory_free(&temp);
         temp = matrix_multiply(matrix_powered_to_n, A);
+
         memory_free(&matrix_powered_to_n);
-        matrix_powered_to_n =temp;
+        matrix_powered_to_n = temp;
+        temp = MATRIX_ZERO; 
+
     }
 
     return matrix_powered_to_n;
@@ -321,9 +324,9 @@ Matrix matrix_exponent(const Matrix A, const unsigned long long int n)
     }
 
     Matrix matrix_exp_result = matrix_identity(A.rows, A.cols);
-    Matrix temp;
-    Matrix temp2;
-    Matrix exp_result;
+    Matrix temp = MATRIX_ZERO;
+    Matrix temp2 = MATRIX_ZERO;
+    Matrix exp_result = MATRIX_ZERO;
     double factorial = 1.0;
 
     for (unsigned long long int idx = 1; idx <= n; idx++) {
