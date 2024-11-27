@@ -59,18 +59,11 @@ Person init (bool mortgage, Money begin_capital) {
 }
 
 
-Person work_incident (Person person) {
-    if(person.mortgage == false) {
-        if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
-        else if ((now_date.month == 3 ^ now_date.month == 4) && now_date.year ==2036) person.capital -= person.salary;  //потеря работы Бобом
-    }
-    return person;
-}
-
 
 Person apartment_payment (Person person) {
     person.capital = person.capital - person.person_flat_payment;  //ежем. доходы/расходы
     if(person.mortgage == false && now_date.month == 12) person.person_flat_payment *= 1.07;  // учет инфляции аренды жилья
+    
     else if(person.mortgage == true && now_date.month == 12)person.apartment_coast *= 1.07; //учет инфляции в стоимости жилья
     return person;
 }
@@ -79,9 +72,11 @@ Person apartment_payment (Person person) {
 Person salary (Person person) {
     person.capital += person.salary;
     if(now_date.month == 12) person.salary *= 1.07;  // индексация зарплаты
+     else if(person.mortgage == false) {
+        if(now_date.month == 8)person.capital -= person.salary;  //ежегодный отпуск Боба за свой счет
     return person;
 }
-
+}
 
 Person monthly_expences (Person person) {
     person.capital -= person.monthly_expences;
