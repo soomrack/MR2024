@@ -28,10 +28,10 @@ Matrix matrix_allocate(size_t rows, size_t cols) {
     Matrix matrix = { rows, cols, NULL };
 
     if (rows == 0 || cols == 0) {
-        return (Matrix){ cols, rows, NULL }; // исправил
+        return (Matrix){ cols, rows, NULL };
     }
 
-    // Проверка на переполнение при вычислении количества байт
+    
     if (rows > SIZE_MAX / cols || rows * cols > SIZE_MAX / sizeof(double)) {
         matrix_exception(ERROR, "Memory allocation failed: size_t overflow.");
         return MATRIX_NULL;
@@ -43,17 +43,15 @@ Matrix matrix_allocate(size_t rows, size_t cols) {
         return MATRIX_NULL;
     }
 
-    return (Matrix){ cols, rows, data }; // исправил
+    return (Matrix){ cols, rows, data };
 }
 
 
 void matrix_free(Matrix* M) 
 {
-    if (M == NULL )  return; // исправил
+    if (M == NULL )  return;
     free(M->data);
     M->data = NULL;
-    M->rows = 0; // добавил
-    M->cols = 0; // добавил
 }
 
 
@@ -69,7 +67,7 @@ Matrix matrix_identity(const size_t size)
 {
     Matrix I = matrix_allocate(size, size);
     matrix_zero(I);
-    for (size_t idx = 0; idx < I.rows * I.cols; idx += I.rows + 1 ) { // исправил
+    for (size_t idx = 0; idx < I.rows * I.cols; idx += I.rows + 1 ) {
         I.data[idx] = 1.0;
     }
     return I;
@@ -142,7 +140,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
 Matrix matrix_transpose(const Matrix A) 
 {
     Matrix T = matrix_allocate(A.cols, A.rows);
-    for (size_t row = 0; row < T.rows; ++row) { // заменил T
+    for (size_t row = 0; row < T.rows; ++row) {
         for (size_t col = 0; col < T.cols; ++col) {
             T.data[col * T.rows + row] = A.data[row * A.cols + col];
         }
@@ -186,7 +184,7 @@ double matrix_determinant(const Matrix A)
     }
     
 
-    matrix_exception(ERROR, "Matrix size exceeds 3x3, determinant cannot be calculated."); // исправил
+    matrix_exception(ERROR, "Matrix size exceeds 3x3, determinant cannot be calculated.");
     return NAN;
 }
 
@@ -204,7 +202,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
     for (unsigned int n = 1; n <= x; ++n) {
         Matrix temp = matrix_multiply(term, A);
         matrix_free(&term);
-        term = matrix_by_scalar(temp, 1.0 / n);  // исравил
+        term = matrix_by_scalar(temp, 1.0 / n);
         matrix_free(&temp);
 
         Matrix new_result = matrix_subtract(result, term);  
@@ -240,27 +238,24 @@ int main() {
     printf("Result of addition:\n");
     matrix_print(D);
 
-    // Умножение
+
     Matrix E = matrix_multiply(A, B);
     printf("The result of multiplication:\n");
     matrix_print(E);
 
-    // Транспонирование
+    
     Matrix T = matrix_transpose(A);
     printf("Transposed matrix A:\n");
     matrix_print(T);
 
 
-    // Умножение на число
     double scalar = 5;
     Matrix G = matrix_by_scalar(A, scalar);
     printf("Matrix A multiplied by %2.f:\n", scalar);
     matrix_print(G);
 
-    // Определитель
     printf("Determinant of a matrix A: %2.f \n", matrix_determinant(A));
 
-    //Матричная экспонента
     Matrix exponent_A = matrix_exponent(A, 3);
     printf("Matrix exponential от A:\n");
     matrix_print(exponent_A);
