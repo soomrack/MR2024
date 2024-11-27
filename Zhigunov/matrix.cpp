@@ -287,6 +287,20 @@ Matrix copy(const Matrix A)
 }
 
 
+double diagonal(const Matrix A) 
+{
+    double summ = A.data[0];
+    for (size_t row = 0; row < A.rows; ++row) {
+        for (size_t col = 0; col < A.cols; ++col) {
+            if (row == col) {
+                summ += A.data[row * A.cols + col];
+            }
+        }
+    }
+    return summ;
+}
+
+
 Matrix exp(const Matrix A, int accuracy) 
 {
     if (A.cols != A.rows || A.cols==0) {
@@ -294,24 +308,33 @@ Matrix exp(const Matrix A, int accuracy)
         return MATRIX_NULL;
     }
 
-    Matrix new_result, new_powered, multiplied;
+    Matrix new_result = { 0, 0, NULL }, new_powered = { 0, 0, NULL }, multiplied, powered = { 0, 0, NULL };
 
     Matrix result = matrix_idenity(A.rows);
 
-    Matrix powered = A;
+    powered = copy(A);
     int factorial = 1;
     for (int acc = 1; acc <= accuracy; ++acc) {
         factorial *= acc;
-        new_powered = multiply(powered, A);
-        powered = copy(new_powered);
-        matrix_free(&new_powered);
-        multiplied = multiply_by_double(powered, 1./factorial);
-        new_result = summ(result, multiplied);
 
-        result = copy(new_result);
+        matrix_free(&new_powered);
+
+        matrix_free(&multiplied);
+        multiplied = multiply_by_double(powered, 1./factorial);
 
         matrix_free(&new_result);
-        matrix_free(&multiplied);
+        new_result = summ(result, multiplied);
+
+        matrix_free(&result);
+        result = copy(new_result);
+
+        new_powered = multiply(powered, A);
+
+        matrix_free(&powered);
+        powered = copy(new_powered);
+
+        
+        
     }
     matrix_free(&powered);
     return result;
