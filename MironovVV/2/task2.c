@@ -176,24 +176,26 @@ Matrix matrix_exponent(Matrix mat) {
     Matrix term = matrix_create(mat.rows, mat.cols);
     memcpy(term.data, result.data, mat.rows * mat.cols * sizeof(double));
 
+    Matrix mult = matrix_create(mat.rows, mat.cols);
+    Matrix scal = matrix_create(mat.rows, mat.cols);
+    Matrix new_result = matrix_create(mat.rows, mat.cols);
+
     for (size_t k = 1; k <= 10; ++k) {
-        Matrix temp = matrix_multiply(term, mat);
+        mult = matrix_multiply(term, mat);
         matrix_free(&term);
-        term = temp;
+        term = mult;
+        matrix_free(&mult);
 
-        if (!term.data) {
-            matrix_free(&result);
-            matrix_free(&temp);
-            matrix_free(&term);
-            matrix_handle_exception(MATRIX_ERROR, "Failed during term calculation");
-            return (Matrix) { 0, 0, NULL };
-        }
+        scal = matrix_scalar_multiply(term, 1.0 / k);
+        matrix_free(&term);
+        term = scal;
+        matrix_free(&scal);
 
-        term = matrix_scalar_multiply(term, 1.0 / k);
-        result = matrix_add(result, term);
-        matrix_free(&temp);
+        Matrix new_result = matrix_add(result, term);
+        matrix_free(&result);
+        result = new_result;
+        matrix_free(&new_result);
     }
-    matrix_free(&term);
     return result;
 }
 
