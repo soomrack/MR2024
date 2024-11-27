@@ -39,8 +39,8 @@ void forward(unsigned int speed)
 
 void stop()
 {
-    forward(0);
     finally_stop = 0
+    forward(0);   
 }
 
 void turn(int right, int left, int speed)
