@@ -6,6 +6,14 @@ const double INFLATION = 0.09;                   // Инфляция
 const double INDEXSATION = 0.04;                 // Индексация
 const double DEPOSITE = 0.5;                     // Ставка депозита 
 
+struct Cat
+{
+	Money buy;
+	Money cost;
+	Money funeral;
+};
+
+
 struct Person
 {
 	Money salary;                                     // Зарплата
@@ -18,18 +26,10 @@ struct Person
 	Money loan_amount;                                // Cумма Кредита
 	int annual_rate;                                  // Годовая ставка
 	int term;                                         // Срок аренды 
-
+	struct Cat cat;
 };
 
 
-struct Cat {
-	int year_of_purchase;
-	int month_of_purchase;
-	Money cost;
-	Money cost_of_feed;
-	Money money_for_veterinarian;
-	int count_of_cat;
-};
  
 
 Person bob;
@@ -50,7 +50,7 @@ void bob_init()
 void alice_init()
 {
 
-	alice.salary = 200 * 1000;
+	alice.salary = 450 * 1000;
 	alice.deposit = 1000 * 1000;
 	alice.food = 25 * 1000;
 	alice.transport = 10 * 1000;
@@ -60,6 +60,33 @@ void alice_init()
 	alice.loan_amount = 15 * 1000 * 1000;
 	alice.annual_rate = 16;
 	alice.term = 30;
+	alice.cat.buy = 30 * 1000;
+	alice.cat.cost = 12 * 1000;
+	alice.cat.funeral = 45 * 1000;
+}
+
+
+void alice_cat(const int month, const int year)
+{
+	static int is_cat = 0;
+
+	if ((month == 2) && (year == 2026)) {
+		alice.salary -= alice.cat.buy;
+		is_cat = 1;
+	}
+
+	if (is_cat == 1) {
+		if (month == 1) {
+			alice.cat.cost *= (1. + INFLATION);
+		}
+
+		alice.salary -= alice.cat.cost;
+	}
+
+	if ((month == 7) && (year == 2038)) {
+		alice.salary -= alice.cat.funeral;
+		is_cat = 0;
+	}
 }
 
 
@@ -168,6 +195,7 @@ void simulation(int month, int year)
 		alice_communal_bills(month);
 		alice_deposit(month);
 		alice_mortgage_monthly_pay();
+		alice_cat(month, year);
 
 		month++;
 
