@@ -15,7 +15,8 @@ Matrix MATRIX_ZERO = {0, 0, NULL};  // Нулевая матрица
 typedef enum {ERROR, WARNING} MatrixException;
 
 // Функция для вывода сообщений об ошибках
-void matrix_error(const MatrixException error_level, const char *message) {
+void matrix_error(const MatrixException error_level, const char *message) 
+{
     if (error_level == ERROR) {
         fprintf(stderr, "ERROR: %s", message);
     } else if (error_level == WARNING) {
@@ -24,7 +25,8 @@ void matrix_error(const MatrixException error_level, const char *message) {
 }
 
 // Функция для выделения памяти под матрицу
-Matrix matrix_allocate(const size_t rows, const size_t cols) {
+Matrix matrix_allocate(const size_t rows, const size_t cols) 
+{
     Matrix matrix = MATRIX_ZERO;
     if (rows == 0 || cols == 0) {
         return matrix;
@@ -41,24 +43,27 @@ Matrix matrix_allocate(const size_t rows, const size_t cols) {
 }
 
 // Функция для освобождения памяти матрицы
-void memory_free(Matrix *matrix) {
-    if (matrix != NULL && matrix->data != NULL) {
+void memory_free(Matrix *matrix) 
+{
+    if (matrix != NULL) {
+        matrix->rows = 0;
+        matrix->cols = 0;
         free(matrix->data);
         matrix->data = NULL;
     }
-    matrix->rows = 0;
-    matrix->cols = 0;
 }
 
 // Функция для передачи массива в матрицу
-void matrix_fill(Matrix *matrix, const double array_name[]) {
+void matrix_fill(Matrix *matrix, const double array_name[]) 
+{
     if (matrix->data != NULL) {
         memcpy(matrix->data, array_name, matrix->rows * matrix->cols * sizeof(double));
     }
 }
 
 // Функция для вывода матрицы
-void matrix_print(const Matrix *matrix, const char *message) {
+void matrix_print(const Matrix *matrix, const char *message) 
+{
     printf("%s", message);
     if (matrix->data == NULL) {
         printf("Невозможно выполнить операцию.\n\n");
@@ -74,7 +79,8 @@ void matrix_print(const Matrix *matrix, const char *message) {
 }
 
 // Функция для копирования матрицы
-void matrix_copy(Matrix destination, const Matrix source) {
+void matrix_copy(Matrix destination, const Matrix source) 
+{
     if (destination.rows != source.rows || destination.cols != source.cols) {
         matrix_error(ERROR, "Невозможно выполнить операцию для матриц разных размеров.\n");
         return;
@@ -97,7 +103,8 @@ Matrix matrix_sum(const Matrix A, const Matrix B) {
 }
 
 // Функция вычитания матриц
-Matrix matrix_subtract(const Matrix A, const Matrix B) {
+Matrix matrix_subtract(const Matrix A, const Matrix B) 
+{
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_error(ERROR, "Невозможно вычитать матрицы разных размеров.\n");
         return MATRIX_ZERO;
@@ -111,7 +118,8 @@ Matrix matrix_subtract(const Matrix A, const Matrix B) {
 }
 
 // Функция умножения матриц
-Matrix matrix_multiply(const Matrix A, const Matrix B) {
+Matrix matrix_multiply(const Matrix A, const Matrix B) 
+{
     if (A.cols != B.rows) {
         matrix_error(ERROR, "Невозможно перемножить матрицы несовместимых размеров.\n");
         return MATRIX_ZERO;
@@ -129,8 +137,9 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) {
 }
 
 // Функция умножения матрицы на число
-Matrix matrix_multi_by_number(const Matrix A, double number) {
-     Matrix C = matrix_allocate(A.rows, A.cols);
+Matrix matrix_multi_by_number(const Matrix A, double number) 
+{
+    Matrix C = matrix_allocate(A.rows, A.cols);
     for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
         C.data[idx] = A.data[idx] * number;
     }
@@ -138,7 +147,8 @@ Matrix matrix_multi_by_number(const Matrix A, double number) {
 }
 
 // Функция транспонирования матрицы
-Matrix matrix_transpose(const Matrix A) {
+Matrix matrix_transpose(const Matrix A) 
+{
     Matrix T = matrix_allocate(A.cols, A.rows);
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
@@ -171,7 +181,8 @@ double matrix_determinant(const Matrix A) {
 }
 
 // Функция нахождения матричной экспоненты
-Matrix matrix_exponent(const Matrix A, size_t terms) {
+Matrix matrix_exponent(const Matrix A, size_t terms) 
+{
     if (A.rows != A.cols) {
         matrix_error(ERROR, "Матричная экспонента определяется только для квадратных матриц.\n");
         return MATRIX_ZERO;
