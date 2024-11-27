@@ -314,7 +314,6 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
             return MATRIX_NULL;
         }
 	matrix_copy(exp,E);    
-	matrix_free(&E);
 	matrix_free(&tmp);
 	matrix_free(&tmp_factorial);
     }
