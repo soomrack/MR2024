@@ -19,9 +19,23 @@ const Matrix MATRIX_NULL = {0, 0, NULL};
 enum Matrix_message_level {ERROR, WARNING, INFO, DEBUG};
 
 
-void print_message(const enum Matrix_message_level level, const char *msg) {
-    const char* level_names[] = {"ERROR", "WARNING", "INFO", "DEBUG"};
-    printf("%s: %s\n", level_names[level], msg);
+void print_message(const enum Matrix_message_level level, char *msg)
+{
+    if(level == ERROR) {
+        printf("ERROR: %s", msg);
+    }
+
+    if(level == WARNING) {
+        printf("WARNING: %s", msg);
+    }
+    
+    if(level == INFO) {
+        printf("INFO: %s", msg);
+    }
+        
+    if(level == DEBUG) {
+        printf("DEBUG: %s", msg);
+    }
 }
 
 

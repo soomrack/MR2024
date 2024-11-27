@@ -169,14 +169,11 @@ double matrix_determinant(const Matrix A) {
     return det;
 }
 
+void calculations() {
+    
+}
+
 int main() {
-    Matrix A = {2, 2};
-    matrix_pass_array(&A, (double[]){1, 2, 3, 4});
-    matrix_print(&A, "Matrix A:\n");
-
-    double det = matrix_determinant(A);
-    printf("Determinant: %.2f\n", det);
-
-    memory_free(&A);
+    calculations();
     return 0;
 }
