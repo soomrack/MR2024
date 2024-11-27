@@ -34,7 +34,7 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     matrix.rows = rows;
     matrix.cols = cols;
 
-    matrix.data = calloc(matrix.rows * matrix.cols, sizeof(double));
+    matrix.data = calloc(matrix.rows * matrix.cols, sizeof(double));  // bug
     if (matrix.data == NULL) {
         matrix_error(ERROR, "Ошибка обращения к памяти.\n");
         return MATRIX_ZERO;
@@ -45,7 +45,7 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
 // Функция для освобождения памяти матрицы
 void memory_free(Matrix *matrix) 
 {
-    if (matrix != NULL) {
+    if (matrix != NULL) { // bad style
         matrix->rows = 0;
         matrix->cols = 0;
         free(matrix->data);
@@ -85,6 +85,7 @@ void matrix_copy(Matrix destination, const Matrix source)
         matrix_error(ERROR, "Невозможно выполнить операцию для матриц разных размеров.\n");
         return;
     }
+    // check
     memcpy(destination.data, source.data, source.rows * source.cols * sizeof(double));
 }
 
@@ -96,7 +97,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B) {
     }
 
     Matrix C = matrix_allocate(A.rows, A.cols);
-    for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
+    for (size_t idx = 0; idx < A.rows * A.cols; idx++) {  // bug
         C.data[idx] = A.data[idx] + B.data[idx];
     }
     return C;
@@ -129,7 +130,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < C.cols; col++) {
             for (size_t k = 0; k < A.cols; k++) {
-                C.data[row * C.cols + col] += A.data[row * A.cols + k] * B.data[k * B.cols + col];
+                C.data[row * C.cols + col] += A.data[row * A.cols + k] * B.data[k * B.cols + col];  // garbage
             }
         }
     }
@@ -161,12 +162,13 @@ Matrix matrix_transpose(const Matrix A)
 // Функция нахождения детерминанта
 double matrix_determinant(const Matrix A) {
     if (A.rows != A.cols) return NAN;
+    // 0x0
     if (A.rows == 1) return A.data[0];
     if (A.rows == 2) return A.data[0] * A.data[3] - A.data[1] * A.data[2];
 
     double det = 0;
     for (size_t col = 0; col < A.cols; col++) {
-        Matrix submatrix = matrix_allocate(A.rows - 1, A.cols - 1);
+        Matrix submatrix = matrix_allocate(A.rows - 1, A.cols - 1);  // check
         size_t sub_idx = 0;
         for (size_t i = 1; i < A.rows; i++) {
             for (size_t j = 0; j < A.cols; j++) {
@@ -196,7 +198,7 @@ Matrix matrix_exponent(const Matrix A, size_t terms)
     }
 
     for (size_t n = 1; n < terms; n++) {
-        term = matrix_multiply(term, A);
+        term = matrix_multiply(term, A);  // memory leak
         double factor = 1.0 / tgamma(n + 1);
         for (size_t i = 0; i < term.rows * term.cols; i++) {
             result.data[i] += term.data[i] * factor;
