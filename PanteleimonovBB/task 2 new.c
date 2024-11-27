@@ -100,7 +100,7 @@ void matrix_copy(const Matrix B, const Matrix A)
         return;
     }
    
-    memcpy(B.date, A.date, A.cols * A.rows * sizeof(double));    
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));    
 }
 
 void matrix_print(const Matrix M)
@@ -141,13 +141,13 @@ Matrix matrix_enter()
 Matrix matrix_zero(const size_t rows, const size_t cols) {
     if (rows == 0 || cols == 0) {
         print_message(ERROR, "Некорректные размеры матрицы.\n");
-        return NULL_MATRIX;
+        return MATRIX_NULL;
     }
 
     Matrix C = matrix_memory_alloc(rows, cols);
     if (C.data == NULL) {
         print_message(ERROR, "Ошибка выделения памяти для матрицы.\n");
-        return NULL_MATRIX;
+        return MATRIX_NULL;
     }
 
     memset(C.data, 0, rows * cols * sizeof(double));
@@ -160,13 +160,13 @@ Matrix matrix_zero(const size_t rows, const size_t cols) {
 Matrix matrix_unit(const size_t rows, const size_t cols) {
     if (rows == 0 || cols == 0) {
         print_message(ERROR, "Некорректные размеры матрицы.");
-        return NULL_MATRIX; 
+        return MATRIX_NULL; 
     }
 
         Matrix C = matrix_memory_alloc(rows, cols);
     if (C.data == NULL) {
         print_message(ERROR, "Ошибка выделения памяти при создании матрицы.");
-        return NULL_MATRIX;
+        return MATRIX_NULL;
     }
     for ( size_t i = 0; i < rows && i < cols; i++) {
         C.data[i * cols + i] = 1.0;
@@ -419,16 +419,8 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         matrix_memory_free(&E);
     }
        
-    if (number == 5 || number == 1) {
-        Matrix F = matrix_multiplication_transp(A, B);
-        printf("Результат умножения матрицы A на B транспонированную:\n");
-
-        matrix_print(F);
-
-        matrix_memory_free(&F);
-    }
        
-    if (number == 6 || number == 1) {
+    if (number == 5 || number == 1) {
         Matrix G = matrix_transp(A);
         printf("Транспонированная матрица A:\n");
 
@@ -437,7 +429,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         matrix_memory_free(&G);
     }
        
-    if (number == 7 || number == 1) {
+    if (number == 6 || number == 1) {
         size_t power;
         printf("Введите целое неотрицательное число p"); 
         scanf("%zu", &power);
@@ -449,7 +441,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         matrix_memory_free(&H);
     }
        
-    if (number == 8 || number == 1) {
+    if (number == 7 || number == 1) {
         double ratio;
         printf("Введите число r"); 
         scanf("%lf", &ratio);
@@ -461,7 +453,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         matrix_memory_free(&I);
     }
 
-    if (number == 9 || number == 1) {
+    if (number == 8 || number == 1) {
         size_t order;
         printf("Введите целое неотрицательное число o"); 
         scanf("%zu", &order);
@@ -473,7 +465,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         matrix_memory_free(&J);
     }
 
-    if (number == 10 || number == 1) {
+    if (number == 9 || number == 1) {
         printf("Определитель матрицы A: %2.f\n", matrix_determinant(A));
     }
 }       
@@ -485,17 +477,16 @@ int main()
     printf("2. Сложение матриц A и B\n");
     printf("3. Разность матриц A и B\n");
     printf("4. Умножение матриц A и B\n");
-    printf("5. Умножения матрицы A на B транспонированную\n");
-    printf("6. Транспонированная матрицы A\n");
-    printf("7. Возведения матрицы A в степень p\n");
-    printf("8. Умножения матрицы A на число r\n");
-    printf("9. Экспонента матрицы A порядка o\n");
-    printf("10. Вычисление определителя матрицы A\n");
+    printf("5. Транспонированная матрицы A\n");
+    printf("6. Возведения матрицы A в степень p\n");
+    printf("7. Умножения матрицы A на число r\n");
+    printf("8. Экспонента матрицы A порядка o\n");
+    printf("9. Вычисление определителя матрицы A\n");
 
     size_t number;
     scanf("%zu", &number);
 
-    if (number < 1 || number > 10) {
+    if (number < 1 || number > 9) {
         printf("Такой операции нет\n");
         return EXIT_FAILURE;
     }
