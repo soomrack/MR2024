@@ -71,7 +71,7 @@ void fill_matrix_with_random(Matrix mat)
     int sign = 0;
     for (size_t i = 0; i < mat.cols * mat.rows; i++) {
         sign = (rand() % 2) * 2 - 1;
-        mat.data[i] = (double)(rand() % 8) * sing;
+        mat.data[i] = (double)(rand() % 8) * sign;
     }
 }
 
@@ -86,6 +86,8 @@ void create_identity_matrix(Matrix mat)
 // Вывод матрицы на экран
 void print_matrix(const Matrix mat) 
 {
+    if (mat.data == NULL) return;
+
     printf("\n");
     for (size_t row = 0; row < mat.rows; row++) {
         for (size_t col = 0; col < mat.cols; col++) {
@@ -96,9 +98,22 @@ void print_matrix(const Matrix mat)
     printf("\n");
 }
 
+// Проверка на нулевую матрицу
+static int matrix_is_zero(const Matrix mat) {
+    for(size_t idx = 0; idx < mat.rows * mat.cols; idx++) {
+        if(mat.data[idx] != 0) return 0;
+    }
+
+    return 1;
+}
+
 // Копирование одной матрицы в другую
 Matrix copy_matrix(Matrix dest, const Matrix src) 
 {
+    if (src.data == NULL) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
     if (dest.cols != src.cols || dest.rows != src.rows) {
         Matrix_exception(ERROR, "matrix dimensions do not match for copying");
         return (Matrix){0, 0, NULL};
@@ -110,6 +125,10 @@ Matrix copy_matrix(Matrix dest, const Matrix src)
 // Сложение двух матриц
 Matrix add_matrices(Matrix result, const Matrix A, const Matrix B) 
 {
+    if (A.data == NULL || B.data == NULL ) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
     if (A.cols != B.cols || A.rows != B.rows) {
         Matrix_exception(ERROR, "matrix dimensions do not match for addition");
         return (Matrix){0, 0, NULL};
@@ -123,6 +142,10 @@ Matrix add_matrices(Matrix result, const Matrix A, const Matrix B)
 // Вычитание матриц
 Matrix subtract_matrices(Matrix result, const Matrix A, const Matrix B) 
 {
+    if (A.data == NULL || B.data == NULL ) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
     if (A.cols != B.cols || A.rows != B.rows) {
         Matrix_exception(ERROR, "matrix dimensions do not match for subtraction");
         return (Matrix){0, 0, NULL};
@@ -136,6 +159,10 @@ Matrix subtract_matrices(Matrix result, const Matrix A, const Matrix B)
 // Умножение двух матриц
 Matrix multiply_matrices(Matrix result, const Matrix A, const Matrix B) 
 {
+    if (A.data == NULL || B.data == NULL ) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
     if (A.cols != B.rows) {
         Matrix_exception(ERROR, "matrix dimensions do not match for multiplication");
         return (Matrix){0, 0, NULL};
@@ -154,12 +181,23 @@ Matrix multiply_matrices(Matrix result, const Matrix A, const Matrix B)
 // Вычисление определителя методом Гаусса
 double determinant_matrix(Matrix mat) 
 {
+    if (mat.data == NULL ) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return NAN;
+    }
+
     if (mat.cols != mat.rows) {
         Matrix_exception(ERROR, "matrix must be square to compute determinant");
         return NAN;
     }
-
+    
     double det = 1;
+    
+    if (matrix_is_zero(mat) == 1){
+            det = 0;
+            return det;
+            }
+
     for (size_t col = 0; col < mat.cols; col++) {
         double max = fabs(mat.data[col * mat.cols + col]);
         size_t pivot_row = col;
@@ -172,12 +210,6 @@ double determinant_matrix(Matrix mat)
                 pivot_row = row;
             }
         }
-
-        // Если все элементы нулевые, определитель равен 0
-        if (fabs(max) < 1e-10) {
-            return 0.0;
-        }
-
         // Меняем строки местами
         if (pivot_row != col) {
             for (size_t k = 0; k < mat.cols; k++) {
@@ -206,10 +238,18 @@ double determinant_matrix(Matrix mat)
 // Возведение матрицы в степень
 Matrix involute_matrix(Matrix involution_res,const Matrix A, const unsigned  level)
 {
-	if(!((A.cols == A.rows))){
+    if (A.data == NULL) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
+	if(!((A.cols == A.rows))) {
     	Matrix_exception(ERROR, "matrix must be square to compute involution operation");
     	return (Matrix) {0,0,NULL};
 	}
+    if (matrix_is_zero(A) == 1 && level != 0){
+        fill_matrix_with_zeros(involution_res);
+        return involution_res;
+    }  
 	if (level == 0) {
         create_identity_matrix(involution_res);
         return involution_res;
@@ -227,8 +267,12 @@ Matrix involute_matrix(Matrix involution_res,const Matrix A, const unsigned  lev
 
 
 // Деление матрицы на число
-Matrix divide_matrix(struct Matrix divide_matrix, const struct Matrix A,const float divider)
+Matrix divide_matrix(struct Matrix divide_matrix, const struct Matrix A, const float divider)
 {
+    if (A.data == NULL) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
 	if(divider == 0){
     	Matrix_exception(ERROR, "The divider cant be = 0");
     	return (Matrix) {0,0,NULL};
@@ -251,6 +295,10 @@ static double factorial(int num)
 // Вычисление экспоненты матрицы 
 Matrix matrix_exponent(Matrix exponent_res,const Matrix A, const int  level)
 {
+    if (A.data == NULL) {
+        Matrix_exception(ERROR, "matrix is empty");
+        return (Matrix){0, 0, NULL};
+    }
 	if(!((A.cols == A.rows))){
     	Matrix_exception(ERROR, "matrix must be square to compute exponent operation");
     	return (Matrix) {0,0,NULL};
@@ -318,13 +366,13 @@ int main() {
     // Вычисление экспоненты матрицы A
     Matrix Exp_A = allocate_matrix(A.cols, A.rows);
     Exp_A = matrix_exponent(Exp_A, A, 20);
-    printf("Matrix Exponent:\n");
+    printf("Matrix A Exponent:\n");
     print_matrix(Exp_A);
 
     // Вычисление экспоненты матрицы A
     Matrix Exp_B = allocate_matrix(B.cols, B.rows);
     Exp_B = matrix_exponent(Exp_B, A, 20);
-    printf("Matrix Exponent:\n");
+    printf("Matrix B Exponent:\n");
     print_matrix(Exp_B);
 
 
