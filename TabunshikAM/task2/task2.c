@@ -38,7 +38,7 @@ Matrix allocate_matrix(const size_t cols, const size_t rows)
     
     if ((SIZE_MAX * sizeof(double)) / (rows * cols) < 1) {
         Matrix_exception(ERROR, "memory allocation overflow");
-        return (Matrix){0, 0, NULL};
+        return mat;
     }
     
     mat.cols = cols;
