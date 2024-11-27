@@ -15,10 +15,10 @@ struct Matrix
 
 typedef struct Matrix Matrix;
 
-// Уровни исключений для обработки ошибок
+
 enum matrix_exception_level {ERROR, WARNING};
 
-// Функция для обработки исключений
+
 void Matrix_exception(const enum matrix_exception_level level, char *msg) 
 {
     if (level == ERROR) {
@@ -29,8 +29,8 @@ void Matrix_exception(const enum matrix_exception_level level, char *msg)
     }
 }
 
-// Функция для выделения памяти под матрицу
-Matrix allocate_matrix(const size_t cols, const size_t rows) 
+
+Matrix matrix_allocate(const size_t cols, const size_t rows) 
 {
     Matrix mat = {0, 0, NULL};
     
@@ -51,40 +51,40 @@ Matrix allocate_matrix(const size_t cols, const size_t rows)
     return mat;
 }
 
-// Функция для освобождения памяти, выделенной под матрицу
-void free_matrix(Matrix* mat) 
+
+void matrix_free(Matrix* mat) 
 {
     if (mat == NULL || mat->data == NULL) return;
     free(mat->data);
     *mat = (Matrix){0, 0, NULL};
 }
 
-// Заполнение матрицы нулями
-void fill_matrix_with_zeros(Matrix mat) 
+// Заполнение матрицы нулями добавить проверк на 0 размер заменить числа на 1.0 indx на indx retern 0
+void matrix_set_zeros(Matrix mat) 
 {
-    memset(mat.data, 0, mat.cols * mat.rows * sizeof(double));
+    memset(mat.data, 0.0, mat.cols * mat.rows * sizeof(double));
 }
 
-// Заполнение матрицы случайными числами
+
 void fill_matrix_with_random(Matrix mat) 
 {
     int sign = 0;
-    for (size_t i = 0; i < mat.cols * mat.rows; i++) {
+    for (size_t indx = 0; indx < mat.cols * mat.rows; indx++) {
         sign = (rand() % 2) * 2 - 1;
-        mat.data[i] = (double)(rand() % 8) * sign;
+        mat.data[indx] = (double)(rand() % 8) * sign;
     }
 }
 
-// Создание единичной матрицы
-void create_identity_matrix(Matrix mat) 
+
+void matrix_set_identity(Matrix mat) 
 {
-    fill_matrix_with_zeros(mat);
-    for (size_t idx = 0; idx < mat.cols * mat.rows; idx += mat.cols + 1)
-        mat.data[idx] = 1;
+    matrix_set_zeros(mat);
+    for (size_t indx = 0; indx < mat.cols * mat.rows; indx += mat.cols + 1)
+        mat.data[indx] = 1;
 }
 
-// Вывод матрицы на экран
-void print_matrix(const Matrix mat) 
+
+void matrix_print(const Matrix mat) 
 {
     if (mat.data == NULL) return;
 
@@ -98,17 +98,17 @@ void print_matrix(const Matrix mat)
     printf("\n");
 }
 
-// Проверка на нулевую матрицу
+
 static int matrix_is_zero(const Matrix mat) {
-    for(size_t idx = 0; idx < mat.rows * mat.cols; idx++) {
-        if(mat.data[idx] != 0) return 0;
+    for(size_t indx = 0; indx < mat.rows * mat.cols; indx++) {
+        if(mat.data[indx] != 0) return 0;
     }
 
     return 1;
 }
 
-// Копирование одной матрицы в другую
-Matrix copy_matrix(Matrix dest, const Matrix src) 
+
+Matrix matrix_copy(Matrix dest, const Matrix src) 
 {
     if (src.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
@@ -122,10 +122,10 @@ Matrix copy_matrix(Matrix dest, const Matrix src)
     return dest;
 }
 
-// Сложение двух матриц
-Matrix add_matrices(Matrix result, const Matrix A, const Matrix B) 
+
+Matrix matrix_sum(Matrix result, const Matrix A, const Matrix B) 
 {
-    if (A.data == NULL || B.data == NULL ) {
+    if (A.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
         return (Matrix){0, 0, NULL};
     }
@@ -133,16 +133,16 @@ Matrix add_matrices(Matrix result, const Matrix A, const Matrix B)
         Matrix_exception(ERROR, "matrix dimensions do not match for addition");
         return (Matrix){0, 0, NULL};
     }
-    for (size_t i = 0; i < A.cols * A.rows; i++) {
-        result.data[i] = A.data[i] + B.data[i];
+    for (size_t indx = 0; indx < A.cols * A.rows; indx++) {
+        result.data[indx] = A.data[indx] + B.data[indx];
     }
     return result;
 }
 
-// Вычитание матриц
-Matrix subtract_matrices(Matrix result, const Matrix A, const Matrix B) 
+
+Matrix matrix_subtract(Matrix result, const Matrix A, const Matrix B) 
 {
-    if (A.data == NULL || B.data == NULL ) {
+    if (A.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
         return (Matrix){0, 0, NULL};
     }
@@ -150,16 +150,16 @@ Matrix subtract_matrices(Matrix result, const Matrix A, const Matrix B)
         Matrix_exception(ERROR, "matrix dimensions do not match for subtraction");
         return (Matrix){0, 0, NULL};
     }
-    for (size_t i = 0; i < A.cols * A.rows; i++) {
-        result.data[i] = A.data[i] - B.data[i];
+    for (size_t indx = 0; indx < A.cols * A.rows; indx++) {
+        result.data[indx] = A.data[indx] - B.data[indx];
     }
     return result;
 }
 
-// Умножение двух матриц
-Matrix multiply_matrices(Matrix result, const Matrix A, const Matrix B) 
+
+Matrix matrix_multiply(Matrix result, const Matrix A, const Matrix B) 
 {
-    if (A.data == NULL || B.data == NULL ) {
+    if (A.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
         return (Matrix){0, 0, NULL};
     }
@@ -167,7 +167,7 @@ Matrix multiply_matrices(Matrix result, const Matrix A, const Matrix B)
         Matrix_exception(ERROR, "matrix dimensions do not match for multiplication");
         return (Matrix){0, 0, NULL};
     }
-    fill_matrix_with_zeros(result);
+    matrix_set_zeros(result);
     for (size_t col = 0; col < B.cols; col++) {
         for (size_t row = 0; row < A.rows; row++) {
             for (size_t k = 0; k < B.rows; k++) {
@@ -178,8 +178,8 @@ Matrix multiply_matrices(Matrix result, const Matrix A, const Matrix B)
     return result;
 }
 
-// Вычисление определителя методом Гаусса
-double determinant_matrix(Matrix mat) 
+
+double matrix_determinant(Matrix mat) 
 {
     if (mat.data == NULL ) {
         Matrix_exception(ERROR, "matrix is empty");
@@ -191,18 +191,15 @@ double determinant_matrix(Matrix mat)
         return NAN;
     }
     
-    double det = 1;
+    double det = 1.0;
     
-    if (matrix_is_zero(mat) == 1){
-            det = 0;
-            return det;
-            }
+    if (matrix_is_zero(mat)) return 0;
 
     for (size_t col = 0; col < mat.cols; col++) {
         double max = fabs(mat.data[col * mat.cols + col]);
         size_t pivot_row = col;
 
-        // Поиск строки с максимальным элементом в текущем столбце
+
         for (size_t row = col + 1; row < mat.rows; row++) {
             double value = fabs(mat.data[row * mat.cols + col]);
             if (value > max) {
@@ -210,17 +207,17 @@ double determinant_matrix(Matrix mat)
                 pivot_row = row;
             }
         }
-        // Меняем строки местами
+
         if (pivot_row != col) {
             for (size_t k = 0; k < mat.cols; k++) {
                 double temp = mat.data[col * mat.cols + k];
                 mat.data[col * mat.cols + k] = mat.data[pivot_row * mat.cols + k];
                 mat.data[pivot_row * mat.cols + k] = temp;
             }
-            det *= -1; 
+            det *= -1.0; 
         }
 
-        // Прямой ход метода Гаусса
+
         for (size_t row = col + 1; row < mat.rows; row++) {
             double factor = mat.data[row * mat.cols + col] / mat.data[col * mat.cols + col];
             for (size_t k = col; k < mat.cols; k++) {
@@ -228,15 +225,15 @@ double determinant_matrix(Matrix mat)
             }
         }
 
-        // Умножаем на диагональный элемент
+
         det *= mat.data[col * mat.cols + col];
     }
 
     return det;
 }
 
-// Возведение матрицы в степень
-Matrix involute_matrix(Matrix involution_res,const Matrix A, const unsigned  level)
+
+Matrix matrix_involute(const Matrix involution_res,const Matrix A, const unsigned level)
 {
     if (A.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
@@ -246,28 +243,28 @@ Matrix involute_matrix(Matrix involution_res,const Matrix A, const unsigned  lev
     	Matrix_exception(ERROR, "matrix must be square to compute involution operation");
     	return (Matrix) {0,0,NULL};
 	}
-    if (matrix_is_zero(A) == 1 && level != 0){
-        fill_matrix_with_zeros(involution_res);
+	if (level == 0) {
+        matrix_set_identity(involution_res);
+        return involution_res;
+    }    
+    if (matrix_is_zero(A) == 1){
+        matrix_set_zeros(involution_res);
         return involution_res;
     }  
-	if (level == 0) {
-        create_identity_matrix(involution_res);
-        return involution_res;
-    }
-    copy_matrix(involution_res, A);
-    Matrix C = allocate_matrix(A.cols,A.rows);
+    matrix_copy(involution_res, A);
+    Matrix C = matrix_allocate(A.cols,A.rows);
     for (size_t idx = 1; idx < level; idx++) {
-    	fill_matrix_with_zeros(C);
-        C = multiply_matrices(C, involution_res, A);
-        copy_matrix(involution_res, C);
+        matrix_free(&C);
+        C = matrix_multiply(C, involution_res, A);
+        matrix_copy(involution_res, C);
     }
-    free_matrix(&C);
+    matrix_free(&C);
     return involution_res;
 }
 
 
-// Деление матрицы на число
-Matrix divide_matrix(struct Matrix divide_matrix, const struct Matrix A, const float divider)
+
+Matrix matrix_divide(struct Matrix matrix_divide, const struct Matrix A, const double divider)
 {
     if (A.data == NULL) {
         Matrix_exception(ERROR, "matrix is empty");
@@ -277,22 +274,22 @@ Matrix divide_matrix(struct Matrix divide_matrix, const struct Matrix A, const f
     	Matrix_exception(ERROR, "The divider cant be = 0");
     	return (Matrix) {0,0,NULL};
 	}
-	for(size_t idx = 0; idx < A.cols * A.rows; idx++) {
-        divide_matrix.data[idx] = A.data[idx] / divider;    
+	for(size_t indx = 0; indx < A.cols * A.rows; indx++) {
+        matrix_divide.data[indx] = A.data[indx] / divider;    
     }
-    return divide_matrix;
+    return matrix_divide;
 }
 
-// Вычисление факториала 
+
 static double factorial(int num) 
 {
     double f = 1;
     if(num == 0) return f;
-	for(double i = 1; i <= num; i++)f *= i;
+	for(double indx = 1; indx <= num; indx++)f *= indx;
     return f;
 }
 
-// Вычисление экспоненты матрицы 
+
 Matrix matrix_exponent(Matrix exponent_res,const Matrix A, const int  level)
 {
     if (A.data == NULL) {
@@ -304,15 +301,15 @@ Matrix matrix_exponent(Matrix exponent_res,const Matrix A, const int  level)
     	return (Matrix) {0,0,NULL};
 	}
 	
-	Matrix D = allocate_matrix(A.rows, A.cols);
+	Matrix D = matrix_allocate(A.rows, A.cols);
 	
 	for (int idx = 0; idx <= level; idx++){
-		copy_matrix(D, A);             
-		involute_matrix(D, A, idx);
-		divide_matrix(D, D, factorial(idx));
-		exponent_res = add_matrices(exponent_res, exponent_res, D);
+		matrix_copy(D, A);             
+		matrix_involute(D, A, idx);
+		matrix_divide(D, D, factorial(idx));
+		exponent_res = matrix_sum(exponent_res, exponent_res, D);
 	}                                 
-	free_matrix(&D);                 
+	matrix_free(&D);                 
     return exponent_res;
 }
 
@@ -321,69 +318,69 @@ int main() {
 
     srand(time(NULL));
 
-    Matrix A = allocate_matrix(2, 2);
+    Matrix A = matrix_allocate(3, 3);
     fill_matrix_with_random(A);
 
-    Matrix B = allocate_matrix(2, 2);
+    Matrix B = matrix_allocate(3, 3);
     fill_matrix_with_random(B);
 
     printf("Matrix A:\n");
-    print_matrix(A);
+    matrix_print(A);
 
     printf("Matrix B:\n");
-    print_matrix(B);
+    matrix_print(B);
 
     // Сложение матриц
-    Matrix sum = allocate_matrix(A.cols, A.rows);
-    sum = add_matrices(sum, A, B);
+    Matrix sum = matrix_allocate(A.cols, A.rows);
+    sum = matrix_sum(sum, A, B);
     printf("Matrix Sum:\n");
-    print_matrix(sum);
+    matrix_print(sum);
 
     // Вычитание матриц
-    Matrix diff = allocate_matrix(A.cols, A.rows);
-    diff = subtract_matrices(diff, A, B);
+    Matrix diff = matrix_allocate(A.cols, A.rows);
+    diff = matrix_subtract(diff, A, B);
     printf("Matrix Difference:\n");
-    print_matrix(diff);
+    matrix_print(diff);
 
     // Умножение матриц
-    Matrix Mult = allocate_matrix(B.cols, A.rows);
-    Mult = multiply_matrices(Mult, A, B);
+    Matrix Mult = matrix_allocate(B.cols, A.rows);
+    Mult = matrix_multiply(Mult, A, B);
     printf("Matrix Multiply:\n");
-    print_matrix(Mult);
+    matrix_print(Mult);
 
     // Вычисление определителя A
-    Matrix temp_for_det_A = allocate_matrix(A.cols, A.rows);
-    copy_matrix(temp_for_det_A, A);
-    double det_A = determinant_matrix(temp_for_det_A);
+    Matrix temp_for_det_A = matrix_allocate(A.cols, A.rows);
+    matrix_copy(temp_for_det_A, A);
+    double det_A = matrix_determinant(temp_for_det_A);
     printf("Determinant of A: %lf\n", det_A);
     
     // Вычисление определителя B
-    Matrix temp_for_det_B = allocate_matrix(B.cols, B.rows);
-    copy_matrix(temp_for_det_B, B);
-    double det_B = determinant_matrix(temp_for_det_B);
+    Matrix temp_for_det_B = matrix_allocate(B.cols, B.rows);
+    matrix_copy(temp_for_det_B, B);
+    double det_B = matrix_determinant(temp_for_det_B);
     printf("Determinant of B: %lf\n", det_B);
     
     // Вычисление экспоненты матрицы A
-    Matrix Exp_A = allocate_matrix(A.cols, A.rows);
+    Matrix Exp_A = matrix_allocate(A.cols, A.rows);
     Exp_A = matrix_exponent(Exp_A, A, 20);
     printf("Matrix A Exponent:\n");
-    print_matrix(Exp_A);
+    matrix_print(Exp_A);
 
     // Вычисление экспоненты матрицы A
-    Matrix Exp_B = allocate_matrix(B.cols, B.rows);
+    Matrix Exp_B = matrix_allocate(B.cols, B.rows);
     Exp_B = matrix_exponent(Exp_B, A, 20);
     printf("Matrix B Exponent:\n");
-    print_matrix(Exp_B);
+    matrix_print(Exp_B);
 
 
-    free_matrix(&A);
-    free_matrix(&B);
-    free_matrix(&sum);
-    free_matrix(&diff);
-    free_matrix(&Mult);
-    free_matrix(&temp_for_det_A);
-    free_matrix(&temp_for_det_B);
-    free_matrix(&Exp_A);
-    free_matrix(&Exp_B);
+    matrix_free(&A);
+    matrix_free(&B);
+    matrix_free(&sum);
+    matrix_free(&diff);
+    matrix_free(&Mult);
+    matrix_free(&temp_for_det_A);
+    matrix_free(&temp_for_det_B);
+    matrix_free(&Exp_A);
+    matrix_free(&Exp_B);
     return 0;
 }
