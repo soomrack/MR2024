@@ -155,7 +155,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
     return C;
 }
 
-// C = A - B
+
 Matrix matrix_sub(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
@@ -256,9 +256,14 @@ Matrix matrix_get_submatrix(Matrix A, size_t row_to_exclude, size_t col_to_exclu
 double matrix_det(const Matrix A)
 {
 	if (A.cols != A.rows) {
-        matrix_exception(ERROR, "Unable to get determinant: Matrix is not square \n");
-        return NAN;
-    }
+       	 	matrix_exception(ERROR, "Unable to get determinant: Matrix is not square \n");
+        	return NAN;
+    	}
+
+	if(A.cols == 0) {
+		matrix_exception(ERROR, "Unable to get determinant: Matrix is 0 cols/rows \n");
+        	return NAN;
+	}
 
 	if (A.cols == 1) {
 		return A.data[0];
