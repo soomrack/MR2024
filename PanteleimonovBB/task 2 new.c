@@ -223,7 +223,7 @@ Matrix matrix_power(const Matrix A, size_t power)
         matrix_memory_free(&C);
         C = tmp;
     }
-
+    matrix_memory_free(&tmp);
     return C;
 }
 
