@@ -24,11 +24,16 @@ const int BEEP_DURATION = 100;
 
 const int STOP_TIMEOUT = 5000;  // Miliseconds
 const int SEARCH_TIMEOUT = 10;  // Seconds
-
+const int MOVEMENT_CHANGE_TIMEOUT = 1;
 
 int line_search_speed = 100;
-int stop_flag  = 0;
-unsigned long search_time = -1;
+int stop_flag = 0;
+int search_move = -1;
+
+unsigned long start_move_time = -1;
+unsigned long search_start_time = -1;
+unsigned long beep_start_time = -1;
+
 
 void init_motors()
 {
@@ -94,48 +99,75 @@ int reed_color_sensor(const int sensor_pin)
 }
 
 
-void make_beep()  // Звуковое сопровождение
+void make_beep()
 {
-    for(int i = 0; i < BEEP_COUNT; i++)
-    {
-      tone(PIN_5_BEEP, BEEP_TONE);
-      delay(BEEP_DURATION);
-      noTone(PIN_5_BEEP);
-    }
+  unsigned long current_time = millis();
+
+  if (search_start_time == -1) { beep_start_time = current_time; }
+
+  if (current_time - beep_start_time < BEEP_DURATION) {
+    tone(PIN_5_BEEP, BEEP_TONE);
+    noTone(PIN_5_BEEP);
+  }
 }
 
 
 void reset_search_time()
 {
-  search_time = -1;
+  search_start_time = -1;
+}
+
+void reset_search_move_time()
+{
+  start_move_time = -1;
+}
+
+
+void increase_speed()
+{
+  line_search_speed += SPEED_INCREMENT;
+  if (line_search_speed >= MAX_SPEED) { line_search_speed = MAX_SPEED; }
 }
 
 
 void stop_motors()
 {
   move_motors(0, 0);
+  make_beep();
+}
 
+
+void make_movement(const unsigned long current_time) 
+{
+
+  if (search_start_time == -1) {
+    search_start_time = current_time;
+  }
+  else if (current_time - start_move_time >= MOVEMENT_CHANGE_TIMEOUT) {
+    search_move = -search_move; 
+    start_move_time = current_time;
+  }
+
+  if (search_move == -1) {
+    move_left(MAX_SPEED, MAX_SPEED);
+  }
+  else {
+    move_forward(line_search_speed);
+  }
+  increase_speed();
 }
 
 
 void search_for_line() {
   unsigned long current_time = millis();
 
-  if (search_time == -1) { search_time = current_time; }
+  if (search_start_time == -1) { search_start_time = current_time; }
 
-  unsigned long elapsed_time = current_time - search_time;
-
-  if (elapsed_time < SEARCH_TIMEOUT) {
-    move_left(MAX_SPEED, MAX_SPEED);
-  } 
-  else if (elapsed_time < 2 * SEARCH_TIMEOUT) {
-    move_forward(line_search_speed);
+  if (current_time - search_start_time < SEARCH_TIMEOUT) {
+    make_movement(current_time);
   }
 
-  line_search_speed += SPEED_INCREMENT;
-
-  if (line_search_speed >= MAX_SPEED) { line_search_speed = MAX_SPEED; }
-  if (current_time - search_time > STOP_TIMEOUT) { stop_flag = 1; }
+  if (current_time - search_start_time > STOP_TIMEOUT) { stop_flag = 1; }
 }
 
 
@@ -150,14 +182,17 @@ void setup()
 void loop() {
   if (reed_color_sensor(A0) > COLOR_THRESHOLD && reed_color_sensor(A1) > COLOR_THRESHOLD) {
     reset_search_time();
+    reset_search_move_time();
     move_forward(FORWARD_SPEED);
   } 
   else if (reed_color_sensor(A1) > COLOR_THRESHOLD && reed_color_sensor(A0) < COLOR_THRESHOLD) {
     reset_search_time();
+    reset_search_move_time();
     move_left(FAST_SIDE_TURN_SPEED, SLOW_SIDE_TURN_SPEED);
   } 
   else if (reed_color_sensor(A0) > COLOR_THRESHOLD && reed_color_sensor(A1) < COLOR_THRESHOLD) {
     reset_search_time();
+    reset_search_move_time();
     move_right(SLOW_SIDE_TURN_SPEED, FAST_SIDE_TURN_SPEED);
   } 
   else if (stop_flag == 0){
