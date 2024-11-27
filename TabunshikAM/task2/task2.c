@@ -68,8 +68,10 @@ void fill_matrix_with_zeros(Matrix mat)
 // Заполнение матрицы случайными числами
 void fill_matrix_with_random(Matrix mat) 
 {
+    int sign = 0;
     for (size_t i = 0; i < mat.cols * mat.rows; i++) {
-        mat.data[i] = (double)(rand() % 8);
+        sign = (rand() % 2) * 2 - 1;
+        mat.data[i] = (double)(rand() % 8) * sing;
     }
 }
 
