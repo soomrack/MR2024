@@ -304,7 +304,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 
 int main() 
 {
-    Matrix A = matrix_alloc(3,3);
+    Matrix A = matrix_alloc(3, 3);
     Matrix B = matrix_alloc(3, 3);
 
     double data_A[9] = {2, 4, 9, 1, 4, 3, 0, 1, 3};
