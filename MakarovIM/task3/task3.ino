@@ -56,17 +56,6 @@ void turn(int right, int left, int speed)
         analogWrite(LEFT_SPEED, speed);
 }
 
-void play_sound()
-{
-    const unsigned long sound_duration = 500; // Duration of the sound in milliseconds
-    unsigned long start_time = millis();
-    
-    while (millis() - start_time < sound_duration) {
-        digitalWrite(SOUND, HIGH);
-    }
-    
-    digitalWrite(SOUND, LOW);
-}
 
 void search()
 {
