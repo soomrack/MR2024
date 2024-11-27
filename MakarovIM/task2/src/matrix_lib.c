@@ -6,6 +6,14 @@
 #include <stddef.h>
 #include "matrix_lib.h"
 #include <limits.h>
+#include <stdint.h>
+
+bool pointer_on_matrix_is_null(const Matrix* M)
+{
+    if (M == NULL) {
+        return MAT_UNINITIALIZED_ERR;
+    }
+}  
 
 
 bool matrix_is_empty(const Matrix M) 
@@ -48,10 +56,13 @@ double matrix_get(const Matrix M, size_t row, size_t col)
 
 void matrix_free(Matrix* M) 
 {
-    if (M->data) {
-        free(M->data);
-        M->data = NULL;
+    if(M == NULL) {
+        matrix_log(ERROR, __func__, "Передан NULL указатель\n");
+        return;
     }
+
+    free(M->data);
+    *M = (Matrix) {0, 0, NULL};
 }
 
 
@@ -89,14 +100,19 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     Matrix M;
     
     if (rows == 0 || cols == 0) {
-        matrix_log(ERROR, __func__, "Матрица содержит 0 столбцов или строк");
-        return (Matrix) {0, 0, NULL}; 
+        matrix_log(ERROR, __func__, "Матрица содержит 0 столбцов или строк\n");
+        return (Matrix) {rows, cols, NULL}; 
+    }
+
+    if (rows >= SIZE_MAX / sizeof(double) / cols) {
+		return (Matrix) {0, 0, NULL};
     }
 
     M.data = malloc(rows * cols * sizeof(double));
+
     if (M.data == NULL) {
-        matrix_log(ERROR, __func__, "Сбой выделения памяти");
-        return (Matrix) {0, 0, NULL}; 
+        matrix_log(ERROR, __func__, "Сбой выделения памяти\n");
+        return (Matrix) {rows, cols, NULL}; 
     }
 
     M.rows = rows;
@@ -105,40 +121,84 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
 }
 
 
+MatrixStatus matrix_zero(Matrix* M)
+{
+    if (matrix_is_empty(*M)) {
+        matrix_log(WARNING, __func__, "Матрица пустая\n");
+        return MAT_OK;
+    }
+
+    memset(M->data, 0, M->rows * M->cols * sizeof(double));
+
+    return MAT_OK;
+}
+
+
 Matrix matrix_identity(size_t size) 
 {
     Matrix I = matrix_allocate(size, size);
-    if (I.data == NULL) {
-        matrix_log(ERROR, __func__, "Ошибка выделения памяти");
-        return (Matrix){0, 0, NULL};
-    }
 
-    for (size_t row = 0; row < size; ++row) {
-        for (size_t col = 0; col < size; ++col) {
-            if (row == col) {
-                I.data[row * size + col] = 1.0; 
-            } else {
-                I.data[row * size + col] = 0.0; 
-            }
-        }
+    matrix_zero(&I);
+    for (size_t idx = 0; idx < I.rows * I.cols; idx += I.cols + 1) {
+        I.data[idx] = 1.0;
     }
     return I;
 }
 
 
-MatrixStatus matrix_copy(const Matrix src, Matrix* dest) 
+MatrixStatus matrix_copy(Matrix* dest, const Matrix src) 
 {
-    if (dest->rows != src.rows || dest->cols != src.cols) {
-        matrix_log(ERROR, __func__, "Размеры матриц не совпадают при копировании");
+    if (!(pointer_on_matrix_is_null(dest))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу dest NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+    if (!matrix_equal_size(src, *dest)) {
+        matrix_log(ERROR, __func__, "Размеры матриц не совпадают при копировании\n");
         return MAT_DIMENSION_ERR;
     }
+    if (matrix_is_empty(src)) {
+        matrix_log(ERROR, __func__, "Матрица src пустая\n");
+        return MAT_OK;
+    }
+
+
     memcpy(dest->data, src.data, src.rows * src.cols * sizeof(double));
     return MAT_OK;
 }
 
 
-MatrixStatus matrix_sum(const Matrix A, const Matrix B, Matrix* result) 
+MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
+    if (!matrix_equal_size(A, B)) {
+        matrix_log(ERROR, __func__, "Матрицы должны быть одинаковых измерений\n");
+        return MAT_DIMENSION_ERR;
+    }
+
+    *result = matrix_allocate(A.rows, A.cols);
+    if (result->data == NULL) {
+        return MAT_MEMORY_ERR;
+    }
+
+    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        result->data[idx] = A.data[idx] + B.data[idx];
+    }
+
+    return MAT_OK;
+}
+
+
+MatrixStatus matrix_subtract(Matrix* result, const Matrix A, const Matrix B) 
+{
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_equal_size(A, B)) {
         matrix_log(ERROR, __func__, "Матрицы должны быть одинаковых измерений");
         return MAT_DIMENSION_ERR;
@@ -146,54 +206,35 @@ MatrixStatus matrix_sum(const Matrix A, const Matrix B, Matrix* result)
 
     *result = matrix_allocate(A.rows, A.cols);
     if (result->data == NULL) {
-        matrix_log(ERROR, __func__, "Ошибка выделения памяти");
         return MAT_MEMORY_ERR;
     }
 
-    for (size_t row = 0; row < A.rows; ++row) {
-        for (size_t col = 0; col < A.cols; ++col) {
-            result->data[row * result->cols + col] = matrix_get(A, row, col) + matrix_get(B, row, col);
-        }
+    for (size_t idx = 0; idx < A.rows * A.cols; ++idx) {
+        result->data[idx] = A.data[idx] - B.data[idx];
     }
+
     return MAT_OK;
 }
 
 
-MatrixStatus matrix_subtract(const Matrix A, const Matrix B, Matrix* result) 
+MatrixStatus matrix_multiply(Matrix* result, const Matrix A, const Matrix B) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_equal_size(A, B)) {
-        matrix_log(ERROR, __func__, "Матрицы должны быть одинаковых измерений");
-        return MAT_DIMENSION_ERR;
-    }
-
-    *result = matrix_allocate(A.rows, A.cols);
-    if (result->data == NULL) {
-        matrix_log(ERROR, __func__, "Ошибка выделения памяти");
-        return MAT_MEMORY_ERR;
-    }
-
-    for (size_t row = 0; row < A.rows; ++row) {
-        for (size_t col = 0; col < A.cols; ++col) {
-            result->data[row * result->cols + col] = matrix_get(A, row, col) - matrix_get(B, row, col);
-        }
-    }
-    return MAT_OK;
-}
-
-
-MatrixStatus matrix_multiply(const Matrix A, const Matrix B, Matrix* result) 
-{
-    if (A.cols != B.rows) {
         matrix_log(ERROR, __func__, "Измерения матриц не пригодны для умножения");
         return MAT_DIMENSION_ERR;
     }
 
     *result = matrix_allocate(A.rows, B.cols);
     if (result->data == NULL) {
-        matrix_log(ERROR, __func__, "Ошибка выделения памяти");
         return MAT_MEMORY_ERR;
     }
-
+    
+    matrix_zero(result);
     for (size_t row = 0; row < A.rows; ++row) {
         for (size_t col = 0; col < B.cols; ++col) {
             for (size_t k = 0; k < A.cols; ++k) {
@@ -205,26 +246,33 @@ MatrixStatus matrix_multiply(const Matrix A, const Matrix B, Matrix* result)
 }
 
 
-MatrixStatus matrix_scalar_multiply(Matrix M, double scalar, Matrix* result) 
+MatrixStatus matrix_scalar_multiply(Matrix* result, Matrix M, double scalar) 
 {
-
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+    
     *result = matrix_allocate(M.rows, M.cols);
     if (result->data == NULL) {
         return MAT_MEMORY_ERR;
     }
 
-    for (size_t row = 0; row < M.rows; ++row) {
-        for (size_t col = 0; col < M.cols; ++col) {
-            result->data[row * M.cols + col] = M.data[row * M.cols + col] * scalar;
-        }
+    for (size_t idx = 0; idx < M.rows * M.cols; ++idx) {
+        result->data[idx] = M.data[idx] * scalar;
     }
 
     return MAT_OK;
 }
 
 
-MatrixStatus matrix_transpose(const Matrix M,  Matrix* result) 
+MatrixStatus matrix_transpose(Matrix* result, const Matrix M) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+    
     *result = matrix_allocate(M.rows, M.cols);
     for (size_t row = 0; row < M.rows; ++row) {
         for (size_t col = 0; col < M.cols; ++col) {
@@ -238,7 +286,7 @@ MatrixStatus matrix_transpose(const Matrix M,  Matrix* result)
 double matrix_determinant(const Matrix M) 
 {
     if (!matrix_is_square(M)) {
-        matrix_log(ERROR, __func__, "Определитель может быть вычислен только для квадратных матриц");
+        matrix_log(ERROR, __func__, "Определитель может быть вычислен только для квадратных матриц\n");
         return NAN; 
     }
 
@@ -257,7 +305,6 @@ double matrix_determinant(const Matrix M)
         return M.data[0] * M.data[3] - M.data[1] * M.data[2];
     }
 
-    // Рекурсивное вычисление определителя для больших матриц
     if (M.rows == 3) {
         det = M.data[0] * M.data[4] * M.data[8] 
             + M.data[1] * M.data[5] * M.data[6] 
@@ -267,12 +314,20 @@ double matrix_determinant(const Matrix M)
             - M.data[0] * M.data[5] * M.data[7];
         return det;
     }
+
+    matrix_log(WARNING, __func__, "Определитель может быть вычислен только для третьего порядка и ниже!!!\n");
+
     return NAN;
 }
 
 
-MatrixStatus matrix_power(const Matrix M, int power,  Matrix* result) 
+MatrixStatus matrix_power(Matrix* result, const Matrix M, int power) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_is_square(M)) {
         matrix_log(ERROR, __func__, "В степень возводятся только квадратные матрицы");
         return MAT_DIMENSION_ERR; 
@@ -285,7 +340,7 @@ MatrixStatus matrix_power(const Matrix M, int power,  Matrix* result)
 
     for (int p = 0; p < power; ++p) {
         Matrix temp;
-        if (matrix_multiply(*result, M, &temp) == MAT_OK) {
+        if (matrix_multiply(&temp, *result, M) == MAT_OK) {
             matrix_free(result);
             *result = temp;
         } else {
@@ -298,18 +353,18 @@ MatrixStatus matrix_power(const Matrix M, int power,  Matrix* result)
 }
 
 
-unsigned long long factorial(unsigned int n) 
+double factorial(unsigned int n) 
 {
     if (n > 20) { 
         matrix_log(ERROR, __func__, "Факториал слишком велик для вычисления (n > 20)\n");
-        return 0; 
+        return NAN; 
     }
 
     if (n == 0 || n == 1) {
         return 1; // Факториал 0 и 1 равен 1
     }
 
-    unsigned long long result = 1;
+    double result = 1;
 
     for (unsigned int idx = 2; idx <= n; ++idx) {
         result *= idx;
@@ -319,8 +374,13 @@ unsigned long long factorial(unsigned int n)
 }
 
 
-MatrixStatus matrix_exponent(const Matrix A, unsigned int num, Matrix* result) 
+MatrixStatus matrix_exponent(Matrix* result, const Matrix A, unsigned int num) 
 {
+    if (!(pointer_on_matrix_is_null(result))) {
+        matrix_log(ERROR, __func__, "Указатель на матрицу result NULL\n");
+        return MAT_UNINITIALIZED_ERR;
+    }
+
     if (!matrix_is_square(A)) {
         matrix_log(WARNING, __func__, "Матрица должна быть квадратной для вычисления экспоненты");
         return MAT_DIMENSION_ERR;
@@ -331,14 +391,14 @@ MatrixStatus matrix_exponent(const Matrix A, unsigned int num, Matrix* result)
         return MAT_MEMORY_ERR; 
     }
 
-    if (num == 1) {
-        return MAT_OK; // Если степень равна 1, результат уже в result
+    if (num == 0 || num == 1) {
+        return MAT_OK; // Если степень равна 0 или 1, результат уже в result
     }
 
     for (size_t cur_num = 1; cur_num < num; ++cur_num) {
         Matrix tmp;
 
-        MatrixStatus power_status = matrix_power(A, cur_num, &tmp);
+        MatrixStatus power_status = matrix_power(&tmp, A, cur_num);
         if (power_status != MAT_OK) {
             matrix_free(result);
             return MAT_INTERNAL_ERR;
@@ -346,7 +406,7 @@ MatrixStatus matrix_exponent(const Matrix A, unsigned int num, Matrix* result)
 
         Matrix scaled_tmp;
 
-        MatrixStatus scale_status = matrix_scalar_multiply(tmp, 1.0 / factorial(cur_num), &scaled_tmp);
+        MatrixStatus scale_status = matrix_scalar_multiply(&scaled_tmp, tmp, 1.0 / factorial(cur_num));
         matrix_free(&tmp); 
         if (scale_status != MAT_OK) {
             matrix_free(result);
@@ -355,7 +415,7 @@ MatrixStatus matrix_exponent(const Matrix A, unsigned int num, Matrix* result)
 
         Matrix new_E;
 
-        MatrixStatus sum_status = matrix_sum(*result, scaled_tmp, &new_E);
+        MatrixStatus sum_status = matrix_sum(&new_E, *result, scaled_tmp);
         matrix_free(&scaled_tmp); 
 
         if (sum_status != MAT_OK) {
@@ -369,7 +429,3 @@ MatrixStatus matrix_exponent(const Matrix A, unsigned int num, Matrix* result)
 
     return MAT_OK; 
 }
-
-
-// numbers == &numbers[0]
-// *numbers == numbers[0]

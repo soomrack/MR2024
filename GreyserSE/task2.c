@@ -48,7 +48,7 @@ Matrix matrix_init(const size_t rows, const size_t cols)
     Matrix A;
     A.rows = rows; 
     A.cols = cols;
-    A.data = (MatrixItem*) malloc(sizeof(MatrixItem) * A.rows * A.cols);
+    A.data = (MatrixItem*)malloc(sizeof(MatrixItem) * A.rows * A.cols);
     
     if(A.data == NULL) {
         matrix_exception(ERROR, "Memory allocation failed \n");
@@ -61,7 +61,8 @@ Matrix matrix_init(const size_t rows, const size_t cols)
 
 void matrix_free(Matrix* matrix)
 {
-	free(matrix->data);
+	
+    free(matrix->data);
 	*matrix = MATRIX_NULL;
 }
 
@@ -101,7 +102,6 @@ void matrix_copy(const Matrix B, const Matrix A)
 void matrix_set_zeros(const Matrix A)
 {
     if (A.data == NULL) {
-        matrix_exception(ERROR, "Unable to set zeros: Matrix data is NULL \n");
         return;    
     }
 
@@ -116,17 +116,11 @@ Matrix matrix_ident(size_t rows, size_t cols)
         return MATRIX_NULL;
     } 
     
-    Matrix A = matrix_init(rows, cols);
-
-    if (A.data == NULL) {
-        matrix_exception(ERROR, "Unable to make identity matrix: Data of source matrix is NULL \n");
-        return A;
-    }   
+    Matrix A = matrix_init(rows, cols); 
 
     matrix_set_zeros(A);  
 
-    for (size_t idx = 0; idx < A.rows * A.cols; idx += A.cols + 1)
-    {
+    for (size_t idx = 0; idx < A.rows * A.cols; idx += A.cols + 1) {
         A.data[idx] = 1.;
     }
     return A;
@@ -141,12 +135,12 @@ void matrix_add(Matrix A, const Matrix B)
         return;
     }
 
-    if (A.data == NULL || B.data == NULL)
+    if (A.data == NULL || B.data == NULL) {
         matrix_exception(ERROR, "Unable to add: Matrix data is NULL \n");
 		return;
+    }
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++)
-    {
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] += B.data[idx];
     }
 }
@@ -160,33 +154,37 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
         return MATRIX_NULL;
     } 
 
-    if (A.data == NULL || B.data == NULL)
+    if (A.data == NULL || B.data == NULL) {
 		matrix_exception(ERROR, "Unable to sum: Matrix data is NULL \n");
         return MATRIX_NULL;
-    
+    }
+
     Matrix C = matrix_init(A.rows, A.cols);
 
-    for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
-        C.data[idx] = A.data[idx] + B.data[idx];
-    return C;  
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+        C.data[idx] = A.data[idx] + B.data[idx];  
     }
+    return C;
 }
 
 // C = A - B
 Matrix matrix_sub(const Matrix A, const Matrix B)
 {
-    if (A.cols != B.cols || A.rows != B.rows)
+    if (A.cols != B.cols || A.rows != B.rows) {
 		matrix_exception(ERROR, "Unable to sub: Matrixes of different sizes \n");
         return MATRIX_NULL;
+    }
 
-	if (A.data == NULL || B.data == NULL)
+	if (A.data == NULL || B.data == NULL) {
 		matrix_exception(ERROR, "Unable to sub: Matrix data is NULL \n");
         return MATRIX_NULL;
-    
+    }
+
     Matrix C = matrix_init(A.cols, A.rows);
 
-	for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
+	for (size_t idx = 0; idx < C.cols * C.rows; ++idx) {
 		C.data[idx] = A.data[idx] - B.data[idx];
+    }
 	return C;
 }
 
@@ -194,9 +192,10 @@ Matrix matrix_sub(const Matrix A, const Matrix B)
 // A *= coeff
 void matrix_coeff_multi(const Matrix A, const double coeff)
 {
-	if (A.data == NULL)
+	if (A.data == NULL) {
 		matrix_exception(ERROR, "Unable to coeff_multi: Matrix data is NULL \n");
         return;
+    }
 
 	for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
 		A.data[idx] *= coeff;
@@ -206,9 +205,10 @@ void matrix_coeff_multi(const Matrix A, const double coeff)
 // C = A * B
 Matrix matrix_multi(const Matrix A, const Matrix B)
 {
-	if (A.cols != B.rows)
+	if (A.cols != B.rows) {
         matrix_exception(ERROR, "Unable to multi: Matrix A cols is not equal Matrix B rows \n");
 		return MATRIX_NULL;
+    }
 
 	Matrix C = matrix_init(A.cols, B.rows);
 
@@ -216,7 +216,7 @@ Matrix matrix_multi(const Matrix A, const Matrix B)
 		for (size_t col = 0; col < C.cols; ++col) {
 			C.data[row * C.cols + col] = 0;
 			for (size_t idx = 0; idx < A.cols; ++idx) {
-				C.data[row * A.cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];
+				C.data[row * C.cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];
 			}
 		}
 	}
@@ -234,8 +234,8 @@ Matrix matrix_transp(const Matrix A)
 
     Matrix B = matrix_init(A.cols, A.rows);
 
-	for (size_t rowA = 0; rowA < A.rows; ++rowA) {
-		for (size_t colA = 0; colA < A.cols; ++colA) {
+	for (size_t rowA = 0; rowA < B.rows; ++rowA) {
+		for (size_t colA = 0; colA < B.cols; ++colA) {
 			B.data[A.rows * colA + rowA] = A.data[colA + rowA * A.cols];
 		}
 	}
@@ -246,6 +246,11 @@ Matrix matrix_transp(const Matrix A)
 Matrix matrix_get_submatrix(Matrix A, size_t row_to_exclude, size_t col_to_exclude)
 {
     Matrix submatrix = matrix_init(A.rows - 1, A.cols - 1);
+
+    if (submatrix.data == NULL) {
+        matrix_exception(ERROR, "Unable to get submatrix: Matrix data is NULL \n");
+		return MATRIX_NULL;
+	}
 
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
@@ -271,21 +276,18 @@ double matrix_det(const Matrix A)
         return NAN;
     }
 
-	if (A.cols == 1)
-	{
+	if (A.cols == 1) {
 		return A.data[0];
 	}
 
-	if (A.cols == 2)
-	{
+	if (A.cols == 2) {
 		double det = (A.data[0]) * (A.data[3]) - (A.data[1]) * (A.data[2]);
 		return det;
 	}
 	
     double det = 0.;
     double sign = 1;
-    for (size_t col = 0; col < A.cols; col++)
-    {
+    for (size_t col = 0; col < A.cols; col++) {
         Matrix minor = matrix_get_submatrix(A, 0, col);
 
         if (minor.data == NULL) {
@@ -341,20 +343,21 @@ Matrix matrix_exp(const Matrix A, const size_t n)
     }
 
     Matrix matrix_exp_temp = matrix_ident(A.rows, A.cols);
+    Matrix to_calc_pow = matrix_ident(A.rows, A.cols);
     double factorial = 1.;
 
     for (size_t idx = 1; idx <= n; idx++) {
         factorial *= idx;
-        Matrix to_calc_pow = matrix_multi(matrix_exp_temp, A);
+        to_calc_pow = matrix_multi(matrix_exp_temp, A);
         matrix_free(&matrix_exp_temp);
         matrix_exp_temp = to_calc_pow;
-        matrix_free(&to_calc_pow);
 
         double coeff_to_multy = (n ^ idx) / factorial;
         matrix_coeff_multi(matrix_exp_temp, coeff_to_multy);
 
         matrix_add(matrix_exp_res, matrix_exp_temp);
     }
+    matrix_free(&to_calc_pow);
     matrix_free(&matrix_exp_temp);
     return matrix_exp_res;
 }
@@ -364,6 +367,11 @@ Matrix matrix_exp(const Matrix A, const size_t n)
 Matrix matrix_inverse(Matrix A)
 {
     double det_A = matrix_det(A);
+
+    if (det_A == NAN) {
+        matrix_exception(ERROR, "Unable to inverse: determinant is NAN");
+        return MATRIX_NULL;
+    }
 
     if (abs(det_A) < 0.00000001) {
         matrix_exception(ERROR, "Unable to inverse: determinant is equal to 0 \n");

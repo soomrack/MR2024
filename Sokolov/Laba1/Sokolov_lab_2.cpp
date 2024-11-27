@@ -1,174 +1,212 @@
-#include <iostream>
-#include <stdexcept>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
-using namespace std;
-
-enum MatrixExceptionLevel {
-    ERROR,   // завершение выполнения программы
-    WARNING, // предупреждение, об ошибках в расчетах
-    INFO,    // информационное сообщение о процессе
-    DEBUG    // отладочная информация
-};
-
-// Структура для представления матрицы
 struct Matrix {
-    size_t rows;   // Количество строк
-    size_t cols;   // Количество столбцов
-    double* data;  // Данные матрицы, хранящиеся в одномерном массиве
+    size_t rows;
+    size_t cols;
+    double* data;
 };
 typedef struct Matrix Matrix;
 
-// Обработчик ошибок
-void handle_exception(const MatrixExceptionLevel level, const string& message) {
+enum MatrixExceptionLevel {
+    MATRIX_ERROR,
+    MATRIX_WARNING,
+    MATRIX_INFO
+};
+typedef enum MatrixExceptionLevel;
+
+
+void matrix_handle_exception(const MatrixExceptionLevel level, const char* message) {
     switch (level) {
-    case ERROR:
-        cerr << "ERROR: " << message << endl;
+    case MATRIX_ERROR:
+        fprintf(stderr, "ERROR: %s\n", message);
         exit(EXIT_FAILURE);
-    case WARNING:
-        cerr << "WARNING: " << message << endl;
+    case MATRIX_WARNING:
+        fprintf(stderr, "WARNING: %s\n", message);
         break;
-    case INFO:
-        cout << "INFO: " << message << endl;
-        break;
-    case DEBUG:
-        cout << "DEBUG: " << message << endl;
+    case MATRIX_INFO:
+        printf("INFO: %s\n", message);
         break;
     }
 }
 
-// Функция для инициализации матрицы
-Matrix create_matrix(size_t rows, size_t cols) {
-    Matrix mat;
-    mat.rows = rows;
-    mat.cols = cols;
-    mat.data = new double[rows * cols](); // Инициализация элементов значением 0
+
+Matrix matrix_create(const size_t rows, const size_t cols) {
+    if (rows == 0 || cols == 0) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions cannot be zero");
+        return (Matrix) { 0, 0, NULL };
+    }
+
+    size_t size = rows * cols;
+    if (size / cols != rows) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions are too large");
+        return (Matrix) { 0, 0, NULL };
+    }
+
+    Matrix mat = { rows, cols, (double*)malloc(size * sizeof(double)) };
+    if (!mat.data) {
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for matrix");
+        return (Matrix) { 0, 0, NULL };
+    }
     return mat;
 }
 
-// Освобождение памяти матрицы
-void delete_matrix(Matrix& mat) {
-    delete[] mat.data;
-    mat.data = nullptr;
-}
 
-// Получение элемента матрицы
-double get_element(const Matrix& mat, size_t row, size_t col) {
-    if (row >= mat.rows || col >= mat.cols) {
-        handle_exception(ERROR, "Index out of bounds in get_element");
+void matrix_free(Matrix* mat) {
+    if (mat == NULL || mat->data == NULL) {
+        return;
     }
-    return mat.data[row * mat.cols + col];
+    free(mat->data);
+    mat->data = NULL;
+    mat->rows = 0;
+    mat->cols = 0;
 }
 
-// Установка элемента матрицы
-void set_element(Matrix& mat, size_t row, size_t col, const double value) {
-    if (row >= mat.rows || col >= mat.cols) {
-        handle_exception(ERROR, "Index out of bounds in set_element");
+
+void matrix_identity(Matrix mat) {
+    if (mat.rows != mat.cols) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for identity operation");
+        return;
     }
-    mat.data[row * mat.cols + col] = value;
-}
-
-// Инициализация значений для матриц
-void initialize_matrices(Matrix& mat1, Matrix& mat2) {
-    set_element(mat1, 0, 0, 1.0);
-    set_element(mat1, 0, 1, 2.0);
-    set_element(mat1, 1, 0, 3.0);
-    set_element(mat1, 1, 1, 4.0);
-
-    set_element(mat2, 0, 0, 5.0);
-    set_element(mat2, 0, 1, 6.0);
-    set_element(mat2, 1, 0, 7.0);
-    set_element(mat2, 1, 1, 8.0);
-}
-
-// Сложение двух матриц
-Matrix add_matrices(const Matrix& mat1, const Matrix& mat2) {
-    if (mat1.rows != mat2.rows || mat1.cols != mat2.cols) {
-        handle_exception(ERROR, "Matrix dimensions do not match for addition");
+    memset(mat.data, 0, mat.rows * mat.cols * sizeof(double));
+    for (size_t idx = 0; idx < mat.rows; ++idx) {
+        mat.data[idx * mat.cols + idx] = 1.0;
     }
+}
 
-    Matrix result = create_matrix(mat1.rows, mat1.cols);
-    for (size_t i = 0; i < mat1.rows; ++i) {
-        for (size_t j = 0; j < mat1.cols; ++j) {
-            double sum = get_element(mat1, i, j) + get_element(mat2, i, j);
-            set_element(result, i, j, sum);
-        }
+
+Matrix matrix_add(Matrix A, Matrix B) {
+    if (A.rows != B.rows || A.cols != B.cols) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions must match for addition");
+        return (Matrix) { 0, 0, NULL };
+    }
+    Matrix result = matrix_create(A.rows, A.cols);
+    if (!result.data) {
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for addition");
+        return (Matrix) { 0, 0, NULL };
+    }
+    for (size_t idx = 0; idx < result.rows * result.cols; ++idx) {
+        result.data[idx] = A.data[idx] + B.data[idx];
     }
     return result;
 }
 
-// Умножение двух матриц
-Matrix multiply_matrices(const Matrix& mat1, const Matrix& mat2) {
-    if (mat1.cols != mat2.rows) {
-        handle_exception(ERROR, "Matrix dimensions do not match for multiplication");
-    }
 
-    Matrix result = create_matrix(mat1.rows, mat2.cols);
-    for (size_t i = 0; i < mat1.rows; ++i) {
-        for (size_t j = 0; j < mat2.cols; ++j) {
+Matrix matrix_multiply(Matrix A, Matrix B) {
+    if (A.cols != B.rows) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions are invalid for multiplication");
+        return (Matrix) { 0, 0, NULL };
+    }
+    Matrix result = matrix_create(A.rows, B.cols);
+    if (!result.data) {
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for multiplication");
+        return (Matrix) { 0, 0, NULL };
+    }
+    for (size_t i = 0; i < A.rows; ++i) {
+        for (size_t j = 0; j < B.cols; ++j) {
             double sum = 0.0;
-            for (size_t k = 0; k < mat1.cols; ++k) {
-                sum += get_element(mat1, i, k) * get_element(mat2, k, j);
+            for (size_t k = 0; k < A.cols; ++k) {
+                sum += A.data[i * A.cols + k] * B.data[k * B.cols + j];
             }
-            set_element(result, i, j, sum);
+            result.data[i * B.cols + j] = sum;
         }
     }
     return result;
 }
 
-// Транспонирование матрицы
-Matrix transpose_matrix(const Matrix& mat) {
-    Matrix result = create_matrix(mat.cols, mat.rows);
-    for (size_t i = 0; i < mat.rows; ++i) {
-        for (size_t j = 0; j < mat.cols; ++j) {
-            set_element(result, j, i, get_element(mat, i, j));
+
+Matrix matrix_exponent(Matrix mat) {
+    if (mat.rows != mat.cols) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for exponentiation");
+        return (Matrix) { 0, 0, NULL };
+    }
+
+    Matrix result = matrix_create(mat.rows, mat.cols);
+    if (!result.data) {
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for exponentiation result");
+        return (Matrix) { 0, 0, NULL };
+    }
+    matrix_identity(result);
+
+    Matrix term = matrix_create(mat.rows, mat.cols);
+    if (!term.data) {
+        matrix_free(&result);
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for term");
+        return (Matrix) { 0, 0, NULL };
+    }
+    memcpy(term.data, result.data, mat.rows * mat.cols * sizeof(double));
+
+    for (size_t k = 1; k <= 10; ++k) {
+        Matrix temp = matrix_multiply(term, mat);
+        matrix_free(&term);
+        term = temp;
+        if (!term.data) {
+            matrix_free(&result);
+            matrix_handle_exception(MATRIX_ERROR, "Failed during term calculation");
+            return (Matrix) { 0, 0, NULL };
+        }
+        double factor = 1.0 / k;
+        for (size_t i = 0; i < term.rows * term.cols; ++i) {
+            term.data[i] *= factor;
+        }
+
+        Matrix new_result = matrix_add(result, term);
+        matrix_free(&result);
+        result = new_result;
+        if (!result.data) {
+            matrix_free(&term);
+            matrix_handle_exception(MATRIX_ERROR, "Failed during result calculation");
+            return (Matrix) { 0, 0, NULL };
         }
     }
+    matrix_free(&term);
     return result;
 }
 
-// Печать матрицы
-void print_matrix(const Matrix& mat) {
-    for (size_t i = 0; i < mat.rows; ++i) {
-        for (size_t j = 0; j < mat.cols; ++j) {
-            cout << get_element(mat, i, j) << " ";
+
+void matrix_set(Matrix mat, const double* values) {
+    if (mat.data == NULL || values == NULL) {
+        matrix_handle_exception(MATRIX_WARNING, "Invalid pointer in matrix_set");
+        return;
+    }
+    memcpy(mat.data, values, mat.rows * mat.cols * sizeof(double));
+}
+
+
+void matrix_print(const Matrix mat, const char* title) {
+    if (mat.data == NULL) {
+        matrix_handle_exception(MATRIX_WARNING, "Matrix is empty");
+        return;
+    }
+    printf("%s:\n", title);
+    for (size_t idx = 0; idx < mat.rows; ++idx) {
+        for (size_t idy = 0; idy < mat.cols; ++idy) {
+            printf("%6.2f ", mat.data[idx * mat.cols + idy]);
         }
-        cout << endl;
+        printf("\n");
     }
 }
 
-// Функция для вывода всех результатов
-void display_results(const Matrix& sum, const Matrix& product, const Matrix& transpose) {
-    cout << "Sum of matrices:" << endl;
-    print_matrix(sum);
 
-    cout << "Product of matrices:" << endl;
-    print_matrix(product);
-
-    cout << "Transpose of first matrix:" << endl;
-    print_matrix(transpose);
-}
-
-// Основная функция
 int main() {
-    // Создание и инициализация матриц
-    Matrix mat1 = create_matrix(2, 2);
-    Matrix mat2 = create_matrix(2, 2);
-    initialize_matrices(mat1, mat2);
+    
+    Matrix A = matrix_create(2, 2);
+    matrix_set(A, (double[]) {
+        0.0, 1.0,
+            -1.0, 0.0
+    });
 
-    // Выполнение операций
-    Matrix sum = add_matrices(mat1, mat2);
-    Matrix product = multiply_matrices(mat1, mat2);
-    Matrix transpose = transpose_matrix(mat1);
+    
+    Matrix expA = matrix_exponent(A);
+    if (expA.data) {
+        matrix_print(expA, "Matrix exponent (e^A)");
+    }
 
-    // Вывод результатов
-    display_results(sum, product, transpose);
+    
+    matrix_free(&A);
+    matrix_free(&expA);
 
-    // Освобождение выделенной памяти
-    delete_matrix(mat1);
-    delete_matrix(mat2);
-    delete_matrix(sum);
-    delete_matrix(product);
-    delete_matrix(transpose);
-
-    return 0;
+    return EXIT_SUCCESS;
 }
