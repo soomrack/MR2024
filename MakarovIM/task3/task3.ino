@@ -12,6 +12,7 @@ static bool is_on = 0;
 bool millis_flag = 0;
 int speed_to_search = 100;
 unsigned int time_start = 0;
+unsigned int finally_stop = 1;
 
 void setup()
 {
@@ -38,7 +39,8 @@ void forward(unsigned int speed)
 
 void stop()
 {
-    set_motor_speed(0, 0);
+    forward(0);
+    finally_stop = 0
 }
 
 void turn(int right, int left, int speed)
@@ -120,7 +122,7 @@ bool button_is_pressed()
 
 void loop()
 {
-    if (is_on) {
+    if (is_on && finally_stop) {
     if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1)) {
         millis_flag = 0;
         time_start = 0;
