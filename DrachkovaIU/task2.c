@@ -89,7 +89,7 @@ Matrix matrix_sum(const Matrix A, const Matrix B) {
     }
 
     Matrix C = matrix_allocate((Matrix){A.rows, A.cols});
-    for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
+    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
     return C;
