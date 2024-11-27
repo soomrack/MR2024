@@ -140,8 +140,8 @@ void stop_motors()
 void make_movement(const unsigned long current_time) 
 {
 
-  if (search_start_time == -1) {
-    search_start_time = current_time;
+  if (start_move_time == -1) {
+    start_move_time = current_time;
   }
   else if (current_time - start_move_time >= MOVEMENT_CHANGE_TIMEOUT) {
     search_move = -search_move; 
