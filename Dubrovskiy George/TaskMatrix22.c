@@ -64,7 +64,7 @@ void matrix_pass_array(Matrix* matrix, double array_num[])
 
 void memory_free(Matrix* matrix)
 {
-    if (matrix != NULL) {
+    if (matrix != NULL) {  // bad style
         matrix->rows = 0;
         matrix->cols = 0;
         free(matrix->data);
@@ -96,7 +96,7 @@ void matrix_copy(Matrix destination, const Matrix source) {
         matrix_error(ERROR, "\n");
         return;
     }
-
+// chec
     memcpy(destination.data, source.data, source.rows * source.cols * sizeof(double));
 
 }
@@ -189,8 +189,8 @@ Matrix matrix_transpose(const Matrix A)  // T = A^T
 
 
 Matrix matrix_get_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) {
-    Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };
-    submatrix = matrix_allocate(submatrix);
+    Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };  // check
+    submatrix = matrix_allocate(submatrix);  // check
 
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
@@ -257,7 +257,7 @@ Matrix matrix_inverse(const Matrix A)  // inverse = A^(-1)
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
 
-            Matrix submatrix = matrix_get_submatrix(A, row, col);
+            Matrix submatrix = matrix_get_submatrix(A, row, col);  // check
 
             cofactor_matrix.data[row * cofactor_matrix.cols + col] = ((row + col) % 2 == 0 ? 1 : -1) * matrix_determinant(submatrix);
 
@@ -277,8 +277,8 @@ Matrix matrix_inverse(const Matrix A)  // inverse = A^(-1)
 
 Matrix matrix_identity(const size_t rows, const size_t cols) {
 
-    Matrix identity_matrix = { rows, cols };
-    identity_matrix = matrix_allocate(identity_matrix);
+    Matrix identity_matrix = (Matrix) { rows, cols, NULL };  // bug
+    identity_matrix = matrix_allocate(identity_matrix);  // cheeck
 
     memset(identity_matrix.data != 0, 0, identity_matrix.rows * identity_matrix.cols * sizeof(double));
 
