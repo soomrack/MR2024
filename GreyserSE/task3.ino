@@ -93,7 +93,7 @@ void search()
         forward(speed_to_search);
     }
 
-    if (speed_to_search > 150) {
+    else if (speed_to_search > 150) {
         speed_to_search = 150;
     }
 
