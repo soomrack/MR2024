@@ -15,6 +15,8 @@ uint16_t right_min_value;
 uint16_t right_max_value;
 uint16_t right_grey;
 
+bool timer_state = 0;
+
 void pins_init()
 {
   pinMode(PIN_LEFT_MOTOR_1, OUTPUT);
@@ -55,16 +57,30 @@ void sensors_calibration()
 
 void line_ride()
 {
-  int16_t error = (left_grey - analogRead(PIN_LEFT_SENSOR)) - (right_grey - analogRead(PIN_RIGHT_SENSOR));
-  int16_t u = error * kp;
+  if (analogRead(PIN_LEFT_SENSOR) > left_grey || analogRead(PIN_RIGHT_SENSOR) > right_grey)
+  {
+    int16_t error = (left_grey - analogRead(PIN_LEFT_SENSOR)) - (right_grey - analogRead(PIN_RIGHT_SENSOR));
+    int16_t u = error * kp;
 
-  motors_set(constrain(velocity + u, 0, 220), 1, constrain(velocity - u, 0, 220), 1);
+    motors_set(constrain(velocity + u, 0, 220), 1, constrain(velocity - u, 0, 220), 1);
+  }
 }
 
-void line_back(uint32_t timer_old)
+void line_back()
 {
-  if (millis() - timer_old < 1000) motors_set(100, 0, 100, 0);
-  else motors_set(0, 0, 0, 0);
+  if (analogRead(PIN_LEFT_SENSOR) < left_grey && analogRead(PIN_RIGHT_SENSOR) < right_grey)
+  {
+    if (timer_state == 0)
+    {
+      timer_old = millis();
+      timer_state = 1;
+    }
+
+    if (millis() - timer_old < 1000) motors_set(100, 0, 100, 0);
+    else motors_set(0, 0, 0, 0);
+  }
+
+  timer_state = 0;
 }
 
 void motors_set(uint8_t value1, uint8_t value2, uint8_t value3, uint8_t value4)
@@ -89,21 +105,7 @@ void setup()
 
 void loop()
 {
-  uint32_t timer_old;
-  static bool timer_state;
+  line_back();
 
-  if (analogRead(PIN_LEFT_SENSOR) < left_grey && analogRead(PIN_RIGHT_SENSOR) < right_grey)
-  {
-    if (timer_state == 0)
-    {
-      timer_old = millis();
-      timer_state = 1;
-    }
-    line_back(timer_old);
-  }
-  else
-  {
-    timer_state = 0;
-    line_ride();
-  }
+  line_ride();
 }

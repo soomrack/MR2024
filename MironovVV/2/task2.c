@@ -36,28 +36,27 @@ void matrix_handle_exception(const MatrixExceptionLevel level, const char* messa
 Matrix matrix_create(const size_t rows, const size_t cols) {
     if (rows == 0 || cols == 0) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions cannot be zero");
-        return (Matrix) { 0, 0, NULL };
+        return (Matrix) {rows, cols, NULL };
     }
 
     size_t size = rows * cols;
     if (size / cols != rows) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions are too large");
-        return (Matrix) { 0, 0, NULL };
+        return (Matrix) {rows, cols, NULL };
     }
 
-    Matrix mat = { rows, cols, (double*)malloc(size * sizeof(double)) };
+    Matrix mat = {rows, cols, (double*)malloc(size * sizeof(double)) };
     if (!mat.data) {
         matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for matrix");
-        return (Matrix) { 0, 0, NULL };
+        return (Matrix) {rows, cols, NULL };
     }
     return mat;
 }
 
 // Освобождение памяти
 void matrix_free(Matrix* mat) {
-    if (mat == NULL || mat->data == NULL) {
-        return;
-    }
+    if (mat == NULL) return;
+
     free(mat->data);
     mat->data = NULL;
     mat->rows = 0;
@@ -71,8 +70,8 @@ void matrix_identity(Matrix mat) {
         return;
     }
     memset(mat.data, 0, mat.rows * mat.cols * sizeof(double));
-    for (size_t idx = 0; idx < mat.rows; ++idx) {
-        mat.data[idx * mat.cols + idx] = 1.0;
+    for (size_t index = 0; index < mat.rows; ++index) {
+        mat.data[index * mat.cols + index] = 1.0;
     }
 }
 
@@ -85,8 +84,8 @@ Matrix matrix_scalar_multiply(Matrix mat, double scalar) {
 
     Matrix result = matrix_create(mat.rows, mat.cols);
     
-    for (size_t idx = 0; idx < result.rows * result.cols; ++idx) {
-        result.data[idx] = mat.data[idx] * scalar;
+    for (size_t index = 0; index < result.rows * result.cols; ++index) {
+        result.data[index] = mat.data[index] * scalar;
     }
     return result;
 }
@@ -97,17 +96,26 @@ double matrix_determinant(Matrix mat) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix must be square to calculate determinant");
         return NAN;
     }
+
+    if (mat.rows == 0) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix mustn't be zero");
+        return NAN;
+    }
+
     if (mat.rows == 1) {
         return mat.data[0];
     }
-    else if (mat.rows == 2) {
+    
+    if (mat.rows == 2) {
         return mat.data[0] * mat.data[3] - mat.data[1] * mat.data[2];
     }
-    else if (mat.rows == 3) {
+    
+    if (mat.rows == 3) {
         return mat.data[0] * (mat.data[4] * mat.data[8] - mat.data[5] * mat.data[7])
             - mat.data[1] * (mat.data[3] * mat.data[8] - mat.data[5] * mat.data[6])
             + mat.data[2] * (mat.data[3] * mat.data[7] - mat.data[4] * mat.data[6]);
     }
+
     matrix_handle_exception(MATRIX_WARNING, "Determinant is not implemented for matrices larger than 3x3");
     return NAN;
 }
@@ -119,8 +127,8 @@ Matrix matrix_add(Matrix A, Matrix B) {
         return (Matrix) { 0, 0, NULL };
     }
     Matrix result = matrix_create(A.rows, A.cols);
-    for (size_t idx = 0; idx < result.rows * result.cols; ++idx) {
-        result.data[idx] = A.data[idx] + B.data[idx];
+    for (size_t index = 0; index < result.rows * result.cols; ++index) {
+        result.data[index] = A.data[index] + B.data[index];
     }
     return result;
 }
@@ -132,13 +140,13 @@ Matrix matrix_multiply(Matrix A, Matrix B) {
         return (Matrix) { 0, 0, NULL };
     }
     Matrix result = matrix_create(A.rows, B.cols);
-    for (size_t idx = 0; idx < A.rows; ++idx) {
-        for (size_t idy = 0; idy < B.cols; ++idy) {
+    for (size_t row = 0; row < result.rows; ++row) {
+        for (size_t col = 0; col < result.cols; ++col) {
             double sum = 0.0;
-            for (size_t k = 0; k < A.cols; ++k) {
-                sum += A.data[idx * A.cols + k] * B.data[k * B.cols + idy];
+            for (size_t index = 0; index < A.cols; ++index) {
+                sum += A.data[row * A.cols + index] * B.data[index * B.cols + col];
             }
-            result.data[idx * B.cols + idy] = sum;
+            result.data[row * result.cols + col] = sum;
         }
     }
     return result;
@@ -147,9 +155,9 @@ Matrix matrix_multiply(Matrix A, Matrix B) {
 // Нахождение транспонированной матрицы
 Matrix matrix_transpose(Matrix mat) {
     Matrix result = matrix_create(mat.cols, mat.rows);
-    for (size_t idx = 0; idx < mat.rows; ++idx) {
-        for (size_t idy = 0; idy < mat.cols; ++idy) {
-            result.data[idy * mat.rows + idx] = mat.data[idx * mat.cols + idy];
+    for (size_t row = 0; row < result.rows; ++row) {
+        for (size_t col = 0; col < result.cols; ++col) {
+            result.data[col * result.rows + row] = mat.data[row * mat.cols + col];
         }
     }
     return result;
@@ -172,15 +180,18 @@ Matrix matrix_exponent(Matrix mat) {
         Matrix temp = matrix_multiply(term, mat);
         matrix_free(&term);
         term = temp;
+
         if (!term.data) {
             matrix_free(&result);
+            matrix_free(&temp);
+            matrix_free(&term);
             matrix_handle_exception(MATRIX_ERROR, "Failed during term calculation");
             return (Matrix) { 0, 0, NULL };
         }
-        matrix_scalar_multiply(term, 1.0 / k);
-        Matrix new_result = matrix_add(result, term);
-        matrix_free(&result);
-        result = new_result;
+
+        term = matrix_scalar_multiply(term, 1.0 / k);
+        result = matrix_add(result, term);
+        matrix_free(&temp);
     }
     matrix_free(&term);
     return result;

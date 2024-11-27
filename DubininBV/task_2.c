@@ -61,7 +61,10 @@ Matrix matrix_init(const size_t rows, const size_t cols)
 
 void matrix_free(Matrix* matrix)
 {
-	
+	if(matrix->data == NULL) {
+        matrix_exception(ERROR, "Matrix data is NULL \n");
+	}
+
     free(matrix->data);
 	*matrix = MATRIX_NULL;
 }
@@ -81,7 +84,7 @@ void matrix_copy(const Matrix B, const Matrix A)
     }
 
     if (A.data == NULL) {
-        matrix_exception(ERROR, "Unable to copy: Data of source matrix is NULL \n");
+        matrix_exception(WARNING, "Data of source matrix is NULL \n");
         return;
     }
 
@@ -124,11 +127,6 @@ void matrix_add(Matrix A, const Matrix B)
         return;
     }
 
-    if (A.data == NULL || B.data == NULL) {
-        matrix_exception(ERROR, "Unable to add: Matrix data is NULL \n");
-		return;
-    }
-
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] += B.data[idx];
     }
@@ -141,11 +139,6 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
         matrix_exception(ERROR, "Unable to sum: Matrixes of different sizes \n");
         return MATRIX_NULL;
     } 
-
-    if (A.data == NULL || B.data == NULL) {
-		matrix_exception(ERROR, "Unable to sum: Matrix data is NULL \n");
-        return MATRIX_NULL;
-    }
 
     Matrix C = matrix_init(A.rows, A.cols);
 
@@ -160,11 +153,6 @@ Matrix matrix_sub(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
 		matrix_exception(ERROR, "Unable to sub: Matrixes of different sizes \n");
-        return MATRIX_NULL;
-    }
-
-	if (A.data == NULL || B.data == NULL) {
-		matrix_exception(ERROR, "Unable to sub: Matrix data is NULL \n");
         return MATRIX_NULL;
     }
 
@@ -256,14 +244,9 @@ Matrix matrix_get_submatrix(Matrix A, size_t row_to_exclude, size_t col_to_exclu
 double matrix_det(const Matrix A)
 {
 	if (A.cols != A.rows) {
-       	 	matrix_exception(ERROR, "Unable to get determinant: Matrix is not square \n");
-        	return NAN;
-    	}
-
-	if(A.cols == 0) {
-		matrix_exception(ERROR, "Unable to get determinant: Matrix is 0 cols/rows \n");
-        	return NAN;
-	}
+        matrix_exception(ERROR, "Unable to get determinant: Matrix is not square \n");
+        return NAN;
+    }
 
 	if (A.cols == 1) {
 		return A.data[0];
@@ -305,11 +288,10 @@ Matrix matrix_pow(const Matrix A, const unsigned long n)
     Matrix to_power_on_n = matrix_init(A.rows, A.cols);
     matrix_copy(to_power_on_n, A);
 
-    for (size_t pow = 1; pow < n; pow++) {
+    for (size_t pow = 0; pow < n; pow++) {
         Matrix temp = matrix_multi(to_power_on_n, A);
         matrix_free(&to_power_on_n);
         to_power_on_n = temp;
-        matrix_free(&temp);
     }
 
     return to_power_on_n;
@@ -366,10 +348,19 @@ Matrix matrix_inverse(Matrix A)
 
     Matrix cofactor_matrix = matrix_init(A.rows, A.cols);
 
+    if(cofactor_matrix.data == NULL) {
+        matrix_exception(ERROR, "Matrix data is NULL \n");
+		return MATRIX_NULL;
+	}
+
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
 
             Matrix submatrix = matrix_get_submatrix(A, row, col);
+            if(cofactor_matrix.data == NULL) {
+                    matrix_exception(ERROR, "Matrix data is NULL \n");
+		            return MATRIX_NULL;
+	            }   
 
             cofactor_matrix.data[row * cofactor_matrix.cols + col] = ((row + col) % 2 == 0 ? 1 : -1) * matrix_det(submatrix);
 
