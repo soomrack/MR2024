@@ -11,7 +11,7 @@ int left_light = 0;
 static bool is_on = 0;
 bool millis_flag = 0;
 int speed_to_search = 100;
-int time_start = 0;
+unsigned int time_start = 0;
 
 void setup()
 {
@@ -38,18 +38,7 @@ void forward(unsigned int speed)
 
 void stop()
 {
-    analogWrite(RIGHT_SPEED, LOW);
-    analogWrite(LEFT_SPEED, LOW);
-    
-    while (true) {
-        digitalWrite(SOUND, HIGH);
-        
-        if ((binarize(analogRead(LIGHT_RIGHT))==1) || (binarize(analogRead(LIGHT_LEFT) == 1))) {
-            digitalWrite(SOUND, LOW);
-            break;
-        }
-    delay(300);
-    };
+    set_motor_speed(0, 0);
 }
 
 void turn(int right, int left, int speed)
@@ -82,27 +71,26 @@ void search()
     if (millis_flag = 0) {
         time_start = millis();
         int speed_to_search = 100;
+        
     }
 
     millis_flag = 1;
     if (millis() - time_start < 50){         
         turn(!left_light, left_light, 150);
     } 
-    
     if (millis() - time_start < 150){
         forward(speed_to_search);
     }
-
-    else if (speed_to_search > 150) {
-        speed_to_search = 150;
-    }
-
-    speed_to_search += 1;
-
-    if (millis() - time_start > 10000) {
+    else if (millis() - time_start > 10000) {
         stop();
         is_on = 0;
     }
+
+    if (speed_to_search > 150) {
+        speed_to_search = 150;
+    }
+  
+    speed_to_search += 1;
         
 }
 
@@ -135,6 +123,7 @@ void loop()
     if (is_on) {
     if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1)) {
         millis_flag = 0;
+        time_start = 0;
         forward(200);
     }
     
