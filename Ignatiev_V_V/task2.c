@@ -31,6 +31,9 @@ void matrix_error(const enum MatrixExceptionLevel level,  const char* msg)
         printf("\nINFO\nLoc: %s\nText: %s\n", msg);
     }
 
+    if (level == DEBUG) {
+	printnf("\nDEBUG\nLoc: %s\nText: %s\n", msg);
+    }
 }
 
 
