@@ -9,6 +9,9 @@
 
 int left_light = 0;
 static bool is_on = 0;
+bool millis_flag = 0;
+int speed_to_search = 100;
+int time_start = 0;
 
 void setup()
 {
@@ -76,31 +79,31 @@ void play_sound()
 
 void search()
 {
-    unsigned long time = millis();
-    int speed = 100;
-    while ((binarize(analogRead(LIGHT_RIGHT)) == 0) && (binarize(analogRead(LIGHT_LEFT)) == 0)) {
-        unsigned long timel = millis();
-        while (millis() - timel < 50){         
-            turn(!left_light, left_light, 150);
-        } 
+    if (millis_flag = 0) {
+        time_start = millis();
+        int speed_to_search = 100;
+    }
 
-        unsigned long timef = millis();
-        while (millis() - timef < 100){
-            forward(speed);
-        }
+    millis_flag = 1;
+    if (millis() - time_start < 50){         
+        turn(!left_light, left_light, 150);
+    } 
+    
+    if (millis() - time_start < 150){
+        forward(speed_to_search);
+    }
 
-        if (speed > 150) {
-            speed = 150;
-        }
+    if (speed_to_search > 150) {
+        speed_to_search = 150;
+    }
 
-        speed += 1;
+    speed_to_search += 1;
 
-        if (millis() - time > 10000) {
-            stop();
-            break;
-        }
+    if (millis() - time_start > 10000) {
+        stop();
+        is_on = 0;
+    }
         
-     }
 }
 
 bool button_is_pressed()
@@ -130,14 +133,20 @@ bool button_is_pressed()
 void loop()
 {
     if (is_on) {
-    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
+    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 1)) {
+        millis_flag = 0;
         forward(200);
+    }
     
-    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
+    if ((binarize(analogRead(LIGHT_LEFT)) == 1) && (binarize(analogRead(LIGHT_RIGHT)) == 0)) {
+        millis_flag = 0;
         turn(0, 1, 200);
+    }
     
-    if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 1))
+    if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 1)) {
+        millis_flag = 0;
         turn(1, 0, 200);
+    }
     
     if ((binarize(analogRead(LIGHT_LEFT)) == 0) && (binarize(analogRead(LIGHT_RIGHT)) == 0))
         search();
