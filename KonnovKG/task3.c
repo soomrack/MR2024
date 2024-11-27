@@ -11,6 +11,7 @@ int const TURN_VALUE = 240;  // Скорость мотора, соответс�
 int const TURN_PAIR_VALUE = 160;  // Скорость мотора, противоположенного направлению поворота
 int const FORWARD_VALUE = 175;  // Скорость мотора при движении вперед
 int const TIMEOUT_VALUE = 7500;  // Время поиска линии перед отключением, мс
+int const FIND_TIME_VALUE = 50;  // Время движения при поиске линии, мс
 
 void init_motors()
 {
@@ -97,22 +98,15 @@ void Stop()
 }
 
 
-void piezo_beep(int PiezoPin, int Tone, int TimeON, int Count)  // Звуковое сопровождение
-{
-    for(int i = 0; i < Count; i++)
-    {
-      tone(PiezoPin, Tone);
-      delay(TimeON);
-      noTone(PiezoPin);
-    }
-}
-
-
 void sound_alarm()
 {
-    while ( button_read(9) )
+    if ( button_read(9) )
     {
-        piezo_beep(8, 3000, 3000, 1);
+        tone(8, 3000);
+    }
+    else 
+    {
+        noTone(8);
     }
 }
 
@@ -126,36 +120,43 @@ void setup()
 
 
 int flag = 1;
+int counter = 0;
+int millis_flag = 0;
+unsigned long move_time = millis();
+int speed = 70;
+int radius = 160;
 
 
 void find_line()
 {
-    int speed = 70;
-    int radius = 160;
-    unsigned long time = millis();
 
-    while (analogRead(A0) < COLOR_VALUE && analogRead(A1) < COLOR_VALUE)
-    { 
-        unsigned long left_time = millis();
-        while (millis() - left_time < 51)
-        {
-            move_left(radius, radius-69);
-        }
-        unsigned long forward_time = millis();
-        while (millis() - forward_time < 71)
-        {
-            move_forward(speed);
-        }
-
-        radius = radius + 15;
-        speed = speed + 7;
-
-        if (millis() - time > TIMEOUT_VALUE)
-        {
-            Stop();
-            flag = 0;
-        }
+    if (millis_flag == 0) 
+    {
+        unsigned long move_time = millis();
+        int speed = 70;
+        int radius = 160;
     }
+    millis_flag = 1;
+    
+    if (millis() - move_time < FIND_TIME_VALUE)
+    {
+        move_left(radius, radius - 69);
+    }
+
+    else if (millis() - move_time < FIND_TIME_VALUE * (1 + 1.4))
+    {
+        move_forward(speed);
+    }
+
+    radius = radius + 15;
+    speed = speed + 7;
+
+    if (millis() - move_time < TIMEOUT_VALUE)
+    {
+        Stop();
+        flag = 0;
+    }
+    
 }
 
 
@@ -163,14 +164,17 @@ void ride_by_line()
 {
     if (line_sensor_read(A0) > COLOR_VALUE && line_sensor_read(A1) > COLOR_VALUE)
     {
+        millis_flag = 0;
         move_forward(FORWARD_VALUE);
     }
     else if (line_sensor_read(A1) > COLOR_VALUE && line_sensor_read(A0) < COLOR_VALUE)
     {
+        millis_flag = 0;
         move_left(TURN_VALUE, TURN_PAIR_VALUE);
     }
     else if (line_sensor_read(A0) > COLOR_VALUE && line_sensor_read(A1) < COLOR_VALUE)
     {
+        millis_flag = 0;
         move_right(TURN_VALUE, TURN_PAIR_VALUE);
     }
     else
