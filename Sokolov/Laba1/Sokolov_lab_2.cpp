@@ -77,16 +77,44 @@ void matrix_identity(Matrix mat) {
 }
 
 
+void matrix_scalar_multiply(Matrix mat, double scalar) {
+    if (mat.data == NULL) {
+        matrix_handle_exception(MATRIX_WARNING, "Matrix is empty");
+        return;
+    }
+    for (size_t idx = 0; idx < mat.rows * mat.cols; ++idx) {
+        mat.data[idx] *= scalar;
+    }
+}
+
+
+double matrix_determinant(Matrix mat) {
+    if (mat.rows != mat.cols) {
+        matrix_handle_exception(MATRIX_ERROR, "Matrix must be square to calculate determinant");
+        return NAN;
+    }
+    if (mat.rows == 1) {
+        return mat.data[0];
+    }
+    else if (mat.rows == 2) {
+        return mat.data[0] * mat.data[3] - mat.data[1] * mat.data[2];
+    }
+    else if (mat.rows == 3) {
+        return mat.data[0] * (mat.data[4] * mat.data[8] - mat.data[5] * mat.data[7])
+            - mat.data[1] * (mat.data[3] * mat.data[8] - mat.data[5] * mat.data[6])
+            + mat.data[2] * (mat.data[3] * mat.data[7] - mat.data[4] * mat.data[6]);
+    }
+    matrix_handle_exception(MATRIX_WARNING, "Determinant is not implemented for matrices larger than 3x3");
+    return NAN;
+}
+
+
 Matrix matrix_add(Matrix A, Matrix B) {
     if (A.rows != B.rows || A.cols != B.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix dimensions must match for addition");
         return (Matrix) { 0, 0, NULL };
     }
     Matrix result = matrix_create(A.rows, A.cols);
-    if (!result.data) {
-        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for addition");
-        return (Matrix) { 0, 0, NULL };
-    }
     for (size_t idx = 0; idx < result.rows * result.cols; ++idx) {
         result.data[idx] = A.data[idx] + B.data[idx];
     }
@@ -100,18 +128,34 @@ Matrix matrix_multiply(Matrix A, Matrix B) {
         return (Matrix) { 0, 0, NULL };
     }
     Matrix result = matrix_create(A.rows, B.cols);
-    if (!result.data) {
-        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for multiplication");
-        return (Matrix) { 0, 0, NULL };
-    }
-    for (size_t i = 0; i < A.rows; ++i) {
-        for (size_t j = 0; j < B.cols; ++j) {
+    for (size_t idx = 0; idx < A.rows; ++idx) {
+        for (size_t idy = 0; idy < B.cols; ++idy) {
             double sum = 0.0;
             for (size_t k = 0; k < A.cols; ++k) {
-                sum += A.data[i * A.cols + k] * B.data[k * B.cols + j];
+                sum += A.data[idx * A.cols + k] * B.data[k * B.cols + idy];
             }
-            result.data[i * B.cols + j] = sum;
+            result.data[idx * B.cols + idy] = sum;
         }
+    }
+    return result;
+}
+
+
+Matrix matrix_transpose(Matrix mat) {
+    Matrix result = matrix_create(mat.cols, mat.rows);
+    for (size_t idx = 0; idx < mat.rows; ++idx) {
+        for (size_t idy = 0; idy < mat.cols; ++idy) {
+            result.data[idy * mat.rows + idx] = mat.data[idx * mat.cols + idy];
+        }
+    }
+    return result;
+}
+
+
+Matrix matrix_process(Matrix(*operation)(Matrix, Matrix), Matrix A, Matrix B, const char* error_message) {
+    Matrix result = operation(A, B);
+    if (!result.data) {
+        matrix_handle_exception(MATRIX_ERROR, error_message);
     }
     return result;
 }
@@ -125,7 +169,7 @@ Matrix matrix_exponent(Matrix mat) {
 
     Matrix result = matrix_create(mat.rows, mat.cols);
     if (!result.data) {
-        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for exponentiation result");
+        matrix_handle_exception(MATRIX_ERROR, "Failed to allocate memory for result");
         return (Matrix) { 0, 0, NULL };
     }
     matrix_identity(result);
@@ -140,28 +184,32 @@ Matrix matrix_exponent(Matrix mat) {
 
     for (size_t k = 1; k <= 10; ++k) {
         Matrix temp = matrix_multiply(term, mat);
+        if (!temp.data) {
+            matrix_free(&term);
+            matrix_free(&temp);
+            matrix_free(&result);
+            matrix_handle_exception(MATRIX_ERROR, "Failed during multiplication in exponentiation");
+            return (Matrix) { 0, 0, NULL };
+        }
         matrix_free(&term);
         term = temp;
-        if (!term.data) {
-            matrix_free(&result);
-            matrix_handle_exception(MATRIX_ERROR, "Failed during term calculation");
-            return (Matrix) { 0, 0, NULL };
-        }
-        double factor = 1.0 / k;
-        for (size_t i = 0; i < term.rows * term.cols; ++i) {
-            term.data[i] *= factor;
-        }
+
+        matrix_scalar_multiply(term, 1.0 / k);
 
         Matrix new_result = matrix_add(result, term);
-        matrix_free(&result);
-        result = new_result;
-        if (!result.data) {
+        if (!new_result.data) {
             matrix_free(&term);
-            matrix_handle_exception(MATRIX_ERROR, "Failed during result calculation");
+            matrix_free(&temp);
+            matrix_free(&result);
+            matrix_handle_exception(MATRIX_ERROR, "Failed during addition in exponentiation");
             return (Matrix) { 0, 0, NULL };
         }
+        matrix_free(&result); 
+        result = new_result;
     }
+
     matrix_free(&term);
+
     return result;
 }
 
@@ -175,38 +223,59 @@ void matrix_set(Matrix mat, const double* values) {
 }
 
 
-void matrix_print(const Matrix mat, const char* title) {
-    if (mat.data == NULL) {
-        matrix_handle_exception(MATRIX_WARNING, "Matrix is empty");
-        return;
-    }
-    printf("%s:\n", title);
-    for (size_t idx = 0; idx < mat.rows; ++idx) {
-        for (size_t idy = 0; idy < mat.cols; ++idy) {
-            printf("%6.2f ", mat.data[idx * mat.cols + idy]);
+void matrix_print(const char* title, Matrix mat, double scalar_result) {
+    if (mat.data != NULL) {
+        printf("%s:\n", title);
+        for (size_t idx = 0; idx < mat.rows; ++idx) {
+            for (size_t idy = 0; idy < mat.cols; ++idy) {
+                printf("%6.2f ", mat.data[idx * mat.cols + idy]);
+            }
+            printf("\n");
         }
-        printf("\n");
+    }
+    else {
+        printf("%s: %.2f\n", title, scalar_result);
     }
 }
 
 
 int main() {
-    
     Matrix A = matrix_create(2, 2);
     matrix_set(A, (double[]) {
-        0.0, 1.0,
-            -1.0, 0.0
+        1.0, 2.0,
+            3.0, 4.0
     });
 
-    
-    Matrix expA = matrix_exponent(A);
-    if (expA.data) {
-        matrix_print(expA, "Matrix exponent (e^A)");
-    }
+    Matrix B = matrix_create(2, 2);
+    matrix_set(B, (double[]) {
+        5.0, 6.0,
+            7.0, 8.0
+    });
 
-    
+    matrix_scalar_multiply(A, 2.0);
+    matrix_print("Matrix A multiplied by scalar 2", A, NAN);
+
+    double detA = matrix_determinant(A);
+    matrix_print("Determinant of A", (Matrix) { 0, 0, NULL }, detA);
+
+    Matrix sumAB = matrix_add(A, B);
+    matrix_print("Sum of A and B", sumAB, NAN);
+
+    Matrix productAB = matrix_multiply(A, B);
+    matrix_print("Product of A and B", productAB, NAN);
+
+    Matrix expA = matrix_exponent(A);
+    matrix_print("Matrix exponent (e^A)", expA, NAN);
+
+    Matrix transposeA = matrix_transpose(A);
+    matrix_print("Transpose of A", transposeA, NAN);
+
     matrix_free(&A);
+    matrix_free(&B);
+    matrix_free(&sumAB);
+    matrix_free(&productAB);
     matrix_free(&expA);
+    matrix_free(&transposeA);
 
     return EXIT_SUCCESS;
 }
