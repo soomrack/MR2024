@@ -16,6 +16,7 @@ uint16_t right_max_value;
 uint16_t right_grey;
 
 bool timer_state = 0;
+uint32_t timer_old;
 
 void pins_init()
 {
