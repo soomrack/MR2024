@@ -122,7 +122,8 @@ void setup()
 int flag = 1;
 int counter = 0;
 int millis_flag = 0;
-unsigned long move_time = millis();
+
+unsigned long move_time = -1;
 int speed = 70;
 int radius = 160;
 

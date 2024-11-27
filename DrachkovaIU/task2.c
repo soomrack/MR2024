@@ -24,13 +24,13 @@ void matrix_error(const MatrixException error_level, const char *message) {
 }
 
 // Функция для выделения памяти под матрицу
-Matrix matrix_allocate(const Matrix frame) {
+Matrix matrix_allocate(const size_t rows, const size_t cols) {
     Matrix matrix = MATRIX_ZERO;
-    if (frame.rows == 0 || frame.cols == 0) {
+    if (rows == 0 || cols == 0) {
         return matrix;
     }
-    matrix.rows = frame.rows;
-    matrix.cols = frame.cols;
+    matrix.rows = rows;
+    matrix.cols = cols;
 
     matrix.data = calloc(matrix.rows * matrix.cols, sizeof(double));
     if (matrix.data == NULL) {
@@ -51,9 +51,10 @@ void memory_free(Matrix *matrix) {
 }
 
 // Функция для передачи массива в матрицу
-void matrix_pass_array(Matrix *matrix, double array_name[]) {
-    *matrix = matrix_allocate(*matrix);
-    memcpy(matrix->data, array_name, matrix->rows * matrix->cols * sizeof(double));
+void matrix_fill(Matrix *matrix, const double array_name[]) {
+    if (matrix->data != NULL) {
+        memcpy(matrix->data, array_name, matrix->rows * matrix->cols * sizeof(double));
+    }
 }
 
 // Функция для вывода матрицы
@@ -88,8 +89,8 @@ Matrix matrix_sum(const Matrix A, const Matrix B) {
         return MATRIX_ZERO;
     }
 
-    Matrix C = matrix_allocate((Matrix){A.rows, A.cols});
-    for (size_t idx = 0; idx < C.rows * C.cols; idx++) {
+    Matrix C = matrix_allocate(A.rows, A.cols);
+    for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
     return C;
@@ -102,7 +103,7 @@ Matrix matrix_subtract(const Matrix A, const Matrix B) {
         return MATRIX_ZERO;
     }
 
-    Matrix C = matrix_allocate((Matrix){A.rows, A.cols});
+    Matrix C = matrix_allocate(A.rows, A.cols);
     for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
         C.data[idx] = A.data[idx] - B.data[idx];
     }
@@ -116,7 +117,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) {
         return MATRIX_ZERO;
     }
 
-    Matrix C = matrix_allocate((Matrix){A.rows, B.cols});
+     Matrix C = matrix_allocate(A.rows, B.cols);
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < C.cols; col++) {
             for (size_t k = 0; k < A.cols; k++) {
@@ -129,7 +130,7 @@ Matrix matrix_multiply(const Matrix A, const Matrix B) {
 
 // Функция умножения матрицы на число
 Matrix matrix_multi_by_number(const Matrix A, double number) {
-    Matrix C = matrix_allocate((Matrix){A.rows, A.cols});
+     Matrix C = matrix_allocate(A.rows, A.cols);
     for (size_t idx = 0; idx < A.rows * A.cols; idx++) {
         C.data[idx] = A.data[idx] * number;
     }
@@ -138,7 +139,7 @@ Matrix matrix_multi_by_number(const Matrix A, double number) {
 
 // Функция транспонирования матрицы
 Matrix matrix_transpose(const Matrix A) {
-    Matrix T = matrix_allocate((Matrix){A.cols, A.rows});
+    Matrix T = matrix_allocate(A.cols, A.rows);
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
             T.data[col * T.rows + row] = A.data[row * A.cols + col];
@@ -155,7 +156,7 @@ double matrix_determinant(const Matrix A) {
 
     double det = 0;
     for (size_t col = 0; col < A.cols; col++) {
-        Matrix submatrix = matrix_allocate((Matrix){A.rows - 1, A.cols - 1});
+        Matrix submatrix = matrix_allocate(A.rows - 1, A.cols - 1);
         size_t sub_idx = 0;
         for (size_t i = 1; i < A.rows; i++) {
             for (size_t j = 0; j < A.cols; j++) {
@@ -169,8 +170,80 @@ double matrix_determinant(const Matrix A) {
     return det;
 }
 
+// Функция нахождения матричной экспоненты
+Matrix matrix_exponent(const Matrix A, size_t terms) {
+    if (A.rows != A.cols) {
+        matrix_error(ERROR, "Матричная экспонента определяется только для квадратных матриц.\n");
+        return MATRIX_ZERO;
+    }
+
+    Matrix result = matrix_allocate(A.rows, A.cols);
+    Matrix term = matrix_allocate(A.rows, A.cols);
+    for (size_t i = 0; i < A.rows; i++) {              // Инициализация единичной матрицы
+        result.data[i * A.cols + i] = 1.0;
+        term.data[i * A.cols + i] = 1.0;
+    }
+
+    for (size_t n = 1; n < terms; n++) {
+        term = matrix_multiply(term, A);
+        double factor = 1.0 / tgamma(n + 1);
+        for (size_t i = 0; i < term.rows * term.cols; i++) {
+            result.data[i] += term.data[i] * factor;
+        }
+    }
+    memory_free(&term);
+    return result;
+}
+
 void calculations() {
-    
+    Matrix A = matrix_allocate(2, 2);
+    Matrix B = matrix_allocate(2, 2);
+
+    matrix_fill(&A, (double[]){1, 2, 3, 4});
+    matrix_fill(&B, (double[]){5, 6, 7, 8});
+
+    Matrix add_A_B = matrix_sum(A, B);
+    printf("Сложение:\n");
+    matrix_print(&add_A_B, "Результат суммирования: \n");
+
+    Matrix multi_A_B = matrix_multiply(A, B);
+    printf("Умножение:\n");
+    matrix_print(&multi_A_B, "Результат умножения: \n");
+
+    Matrix multi_by_numbder_A = matrix_multi_by_number(A, 2);
+    matrix_print(&multi_by_numbder_A, "Результат умножения матрицы на число: \n");
+    Matrix multi_by_numbder_B = matrix_multi_by_number(B, 2);
+    matrix_print(&multi_by_numbder_B, "RРезультат умножения матрицы на число: \n");
+
+    Matrix transpose_A = matrix_transpose(A);
+    printf("Транспонирование A:\n");
+    matrix_print(&transpose_A, "Результат транспонирования: \n");
+    Matrix transpose_B = matrix_transpose(B);
+    printf("Транспонирование A:\n");
+    matrix_print(&transpose_B, "Результат транспонирования: \n");
+
+    double det_A = matrix_determinant(A);
+    printf("Определитель A: %.2f\n", det_A);
+    double det_B = matrix_determinant(B);
+    printf("Определитель A: %.2f\n", det_B);
+
+    Matrix exp_A = matrix_exponent(A, 20);
+    printf("Экспонента A:\n");
+    matrix_print(&exp_A, "Результат возведения экспоненты в степень: \n");
+    Matrix exp_B = matrix_exponent(A, 20);
+    printf("Экспонента B:\n");
+    matrix_print(&exp_B, "Результат возведения экспоненты в степень: \n");
+
+    memory_free(&A);
+    memory_free(&B);
+    memory_free(&add_A_B);
+    memory_free(&multi_A_B);
+    memory_free(&multi_by_numbder_A);
+    memory_free(&multi_by_numbder_B);
+    memory_free(&transpose_A);
+    memory_free(&transpose_B);
+    memory_free(&exp_A);
+    memory_free(&exp_B);
 }
 
 int main() {
