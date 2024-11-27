@@ -6,12 +6,11 @@
 #include <string.h>
 #include <time.h>
 
-// Определение структуры для матрицы
 struct Matrix 
 {
-    size_t cols;      // Количество столбцов
-    size_t rows;      // Количество строк
-    double *data;     // Указатель на элементы матрицы
+    size_t cols;
+    size_t rows;
+    double *data;
 };
 
 typedef struct Matrix Matrix;
@@ -172,7 +171,7 @@ double determinant_matrix(Matrix mat)
             }
         }
 
-        // Если ведущий элемент нулевой, определитель равен 0
+        // Если все элементы нулевые, определитель равен 0
         if (fabs(max) < 1e-10) {
             return 0.0;
         }
