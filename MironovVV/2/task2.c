@@ -167,7 +167,7 @@ Matrix matrix_transpose(Matrix mat) {
 Matrix matrix_exponent(Matrix mat) {
     if (mat.rows != mat.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for exponentiation");
-        return (Matrix) { 0, 0, NULL };
+        return (Matrix) {0, 0, NULL};
     }
 
     Matrix result = matrix_create(mat.rows, mat.cols);
