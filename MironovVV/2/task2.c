@@ -181,21 +181,30 @@ Matrix matrix_exponent(Matrix mat) {
     Matrix new_result = matrix_create(mat.rows, mat.cols);
 
     for (size_t k = 1; k <= 10; ++k) {
+        matrix_free(&mult);
         mult = matrix_multiply(term, mat);
+
         matrix_free(&term);
         term = mult;
-        matrix_free(&mult);
 
+        matrix_free(&scal);
         scal = matrix_scalar_multiply(term, 1.0 / k);
+
         matrix_free(&term);
         term = scal;
-        matrix_free(&scal);
 
-        Matrix new_result = matrix_add(result, term);
+        matrix_free(&new_result);
+        new_result = matrix_add(result, term);
+
         matrix_free(&result);
         result = new_result;
-        matrix_free(&new_result);
     }
+
+    matrix_free(&mult);
+    matrix_free(&scal);
+    matrix_free(&new_result);
+    matrix_free(&term);
+
     return result;
 }
 
