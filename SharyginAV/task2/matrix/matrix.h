@@ -24,6 +24,17 @@ typedef enum {
 } Matrix_status;
 
 
+typedef enum {
+    LOG_NONE,
+    LOG_ERR,
+    LOG_WARN,
+    LOG_INFO
+} LogLevel;
+
+
+void print_log(LogLevel level, char* msg);
+
+
 Matrix_status matrix_alloc(Matrix* M_ptr, const size_t rows, const size_t cols);
 
 
@@ -34,6 +45,7 @@ double matrix_get(const Matrix M, const size_t row_number, const size_t col_numb
 
 
 Matrix_status matrix_set(Matrix M, double element, const size_t row_number, const size_t col_number);
+
 
 double matrix_get_max_element(const Matrix M);
 
@@ -109,8 +121,7 @@ void matrix_print(const Matrix matrix);
 double matrix_det(Matrix M);  // Метод Гаусса
 
 
-Matrix_status matrix_pow(Matrix M_result, const Matrix M, int pow);
-
+Matrix_status matrix_pow(Matrix M_result, const Matrix M, unsigned int pow);
 
 
 Matrix_status matrix_exp(Matrix M_exp, const Matrix M);
