@@ -3,6 +3,16 @@
 #include <string.h>
 #include <math.h>
 
+/*Необходимые операции:
+Сложение
+Вычитание
+Умножение
+Транспонирование
+Возведение в степень
+Умножение на число
+Определитель
+Матричная экспонента*/
+
 struct Matrix 
 {
     size_t rows;
@@ -83,7 +93,28 @@ void matrix_free(Matrix* M)  // Функция для освобождения �
 // Нулевая матрица
 void matrix_zero(const Matrix M)
 {
+    if (M.rows == 0 || M.cols == 0) {
+        matrix_exception(INFO, "Матрица содержит 0 столбцов или строк");
+        return;
+    }
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
+}
+
+
+//Copy
+void matrix_copy(const Matrix B, const Matrix A)
+{  
+    if ((A.cols != B.cols) || (A.rows != B.rows )) {
+        matrix_exception(ERROR, "Выделенная память не одинакова\n");
+        return;
+    }
+
+    if (B.data == NULL) {
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти\n");
+        return;
+    }
+   
+    memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));    
 }
 
 
@@ -102,7 +133,6 @@ Matrix matrix_identity(size_t size)
 }
 
 
-
 void matrix_print(const Matrix M) // Функция для печати матрицы
 {
     for (size_t row = 0; row < M.rows; row++) {
@@ -111,6 +141,7 @@ void matrix_print(const Matrix M) // Функция для печати матр
         }
         printf("\n");
     }
+    printf("-------------\n");
 }
 
 
@@ -182,7 +213,7 @@ Matrix matrix_transpose(const Matrix A) // Транспонирование ма
 }
 
 
-Matrix matrix_power(const Matrix A, int power)  // Возведение матрицы в степень
+Matrix matrix_power(const Matrix A, size_t power)  // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
@@ -191,7 +222,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
 
-    for (int n = 0; n < power; n++) {
+    for (size_t n = 1; n < power; n++) {
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
@@ -212,12 +243,15 @@ Matrix matrix_by_scalar(const Matrix A, double scalar) // Умножение м�
 }
 
 
-double matrix_determinant(const Matrix A) // Определитель матрицы (для 2x2 и 3x3)
+double matrix_determinant(const Matrix A) // Определитель матрицы (для 1x1, 2x2 и 3x3)
 {
     if (A.rows != A.cols) {
-        matrix_exception(WARNING, "Матрица должна быть квадратной для транспонирования.\n");
+        matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
         return NAN;
     }
+    
+    if (A.rows == 0 && A.cols == 0) {
+        return NAN;
     
     if (A.rows == 1 && A.cols == 1) {
         return A.data[0];
@@ -232,7 +266,7 @@ double matrix_determinant(const Matrix A) // Определитель матри
                A.data[1] * (A.data[3] * A.data[8] - A.data[5] * A.data[6]) +
                A.data[2] * (A.data[3] * A.data[7] - A.data[4] * A.data[6]);
     }
-    return 0; 
+    return NAN;
 }
 
 
@@ -250,39 +284,44 @@ double factorial (const unsigned int f)
 // e ^ A
 Matrix matrix_exponent(const Matrix A, const unsigned int num)
 {
+	size_t cur_num = 1;
+	
     if (A.rows != A.cols) {
         matrix_exception(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
         return MATRIX_NULL;
     }
-
-    Matrix E = matrix_identity(A.rows);
-
-    if (E.data == NULL) {
-        return MATRIX_NULL; // Проверка на успешное выделение памяти
-    }
-
-    if (num == 1) {
-        return E;
-    }
     
-    for (size_t cur_num = 1; cur_num < num; ++cur_num) {
+    Matrix E = matrix_identity(A.rows); 
+
+    
+    for (cur_num < num; ++cur_num) {
         Matrix tmp = matrix_power(A, cur_num);
         if (tmp.data == NULL) {
-            matrix_free(&E); 
+            matrix_exception(ERROR, "Сбой выделения памяти в matrix_power");
             return MATRIX_NULL;
         }
+        
+        Matrix tmp_factorial = matrix_by_scalar(tmp, 1.0 / factorial(cur_num));
 
-        Matrix scaled_tmp = matrix_by_scalar(tmp, 1.0 / factorial(cur_num)); 
+        if(tmp_factorial.data == NULL) {
+          matrix_exception(ERROR, "Сбой выделения памяти при делении на факториал");
+          return MATRIX_NULL;
+        }
 
-        Matrix new_E = matrix_sum(E, scaled_tmp);
-        matrix_free(&E); 
-        E = new_E; 
-
-        matrix_free(&tmp); 
-        matrix_free(&scaled_tmp);
+        Matrix exp = matrix_sum(E, tmp_factorial);
+        if (exp.data == NULL) {
+            matrix_exception(ERROR, "Сбой выделения памяти в matrix_sum");
+            return MATRIX_NULL;
+        }
+	matrix_copy(exp,E);    
+	matrix_free(&tmp);
+	matrix_free(&tmp_factorial);
     }
     
-    return E; // Возвращаем результирующую матрицу
+    matrix_free(&tmp);
+    matrix_free(&tmp_factorial);
+    matrix_free(&exp);
+    return E;
 }
 
 
@@ -291,8 +330,8 @@ int main()
     Matrix A = matrix_alloc(3,3);
     Matrix B = matrix_alloc(3, 3);
 
-    double data_A[9] = {3, 1, 7, 0, 5, 7, 2, 5, 8};
-    double data_B[9] = {5, 0, 8, 1, 9, 6, 3, 2, 1};
+    double data_A[9] = {6, 9, 7, 0, 5, 7, 2, 5, 0};
+    double data_B[9] = {1, 6, 8, 1, 5, 6, 1, 2, 1};
 
     memcpy(A.data, data_A, 9 * sizeof(double));
     memcpy(B.data, data_B, 9 * sizeof(double));

@@ -1,128 +1,176 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-typedef struct {
+
+struct Matrix {
     size_t rows;
     size_t cols;
     double* data;
-} Matrix;
+};
 
-Matrix Zero = { 0, 0, NULL };
+typedef struct Matrix Matrix;
 
-// Функция для выделения памяти под матрицу
-void matrix_allocate(Matrix* matrix)
+Matrix MATRIX_ZERO = { 0, 0, NULL };
+
+
+static void matrix_error(const char* message)
+{
+    printf("Ошибка: %s\n", message);
+}
+
+
+static int matrix_allocate(Matrix* matrix)
 {
     matrix->data = (double*)malloc(matrix->rows * matrix->cols * sizeof(double));
     if (matrix->data == NULL) {
-        fprintf(stderr, "Ошибка: Не удалось выделить память для матрицы.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Не удалось выделить память для матрицы.");
+        return 0;
     }
+    return 1; 
 }
 
-void memory_free(Matrix* matrix)
+
+static void memory_free(Matrix* matrix)
 {
-    free(matrix->data);
-    matrix->data = NULL;
+    if (matrix->data != NULL) {
+        free(matrix->data);
+        matrix->data = NULL;
+    }
     matrix->rows = 0;
     matrix->cols = 0;
 }
 
-// Функция для передачи массива в матрицу
-void matrix_trans_array(Matrix* matrix, double array_name[])
+
+static void matrix_trans_array(Matrix* matrix, double array[])
 {
-    matrix_allocate(matrix);
-    for (size_t i = 0; i < matrix->rows * matrix->cols; i++) {
-        matrix->data[i] = array_name[i];
+    if (!matrix_allocate(matrix)) {
+        return;
+    }
+    for (size_t index = 0; index < matrix->rows * matrix->cols; index++) {
+        matrix->data[index] = array[index];
     }
 }
 
-void matrix_print(Matrix* matrix)
+
+static void matrix_print(const Matrix* matrix)
 {
-    for (size_t i = 0; i < matrix->rows; i++) {
-        for (size_t j = 0; j < matrix->cols; j++) {
-            printf("%lf ", matrix->data[i * matrix->cols + j]);
+    for (size_t row = 0; row < matrix->rows; row++) {
+        for (size_t col = 0; col < matrix->cols; col++) {
+            printf("%lf ", matrix->data[row * matrix->cols + col]);
         }
         printf("\n");
     }
 }
 
-Matrix matrix_add(Matrix A, Matrix B)
+
+static Matrix matrix_single(size_t size)
+{
+    Matrix single = { size, size, NULL };
+    if (!matrix_allocate(&single)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t row = 0; row < size; row++) {
+        for (size_t col = 0; col < size; col++) {
+            single.data[row * size + col] = (row == col) ? 1.0 : 0.0;
+        }
+    }
+    return single;
+}
+
+
+static Matrix matrix_add(Matrix A, Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        fprintf(stderr, "Ошибка: размеры матриц должны совпадать для сложения.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Размеры матриц должны совпадать для сложения.");
+        return MATRIX_ZERO;
     }
 
     Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] + B.data[i];
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t index = 0; index < A.rows * A.cols; index++) {
+        result.data[index] = A.data[index] + B.data[index];
     }
     return result;
 }
 
-Matrix matrix_subtract(Matrix A, Matrix B)
+
+static Matrix matrix_subtract(Matrix A, Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        fprintf(stderr, "Ошибка: размеры матриц должны совпадать для вычитания.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Размеры матриц должны совпадать для вычитания.");
+        return MATRIX_ZERO;
     }
 
     Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] - B.data[i];
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t index = 0; index < A.rows * A.cols; index++) {
+        result.data[index] = A.data[index] - B.data[index];
     }
     return result;
 }
 
-Matrix matrix_multiply(Matrix A, Matrix B)
+
+static Matrix matrix_multiply(Matrix A, Matrix B)
 {
     if (A.cols != B.rows) {
-        fprintf(stderr, "Ошибка: количество столбцов первой матрицы должно совпадать с количеством строк второй матрицы.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Количество столбцов первой матрицы должно совпадать с количеством строк второй матрицы.");
+        return MATRIX_ZERO;
     }
 
     Matrix result = { A.rows, B.cols, NULL };
-    matrix_allocate(&result);
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < B.cols; j++) {
-            result.data[i * B.cols + j] = 0;
-            for (size_t k = 0; k < A.cols; k++) {
-                result.data[i * B.cols + j] += A.data[i * A.cols + k] * B.data[k * B.cols + j];
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t row = 0; row < A.rows; row++) {
+        for (size_t col = 0; col < B.cols; col++) {
+            result.data[row * B.cols + col] = 0;
+            for (size_t inner = 0; inner < A.cols; inner++) {
+                result.data[row * B.cols + col] += A.data[row * A.cols + inner] * B.data[inner * B.cols + col];
             }
         }
     }
     return result;
 }
 
-Matrix matrix_multiply_number(Matrix A, double number)
+
+static Matrix matrix_multiply_number(Matrix A, double number)
 {
     Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
-    for (size_t i = 0; i < A.rows * A.cols; i++) {
-        result.data[i] = A.data[i] * number;
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t index = 0; index < A.rows * A.cols; index++) {
+        result.data[index] = A.data[index] * number;
     }
     return result;
 }
 
-Matrix matrix_transpose(Matrix A)
+
+static Matrix matrix_transpose(Matrix A) 
 {
     Matrix result = { A.cols, A.rows, NULL };
-    matrix_allocate(&result);
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < A.cols; j++) {
-            result.data[j * A.rows + i] = A.data[i * A.cols + j];
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
+    for (size_t row = 0; row < A.rows; row++) {
+        for (size_t col = 0; col < A.cols; col++) {
+            result.data[col * A.rows + row] = A.data[row * A.cols + col];
         }
     }
     return result;
 }
 
-double matrix_determinant(Matrix A)
+
+static double matrix_determinant(Matrix A) 
 {
     if (A.rows != A.cols) {
-        fprintf(stderr, "Ошибка: определитель может быть вычислен только для квадратных матриц.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Определитель может быть вычислен только для квадратных матриц.");
+        return NAN;
     }
     // Рекурсивное вычисление определителя
     if (A.rows == 1) {
@@ -133,126 +181,146 @@ double matrix_determinant(Matrix A)
     }
 
     double det = 0.0;
-    for (size_t i = 0; i < A.rows; i++) {
+    for (size_t row = 0; row < A.rows; row++) {
         Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };
-        matrix_allocate(&submatrix);
-        for (size_t j = 1; j < A.rows; j++) {
-            for (size_t k = 0; k < A.cols; k++) {
-                if (k < i) {
-                    submatrix.data[(j - 1) * (A.cols - 1) + k] = A.data[j * A.cols + k];
+        if (!matrix_allocate(&submatrix)) {
+            return NAN; 
+        }
+        for (size_t sub_row = 1; sub_row < A.rows; sub_row++) {
+            for (size_t col = 0; col < A.cols; col++) {
+                if (col < row) {
+                    submatrix.data[(sub_row - 1) * (A.cols - 1) + col] = A.data[sub_row * A.cols + col];
                 }
-                else if (k > i) {
-                    submatrix.data[(j - 1) * (A.cols - 1) + (k - 1)] = A.data[j * A.cols + k];
+                else if (col > row) {
+                    submatrix.data[(sub_row - 1) * (A.cols - 1) + (col - 1)] = A.data[sub_row * A.cols + col];
                 }
             }
         }
-        det += (i % 2 == 0 ? 1 : -1) * A.data[i] * matrix_determinant(submatrix);
+        det += (row % 2 == 0 ? 1 : -1) * A.data[row * A.cols + row] * matrix_determinant(submatrix);
         memory_free(&submatrix);
     }
     return det;
 }
 
-// Функция для вычисления обратной матрицы
-Matrix matrix_inverse(Matrix A)
+
+static Matrix matrix_inverse(Matrix A) 
 {
     double det = matrix_determinant(A);
     if (det == 0) {
-        fprintf(stderr, "Ошибка: матрица не имеет обратной.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Матрица не имеет обратной.");
+        return MATRIX_ZERO;
     }
 
     Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
+    if (!matrix_allocate(&result)) {
+        return MATRIX_ZERO;
+    }
     // Создание матрицы кофакторов
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < A.cols; j++) {
+    for (size_t row = 0; row < A.rows; row++) {
+        for (size_t col = 0; col < A.cols; col++) {
             Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };
-            matrix_allocate(&submatrix);
-            for (size_t sub_i = 0; sub_i < A.rows; sub_i++) {
-                for (size_t sub_j = 0; sub_j < A.cols; sub_j++) {
-                    if (sub_i != i && sub_j != j) {
-                        submatrix.data[(sub_i < i ? sub_i : sub_i - 1) * (A.cols - 1) + (sub_j < j ? sub_j : sub_j - 1)] = A.data[sub_i * A.cols + sub_j];
+            if (!matrix_allocate(&submatrix)) {
+                return MATRIX_ZERO;
+            }
+            for (size_t sub_row = 0; sub_row < A.rows; sub_row++) {
+                for (size_t sub_col = 0; sub_col < A.cols; sub_col++) {
+                    if (sub_row != row && sub_col != col) {
+                        submatrix.data[(sub_row < row ? sub_row : sub_row - 1) * (A.cols - 1) + (sub_col < col ? sub_col : sub_col - 1)] = A.data[sub_row * A.cols + sub_col];
                     }
                 }
             }
-            result.data[j * A.cols + i] = ((i + j) % 2 ? -1 : 1) * matrix_determinant(submatrix) / det;
+            result.data[col * A.cols + row] = ((row + col) % 2 ? -1 : 1) * matrix_determinant(submatrix) / det;
             memory_free(&submatrix);
         }
     }
     return result;
 }
 
+
 // Функция для возведения матрицы в степень
-Matrix matrix_power(Matrix A, long long int n)
+static Matrix matrix_power(Matrix A, long long int n)
 {
     if (A.rows != A.cols) {
-        fprintf(stderr, "Ошибка: возведение в степень возможно только для квадратных матриц.\n");
-        exit(EXIT_FAILURE);
+        matrix_error("Возведение в степень возможно только для квадратных матриц.");
+        return MATRIX_ZERO;
     }
-    Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
 
-    // Инициализация результатирующей матрицы как единичной
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < A.cols; j++) {
-            result.data[i * A.cols + j] = (i == j) ? 1.0 : 0.0;
-        }
-    }
+    Matrix result = matrix_single(A.rows);
+    Matrix temp_A = A;
 
     while (n > 0) {
         if (n % 2 == 1) {
-            Matrix temp = matrix_multiply(result, A);
+            Matrix temp = matrix_multiply(result, temp_A);
             memory_free(&result);
             result = temp;
         }
-        A = matrix_multiply(A, A);
+        Matrix new_A = matrix_multiply(temp_A, temp_A);
+        memory_free(&temp_A);
+        temp_A = new_A;
         n /= 2;
     }
 
+    memory_free(&temp_A); 
     return result;
 }
-/*
-// Функция для вычисления матричной экспоненты
-Matrix matrix_exponent(Matrix A, long long int n)
+
+
+static Matrix matrix_identity(const size_t rows, const size_t cols) 
 {
-    Matrix result = { A.rows, A.cols, NULL };
-    matrix_allocate(&result);
-
-    // Инициализация результатирующей матрицы как единичной
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < A.cols; j++) {
-            result.data[i * A.cols + j] = (i == j) ? 1.0 : 0.0;
-        }
+    Matrix identity_matrix = { rows, cols, NULL };
+    if (!matrix_allocate(&identity_matrix)) {
+        return MATRIX_ZERO; 
     }
 
-    Matrix term = { A.rows, A.cols, NULL };
-    matrix_allocate(&term);
-    // Инициализация первого члена ряда (A^0)
-    for (size_t i = 0; i < A.rows; i++) {
-        for (size_t j = 0; j < A.cols; j++) {
-            term.data[i * A.cols + j] = (i == j) ? 1.0 : 0.0;
-        }
+    for (size_t i = 0; i < identity_matrix.rows * identity_matrix.cols; ++i) {
+        identity_matrix.data[i] = 0.0; 
     }
 
-    for (long long int k = 1; k <= n; k++) {
-        // Умножаем текущий член на A (A^k)
-        Matrix next_term = matrix_multiply(term, A);
-        // Добавляем текущий член к результату
-        for (size_t i = 0; i < result.rows * result.cols; i++) {
-            result.data[i] += next_term.data[i] / k;  // делим на k для ряда Тейлора
-        }
-        memory_free(&term);
-        term = next_term;
+    for (size_t i = 0; i < identity_matrix.rows; ++i) {
+        identity_matrix.data[i * identity_matrix.cols + i] = 1.0;
     }
 
-    memory_free(&term);
-    return result;
+    return identity_matrix;
 }
-*/
 
-// Функция для выполнения вычислений
-void make_calculations()
+
+static Matrix matrix_exponent(Matrix A, unsigned long long int terms) 
 {
+    if (A.rows != A.cols) {
+        matrix_error("Матрица должна быть квадратной для вычисления экспоненты.");
+        return MATRIX_ZERO;
+    }
+
+    Matrix matrix_exponent_term = matrix_identity(A.rows, A.cols);
+    Matrix matrix_exponent_result = matrix_identity(A.rows, A.cols);
+
+    if (terms == 0) {
+        return matrix_exponent_result; 
+    }
+
+    double factorial = 1.0;
+
+    for (long long int idx = 1; idx <= terms; idx++) {
+        Matrix temp = matrix_multiply(matrix_exponent_term, A);
+        memory_free(&matrix_exponent_term);
+
+        matrix_exponent_term = temp;
+        factorial *= idx;
+
+        Matrix added = matrix_multiply_number(matrix_exponent_term, 1.0 / factorial);
+        Matrix newResult = matrix_add(matrix_exponent_result, added);
+
+        memory_free(&matrix_exponent_result);
+        matrix_exponent_result = newResult;
+        memory_free(&added);
+    }
+
+    memory_free(&matrix_exponent_term);
+    return matrix_exponent_result;
+}
+
+
+void make_calculations() {
     double array1[] = { 1, 2, 3, 4 };
     Matrix A = { 2, 2, NULL };
     matrix_trans_array(&A, array1);
@@ -304,12 +372,10 @@ void make_calculations()
     matrix_print(&powerA);
     memory_free(&powerA);
 
-    /*
-    Matrix expA = matrix_exponent(A, 10);
+    Matrix expA = matrix_exponent(A, 20);
     printf("Matrix Exponential of A:\n");
     matrix_print(&expA);
     memory_free(&expA);
-    */
 
     memory_free(&A);
     memory_free(&B);
