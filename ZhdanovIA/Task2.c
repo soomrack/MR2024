@@ -64,11 +64,11 @@ void matrix_pass_array(Matrix *matrix, double array_name[])
 
 
 void memory_free(Matrix *matrix)
-{
+{  
     if (matrix != NULL) {
+        free(matrix->data);
         matrix->rows = 0;
         matrix->cols = 0;
-        free(matrix->data);
         matrix->data = NULL;
     }
 }
@@ -92,12 +92,14 @@ void matrix_print(const Matrix *matrix, const char *message)
 
 
 void matrix_copy(Matrix destination, const Matrix source) {
+    if (destination.data == NULL || source.data == NULL) {
+     matrix_error(ERROR, "Unable to copy: Data of source matrix is NULL \n");
+    }
 
     if (destination.rows != source.rows || destination.cols != source.cols) {
         matrix_error(ERROR, "Unable to copy matrixes of different sizes.\n");
         return;
     }
-
     memcpy(destination.data, source.data, source.rows * source.cols * sizeof(double));
 
 }
@@ -192,7 +194,10 @@ Matrix matrix_transpose(const Matrix A)
 Matrix matrix_get_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) {
     Matrix submatrix = {A.rows - 1, A.cols - 1, NULL};
     submatrix = matrix_allocate(submatrix);
-
+    if (submatrix.data == NULL) {
+        matrix_error(ERROR, "Unable copy matrix.\n");
+        return MATRIX_ZERO;
+    }
     size_t sub_row = 0;
     for (size_t row = 0; row < A.rows; row++) {
         if (row == row_exclude) continue;
@@ -209,6 +214,7 @@ Matrix matrix_get_submatrix(const Matrix A, size_t row_exclude, size_t col_exclu
 
 double matrix_determinant(const Matrix A)
 {
+
     if ((A.cols != A.rows) || A.rows == 0 || A.cols == 0) {
         return NAN;
     }
@@ -303,17 +309,21 @@ Matrix matrix_power(const Matrix A, unsigned long long int n)
     }
 
     Matrix result = matrix_identity(A.rows, A.cols);
-    Matrix base = A;
+    Matrix temp = MATRIX_ZERO;
 
-    while (n > 0) {
-        if (n % 2 == 1) {
-            result = matrix_multiply(result, base);
-        }
-        base = matrix_multiply(base, base);
-        n /= 2;
-    }
+     if (result.data == NULL) {
+        matrix_error(ERROR, "Unable to calculate power of given matrix\n");
+        return MATRIX_ZERO;
+    } 
 
-    return result;
+     for (unsigned long long int pow = 1; pow < n; pow++) {
+            memory_free(&temp);
+            temp = matrix_multiply(result,A);
+
+        memory_free(&result);
+        temp = MATRIX_ZERO;
+    
+    }    return result;
 }
 
 
