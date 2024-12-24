@@ -194,18 +194,6 @@ bool line_is_not_found() {
 }
 
 
-void play_sound() {
-    const unsigned long sound_duration = 500; // Duration of the sound in milliseconds
-    unsigned long start_time = millis();
-
-    while (millis() - start_time < sound_duration) {
-        digitalWrite(PIN_SOUND_SENSOR, HIGH);
-    }
-
-    digitalWrite(PIN_SOUND_SENSOR, LOW);
-}
-
-
 void drive_line()
 {
     sensors_read();
