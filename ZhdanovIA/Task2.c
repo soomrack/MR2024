@@ -321,6 +321,7 @@ Matrix matrix_power(const Matrix A, unsigned long long int n)
             temp = matrix_multiply(result,A);
 
         memory_free(&result);
+        result = temp;
         temp = MATRIX_ZERO;
     
     }    return result;
