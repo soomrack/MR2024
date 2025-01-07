@@ -31,16 +31,21 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 {
     struct Matrix A = {cols, rows, NULL};
 
-    if (cols == 0 || rows == 0)
+    if (cols == 0 || rows == 0){
         return A;
+    }
 
-    if (SIZE_MAX / cols / rows < sizeof(double))
+    if (SIZE_MAX / cols / rows < sizeof(double)){
+        matrix_error(ERROR, "matrix_allocate", "размер матрицы слишком велик для выделения памяти.");
         return (struct Matrix){0, 0, NULL};
-
+    }
+    
     A.data = (double *)malloc(cols * rows * sizeof(double));
 
-    if (A.data == NULL)
+    if (A.data == NULL){
+        matrix_error(ERROR, "matrix_allocate", "не удалось выделить память для матрицы.");
         return (struct Matrix){0, 0, NULL};
+    }
 
     return A;
 }
@@ -50,7 +55,6 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 void matrix_free(struct Matrix *A)
 {
     if (A == NULL){
-        matrix_error(ERROR,"f2f2f" ,"Обращение к недопутимой области памяти");
         return;
     }
     
@@ -120,7 +124,15 @@ struct Matrix matrix_subtract(struct Matrix A, struct Matrix B)
 // Копирование матрицы
 struct Matrix matrix_copy(struct Matrix A)
 {
+    if (A.data == NULL) {
+        matrix_error(ERROR, "matrix_copy", "попытка скопировать NULL");
+        return (struct Matrix){0, 0, NULL};
+    }
+
     struct Matrix C = matrix_allocate(A.rows, A.cols);
+        if (C.data == NULL) {
+        return C;
+    }
 
     memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
 
@@ -129,7 +141,7 @@ struct Matrix matrix_copy(struct Matrix A)
 
 
 // Умножение матрицы на константу
-struct Matrix matrix_multipliy_const(struct Matrix A, double constant)
+struct Matrix matrix_multiply_const(struct Matrix A, double constant)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
     for (size_t idx = 0; idx < result.rows * result.cols; ++idx){
@@ -148,7 +160,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
         return (struct Matrix){0, 0, NULL};
     }
 
-    struct Matrix C = matrix_allocate(B.cols, A.rows);
+    struct Matrix C = matrix_allocate(A.rows, B.cols);
 
     if (C.data == NULL){
         return C;
@@ -168,7 +180,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 
 
 //Единичная матрица
-struct Matrix matrix_unit(struct Matrix A)
+struct Matrix matrix_unit(struct Matrix A) 
 {
 	if (A.rows != A.cols) {
         matrix_error(ERROR, "f2f2" ,"Невозможно сделать единичную матрицу (неверные размеры матриц)");
@@ -176,52 +188,52 @@ struct Matrix matrix_unit(struct Matrix A)
     }
     
     struct Matrix C = matrix_allocate(A.rows, A.cols);
-    C = matrix_copy(A);
-    
+
+    if (C.data == NULL) {
+        return C;
+    }
+
     for (size_t row = 0; row < C.rows; ++row){
         for (size_t col = 0; col < C.cols; ++col){
-            if (row == col){
-                C.data[row * C.cols + col] = 1;
-            }
-            else{
-                C.data[row * C.cols + col] = 0;
-            }
+            C.data[row * C.cols + col] = (row == col) ? 1 : 0;
         }
     }
     return C;
 }
 
 
-// Возведение матрицы в степень
-struct Matrix matrix_pow(struct Matrix A, const size_t degree)
-{
-	if (A.rows != A.cols) {
-        matrix_error(ERROR, "C = A^n" ,"Возведение в степень матрицы не удалось (неверные размеры матриц)");
+// Функция возведения матрицы в степень
+struct Matrix matrix_pow(struct Matrix A, const size_t degree) {
+    if (A.rows != A.cols) {
+        matrix_error(ERROR, "C = A^n", "Возведение в степень матрицы не удалось (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
     }
     
     struct Matrix C = matrix_allocate(A.rows, A.cols);
-    C = matrix_copy(A);
-    
-    if (degree == 0){
-        for (size_t row = 0; row < C.rows; ++row){
-            for (size_t col = 0; col < C.cols; ++col){
-                if (row == col){
-                    C.data[row * C.cols + col] = 1;
-                }
-                else{
-                    C.data[row * C.cols + col] = 0;
-                }
-            }
-        }
+
+    if (C.data == NULL) {
+        return (struct Matrix){0, 0, NULL};
     }
-    
-    for (size_t idx = 1; idx < degree; ++idx)
-    {
-        struct Matrix temp = matrix_multiply(A, C);
+
+    if (degree == 0) {
+        struct Matrix identity = matrix_unit(A);
+        matrix_free(&C);
+        return identity;
+    }
+
+    memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
+
+    for (size_t idx = 1; idx < degree; ++idx) {
+        struct Matrix temp = matrix_multiply(C, A);
+        if (temp.data == NULL) {
+            matrix_free(&C);
+            return (struct Matrix){0, 0, NULL};
+        }
+        
         matrix_free(&C);
         C = temp;
     }
+
     return C;
 }
 
@@ -243,33 +255,31 @@ struct Matrix matrix_transpon(struct Matrix A)
 
 
 // Экспоненциация матрицы
-struct Matrix matrix_exp(struct Matrix A)
+struct Matrix matrix_exp(struct Matrix A) 
 {
     if (A.cols != A.rows){
         matrix_error(ERROR, "exp(A)", "Экспонента матрицы не удалась (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
     }
 
-    struct Matrix C = matrix_allocate(A.rows, A.cols);
-    struct Matrix E = matrix_allocate(A.rows, A.cols);
-    struct Matrix E_SUM = matrix_allocate(A.rows, A.cols);
-    E_SUM = matrix_unit(A);
+struct Matrix E_SUM = matrix_unit(A);
+    
+    struct Matrix tempC = matrix_allocate(A.rows, A.cols);
+    struct Matrix tempE;
 
-    for (int idx = 1; idx <= 20; ++idx){
-    	C = matrix_pow(A,idx);
-        E = matrix_multipliy_const(C,1/factorial(idx));
+    for (int idx = 1; idx <= 20; ++idx) {
+        tempC = matrix_pow(A, idx);
+        tempE = matrix_multiply_const(tempC, 1.0 / factorial(idx));
         
-        struct Matrix temp = matrix_add(E_SUM, E);
-        matrix_free(&E_SUM); 
-        E_SUM = temp;
+        struct Matrix new_SUM = matrix_add(E_SUM, tempE);
         
-        matrix_free(&C);
-        matrix_free(&E);
+        matrix_free(&E_SUM);
+        E_SUM = new_SUM;
+        
+        matrix_free(&tempC);
+        matrix_free(&tempE);
     }
-    
-    matrix_free(&C);
-    matrix_free(&E);
-    
+
     return E_SUM;
 }
 
@@ -277,6 +287,11 @@ struct Matrix matrix_exp(struct Matrix A)
 // Вычисление определителя
 double determinant(struct Matrix A)
 {
+    if (A.data == NULL){
+        matrix_error(ERROR, "|A|", "попытка вычисления для нулевой матрицы");
+        return NAN;
+    }
+
     if (A.rows != A.cols){
         matrix_error(ERROR, "|A|", "Определитель невозможно вычислить (неверные размеры матриц)");
         return NAN;
