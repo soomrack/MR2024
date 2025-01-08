@@ -112,7 +112,7 @@ struct Matrix matrix_subtract(struct Matrix A, struct Matrix B)
         return (struct Matrix){0, 0, NULL};
     }
 
-	struct Matrix C = matrix_allocate(A.rows, A.cols);
+    struct Matrix C = matrix_allocate(A.rows, A.cols);
 	
     for (size_t idx = 0; idx < C.rows * C.cols; ++idx){
         C.data[idx] = A.data[idx] - B.data[idx];
