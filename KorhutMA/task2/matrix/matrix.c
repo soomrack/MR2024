@@ -194,7 +194,8 @@ struct Matrix matrix_unit(struct Matrix A)
 
 
 // Функция возведения матрицы в степень
-struct Matrix matrix_pow(struct Matrix A, const size_t degree) {
+struct Matrix matrix_pow(struct Matrix A, const size_t degree) 
+{
     if (A.rows != A.cols) {
         matrix_error(ERROR, "C = A^n", "Возведение в степень матрицы не удалось (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
