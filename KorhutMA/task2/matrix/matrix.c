@@ -93,6 +93,7 @@ struct Matrix matrix_add(struct Matrix A, struct Matrix B)
         matrix_error(ERROR, "C = A + B", "размеры матриц не совпадают для сложения");
         return (struct Matrix){0, 0, NULL};
     }
+    
     struct Matrix C = matrix_allocate(A.rows, A.cols);
 
     for (size_t idx = 0; idx < C.rows * C.cols; ++idx){
@@ -130,9 +131,6 @@ struct Matrix matrix_copy(struct Matrix A)
     }
 
     struct Matrix C = matrix_allocate(A.rows, A.cols);
-        if (C.data == NULL) {
-        return C;
-    }
 
     memcpy(C.data, A.data, A.rows * A.cols * sizeof(double));
 
@@ -144,6 +142,7 @@ struct Matrix matrix_copy(struct Matrix A)
 struct Matrix matrix_multiply_const(struct Matrix A, double constant)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
+    
     for (size_t idx = 0; idx < result.rows * result.cols; ++idx){
         result.data[idx] = A.data[idx] * constant;
     }
@@ -161,10 +160,6 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
     }
 
     struct Matrix C = matrix_allocate(A.rows, B.cols);
-
-    if (C.data == NULL){
-        return C;
-    }
 
     for (size_t row = 0; row < C.rows; ++row){
         for (size_t col = 0; col < C.cols; ++col){
@@ -189,10 +184,6 @@ struct Matrix matrix_unit(struct Matrix A)
     
     struct Matrix C = matrix_allocate(A.rows, A.cols);
 
-    if (C.data == NULL) {
-        return C;
-    }
-
     for (size_t row = 0; row < C.rows; ++row){
         for (size_t col = 0; col < C.cols; ++col){
             C.data[row * C.cols + col] = (row == col) ? 1 : 0;
@@ -210,10 +201,6 @@ struct Matrix matrix_pow(struct Matrix A, const size_t degree) {
     }
     
     struct Matrix C = matrix_allocate(A.rows, A.cols);
-
-    if (C.data == NULL) {
-        return (struct Matrix){0, 0, NULL};
-    }
 
     if (degree == 0) {
         struct Matrix identity = matrix_unit(A);
@@ -262,7 +249,7 @@ struct Matrix matrix_exp(struct Matrix A)
         return (struct Matrix){0, 0, NULL};
     }
 
-struct Matrix E_SUM = matrix_unit(A);
+    struct Matrix E_SUM = matrix_unit(A);
     
     struct Matrix tempC = matrix_allocate(A.rows, A.cols);
     struct Matrix tempE;
