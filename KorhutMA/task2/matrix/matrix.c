@@ -177,7 +177,7 @@ struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
 //Единичная матрица
 struct Matrix matrix_unit(struct Matrix A) 
 {
-	if (A.rows != A.cols) {
+    if (A.rows != A.cols) {
         matrix_error(ERROR, "f2f2" ,"Невозможно сделать единичную матрицу (неверные размеры матриц)");
         return (struct Matrix){0, 0, NULL};
     }
