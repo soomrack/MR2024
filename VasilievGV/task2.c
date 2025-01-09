@@ -43,7 +43,7 @@ Matrix matrix_allocate(size_t rows, size_t cols) {
         return MATRIX_NULL;
     }
 
-    return (Matrix){ cols, rows, data };
+    return matrix;
 }
 
 
@@ -205,7 +205,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
         term = matrix_by_scalar(temp, 1.0 / n);
         matrix_free(&temp);
 
-        Matrix new_result = matrix_subtract(result, term);  
+        Matrix new_result = matrix_sum(result, term);  
         matrix_free(&result);
         result = new_result;
     }
@@ -216,7 +216,17 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
 
 int main() {
     Matrix A = matrix_allocate(3, 3);
+    if (!A.data) {
+    matrix_exception(ERROR, "Matrix allocation failed for A.");
+    // Завершаем программу, освободив ресурсы
+    return 1;
+    }
     Matrix B = matrix_allocate(3, 3);
+    if (!B.data) {
+    matrix_exception(ERROR, "Matrix allocation failed for B.");
+    matrix_free(&A);
+    return 1;
+    }
 
     double data_A[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     double data_B[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -266,6 +276,5 @@ int main() {
     matrix_free(&D);
     matrix_free(&E);
     matrix_free(&T);
-    matrix_free(&F);
     matrix_free(&G);
     matrix_free(&exponent_A);
