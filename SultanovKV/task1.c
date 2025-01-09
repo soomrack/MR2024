@@ -45,7 +45,7 @@ void bob_init()
 
 void alice_init()
 {
- alice.salary = 200 * 1000;
+ alice.salary = 350 * 1000;
  alice.deposit = 1000 * 1000;
  alice.food = 15 * 1000;
  alice.transport = 10 * 1000;
@@ -55,7 +55,7 @@ void alice_init()
  alice.loan_amount = 10 * 1000 * 1000;
  alice.annual_rate = 16;
  alice.term = 30;
- alice.cat.buy = 20 * 1000;
+ alice.cat.buy = 10 * 1000;
  alice.cat.cost = 12 * 1000;                                          
  alice.cat.funeral = 5 * 1000;
 }
@@ -89,10 +89,10 @@ void bob_money(const int month)
 {
  bob.deposit += bob.salary;
 
- if (month == 12)
+ if (month == 12){
   bob.salary *= 1. + INDEXSATION;
 }
-
+}
 
 void bob_flat(const int month)
 {
@@ -193,7 +193,7 @@ void simulation(int month, int year)
   alice_deposit(month);
   alice_mortgage_monthly_pay();
   alice_cat(month, year);
-        alice_salary(month, year);
+  alice_salary(month, year);
 
   month++;
 
