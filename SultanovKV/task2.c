@@ -288,6 +288,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 
 		matrix_free(&tmp);
 		matrix_free(&tmp_factorial);
+		 matrix_free(&E);
         E = exp;
 	
     }
@@ -300,8 +301,14 @@ int main()
 {
     Matrix A = matrix_alloc(3,3);
     Matrix B = matrix_alloc(3, 3);
+    
+     if (A.data == NULL || B.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        return 1;
+    }
 
-    double data_A[9] = {9, 5, 6, 3, 6, 7, 2, 1, 1};
+    double data_A[9] = {7, 3, 6, 3, 6, 7, 2, 1, 1};
     double data_B[9] = {5, 7, 7, 5, 3, 2, 1, 2, 4};
 
     memcpy(A.data, data_A, 9 * sizeof(double));
@@ -316,33 +323,77 @@ int main()
 
     // Сложение
     Matrix C = matrix_sum(A, B);
+      if (C.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        return 1;}
     printf("Результат сложения:\n");
     matrix_print(C);
 
     // Вычитание
     Matrix D = matrix_subtract(A, B);
+     if (D.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        return 1;
+    }
     printf("Результат вычитания:\n");
     matrix_print(D);
 
     // Умножение
     Matrix E = matrix_multiply(A, B);
+     if (E.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        matrix_free(&D);
+        return 1;
+    }
     printf("Результат умножения:\n");
     matrix_print(E);
 
     // Транспонирование
     Matrix T = matrix_transpose(A);
+    if (T.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        matrix_free(&D);
+        matrix_free(&E);
+        return 1;
+    }
     printf("Транспонированная матрица A:\n");
     matrix_print(T);
 
     // Возведение в степень
     int power = 3;
     Matrix F = matrix_power(A, power);
+     if (F.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        matrix_free(&D);
+        matrix_free(&E);
+        matrix_free(&T);
+        return 1;
+    }
     printf("Матрица A в степени %d:\n", power);
     matrix_print(F);
 
     // Умножение на число
     double scalar = 5;
     Matrix G = matrix_by_scalar(A, scalar);
+    if (G.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        matrix_free(&D);
+        matrix_free(&E);
+        matrix_free(&T);
+        matrix_free(&F);
+        return 1;
+    }
     printf("Матрица A умноженная на %2.f:\n", scalar);
     matrix_print(G);
     
@@ -351,6 +402,17 @@ int main()
     
     //Матричная экспонента
     Matrix exponent_A = matrix_exponent(A, 3);
+     if (exponent_A.data == NULL) {
+        matrix_free(&A);
+        matrix_free(&B);
+        matrix_free(&C);
+        matrix_free(&D);
+        matrix_free(&E);
+        matrix_free(&T);
+        matrix_free(&F);
+        matrix_free(&G);
+        return 1;
+    }
     printf("Матричная экспонента от A:\n");
     matrix_print(exponent_A);
 
