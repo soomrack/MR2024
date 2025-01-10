@@ -113,7 +113,6 @@ void alice_monthly_payments(const int month)
 void alice_house(const int month, const int year)
 {
     if (month == 1) alice.house_price *= 1.07;
-    if ((month == 9 && year == 2030) || (month == 5 && year == 2027)) alice.house_price *= 1.15;
     if (month == 12) alice.count -= alice.house_price * alice.house_tax;
 }
 
