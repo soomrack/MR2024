@@ -82,16 +82,9 @@ void alice_deposit()
 
 void alice_salary(const int year, const int month)
 {
-    if (month == 12) {
+    if (month == 12)
         alice.salary += (Money)(alice.salary * inflation);
-    };
-
-    if (year == 2027 && (month == 10 || month == 11)) {
-
-    }
-    else {
-        alice.bank += alice.salary;
-    }
+    alice.bank += alice.salary;
 };
 
 
