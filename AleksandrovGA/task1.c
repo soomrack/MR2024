@@ -70,10 +70,8 @@ void alice_init()
 
 void print_alice()
 {
-    printf("Alice capital - %lld \n", alice.count);
     printf("Alice capital - %lld rub \n", (Money)(alice.count / 100)); //руб.
     printf("Alice capital - %lld mln rub \n", (Money)(alice.count / 100 / 1000 / 1000));
-    printf("Alice house - %lld mln rub \n", (Money)(alice.house_price / 100 / 1000 / 1000));
 }
 
 
@@ -217,10 +215,8 @@ void bob_deposit()
 
 void print_bob()
 {
-    printf("Bob capital - %lld \n", bob.count);
     printf("Bob capital - %lld rub \n", (Money)(bob.count / 100));                    //руб.
     printf("Bob capital - %lld mln rub \n", (Money)(bob.count / 100 / 1000 / 1000));
-    printf("Bob car - %lld rub \n", (Money)(bob.car.price / 100));
 }
 
 
