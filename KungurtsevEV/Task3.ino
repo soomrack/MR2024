@@ -1,32 +1,48 @@
+//kungurtsev, degteva, drachkova
+
 #define M1_DIR 4
 #define M1_PWM 5
 #define M2_DIR 7
 #define M2_PWM 6
+#define PIN_5_BEEP 9
 
-const int LINE_SENSOR_THRESHOLD = 650;
-int lastDetectedSensor = -1;  // 0 для A0, 1 для A1
-typedef unsigned int time;
-const int speed = 200;
-const int Speed_1 = 230;
-const int Speed_2 = 150;
-unsigned long current_time = 0;
-unsigned long lastFindLineTime = 0; // Время последнего вызова find_line
-int const FIND_TIME_VALUE = 50;
+const int LINE_SENSOR_THRESHOLD = 650; // эмпирический предел для датчика света
+const int FIND_TIME_VALUE = 50; // время движения при поиске линии, мс
+const int SPEED_FORWARD_VALUE = 200; // скорость моторов при движении вперед
+const int SPEED_TURN_VALUE = 230; // скорость мотора при повороте
+const int SPEED_TURN_SEC_VALUE = 150; // скорость противоположного мотора при повороте
+const int TIMEOUT_VALUE = 10000; // время поиска линии до отключения, мс (10с)
+int last_detected_sensor = -1;  //последний датчик, который был на линии ( 0 для A0, 1 для A1 )
+int millis_flag = 0;
 
-void setup() {
-  pinMode(12, INPUT_PULLUP);
-  InitMotors();
-  Serial.begin(9600);
-}
 
-void InitMotors() {
+void init_motors()
+{
   pinMode(M1_DIR, OUTPUT);
   pinMode(M1_PWM, OUTPUT);
   pinMode(M2_DIR, OUTPUT);
   pinMode(M2_PWM, OUTPUT);
 }
 
-void Motors(int Speed1, int Speed2) {
+
+void setup()
+{
+  pinMode(PIN_5_BEEP, INPUT_PULLUP);
+  init_motors();
+  Serial.begin(9600);
+}
+
+
+int button_read(int ButtonPin)
+{
+  int Data = digitalRead(ButtonPin);
+  if(ButtonPin == 12) Data = !Data;
+  return Data;
+}
+
+
+void motors(int Speed1, int Speed2)
+{
   Speed1 = constrain(Speed1, -255, 255);
   Speed2 = constrain(Speed2, -255, 255);
 
@@ -37,73 +53,123 @@ void Motors(int Speed1, int Speed2) {
   analogWrite(M2_PWM, abs(Speed2));
 }
 
-void MoveForward(int Speed, unsigned long time, int sensorA0, int sensorA1) {
+
+void move_forward(int Speed, int sensorA0, int sensorA1)
+{
   if (sensorA0 > LINE_SENSOR_THRESHOLD && sensorA1 > LINE_SENSOR_THRESHOLD) {
-    Motors(Speed, Speed);
-    current_time = 0;
-    lastDetectedSensor = -1;
+    motors(Speed, Speed);
+    last_detected_sensor = -1;
+    millis_flag = 0;
   }
 }
 
-void MoveRight(int Speed_1, int Speed_2, unsigned long time, int sensorA0, int sensorA1) {
+
+void move_right(int Speed_1, int Speed_2,int sensorA0, int sensorA1)
+{
   if (sensorA0 > LINE_SENSOR_THRESHOLD && sensorA1 < LINE_SENSOR_THRESHOLD) {
-    Motors(Speed_1, -Speed_2);
-    current_time = 0;
-    lastDetectedSensor = 0;
+    motors(Speed_1, -Speed_2);
+    last_detected_sensor = 0;
+    millis_flag = 0;
   }
 }
 
-void MoveLeft(int Speed_1, int Speed_2, unsigned long time, int sensorA0, int sensorA1) {
+
+void move_left(int Speed_1, int Speed_2, int sensorA0, int sensorA1)
+{
   if (sensorA0 < LINE_SENSOR_THRESHOLD && sensorA1 > LINE_SENSOR_THRESHOLD) {
-    Motors(-Speed_1, Speed_2);
-    current_time = 0;
-    lastDetectedSensor = -1;
+    motors(-Speed_1, Speed_2);
+    last_detected_sensor = 1;
+    millis_flag = 0;
   }
 }
 
-int LineSensorRead(int SensorPin) {
+
+int line_sensor_read(int SensorPin)
+{
   if (SensorPin < A0 || SensorPin > A3) return -1;
   return analogRead(SensorPin);
 }
 
-void Stop() {
-  Motors(0, 0);
+
+void stop()
+{
+  motors(0, 0);
+  tone(PIN_5_BEEP, 1000, 500);
 }
 
+
+void sound_alarm()
+{
+    if (button_read(9)) tone(8, 3000);
+    else noTone(8);
+}
+
+
 int flag = 1;
-int counter = 0;
-int millis_flag = 0;
+int speed = 70;
+int radius = 160;
+unsigned long move_time = -1;
 
-void find_line(int sensorA0, int sensorA1) {
+
+void find_line(int sensorA0, int sensorA1)
+{
   if (sensorA0 < LINE_SENSOR_THRESHOLD && sensorA1 < LINE_SENSOR_THRESHOLD) {
-    unsigned long move_time = millis();
-    int speed = 100;
-    int radius = 160;
-    if (millis() - move_time < FIND_TIME_VALUE){
-    Motors(-radius, radius - 69);
-    move_time = 0;
+    if (last_detected_sensor == 0) {
+      if (millis_flag == 0) {
+        unsigned long move_time = millis();
+        int speed = 70;
+        int radius = 160;
+      } 
+      millis_flag = 1;
+
+      if (millis() - move_time < FIND_TIME_VALUE) motors(radius, radius - 69); //налево
+      else if (millis() - move_time < FIND_TIME_VALUE * (1 + 1.4)) {
+        motors(speed,speed);                                                   //вперед
+      }
+      radius = radius + 15;
+      speed = speed + 7;
+
+      if (millis() - move_time < TIMEOUT_VALUE) {
+        stop();
+        flag = 0;
+      }
     }
-    if (millis() - move_time < FIND_TIME_VALUE * (1 + 1.4))
-    Motors(-speed, -speed);
-    radius = radius + 15;
-    speed = speed + 7;
 
-    lastFindLineTime = millis();
+    else if (last_detected_sensor == 1){
+      if (millis_flag == 0) {
+        unsigned long move_time = millis();
+        int speed = 70;
+        int radius = 160;
+      } 
+      millis_flag = 1;
 
-    if (millis() - lastFindLineTime >= 10000)
-      Stop();
+      if (millis() - move_time < FIND_TIME_VALUE) motors(radius - 69, radius); //направо
+      else if (millis() - move_time < FIND_TIME_VALUE * (1 + 1.4)) {
+        motors(speed,speed);                                                   //вперед
+      }
+      radius = radius + 15;
+      speed = speed + 7;
+
+      if (millis() - move_time < TIMEOUT_VALUE) {
+        stop();
+        flag = 0;
+      }
+    }
   }
 }
 
-void loop() {
-  int sensorA0 = LineSensorRead(A0);
-  int sensorA1 = LineSensorRead(A1);
 
-  MoveForward(speed, current_time, sensorA0, sensorA1);
-  MoveLeft(Speed_1, Speed_2, current_time, sensorA0, sensorA1);
-  MoveRight(Speed_1, Speed_2, current_time, sensorA0, sensorA1);
+void loop()
+{
+  int sensor_A0 = line_sensor_read(A0);
+  int sensor_A1 = line_sensor_read(A1);
 
-  if (millis() - lastFindLineTime >= FIND_TIME_VALUE) find_line(sensorA0, sensorA1);
+  sound_alarm();
 
-  delay(1);
+  if(flag == 1){
+    move_forward(SPEED_FORWARD_VALUE, sensor_A0, sensor_A1);
+    move_left(SPEED_TURN_VALUE, SPEED_TURN_SEC_VALUE, sensor_A0, sensor_A1);
+    move_right(SPEED_TURN_VALUE, SPEED_TURN_SEC_VALUE, sensor_A0, sensor_A1);
+    find_line(sensor_A0, sensor_A1);
+  }
 }
