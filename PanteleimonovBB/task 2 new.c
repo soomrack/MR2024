@@ -173,7 +173,7 @@ Matrix matrix_unit(const size_t rows, const size_t cols) {
     }
 
     return C;
-
+}
 
 // умножение матриц A * B
 Matrix matrix_multiplication(const Matrix A, const Matrix B)
@@ -205,6 +205,7 @@ Matrix matrix_power(const Matrix A, size_t power)
         print_message(WARNING, "Возведение невозможно, так как матрица не квадратная\n");
         return MATRIX_NULL;
     }
+    Matrix tmp;
 
     if (power == 0) {
         return matrix_unit(A.rows, A.cols);
@@ -298,7 +299,7 @@ Matrix matrix_transp(const Matrix A)
 
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
-            C.data[col *C.cols + row] = A.data[row * A.cols + col];
+            C.data[row *C.cols + col] = A.data[col * A.cols + row];
         }
     }
 
@@ -330,7 +331,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
     Matrix tmp_factorial;
     Matrix exp;
     
-    for (size_t cur_num = 1; cur_num < num; ++cur_num) {
+    for (size_t cur_num = 1; cur_num < order; ++cur_num) {
         matrix_memory_free(&tmp);
         tmp = matrix_power(A, cur_num);
         if (tmp.data == NULL) { C= MATRIX_NULL; break;}
@@ -342,7 +343,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
         exp = matrix_memory_free(C, tmp_factorial);
         if (exp.data == NULL) { C= MATRIX_NULL; break; }
 
-        matrix_free(&C);    
+        matrix_memory_free(&C);    
         C = exp;	    
 	    exp = MATRIX_NULL;
     }
@@ -385,7 +386,7 @@ float matrix_determinant(const Matrix A)
         - A.data[0] * A.data[5] * A.data[7];
     }
 
-    return NAN;
+    return det;
 }
 
 
@@ -446,7 +447,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         printf("Введите число r"); 
         scanf("%lf", &ratio);
         Matrix I = matrix_multiplication_ratio(A, ratio);
-        printf("Результат умножения матрицы A на число %2.f:\n", ratio);
+        printf("Результат умножения матрицы A на число %.2f:\n", ratio);
 
         matrix_print(I);
 
