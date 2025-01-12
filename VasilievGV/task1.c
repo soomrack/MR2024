@@ -25,7 +25,7 @@ typedef struct {
 
 typedef struct {
     Cash cost;
-    Cash maintenance_cost;
+    Cash maintance_cost;
     Cash fuel_per_month_cost;
     Cash washing_per_month_cost;
     Cash car_tax;
@@ -275,7 +275,7 @@ int main() {
     alice_init();
     bob_init();
     transport_init();
-    cat_init();
+    cat_init(2025, 3);
 
     simulation(2024, 9, 30);
 
