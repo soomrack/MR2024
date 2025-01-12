@@ -108,7 +108,7 @@ void alice_init() {
 void transport_init() {
     bob_transport.cost = 30 * 1000 * 1000; 
     bob_transport.maintance_cost = 5 * 1000; 
-    bob_transport.benzin_per_month_cost = 50 * 100; 
+    bob_transport.fuel_per_month_cost = 50 * 100; 
     bob_transport.washing_per_month_cost = 1 * 1000; 
     bob_transport.car_tax = 3 * 1000; // Car tax
     bob_transport.month_of_purchasing = 9;
@@ -197,12 +197,12 @@ void bob_car(const int month, const int year) {
     if (year > bob_transport.year_of_purchasing ||
         (year == bob_transport.year_of_purchasing && month >= bob_transport.month_of_purchasing)) {
 
-        bob.deposit -= bob_transport.benzin_per_month_cost + bob_transport.washing_per_month_cost
+        bob.deposit -= bob_transport.fuel_per_month_cost + bob_transport.washing_per_month_cost
             + bob_transport.maintance_cost;
 
         if (month == 12) {
             bob.deposit -= bob_transport.car_tax;
-            bob_transport.benzin_per_month_cost *= 1. + INFLATION_RATE;
+            bob_transport.fuel_per_month_cost *= 1. + INFLATION_RATE;
             bob_transport.washing_per_month_cost *= 1. + INFLATION_RATE;
             bob_transport.maintance_cost *= 1. + INFLATION_RATE;
         }
