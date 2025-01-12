@@ -124,16 +124,16 @@ Matrix matrix_enter()
     printf("Введите количество столбцов: ");
     scanf("%zu", &cols);
 
-    Matrix M = matrix_memory_alloc(rows, cols);
+    Matrix C = matrix_memory_alloc(rows, cols);
 
     printf("Введите элементы матрицы, разделённые пробелами и переходами на новую строку:");
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < cols; col++) {
-            scanf("%lf", &M.data[row * M.cols + col]);
+            scanf("%lf", &C.data[row * C.cols + col]);
         }
     }
-    matrix_print(M);
-    return M;       
+    matrix_print(C);
+    return C;       
 }
 
 
@@ -299,7 +299,7 @@ Matrix matrix_transp(const Matrix A)
 
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
-            C.data[row *C.cols + col] = A.data[col * A.cols + row];
+            C.data[row * C.cols + col] = A.data[col * A.cols + row];
         }
     }
 
