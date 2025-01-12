@@ -53,6 +53,8 @@ void matrix_free(Matrix* M)
     if (M == NULL )  return;
     free(M->data);
     M->data = NULL;
+    M->rows = 0;
+    M->cols = 0;
 }
 
 
