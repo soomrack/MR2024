@@ -39,7 +39,7 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
     
     if (rows == 0 || cols == 0) {
         matrix_error(INFO, "Матрица содержит 0 столбцов или строк");
-        return (Matrix) {rows, cols, NULL};
+        return MATRIX_NULL; 
     }
     
     size_t size = rows * cols;
@@ -57,12 +57,12 @@ Matrix matrix_alloc(const size_t rows, const size_t cols)
     
     M.data = malloc(rows * cols * sizeof(double));
     
-    if (M.data == NULL) {
+    if (M.data == NULL) {                            
         matrix_error(ERROR, "Сбой выделения памяти");
-        return MATRIX_NULL;
+        return MATRIX_NULL;                        
     }
     
-    M.rows = rows;
+    M.rows = rows;                 
     M.cols = cols;
     return M;
 }
@@ -80,7 +80,7 @@ void matrix_free(Matrix* M)  // Функция для освобождения �
 }
 
 
-// Нулевая матрица
+//Нулевая матрица
 void matrix_zero(const Matrix M)
 {
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
@@ -150,17 +150,17 @@ Matrix matrix_subtract(const Matrix A, const Matrix B) // Вычитание м�
 Matrix matrix_multiply(const Matrix A, const Matrix B) // Умножение матриц
 {
     if (A.cols != B.rows) {
-        matrix_error(WARNING,"Число столбцов первой матрицы не равно числу строк второй матрицы.\n");
+        matrix_error(WARNING,"Число столбцов первой матрицы не равно числу строк второй матрицы.\n"); 
         return MATRIX_NULL;
     }
 
-    Matrix C = matrix_alloc(A.rows, B.cols);
+    Matrix C = matrix_alloc(A.rows, B. cols);
     
     for (size_t row = 0; row < C.rows; row++) {
         for (size_t col = 0; col < C.cols; col++) {
             C.data[row * B.cols + col] = 0;
             for (size_t idx = 0; idx < A.cols; idx++) {
-                C.data[row * C.cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];
+                C.data[row * C.cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];   
             }
         }
     }
@@ -185,7 +185,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
 {
     if (A.rows != A.cols) {
         matrix_error(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
-        return MATRIX_NULL;
+        return MATRIX_NULL;                               
     }
     
     Matrix result = matrix_identity(A.rows); // Создаем единичную матрицу
@@ -194,7 +194,7 @@ Matrix matrix_power(const Matrix A, int power)  // Возведение матр
         Matrix temp = matrix_multiply(result, A);
         matrix_free(&result);
         result = temp;
-    }
+    }                       
 
     return result;
 }
@@ -215,7 +215,7 @@ double matrix_determinant(const Matrix A) // Определитель матри
 {
     if (A.rows != A.cols) {
         matrix_error(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
-        return NAN;
+        return NAN; 
     }
     
     if (A.rows == 1 && A.cols == 1) {
@@ -231,11 +231,11 @@ double matrix_determinant(const Matrix A) // Определитель матри
                A.data[1] * (A.data[3] * A.data[8] - A.data[5] * A.data[6]) +
                A.data[2] * (A.data[3] * A.data[7] - A.data[4] * A.data[6]);
     }
-    return 0; 
+    return 0; // 
 }
 
 
-double factorial (const unsigned int f) 
+double factorial (const unsigned int f)         
 {
     unsigned long long int res = 1;
     for (unsigned int idx = 1; idx <= f; idx++) {
@@ -300,24 +300,24 @@ Matrix matrix_exponent(const Matrix A, const unsigned int num)
 int main() 
 {
     Matrix A = matrix_alloc(3,3);
-    Matrix B = matrix_alloc(3, 3);
+    Matrix B = matrix_alloc(3,3);
     
-     if (A.data == NULL || B.data == NULL) {
+    if (A.data == NULL || B.data == NULL) {    
         matrix_free(&A);
         matrix_free(&B);
-        return 1;
+        return 1;   
     }
 
-    double data_A[9] = {7, 3, 6, 3, 6, 7, 2, 1, 1};
+    double data_A[9] = {7, 3, 6, 3, 6, 7, 2, 1, 1};   
     double data_B[9] = {5, 7, 7, 5, 3, 2, 1, 2, 4};
-
+    
     memcpy(A.data, data_A, 9 * sizeof(double));
     memcpy(B.data, data_B, 9 * sizeof(double));
 
     // Печать исходных матриц
     printf("Матрица A:\n");
     matrix_print(A);
-
+    
     printf("Матрица B:\n");
     matrix_print(B);
 
@@ -326,7 +326,7 @@ int main()
       if (C.data == NULL) {
         matrix_free(&A);
         matrix_free(&B);
-        return 1;}
+        return 1;}                        
     printf("Результат сложения:\n");
     matrix_print(C);
 
@@ -346,7 +346,7 @@ int main()
      if (E.data == NULL) {
         matrix_free(&A);
         matrix_free(&B);
-        matrix_free(&C);
+        matrix_free(&C);                        
         matrix_free(&D);
         return 1;
     }
@@ -359,7 +359,7 @@ int main()
         matrix_free(&A);
         matrix_free(&B);
         matrix_free(&C);
-        matrix_free(&D);
+        matrix_free(&D);                     
         matrix_free(&E);
         return 1;
     }
@@ -416,6 +416,7 @@ int main()
     printf("Матричная экспонента от A:\n");
     matrix_print(exponent_A);
 
+
     // Освобождение памяти
     matrix_free(&A);
     matrix_free(&B);
@@ -429,3 +430,4 @@ int main()
 
     return 0;
 }
+
