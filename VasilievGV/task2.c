@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <math.h>
 #include <limits.h>
+
 
 struct Matrix {
     size_t rows;
@@ -281,3 +283,6 @@ int main() {
     matrix_free(&T);
     matrix_free(&G);
     matrix_free(&exponent_A);
+
+    return 0;
+}
