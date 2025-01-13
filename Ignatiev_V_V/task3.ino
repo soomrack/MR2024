@@ -38,7 +38,7 @@ void color_ident(light color) // Определение текущего цве�
 }
 
 
-void is_move_forward(time search_time, const light color_L, const light color_R) // Движение вперед с плавным разгоном при датчиках Ч-Ч
+void forward(time search_time, const light color_L, const light color_R) // Движение вперед с плавным разгоном при датчиках Ч-Ч
 {
     if (color_L > color_gray && color_R > color_gray) {
     
@@ -55,7 +55,7 @@ void is_move_forward(time search_time, const light color_L, const light color_R)
 }
 
 
-void is_move_left(time search_time, const light color_L, const light color_R) // Поворот налево плавный при датчиках Ч-Б 
+void left(time search_time, const light color_L, const light color_R) // Поворот налево плавный при датчиках Ч-Б 
 {
     if (color_L > color_gray && color_R < color_gray) {
 
@@ -78,7 +78,7 @@ void is_move_left(time search_time, const light color_L, const light color_R) //
 }
 
 
-void is_move_right(time search_time, const light color_L, const light color_R) // Поворот направно плавный при датчиках Б-Ч 
+void right(time search_time, const light color_L, const light color_R) // Поворот направно плавный при датчиках Б-Ч 
 {
     if (color_L < color_gray && color_R > color_gray) {
     
@@ -100,7 +100,7 @@ void is_move_right(time search_time, const light color_L, const light color_R) /
 }
 
 
-void is_move_search(time search_time, const light color_L, const light color_R, const light last_color_L) // Вращение на месте при съезде с линии при датчиках Б-Б
+void search(time search_time, const light color_L, const light color_R, const light last_color_L) // Вращение на месте при съезде с линии при датчиках Б-Б
 {
     if (color_L < color_gray && color_R < color_gray) {
 
@@ -179,10 +179,10 @@ void loop()
     cur_color_L = analogRead(SENS_L_PIN);
     cur_color_R = analogRead(SENS_R_PIN);
 
-    is_move_forward(search_time, cur_color_L, cur_color_R);
-    is_move_left(search_time, cur_color_L, cur_color_R);
-    is_move_right(search_time, cur_color_L, cur_color_R);
-    is_move_search(search_time, cur_color_L, cur_color_R, last_color_L);
+    forward(search_time, cur_color_L, cur_color_R);
+    left(search_time, cur_color_L, cur_color_R);
+    right(search_time, cur_color_L, cur_color_R);
+    search(search_time, cur_color_L, cur_color_R, last_color_L);
 
     last_color_L = cur_color_L;
 
