@@ -1,1 +1,153 @@
+#include <stdio.h>
+#include <math.h>
+
+typedef long long int Money;
+
+const int START_YEAR = 2024;
+const int START_MONTH = 9;
+const int PERIOD = 30;
+
+struct person  
+{
+    Money start;
+    Money flat; 
+    Money acount;  
+    Money salary;  
+    Money stuff; //базовые расходы в месяц
+    Money mortage;
+    Money rent; 
+    Money expenses; //расходы с учетом недвижимости
+};
+
+struct person Alice;
+struct person Bob;
+
+
+void Alice_init()                            
+{
+    Alice.start = 1 * 1000 * 1000;
+    Alice.flat = 15 * 1000 * 1000;
+    Alice.acount = 0;
+    Alice.salary = 350 * 1000;
+    Alice.stuff = 40 * 1000;
+    Alice.mortage = 291725;   //взято с banki.ru, ставка 25%
+    Alice.expenses = Alice.mortage + Alice.stuff;
+}
+
+void Bob_init()                            
+{
+    Bob.start = 0;
+    Bob.flat = 0;
+    Bob.acount = 1 * 1000 * 1000;
+    Bob.salary = 350 * 1000;
+    Bob.stuff = 40 * 1000;
+    Bob.rent = 30 * 1000;
+    Bob.expenses = Bob.rent +  Bob.stuff;
+}
+
+
+
+
+const double INFLATION = 1.08;
+const double INDEXATION = 1.05;
+const double DEPOSIT_PERSENT = 1.05;
+
+void Alice_salary(const int month, const int year)
+{
+    if (month == 1) {
+        Alice.salary *=  INDEXATION;
+    }
+    Alice.acount += Alice.salary;
+}
+
+void Alice_expenses(const int month, const int year)
+{
+     if (month == 1) {
+        Alice.stuff *=  INFLATION;
+        Alice.mortage *=  INFLATION;
+     }
+    Alice.acount -= Alice.expenses;
+}
+
+void Alice_deposit(const int month, const int year)
+{
+    if (month == 1) {
+        Alice.acount *=  DEPOSIT_PERSENT;
+     }
+}
+
+
+void Bob_salary(const int month, const int year)
+{
+    if (month == 1) {
+        Bob.salary *= INDEXATION;
+    }
+    Bob.acount += Bob.salary;
+}
+
+void Bob_expenses(const int month, const int year)
+{
+     if (month == 1) {
+        Bob.stuff *= INFLATION;
+        Bob.rent *= INFLATION;
+    }
+    Bob.acount -= Bob.expenses;
+}
+
+void Bob_deposit(const int month, const int year)
+{
+   if (month == 1) {
+        Bob.acount *=  DEPOSIT_PERSENT;
+     }
+}
+
+
+
+void calculations()
+{
+    int month = START_MONTH;
+    int year = START_YEAR;
+    
+    while (year < (START_YEAR + PERIOD))  {
+        
+        Alice_salary(month, year);
+        Alice_expenses(month, year);
+        Alice_deposit(month, year);
+        Bob_salary(month, year);
+        Bob_expenses(month, year);
+        Bob_deposit(month, year);
+        
+        ++month;
+        if(month > 12) {
+            ++year;
+            month = 1;
+        }
+    }
+}
+
+
+
+void printt() 
+{
+    printf ("Alice: %lld\n" , Alice.acount);
+    printf ("Bob: %lld\n" , Bob.acount);
+    
+    if (Alice.acount > Bob.acount)
+        printf ("Alice is financially smarter than Bob");
+    else 
+        printf ("Bob is financially smarter than Alice");
+}
+
+int main()
+{
+    Alice_init();
+    Bob_init();
+
+    calculations();
+
+    printt();
+
+
+    return 0;
+}
 
