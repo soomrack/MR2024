@@ -225,7 +225,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
 
 // функция на вход получает матрицу и число, а затем ставит это число на главную диагональ матрицы через struct Matrix
 
-double matrix_set_diagonal(Matrix A) {
+void matrix_set_diagonal(Matrix* A, double num) {
     if (A == NULL || A->data == NULL) {
         matrix_exception(ERROR, "Matrix is NULL");
         return;
@@ -238,6 +238,20 @@ double matrix_set_diagonal(Matrix A) {
         A->data[i * A->cols + i] = num;
     }
 } 
+
+// функция которая получает три матрицы A B и C. и возвращает A * B + C
+
+Matrix matrix_multiply(const Matrix A, const Matrix B, const Matrix C) {
+     Matrix product = matrix_multiply(A, B);
+    if (!product.data) {
+        return MATRIX_NULL;
+    }
+
+    Matrix result = matrix_sum(product, C);
+    matrix_free(&product);
+    return result;
+}
+
 
 int main() {
     Matrix A = matrix_allocate(3, 3);
