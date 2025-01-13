@@ -9,7 +9,7 @@
 
 #define V 200
 
-int TIME_SOUND = 0;
+long long int TIME_SOUND = 0;
 int LEFT_MIN = 1023;
 int LEFT_MAX = 0;
 int RIGHT_MIN = 1023;
@@ -63,11 +63,11 @@ void check_line(int s1, int s2)
   if (s1 < 60 && s2 < 60) {
       if (millis() - TIME_SOUND > 5 * 1000) {
         end_music();
-        flag = 0;
+        FLAG = 0;
       }
       recoverLine(LAST_DIRECTION); // Вызов функции восстановления линии
     } else {
-        TIME_SOUND = 0;
+        TIME_SOUND = millis();
         double err = (s1 - s2);
         double u = err * K_P + (err - ERROLD) * K_D;
         drive(constrain(V + u, -250, 250), constrain(V - u, -250, 250));
@@ -78,7 +78,6 @@ void check_line(int s1, int s2)
         else{
           LAST_DIRECTION = 1;
         }
-        TIME_SOUND = millis();
       } 
 }
 
