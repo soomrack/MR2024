@@ -166,6 +166,11 @@ Matrix matrix_by_scalar(const Matrix A, double scalar)
 
 double matrix_determinant(const Matrix A) 
 {
+    if (A.rows == 0 || A.cols == 0) {
+    matrix_exception(ERROR, "Matrix has no elements (0x0), determinant cannot be calculated.");
+    return NAN;
+    }
+    
     if (A.rows != A.cols) {
         matrix_exception(ERROR, "Matrix is not square, determinant cannot be calculated.");
         return NAN;
