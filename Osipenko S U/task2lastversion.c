@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -5,26 +6,25 @@
 #include <string.h>
 #include <math.h>
 
-const double scalar = 7;
 
 struct Matrix
 {
     size_t cols;
     size_t rows;
-    double *data;
+    double *data;//первая ячейка памяти
 };
-
+const double scalar = 7;
 enum MatrixExceptionLevel
 {
     ERROR,
     WARNING,
     INFO,
     DEBUG
-};
+};//создание массива
 
 const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
-
+//вывод информации
 void matrix_exception(const enum MatrixExceptionLevel level, char *msg)
 {
     if (level == ERROR) {
@@ -40,7 +40,7 @@ void matrix_exception(const enum MatrixExceptionLevel level, char *msg)
     }
 }
 
-
+// Выделение памяти для матрицы
 struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 {
     struct Matrix M;
@@ -72,7 +72,7 @@ struct Matrix matrix_allocate(const size_t cols, const size_t rows)
     return M;
 }
 
-
+// Освобождение памяти для матрицы
 void matrix_free(const struct Matrix *M)
 {
     if (M == NULL) {
@@ -91,14 +91,14 @@ void matrix_zero(const struct Matrix M)
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
 
-
+// Заполнение матрицы случайными числами
 void matrix_random(const struct Matrix A)
 {
     for (size_t elem = 0; elem < A.rows * A.cols; ++elem)
         A.data[elem] = (double)(rand() % 10);
 }
 
-
+//принтим матрицу
 int matrix_print(const struct Matrix M)
 {
     for (size_t row = 0; row < M.rows; ++row) {
@@ -112,6 +112,7 @@ int matrix_print(const struct Matrix M)
 }
 
 
+// Сложение матриц A и B
 struct Matrix matrix_add(const struct Matrix A, const struct Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
@@ -128,7 +129,7 @@ struct Matrix matrix_add(const struct Matrix A, const struct Matrix B)
     return result;
 }
 
-
+// Вычитание матриц A и B
 struct Matrix matrix_substruct(const struct Matrix A, const struct Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
@@ -145,7 +146,7 @@ struct Matrix matrix_substruct(const struct Matrix A, const struct Matrix B)
     return result;
 }
 
-
+// Умножение матриц A и B
 struct Matrix matrix_multiply(const struct Matrix A,const struct Matrix B)
 {
     if (A.cols != B.rows) {
@@ -167,7 +168,7 @@ struct Matrix matrix_multiply(const struct Matrix A,const struct Matrix B)
     return result;
 }
 
-
+//умножение матрицы на число
 struct Matrix matrix_scalar(const struct Matrix A, double scalar)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
@@ -179,7 +180,7 @@ struct Matrix matrix_scalar(const struct Matrix A, double scalar)
     return result;
 }
 
-
+//транспонирование
 struct Matrix matrix_transposition(const struct Matrix A)
 {
     struct Matrix result = matrix_allocate(A.cols, A.rows);
@@ -193,7 +194,7 @@ struct Matrix matrix_transposition(const struct Matrix A)
     return result;
 }
 
-
+//вычисляем определитель
 double matrix_determinate(const struct Matrix A)
 {
     if (A.rows != A.cols) {
@@ -205,11 +206,11 @@ double matrix_determinate(const struct Matrix A)
         matrix_exception(ERROR, "Количесвто строк и столбцов не может быть меньше 1.\n");
         return NAN;
     }
-
+    // Базовый случай для матрицы 1x1
     if (A.rows == 1 && A.cols == 1) {
         return A.data[0];
     }
-
+    // Базовый случай для матрицы 2x2
     if (A.rows == 2 && A.cols == 2) {
         return A.data[0] * A.data[3] - A.data[1] * A.data[2];
     }
@@ -237,7 +238,7 @@ struct Matrix matrix_identity(const struct Matrix M)
     return I;
 }
 
-
+//факториал
 double factorial(const unsigned int n)
 {
     double fact = 1.0;
@@ -253,7 +254,7 @@ double factorial(const unsigned int n)
     return fact;
 }
 
-
+//копия матрицы
 struct Matrix matrix_copy(const struct Matrix src)
 {
     if (src.data == NULL) {
@@ -274,7 +275,7 @@ void matrix_copy_void(const struct Matrix src, const struct Matrix dest)
     return;
 }
 
-
+//возведение в степень
 struct Matrix matrix_power(const struct Matrix A, unsigned int power) // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
@@ -302,7 +303,7 @@ struct Matrix matrix_power(const struct Matrix A, unsigned int power) // Воз�
     return temp;
 }
 
-
+//экспонента
 struct Matrix matrix_exponent(const struct Matrix A, int terms)
 {
     if (A.rows != A.cols) {
@@ -329,7 +330,7 @@ struct Matrix matrix_exponent(const struct Matrix A, int terms)
 
 int main()
 {
-    srand(time(NULL));
+    srand(time(NULL));// Инициализация рандома
 
     struct Matrix A = matrix_allocate(3, 3);
     struct Matrix B = matrix_allocate(3, 3);
