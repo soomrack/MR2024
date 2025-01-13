@@ -9,28 +9,25 @@
 
 #define V 200
 
-int time_sound = 0;
-int left_min = 1023;
-int left_max = 0;
-int right_min = 1023;
-int right_max = 0;
+int TIME_SOUND = 0;
+int LEFT_MIN = 1023;
+int LEFT_MAX = 0;
+int RIGHT_MIN = 1023;
+int RIGHT_MAX = 0;
 
-int left_old = 0;
-int right_old = 0;
+int LAST_DIRECTION = 0;
 
-int last_direction = 0;
-int return_direction = 0;
+int ERROLD = 0;
 
-int errold = 0;
+bool FLAG = false;
+bool BUTTON_OLD = 1;
 
-bool flag = false;
-bool button_old = 1;
-
-bool recovering = false; // Флаг восстановления линии
+bool RECOVERING = false; // Флаг восстановления линии
 
 
 // Функция управления движением
-void drive(int left, int right) {    
+void drive(int left, int right) 
+{    
   digitalWrite(LEFT_DIR, left > 0);
   digitalWrite(RIGHT_DIR, right > 0);
 
@@ -40,15 +37,16 @@ void drive(int left, int right) {
 
 
 // Функция восстановления линии с дуговым движением
-void recoverLine(int last_direction) {
-  recovering = true; // Флаг восстановления линии
-  if (last_direction == 0)/*Толкнули влево (черный на правом датчике)*/{
+void recoverLine(int LAST_DIRECTION) 
+{
+  RECOVERING = true; // Флаг восстановления линии
+  if (LAST_DIRECTION == 0)/*Толкнули влево (черный на правом датчике)*/{
     drive(-20, 240);
-    //errold = 100;
+    //ERROLD = 100;
   }
   else/*Толкнули вправо (черный на левом датчике)*/{
     drive(240, -20);
-    //errold = -100;
+    //ERROLD = -100;
   }
   
 }
@@ -63,45 +61,45 @@ void end_music() // Сигнал прекращения попыток возв�
 void check_line(int s1, int s2)
 {
   if (s1 < 60 && s2 < 60) {
-      if (millis() - time_sound > 5 * 1000) {
+      if (millis() - TIME_SOUND > 5 * 1000) {
         end_music();
         flag = 0;
       }
-      recoverLine(last_direction); // Вызов функции восстановления линии
+      recoverLine(LAST_DIRECTION); // Вызов функции восстановления линии
     } else {
-        time_sound = 0;
+        TIME_SOUND = 0;
         double err = (s1 - s2);
-        double u = err * K_P + (err - errold) * K_D;
+        double u = err * K_P + (err - ERROLD) * K_D;
         drive(constrain(V + u, -250, 250), constrain(V - u, -250, 250));
-        errold = err;
+        ERROLD = err;
         if (s2 > s1)/*толкнули влево*/{
-          last_direction = 0;
+          LAST_DIRECTION = 0;
         }
         else{
-          last_direction = 1;
+          LAST_DIRECTION = 1;
         }
-        time_sound = millis();
+        TIME_SOUND = millis();
       } 
 }
 
 
 void start_button()
 {
-   if (digitalRead(A2) == 1 && button_old == 0) {
+   if (digitalRead(A2) == 1 && BUTTON_OLD == 0) {
    delay(5);
    if (digitalRead(A2) == 1) {
-     flag = !flag; 
+     FLAG = !FLAG; 
     }
   }
-  button_old = digitalRead(A2);
+  BUTTON_OLD = digitalRead(A2);
 }
 
 
 void read_sensors()
 {
-  if (flag) {
-    int s1 = map(analogRead(A0), left_min, left_max, 0, 100);
-    int s2 = map(analogRead(A1), right_min, right_max, 0, 100);
+  if (FLAG) {
+    int s1 = map(analogRead(A0), LEFT_MIN, LEFT_MAX, 0, 100);
+    int s2 = map(analogRead(A1), RIGHT_MIN, RIGHT_MAX, 0, 100);
     // Проверяем, потеряна ли линия
     check_line(s1, s2);
   }
@@ -111,7 +109,8 @@ void read_sensors()
 }
 
 
-void setup() {
+void setup() 
+{
   pinMode(LEFT_PWM, OUTPUT);
   pinMode(LEFT_DIR, OUTPUT);
   pinMode(RIGHT_PWM, OUTPUT);
@@ -123,10 +122,10 @@ void setup() {
     drive(180, -180);
     int left = analogRead(A0);
     int right = analogRead(A1);
-    if (left < left_min) left_min = left;
-    if (left > left_max) left_max = left; 
-    if (right < right_min) right_min = right;
-    if (right > right_max) right_max = right;
+    if (left < LEFT_MIN) LEFT_MIN = left;
+    if (left > LEFT_MAX) LEFT_MAX = left; 
+    if (right < RIGHT_MIN) RIGHT_MIN = right;
+    if (right > RIGHT_MAX) RIGHT_MAX = right;
   }
   drive(0, 0);
   pinMode(A2, INPUT);
@@ -141,7 +140,8 @@ void setup() {
 }
 
 
-void loop() {
+void loop() 
+{
   read_sensors();
     
   // Обработка кнопки включения/выключения режима
