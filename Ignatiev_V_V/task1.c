@@ -136,6 +136,10 @@ void bob_salary(const int month)
         bob.salary *= (1. + bob.inflation_rate);
     }
 
+    if (month == 1) {
+        bob.capital += bob.salary;
+    }
+
     bob.capital += bob.salary;
 }
 
