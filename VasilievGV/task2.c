@@ -223,6 +223,21 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
     return result;
 }
 
+// функция на вход получает матрицу и число, а затем ставит это число на главную диагональ матрицы через struct Matrix
+
+double matrix_set_diagonal(Matrix A) {
+    if (A == NULL || A->data == NULL) {
+        matrix_exception(ERROR, "Matrix is NULL");
+        return;
+    }
+    if (A->rows != A->cols) {
+        matrix_exception(ERROR, "Matrix is not square");
+        return;
+    }
+    for (size_t i = 0; i < A->rows; ++i) {
+        A->data[i * A->cols + i] = num;
+    }
+} 
 
 int main() {
     Matrix A = matrix_allocate(3, 3);
