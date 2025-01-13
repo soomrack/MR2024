@@ -421,25 +421,59 @@ Matrix Matrix_doubl_transp(const Matrix A, const Matrix B) {
 }
 
 //матр и число вернем матрицу-столбец под номером этого числа 
-void matrix_print_column(const Matrix *A, size_t column_index) {
- 
+Matrix matrix_get_column(const Matrix *A, size_t column_index) {
     if (A == NULL || A->data == NULL) {
         matrix_exception(ERROR, "Matrix is NULL or uninitialized.\n");
-        return;
+        return MATRIX_ZERO;
     }
 
     if (column_index >= A->cols) {
         matrix_exception(ERROR, "Invalid column index.");
-        return;
+        return MATRIX_ZERO;
     }
 
-    for (size_t row = 0; row < matrix->rows; row++) {
-        printf("%.2f\n", A->data[row * A->cols + column_index]);
+    Matrix C = matrix_allocate(A->rows, 1);
+
+    for (size_t row = 0; row < A->rows; row++) {
+        C.data[row] = A->data[row * A->cols + column_index];
     }
-    printf("\n");
-    return 
+
+    return C;
 }
+
  
+
+
+
+
+
+
+
+
+//сумма квадратов элментов матрицы
+Matrix matrix_sum_doubl (
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
