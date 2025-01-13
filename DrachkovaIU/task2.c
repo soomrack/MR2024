@@ -421,7 +421,27 @@ Matrix Matrix_doubl_transp(const Matrix A, const Matrix B) {
 }
 
 //матр и число вернем матрицу-столбец под номером этого числа 
-Matrix 
+void matrix_print_column(const Matrix *A, size_t column_index) {
+ 
+    if (A == NULL || A->data == NULL) {
+        matrix_exception(ERROR, "Matrix is NULL or uninitialized.\n");
+        return;
+    }
+
+    if (column_index >= A->cols) {
+        matrix_exception(ERROR, "Invalid column index.");
+        return;
+    }
+
+    for (size_t row = 0; row < matrix->rows; row++) {
+        printf("%.2f\n", A->data[row * A->cols + column_index]);
+    }
+    printf("\n");
+    return 
+}
+ 
+
+
 
 int main()
 {
