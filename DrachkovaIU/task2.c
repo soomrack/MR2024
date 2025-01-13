@@ -405,6 +405,22 @@ void calculations ()
 
 }
 
+Matrix Matrix_doubl_transp(const Matrix A, const Matrix B) {
+    Matrix C = matrix_multiply(A, B);
+
+    if (C.data == NULL) {
+        return MATRIX_ZERO;
+    }
+	
+    Matrix T = matrix_transpose(C);
+    matrix_free(&C);
+    printf("Transposition\n");
+    matrix_print(transposed_T);
+
+    return T;
+}
+
+
 int main()
 {
     calculations();
