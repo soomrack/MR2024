@@ -420,6 +420,8 @@ Matrix Matrix_doubl_transp(const Matrix A, const Matrix B) {
     return T;
 }
 
+//матр и число вернем матрицу-столбец под номером этого числа 
+Matrix 
 
 int main()
 {
