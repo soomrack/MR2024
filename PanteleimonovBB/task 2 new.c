@@ -345,7 +345,7 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
 
         matrix_memory_free(&C);    
         C = exp;	    
-	    exp = MATRIX_NULL;
+	exp = MATRIX_NULL;
     }
     
     matrix_memory_free(&tmp);
