@@ -13,12 +13,12 @@ uint32_t DURATION_PROGRAM, TIME;
 void button_calibrate() 
 {
     int left_sensor_black, left_sensor_white, right_sensor_black, right_sensor_white;
-    delay(2000);// ДЛЯ УСТАНОВКИ НА БЕЛЫЙ ЦВЕТ 
+    delay(2000);  //ДВЕ СЕКУНДЫ ДОСТАТОЧНО ДЛЯ УСТАНОВКИ ДАТЧИКОВ РОБОТА НА БЕЛЫЙ ЦВЕТ  
     while (digitalRead(PIN_BUTTON) == 0) {
     left_sensor_white = analogRead(A2);
     right_sensor_white = analogRead(A3);
     }
-    delay(2000);// ДЛЯ ПЕРЕНОСА НА ДРУГОЙ ЦВЕТ 
+    delay(2000);// ДВЕ СЕКУНДЫ ДОСТАТОЧНО ДЛЯ УСТАНОВКИ ДАТЧИКОВ РОБОТА НА ЧЕРНЫЙ ЦВЕТ 
     while (digitalRead(PIN_BUTTON) == 0) {
     left_sensor_black = analogRead(A2);
     right_sensor_black = analogRead(A3);
