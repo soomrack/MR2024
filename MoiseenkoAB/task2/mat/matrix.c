@@ -5,16 +5,17 @@
 #include <string.h>
 #include <math.h>
 
+#define EPSILON 0.00001
 
 LogLevel CURRENT_LEVEL = LOG_NONE;
 
-
+// Sets the log level
 void matrix_set_log_level(LogLevel level)
 {
     CURRENT_LEVEL = level;
 }
 
-
+// Prints a log message
 static void print_log(LogLevel level, const char *format, ...)
 {
 #ifdef MATRIX_LOG_ENABLE
@@ -40,10 +41,9 @@ static void print_log(LogLevel level, const char *format, ...)
 #endif
 }
 
-
 const Matrix EMPTY = {.rows = 0, .cols = 0, .data = NULL};
 
-
+// Allocates memory for a matrix
 MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
 {
     print_log(LOG_INFO, "allocate matrix with size: %lux%lu\n", rows, cols);
@@ -64,7 +64,7 @@ MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
         return MAT_SIZE_ERR;
     }
 
-    M->data = (double*)malloc(rows * cols * sizeof(double));
+    M->data = (double*)calloc(rows * cols, sizeof(double));
     if(M->data == NULL) {
         *M = EMPTY;
         print_log(LOG_ERR, "matrix allocation error\n");
@@ -77,7 +77,7 @@ MatrixStatus matrix_alloc(Matrix* M, const size_t rows, const size_t cols)
     return MAT_OK;
 }
 
-
+// Frees the memory allocated for a matrix
 void matrix_free(Matrix* M)
 {
     print_log(LOG_INFO, "free matrix\n");
@@ -91,7 +91,7 @@ void matrix_free(Matrix* M)
     *M = EMPTY;
 }
 
-
+// Sets the value of an element in the matrix
 void matrix_set(const Matrix M, const size_t row, const size_t col, const double number)
 {
     if(row >= M.rows || col >= M.cols) {
@@ -102,7 +102,7 @@ void matrix_set(const Matrix M, const size_t row, const size_t col, const double
     M.data[row * M.cols + col] = number;
 }
 
-
+// Gets the value of an element in the matrix
 double matrix_get(const Matrix M, const size_t row, const size_t col)
 {
     if(row >= M.rows || col >= M.cols) {
@@ -113,25 +113,25 @@ double matrix_get(const Matrix M, const size_t row, const size_t col)
     return M.data[row * M.cols + col];
 }
 
-
+// Checks if the matrix is empty
 unsigned char matrix_is_empty(const Matrix M)
 {
     return (M.data == NULL);
 }
 
-
+// Checks if the matrix is square
 unsigned char matrix_is_square(const Matrix M)
 {
     return (M.rows == M.cols);
 }
 
-
+// Checks if two matrices have the same size
 unsigned char matrix_equal_size(const Matrix A, const Matrix B)
 {
     return (A.rows == B.rows) && (A.cols == B.cols);
 }
 
-
+// Prints the matrix
 void matrix_print(const Matrix M)
 {
     if(matrix_is_empty(M)) {
@@ -149,7 +149,7 @@ void matrix_print(const Matrix M)
     }
 }
 
-
+// Sets all elements of the matrix to zero
 MatrixStatus matrix_set_zeros(const Matrix M)
 {
     print_log(LOG_INFO, "make zero matrix\n");
@@ -164,7 +164,7 @@ MatrixStatus matrix_set_zeros(const Matrix M)
     return MAT_OK;
 }
 
-
+// Sets the matrix to be an identity matrix
 MatrixStatus matrix_set_identity(const Matrix M)
 {
     print_log(LOG_INFO, "make identity matrix\n");
@@ -182,7 +182,7 @@ MatrixStatus matrix_set_identity(const Matrix M)
     return MAT_OK;
 }
 
-
+// Copies one matrix to another
 MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
 {
     print_log(LOG_INFO, "matrix copy\n");
@@ -205,7 +205,7 @@ MatrixStatus matrix_copy(Matrix* dest, const Matrix src)
     return MAT_OK;
 }
 
-
+// Clones a matrix
 MatrixStatus matrix_clone(Matrix* dest, const Matrix src)
 {
     print_log(LOG_INFO, "matrix clone\n");
@@ -230,7 +230,7 @@ MatrixStatus matrix_clone(Matrix* dest, const Matrix src)
     return MAT_OK;
 }
 
-
+// Adds two matrices
 MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
 {
     print_log(LOG_INFO, "matrix sum\n");
@@ -255,7 +255,7 @@ MatrixStatus matrix_sum(Matrix* result, const Matrix A, const Matrix B)
     return MAT_OK;
 }
 
-
+// Subtracts one matrix from another
 MatrixStatus matrix_sub(Matrix* result, const Matrix A, const Matrix B)
 {
     print_log(LOG_INFO, "matrix subtraction\n");
@@ -280,7 +280,7 @@ MatrixStatus matrix_sub(Matrix* result, const Matrix A, const Matrix B)
     return MAT_OK;
 }
 
-
+// Multiplies a matrix by a number
 MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number)
 {
     print_log(LOG_INFO, "matrix multiplication by number\n");
@@ -301,7 +301,7 @@ MatrixStatus matrix_mul_num(Matrix* result, const Matrix M, const double number)
     return MAT_OK;
 }
 
-
+// Multiplies two matrices
 MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B)
 {
     print_log(LOG_INFO, "matrix multiplication\n");
@@ -347,7 +347,7 @@ MatrixStatus matrix_mul(Matrix* result, const Matrix A, const Matrix B)
     return MAT_OK;
 }
 
-
+// Raises a matrix to a power
 MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int pow)
 {
     print_log(LOG_INFO, "matrix power\n");
@@ -400,7 +400,7 @@ MatrixStatus matrix_pow(Matrix* result, const Matrix M, const unsigned int pow)
     return MAT_OK;
 }
 
-
+// Computes the matrix exponent
 MatrixStatus matrix_exp(Matrix* result, const Matrix M)
 {
     print_log(LOG_INFO, "matrix exponent\n");
@@ -466,7 +466,7 @@ MatrixStatus matrix_exp(Matrix* result, const Matrix M)
     return MAT_OK;
 }
 
-
+// Swaps two double values
 static void swap_double(double* first, double* second)
 {
     double tmp = *first;
@@ -474,7 +474,7 @@ static void swap_double(double* first, double* second)
     *second = tmp;
 }
 
-
+// Transposes a matrix
 MatrixStatus matrix_transp(const Matrix M)
 {
     print_log(LOG_INFO, "matrix transposition\n");
@@ -493,18 +493,18 @@ MatrixStatus matrix_transp(const Matrix M)
     return MAT_OK;
 }
 
-
+// Finds the first non-zero element in a column
 static size_t matrix_find_non_zero_in_col(const Matrix M, const size_t row_start)
 {
     for(size_t row = row_start + 1; row < M.rows; row++) {
-        if(fabs(M.data[row * M.cols + row_start]) >= 0.00001) {
+        if(fabs(M.data[row * M.cols + row_start]) >= EPSILON) {
             return row;
         }
     }
     return row_start;
 }
 
-
+// Swaps two rows in a matrix
 static void matrix_swap_rows(const Matrix M, const size_t row_A, const size_t row_B)
 {
     for(size_t idx = 0; idx < M.cols; idx++) {
@@ -512,7 +512,7 @@ static void matrix_swap_rows(const Matrix M, const size_t row_A, const size_t ro
     }
 }
 
-
+// Subtracts a row multiplied by a ratio from another row
 static void matrix_sub_row(const Matrix M, const size_t row, const size_t row_base, const double ratio)
 {
     for(size_t idx = 0; idx < M.cols; idx++) {
@@ -520,7 +520,7 @@ static void matrix_sub_row(const Matrix M, const size_t row, const size_t row_ba
     }
 }
 
-
+// Computes the determinant of a matrix
 MatrixStatus matrix_det(double* det, const Matrix M)
 {
     print_log(LOG_INFO, "matrix determinant\n");
@@ -546,7 +546,7 @@ MatrixStatus matrix_det(double* det, const Matrix M)
     // Gauss method
     *det = 1.0;
     for(size_t row_base = 0; row_base < T.rows - 1; row_base++) {
-        if(fabs(T.data[row_base * (T.cols + 1)]) < 0.00001) {
+        if(fabs(T.data[row_base * (T.cols + 1)]) < EPSILON) {
             size_t idx_non_zero = matrix_find_non_zero_in_col(T, row_base);
             if(idx_non_zero == row_base) {
                 *det = 0.0;
