@@ -242,15 +242,67 @@ void matrix_set_diagonal(Matrix* A, double num) {
 // функция которая получает три матрицы A B и C. и возвращает A * B + C
 
 Matrix matrix_multiply(const Matrix A, const Matrix B, const Matrix C) {
-     Matrix product = matrix_multiply(A, B);
-    if (!product.data) {
-        return MATRIX_NULL;
-    }
+    for (size_t row = 0; row < A.rows; ++row) {
+        for (size_t col = 0; col < B.cols; ++col) {
+            double sum = 0;
+            for (size_t k = 0; k < A.cols; ++k) {
+                sum += A.data[row * A.cols + k] * B.data[k * B.cols + col];
+            }
+            result.data[row * result.cols + col] = sum + C.data[row * C.cols + col];
 
-    Matrix result = matrix_sum(product, C);
-    matrix_free(&product);
-    return result;
+// функция 
+
+
+
+
+
+
+
+// функция на вход получает матрицу и число n формирует из него матрицу n*n, возвела матрицу в квадрат
+
+void matrix_n(Matrix* A, double n) {
+    for (size_t row = 0; row < A->rows; ++row) {
+        for (size_t col = 0; col < A->cols; ++col){
+            A->data[row * A->cols + col] = n
+                Matrix B = matrix.multiplay(A, A);
+        }
+    }
+    return B;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Matrix matrix_multiply(const Matrix A, const Matrix B, const Matrix C) {
+    Matrix D = matrix_multiply(A, B);
+        
+        Matrix result = matrix_sum(product, C);
+        matrix_free(&D);
+        return result;
+}
+
 
 
 int main() {
