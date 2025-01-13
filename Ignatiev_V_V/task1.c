@@ -190,8 +190,8 @@ void bob_deposit(month, year)
        bob.deposite.account += bob.capital;
        bob.capital = 0;
    }
-    bob.deposite.account += bob.capital;
     bob.deposite.account += bob.deposite.account * (bob.deposite.rate / 12);
+    bob.deposite.account += bob.capital;
     bob.capital = 0;
     
 }
