@@ -27,7 +27,6 @@ void matrix_exception (const enum MatrixException level, const char *result)
     }
 }
 
-
 Matrix matrix_allocate(const size_t rows, const size_t cols)
 {
     Matrix matrix = MATRIX_ZERO;
@@ -55,7 +54,6 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     return A;
 }
 
-
 void memory_free(Matrix *A)
 {
     if (A == NULL) return;
@@ -66,12 +64,10 @@ void memory_free(Matrix *A)
     A->data = NULL;
 }
 
-
 void matrix_fill(const Matrix A, const double array[])
 {   
     memcpy(A.data, array, A.cols * A.rows * sizeof(double));
 }
-
 
 void matrix_print(Matrix A)
 {
@@ -82,7 +78,6 @@ void matrix_print(Matrix A)
     } 
     printf("\n");
 }
-
 
 Matrix matrix_copy(const Matrix A) 
 {
@@ -97,7 +92,6 @@ Matrix matrix_copy(const Matrix A)
     return copy;
 
 }
-
 
 Matrix matrix_sum(const Matrix A, const Matrix B)
 {
@@ -115,7 +109,6 @@ Matrix matrix_sum(const Matrix A, const Matrix B)
     return C;
 }
 
-
 Matrix matrix_subtract(const Matrix A, const Matrix B)
 {
     if (A.cols != B.cols || A.rows != B.rows) {
@@ -131,7 +124,6 @@ Matrix matrix_subtract(const Matrix A, const Matrix B)
 
     return C;
 }
-
 
 Matrix matrix_multiply(const Matrix A, const Matrix B)
 {
@@ -153,7 +145,6 @@ Matrix matrix_multiply(const Matrix A, const Matrix B)
     return C;
 }
 
-
 Matrix matrix_multiplying_by_number(const Matrix A, const double number)
 {
     Matrix C = matrix_allocate(A.rows, A.cols);
@@ -164,7 +155,6 @@ Matrix matrix_multiplying_by_number(const Matrix A, const double number)
 
     return C;
 }
-
 
 Matrix matrix_trans(const Matrix A)
 {
@@ -177,7 +167,6 @@ Matrix matrix_trans(const Matrix A)
     }
     return T;
 }
-
 
 Matrix matrix_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) {
 
@@ -201,7 +190,6 @@ Matrix matrix_submatrix(const Matrix A, size_t row_exclude, size_t col_exclude) 
     }
     return submatrix;
 }
-
 
 double matrix_determinant(const Matrix A)
 {
@@ -232,7 +220,6 @@ double matrix_determinant(const Matrix A)
     return det;
 }
 
-
 Matrix matrix_identity(const size_t rows, const size_t cols) {
 
     Matrix identity_matrix = matrix_allocate(rows, cols);
@@ -250,7 +237,6 @@ Matrix matrix_identity(const size_t rows, const size_t cols) {
 
     return identity_matrix;
 }
-
 
 Matrix matrix_power(const Matrix A, const unsigned long long int n)
 {
@@ -284,7 +270,6 @@ Matrix matrix_power(const Matrix A, const unsigned long long int n)
     return matrix_powered_to_n;
 }
 
-
 Matrix matrix_inverse(const Matrix A)
 {
     double det_A = matrix_determinant(A);
@@ -315,7 +300,6 @@ Matrix matrix_inverse(const Matrix A)
     
     return inverse_matrix;
 }
-
 
 Matrix matrix_exponent(const Matrix A, const unsigned long long int n)
 {
