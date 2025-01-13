@@ -199,7 +199,6 @@ Matrix matrix_pow(Matrix A, const unsigned int power)
         Matrix C = matrix_mult(B, A);
         matrix_free(&B);
         B = C;
-        matrix_free(&C);
     }
 
     return B;
@@ -247,10 +246,13 @@ Matrix matrix_exp(const Matrix A, const unsigned int accuracy)
 
     for (int n = 1; n <= accuracy; n++) {
         fact *= n;
-        Matrix C = matrix_add(B, matrix_mult_number(matrix_pow(A, n), 1/fact));
+        Matrix P = matrix_pow(A, n);
+        Matrix M = matrix_mult_number(P, 1/fact);
+        matrix_free(&P);
+        Matrix C = matrix_add(B, M);
         matrix_free(&B);
         B = C;
-        matrix_free(&C);
+        matrix_free(&M);
     }
 
     return B;
