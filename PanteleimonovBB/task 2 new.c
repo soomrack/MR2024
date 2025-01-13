@@ -326,33 +326,43 @@ Matrix matrix_exponent(const Matrix A, const size_t order)
         return MATRIX_NULL;
     }
     
-    Matrix C = matrix_unit(A.rows); 
-    Matrix tmp; 
-    Matrix tmp_factorial;
-    Matrix exp;
-    
-    for (size_t cur_num = 1; cur_num < order; ++cur_num) {
-        matrix_memory_free(&tmp);
-        tmp = matrix_power(A, cur_num);
-        if (tmp.data == NULL) { C= MATRIX_NULL; break;}
-        
-        tmp_factorial = matrix_multiplication_ratio(tmp, 1.0 / factorial(cur_num));
-        if(tmp_factorial.data == NULL) { C= MATRIX_NULL; break;}
-        
-        matrix_memory_free(&exp);
-        exp = matrix_memory_free(C, tmp_factorial);
-        if (exp.data == NULL) { C= MATRIX_NULL; break; }
+    Matrix C = matrix_unit(A.rows, A.cols); 
+    Matrix tmp = MATRIX_NULL; 
+    Matrix tmp_factorial = MATRIX_NULL;
 
-        matrix_memory_free(&C);    
-        C = exp;	    
-	exp = MATRIX_NULL;
+    for (size_t cur_num = 1; cur_num < order; ++cur_num) {
+        matrix_memory_free(&tmp); 
+        tmp = matrix_power(A, cur_num);
+        if (tmp.data == NULL) {
+            matrix_memory_free(&C);
+            return MATRIX_NULL;
+        }
+
+        matrix_memory_free(&tmp_factorial); 
+        tmp_factorial = matrix_multiplication_ratio(tmp, 1.0 / factorial(cur_num));
+        if (tmp_factorial.data == NULL) {
+            matrix_memory_free(&C);
+            matrix_memory_free(&tmp);
+            return MATRIX_NULL;
+        }
+
+        Matrix new_C = matrix_sum(C, tmp_factorial); 
+        if (new_C.data == NULL) {
+            matrix_memory_free(&C);
+            matrix_memory_free(&tmp);
+            matrix_memory_free(&tmp_factorial);
+            return MATRIX_NULL;
+        }
+
+        matrix_memory_free(&C); 
+        C = new_C;
     }
     
     matrix_memory_free(&tmp);
     matrix_memory_free(&tmp_factorial);
-    matrix_memory_free(&exp);
     return C;
 }
+
 
 
 // определитель матрицы A
