@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <locale.h>
 
 struct Matrix 
 {
@@ -251,7 +252,7 @@ double fakt (const unsigned int f)
 Matrix expM(const Matrix A, const unsigned int num)
 {
     if (A.rows != A.cols) {
-        expM(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
+        exM(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
         return MATRIX_NULL;
     }
 
@@ -288,6 +289,7 @@ Matrix expM(const Matrix A, const unsigned int num)
 
 int main() 
 {
+    setlocale(LC_ALL, "Rus");
     Matrix A = allM(3,3);
     Matrix B = allM(3, 3);
 
@@ -340,7 +342,7 @@ int main()
     printf("Определитель матрицы A: %2.f \n", detMt(A));
     
     //Матричная экспонента
-    Matrix exponent_A = exM(A, 3);
+    Matrix exponent_A = expM(A, 3);
     printf("Матричная экспонента от A:\n");
     prM(exponent_A);
 
