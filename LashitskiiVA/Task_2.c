@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <locale.h>
 
 struct Matrix 
 {
@@ -16,7 +17,7 @@ enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 const Matrix MATRIX_NULL = {0, 0, NULL};
 
 
-// РЎРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
+// Сообщение об ошибке
 void exM(const enum MatrixExceptionLevel level, char *msg)
 {
     if(level == ERROR) {
@@ -38,27 +39,27 @@ Matrix allM(const size_t rows, const size_t cols)
     Matrix M;
     
     if (rows == 0 || cols == 0) {
-        exM(INFO, "РњР°С‚СЂРёС†Р° СЃРѕРґРµСЂР¶РёС‚ 0 СЃС‚РѕР»Р±С†РѕРІ РёР»Рё СЃС‚СЂРѕРє");
+        exM(INFO, "Матрица содержит 0 столбцов или строк");
         return (Matrix) {rows, cols, NULL};
     }
     
     size_t size = rows * cols;
     if (size / rows != cols) {
-        exM(ERROR, "OVERFLOW: РџРµСЂРµРїРѕР»РЅРµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° СЌР»РµРјРµРЅС‚РѕРІ.");
+        exM(ERROR, "OVERFLOW: Переполнение количества элементов.");
         return MATRIX_NULL;
     }
     
     size_t size_in_bytes = size * sizeof(double);
     
     if (size_in_bytes / sizeof(double) != size) {
-        exM(ERROR, "OVERFLOW: РџРµСЂРµРїРѕР»РЅРµРЅРёРµ РІС‹РґРµР»РµРЅРЅРѕР№ РїР°РјСЏС‚Рё");
+        exM(ERROR, "OVERFLOW: Переполнение выделенной памяти");
         return MATRIX_NULL;
     }
     
     M.data = malloc(rows * cols * sizeof(double));
     
     if (M.data == NULL) {
-        exM(ERROR, "РЎР±РѕР№ РІС‹РґРµР»РµРЅРёСЏ РїР°РјСЏС‚Рё");
+        exM(ERROR, "Сбой выделения памяти");
         return MATRIX_NULL;
     }
     
@@ -68,10 +69,10 @@ Matrix allM(const size_t rows, const size_t cols)
 }
 
 
-void freeM(Matrix* M)  // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕСЃРІРѕР±РѕР¶РґРµРЅРёСЏ РїР°РјСЏС‚Рё РјР°С‚СЂРёС†С‹
+void freeM(Matrix* M)  // Функция для освобождения памяти матрицы
 {
     if (M == NULL){
-        exM(ERROR, "РћР±СЂР°С‰РµРЅРёРµ Рє РЅРµРґРѕРїСѓС‚РёРјРѕР№ РѕР±Р»Р°СЃС‚Рё РїР°РјСЏС‚Рё");
+        exM(ERROR, "Обращение к недопутимой области памяти");
         return;
     }
     
@@ -80,14 +81,14 @@ void freeM(Matrix* M)  // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕСЃРІРѕР±РѕР¶РґРµРЅРёСЏ РїР°РјС
 }
 
 
-// РќСѓР»РµРІР°СЏ РјР°С‚СЂРёС†Р°
+// Нулевая матрица
 void zM(const Matrix M)
 {
     memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
 
 
-// Р•РґРёРЅРёС‡РЅР°СЏ РјР°С‚СЂРёС†Р°
+// Единичная матрица
 Matrix iM(size_t size)
 {
     Matrix M = allM(size, size);
@@ -103,7 +104,7 @@ Matrix iM(size_t size)
 
 
 
-void prM(const Matrix M) // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРµС‡Р°С‚Рё РјР°С‚СЂРёС†С‹
+void prM(const Matrix M) // Функция для печати матрицы
 {
     for (size_t row = 0; row < M.rows; row++) {
         for (size_t col = 0; col < M.cols; col++) {
@@ -115,10 +116,10 @@ void prM(const Matrix M) // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРµС‡Р°С‚Рё РјР°С‚СЂРёС†С‹
 
 
 // C = A + B 
-Matrix sumM(const Matrix A, const Matrix B) // РЎР»РѕР¶РµРЅРёРµ РјР°С‚СЂРёС†
+Matrix sumM(const Matrix A, const Matrix B) // Сложение матриц
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        exM(WARNING, "Р Р°Р·РјРµСЂС‹ РјР°С‚СЂРёС† РЅРµ РїРѕРґС…РѕРґСЏС‚ РґР»СЏ СЃР»РѕР¶РµРЅРёСЏ.\n");
+        exM(WARNING, "Размеры матриц не подходят для сложения.\n");
         return MATRIX_NULL;
     }
 
@@ -132,10 +133,10 @@ Matrix sumM(const Matrix A, const Matrix B) // РЎР»РѕР¶РµРЅРёРµ РјР°С‚СЂРёС†
 
 
 // C = A - B 
-Matrix subM(const Matrix A, const Matrix B) // Р’С‹С‡РёС‚Р°РЅРёРµ РјР°С‚СЂРёС†
+Matrix subM(const Matrix A, const Matrix B) // Вычитание матриц
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        exM(WARNING, "Р Р°Р·РјРµСЂС‹ РјР°С‚СЂРёС† РЅРµ РїРѕРґС…РѕРґСЏС‚ РґР»СЏ РІС‹С‡РёС‚Р°РЅРёСЏ.\n");
+        exM(WARNING, "Размеры матриц не подходят для вычитания.\n");
         return MATRIX_NULL;
     }
 
@@ -148,10 +149,10 @@ Matrix subM(const Matrix A, const Matrix B) // Р’С‹С‡РёС‚Р°РЅРёРµ РјР°С‚СЂРёС†
 
 
 // C = A * B
-Matrix mulM(const Matrix A, const Matrix B) // РЈРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС†
+Matrix mulM(const Matrix A, const Matrix B) // Умножение матриц
 {
     if (A.cols != B.rows) {
-        exM(WARNING,"Р§РёСЃР»Рѕ СЃС‚РѕР»Р±С†РѕРІ РїРµСЂРІРѕР№ РјР°С‚СЂРёС†С‹ РЅРµ СЂР°РІРЅРѕ С‡РёСЃР»Сѓ СЃС‚СЂРѕРє РІС‚РѕСЂРѕР№ РјР°С‚СЂРёС†С‹.\n");
+        exM(WARNING,"Число столбцов первой матрицы не равно числу строк второй матрицы.\n");
         return MATRIX_NULL;
     }
 
@@ -169,7 +170,7 @@ Matrix mulM(const Matrix A, const Matrix B) // РЈРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС†
 }
 
 
-Matrix TM(const Matrix A) // РўСЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРёРµ РјР°С‚СЂРёС†С‹
+Matrix TM(const Matrix A) // Транспонирование матрицы
 {
     Matrix T = allM(A.cols, A.rows);
     
@@ -182,14 +183,14 @@ Matrix TM(const Matrix A) // РўСЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРёРµ РјР°С‚СЂРёС†С‹
 }
 
 
-Matrix powM(const Matrix A, int power)  // Р’РѕР·РІРµРґРµРЅРёРµ РјР°С‚СЂРёС†С‹ РІ СЃС‚РµРїРµРЅСЊ
+Matrix powM(const Matrix A, int power)  // Возведение матрицы в степень
 {
     if (A.rows != A.cols) {
-        exM(WARNING, "РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РґР»СЏ РІРѕР·РІРµРґРµРЅРёСЏ РІ СЃС‚РµРїРµРЅСЊ.\n");
+        exM(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
         return MATRIX_NULL;
     }
     
-    Matrix result = iM(A.rows); // РЎРѕР·РґР°РµРј РµРґРёРЅРёС‡РЅСѓСЋ РјР°С‚СЂРёС†Сѓ
+    Matrix result = iM(A.rows); // Создаем единичную матрицу
 
     for (int n = 0; n < power; n++) {
         Matrix temp = mulM(result, A);
@@ -201,7 +202,7 @@ Matrix powM(const Matrix A, int power)  // Р’РѕР·РІРµРґРµРЅРёРµ РјР°С‚СЂРёС†С‹ Р
 }
 
 // C = A * k
-Matrix scalM(const Matrix A, double scalar) // РЈРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС†С‹ РЅР° С‡РёСЃР»Рѕ
+Matrix scalM(const Matrix A, double scalar) // Умножение матрицы на число
 {
     Matrix C = allM(A.rows, A.cols);
     
@@ -212,10 +213,10 @@ Matrix scalM(const Matrix A, double scalar) // РЈРјРЅРѕР¶РµРЅРёРµ РјР°С‚СЂРёС†С‹
 }
 
 
-double detMt(const Matrix A) // РћРїСЂРµРґРµР»РёС‚РµР»СЊ РјР°С‚СЂРёС†С‹ (РґР»СЏ 2x2 Рё 3x3)
+double detMt(const Matrix A) // Определитель матрицы (для 2x2 и 3x3)
 {
     if (A.rows != A.cols) {
-        exM(WARNING, "РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РґР»СЏ С‚СЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРёСЏ.\n");
+        exM(WARNING, "Матрица должна быть квадратной для транспонирования.\n");
         return NAN;
     }
     
@@ -251,14 +252,14 @@ double fakt (const unsigned int f)
 Matrix expM(const Matrix A, const unsigned int num)
 {
     if (A.rows != A.cols) {
-        expM(WARNING, "РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№ РґР»СЏ РІС‹С‡РёСЃР»РµРЅРёСЏ СЌРєСЃРїРѕРЅРµРЅС‚С‹");
+        exM(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
         return MATRIX_NULL;
     }
 
     Matrix E = iM(A.rows);
 
     if (E.data == NULL) {
-        return MATRIX_NULL; // РџСЂРѕРІРµСЂРєР° РЅР° СѓСЃРїРµС€РЅРѕРµ РІС‹РґРµР»РµРЅРёРµ РїР°РјСЏС‚Рё
+        return MATRIX_NULL; // Проверка на успешное выделение памяти
     }
 
     if (num == 1) {
@@ -282,12 +283,13 @@ Matrix expM(const Matrix A, const unsigned int num)
         freeM(&scaled_tmp);
     }
     
-    return E; // Р’РѕР·РІСЂР°С‰Р°РµРј СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰СѓСЋ РјР°С‚СЂРёС†Сѓ
+    return E; // Возвращаем результирующую матрицу
 }
 
 
 int main() 
 {
+    setlocale(LC_ALL, "Rus");
     Matrix A = allM(3,3);
     Matrix B = allM(3, 3);
 
@@ -297,54 +299,54 @@ int main()
     memcpy(A.data, data_A, 9 * sizeof(double));
     memcpy(B.data, data_B, 9 * sizeof(double));
 
-    // РџРµС‡Р°С‚СЊ РёСЃС…РѕРґРЅС‹С… РјР°С‚СЂРёС†
-    printf("РњР°С‚СЂРёС†Р° A:\n");
+    // Печать исходных матриц
+    printf("Матрица A:\n");
     prM(A);
 
-    printf("РњР°С‚СЂРёС†Р° B:\n");
+    printf("Матрица B:\n");
     prM(B);
 
-    // РЎР»РѕР¶РµРЅРёРµ
+    // Сложение
     Matrix C = sumM(A, B);
-    printf("Р РµР·СѓР»СЊС‚Р°С‚ СЃР»РѕР¶РµРЅРёСЏ:\n");
+    printf("Результат сложения:\n");
     prM(C);
 
-    // Р’С‹С‡РёС‚Р°РЅРёРµ
+    // Вычитание
     Matrix D = subM(A, B);
-    printf("Р РµР·СѓР»СЊС‚Р°С‚ РІС‹С‡РёС‚Р°РЅРёСЏ:\n");
+    printf("Результат вычитания:\n");
     prM(D);
 
-    // РЈРјРЅРѕР¶РµРЅРёРµ
+    // Умножение
     Matrix E = mulM(A, B);
-    printf("Р РµР·СѓР»СЊС‚Р°С‚ СѓРјРЅРѕР¶РµРЅРёСЏ:\n");
+    printf("Результат умножения:\n");
     prM(E);
 
-    // РўСЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРёРµ
+    // Транспонирование
     Matrix T = TM(A);
-    printf("РўСЂР°РЅСЃРїРѕРЅРёСЂРѕРІР°РЅРЅР°СЏ РјР°С‚СЂРёС†Р° A:\n");
+    printf("Транспонированная матрица A:\n");
     prM(T);
 
-    // Р’РѕР·РІРµРґРµРЅРёРµ РІ СЃС‚РµРїРµРЅСЊ
+    // Возведение в степень
     int power = 3;
     Matrix F = powM(A, power);
-    printf("РњР°С‚СЂРёС†Р° A РІ СЃС‚РµРїРµРЅРё %d:\n", power);
+    printf("Матрица A в степени %d:\n", power);
     prM(F);
 
-    // РЈРјРЅРѕР¶РµРЅРёРµ РЅР° С‡РёСЃР»Рѕ
+    // Умножение на число
     double scalar = 5;
     Matrix G = scalM(A, scalar);
-    printf("РњР°С‚СЂРёС†Р° A СѓРјРЅРѕР¶РµРЅРЅР°СЏ РЅР° %2.f:\n", scalar);
+    printf("Матрица A умноженная на %2.f:\n", scalar);
     prM(G);
     
-    // РћРїСЂРµРґРµР»РёС‚РµР»СЊ
-    printf("РћРїСЂРµРґРµР»РёС‚РµР»СЊ РјР°С‚СЂРёС†С‹ A: %2.f \n", detMt(A));
+    // Определитель
+    printf("Определитель матрицы A: %2.f \n", detMt(A));
     
-    //РњР°С‚СЂРёС‡РЅР°СЏ СЌРєСЃРїРѕРЅРµРЅС‚Р°
-    Matrix exponent_A = exM(A, 3);
-    printf("РњР°С‚СЂРёС‡РЅР°СЏ СЌРєСЃРїРѕРЅРµРЅС‚Р° РѕС‚ A:\n");
+    //Матричная экспонента
+    Matrix exponent_A = expM(A, 3);
+    printf("Матричная экспонента от A:\n");
     prM(exponent_A);
 
-    // РћСЃРІРѕР±РѕР¶РґРµРЅРёРµ РїР°РјСЏС‚Рё
+    // Освобождение памяти
     freeM(&A);
     freeM(&B);
     freeM(&C);
