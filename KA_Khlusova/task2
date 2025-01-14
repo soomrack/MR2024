@@ -285,7 +285,11 @@ int main()
     
     // Определитель
     printf("Determinant A: %2.f \n", matrix_determinant(A));
-    
+
+    //Степень
+    printf("Pow: \n");
+    matrix_print (matrix_pow(A));
+
     // Экспонента
     printf("Exp A:\n");
     matrix_print(matrix_exp(A, 10));
