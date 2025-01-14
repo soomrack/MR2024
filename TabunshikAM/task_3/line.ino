@@ -218,18 +218,12 @@ void drive_line()
 
 void find_line()
 {
-  sensors_read();
-
-  int u = PD_regulator();
-
   if (line_is_not_found()) {
     play_sound();
     return;
   }
   
-  int left_speed = constrain(DEFAULT_SPEED + u, SPEED_MIN, SPEED_MAX);
-  int right_speed = constrain(DEFAULT_SPEED - u, SPEED_MIN, SPEED_MAX);
-  motors_set_speed(left_speed, right_speed);
+  drive_line();
 }
 
 void setup()
