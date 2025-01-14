@@ -31,7 +31,7 @@ static int search_speed = 180;
 const int BLACK_THRESHOLD = 60;
 
 
-unsigned long time_end = 5000 + millis();
+unsigned long time_end = 0;
 
 struct Sensor_limit
 {
