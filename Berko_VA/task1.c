@@ -1,250 +1,225 @@
 #include <stdio.h>
-#include <stdint.h>
+#include <math.h>
+#include <locale.h>
+#include <string.h>
 
+typedef long long int Money;        // коп.
+const double INFLATION_RATE = 0.09; // Значение годовой инфляции в п.п.
+const double DEPOSITE_RATE = 0.2;   // Значение процента по вкладу в п.п.
 
-typedef struct {
-    int year;
-    int month;
-} Date;
-
-
-typedef long long int Money;
-
-
-typedef struct {
+typedef struct
+{
+    char name[10];
     Money capital;
-    double rate;
-} Deposit;
-
-
-typedef struct {
-    Money amount;
-    unsigned remaining_month;
-    double rate;
-} Mortage;
-
-
-typedef struct {
-    Money money;  // month cash
     Money salary;
-    Deposit deposit;
-
-    Money estate_cost;
-
-    Mortage mortage;
-
-    Money rent_cost;
-
     Money food_cost;
     Money service_cost;
-    Money personel_cost;
+    Money personal_cost;
+    Money vacation_cost;
+    Money rent_cost;
+    Money deposit;
 } Person;
 
-
-const Money flat_cost = 15 * 1000 * 1000;
-const double inflation = 0.08;
-const double deposit_rate = 0.2;
-const int duration = 30; // years
-
-
-void alice_init(Person* person)
+typedef struct
 {
-    *person = (Person){
-        .money = 0,
-        .salary = 300 * 1000,
-        .estate_cost = flat_cost,
-        .deposit = {
-            .capital = 0,
-            .rate = deposit_rate
-        },
-        .mortage = {
-            .amount = flat_cost - (1000 * 1000),
-            .remaining_month = 12 * duration,
-            .rate = 0.17
-        },
-        .rent_cost = 0,
-        .food_cost = 20 * 1000,
-        .service_cost = 10 * 1000,
-        .personel_cost = 15 * 1000
-    };
+    int year_start;
+    int month_start;
+    int year_end;
+    int month_end;
+    Money credit_cost;
+    double credit_rate;
+    Money credit_payment;
+} Credit;
+
+Person alice;
+Person bob;
+Credit alice_apartment_mortgage;
+
+double calc_credit_payment(Credit credit)
+{
+    Money cost = credit.credit_cost;
+    double rate = credit.credit_rate;
+    int duration = (credit.year_end * 12 + credit.month_end) - (credit.year_start * 12 + credit.month_start);
+
+    double month_rate = rate / 12;                                       
+    double whole_rate = pow((1 + month_rate), (duration));               
+    double payment = cost * month_rate * whole_rate / (whole_rate - 1); 
+    return payment;
 }
 
 
-void bob_init(Person* person)
+void alice_init()
 {
-    *person = (Person){
-        .money = 0,
-        .salary = 300 * 1000,
-        .estate_cost = 0,
-        .deposit = {
-            .capital = 1000 * 1000,
-            .rate = deposit_rate
-        },
-        .mortage = {
-            .amount = 0,
-            .remaining_month = 0,
-            .rate = 0
-        },
-        .rent_cost = 30 * 1000,
-        .food_cost = 30 * 1000,
-        .service_cost = 10 * 1000,
-        .personel_cost = 15 * 1000
-    };
+    strcpy(alice.name, "Alice");
+    alice.capital = 1000 * 1000 * 100;
+    alice.salary = 200 * 1000 * 100;
+    alice.food_cost = 15 * 1000 * 100;
+    alice.service_cost = 8 * 1000 * 100;
+    alice.personal_cost = 17 * 1000 * 100; 
+    alice.deposit = 0; 
+    alice.rent_cost = 0; 
+};
+
+
+void bob_init()
+{
+    strcpy(bob.name, "Bob");
+    bob.capital = 1000 * 1000 * 100;
+    bob.salary = 200 * 1000 * 100;
+    bob.food_cost = 15 * 1000 * 100;
+    bob.service_cost = 8 * 1000 * 100;
+    bob.personal_cost = 17 * 1000 * 100;
+    bob.vacation_cost = 100 * 1000 * 100;
+    bob.deposit = 0;
+    bob.rent_cost = 30 * 1000 * 100;
+};
+
+
+void alice_mortgage_init()
+{
+    alice_apartment_mortgage.year_start = 2024;
+    alice_apartment_mortgage.month_start = 9;
+    alice_apartment_mortgage.year_end = 2054;
+    alice_apartment_mortgage.month_end = 9;
+    alice_apartment_mortgage.credit_cost = 13 * 1000 * 1000 * 100;
+    alice_apartment_mortgage.credit_rate = 0.16;
+    alice_apartment_mortgage.credit_payment = calc_credit_payment(alice_apartment_mortgage);
 }
 
 
-void alice_salary(Person* alice, const Date* date)
+void manage_alice_salary(const int month)
 {
-    if(date->year == 2040 && date->month == 5)
-    {
-        alice->salary += (Money)((double)alice->salary * 0.25);  // alice promotion
+    if (month == 12) {
+        alice.salary *= 1. + INFLATION_RATE;
     }
 
-    alice->money += alice->salary;
+    alice.capital += alice.salary;
 
-    alice->salary += (Money)((double)alice->salary * inflation / 12.0);
 }
 
 
-void bob_salary(Person* bob, const Date* date)
+void manage_bob_salary(const int month)
 {
-    bob->money += bob->salary;
-
-    bob->salary += (Money)((double)bob->salary * inflation / 12.0);
-}
-
-
-void alice_pay_mortage(Person* person, const Date* date)
-{
-    if(person->mortage.amount != 0)
-    {
-        person->money -= (Money)((double)person->mortage.amount * person->mortage.rate / 12.0);  // mortage percentage payment
-        Money mortage_payment = person->mortage.amount / person->mortage.remaining_month;
-        person->money -= mortage_payment;
-        person->mortage.amount -= mortage_payment;
-        person->mortage.remaining_month--;
-    }
-}
-
-
-void rent(Person* person, const Date* date)
-{
-    person->money -= person->rent_cost;
-
-    person->rent_cost += (Money)((double)person->rent_cost * inflation / 12.0);
-}
-
-
-void bills(Person* person, const Date* date)
-{
-    person->money -= person->food_cost;
-    person->money -= person->service_cost;
-    person->money -= person->personel_cost;
-
-    person->food_cost += (Money)((double)person->food_cost * inflation / 12.0);
-    person->service_cost += (Money)((double)person->service_cost * inflation / 12.0);
-    person->personel_cost += (Money)((double)person->personel_cost * inflation / 12.0);
-}
-
-
-void deposit(Person* person, const Date* date)
-{
-    person->deposit.capital += person->money;
-    person->money = 0;
-
-    person->deposit.capital += (Money)((double)person->deposit.capital * person->deposit.rate / 12.0);
-}
-
-
-void estate_cost_rise(Person* person, const Date* date)
-{
-    person->estate_cost += (Money)((double)person->estate_cost * inflation / 12.0);
-}
-
-
-void bob_car(Person* bob, const Date* date)
-{
-    if(date->year == 2030 && date->month == 2)
-    {
-        bob->deposit.capital -= 700 * 1000;  // bob buys car
+    if (month == 12) {
+        bob.salary *= 1. + INFLATION_RATE;
     }
 
-    if(date->year > 2030 || (date->year == 2030 && date->month >= 2))
-    {
-        bob->money -= 20 * 1000;  // car bills
+    if (month != 8) {
+        bob.capital += bob.salary;
     }
+
 }
 
 
-int is_date_equal(const Date* first, const Date* second)
+void manage_alice_expenses(const int month)
 {
-    return (first->year == second->year) && (first->month == second->month);
-}
-
-
-void date_month_increment(Date* date)
-{
-    date->month++;
-    if(date->month == 13)
-    {
-        date->month = 1;
-        date->year++;
+    if (month == 12) {
+        alice.food_cost *= 1. + INFLATION_RATE;
+        alice.service_cost *= 1. + INFLATION_RATE;
+        alice.personal_cost *= 1. + INFLATION_RATE;
     }
+    alice.capital -= (alice.food_cost + alice.service_cost + alice.personal_cost);
 }
 
 
-void simulation(Person* alice, Person* bob)
+void manage_bob_expenses(const int month)
 {
-    Date date_current = {.year = 2024, .month = 9}; // starting date
-    Date date_end = date_current;
-    date_end.year += duration;
+    if (month == 12) {
+        bob.food_cost *= 1. + INFLATION_RATE;
+        bob.service_cost *= 1. + INFLATION_RATE;
+        bob.personal_cost *= 1. + INFLATION_RATE;
+        bob.vacation_cost *= 1. + INFLATION_RATE;
+    }
 
-    while(!is_date_equal(&date_current, &date_end))
-    {
-        alice_salary(alice, &date_current);
-        alice_pay_mortage(alice, &date_current);
-        bills(alice, &date_current);
-        deposit(alice, &date_current);
-        estate_cost_rise(alice, &date_current);
+    if (month == 8) {
+        bob.capital -= bob.vacation_cost;
+    }
+
+    bob.capital -= (bob.food_cost + bob.service_cost + bob.personal_cost);
+}
 
 
-        bob_salary(bob, &date_current);
-        bills(bob, &date_current);
-        rent(bob, &date_current);
-        bob_car(bob, &date_current);
-        deposit(bob, &date_current);
+void manage_bob_rent(const int month)
+{
+    if (month == 12) {
+        bob.rent_cost *= 1. + INFLATION_RATE;
+    }
 
-        date_month_increment(&date_current);
+    bob.capital -= bob.rent_cost;
+}
+
+
+void manage_alice_deposit()
+{
+    alice.deposit += alice.capital;
+    alice.deposit *= 1. + DEPOSITE_RATE / 12;
+    alice.capital = 0;
+}
+
+
+void manage_bob_deposit()
+{
+    bob.deposit += bob.capital;
+    bob.deposit *= 1. + DEPOSITE_RATE / 12;
+    bob.capital = 0;
+}
+
+
+void manage_alice_credit(Credit *credit, const int current_month, const int current_year)
+{
+    if (credit->year_start <= current_year <= credit->year_end && credit->month_start <= current_month <= credit->month_end) {
+        alice.capital -= credit->credit_payment;
     }
 }
 
 
-void print_comparison(const Person* alice, const Person* bob)
+void print_capital(Person *p) 
 {
-    if((alice->estate_cost + alice->deposit.capital) == bob->deposit.capital)
-    {
-        printf("Alice and Bob funds are equal: %ld\n", bob->deposit.capital);
-    }
-    else if((alice->estate_cost + alice->deposit.capital) > bob->deposit.capital)
-    {
-        printf("Alice funds: %ld are higher than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
-    }
-    else
-    {
-        printf("Alice funds: %ld are lower than Bob's %ld\n", alice->estate_cost + alice->deposit.capital, bob->deposit.capital);
-    }
+    setlocale(LC_NUMERIC, "");
+
+    printf("%s\n", p->name);
+    printf("Final capital is %'.lld Rub\n", p->deposit / 100);
+    printf("\n");
 }
+
+
+void simulation(const int start_month, const int start_year)
+{
+    int year = start_year;
+    int month = start_month;
+
+    while (!(year == (start_year + 30) && month == start_month)) {
+
+        manage_alice_salary(month);
+        manage_alice_expenses(month);
+        manage_alice_credit(&alice_apartment_mortgage, month, year);
+        manage_alice_deposit();
+
+        manage_bob_salary(month);
+        manage_bob_expenses(month);
+        manage_bob_rent(month);
+        manage_bob_deposit();
+
+        ++month;
+
+        if (month == 13) {
+            month = 1;
+            ++year;
+        }
+    }
+};
 
 
 int main()
 {
-    Person alice, bob;
-    alice_init(&alice);
-    bob_init(&bob);
+    alice_init();
+    bob_init();
+    alice_mortgage_init();
 
-    simulation(&alice, &bob);
+    simulation(9, 2024);
 
-    print_comparison(&alice, &bob);
-
+    print_capital(&alice);
+    print_capital(&bob);
+    
     return 0;
 }
