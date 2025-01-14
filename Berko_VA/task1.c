@@ -1,34 +1,34 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long long int Money;  // в копейках
+typedef long long int Money;
 
 int MONTH = 9;
 int YEAR = 2024;
-double INFLATION = 0.08;  // процент годовой инфляции
-double DEP_PERCENT_BOB = 0.2;  // процент по вкладу Боба
-double DEP_PERCENT_ALICE = 0.2;  // процент по вкладу Алисы
-int FLAG = 1;  // Флаг для изменения процентной ставки
+double INFLATION = 0.08;
+double DEP_PERCENT_BOB = 0.2;
+double DEP_PERCENT_ALICE = 0.2; 
+int FLAG = 1;
 
-Money IPOTEKA_AMOUNT;
+Money MORTGAGE;
 
 
 struct Person {
     Money capital;
     Money salary;
-    Money home_cost;  // стоимость квартиры
-    Money month_payment;  // ежемесячный платеж по ипотеке
+    Money home_cost;
+    Money month_payment;
     Money food_expenses;
     Money utility_expenses;
     Money other_expenses;
-    Money rent;  // арендная плата
-    Money initial_deposit;  // начальный депозит в банк, по которому начисляются проценты(меняется каждый год)
-    Money deposit;  // депозит в банк, на который начисляются проценты
+    Money rent;
+    Money initial_deposit;
+    Money deposit;
 };
 
 
-struct Person alice;  // ипотека
-struct Person bob;  // депозит
+struct Person alice;
+struct Person bob;
 
 
 void alice_init()
@@ -41,9 +41,8 @@ void alice_init()
     alice.utility_expenses = 8 * 1000 * 100;
     alice.other_expenses = 17 * 1000 * 100;
     alice.deposit = 0;
-
-    //  вносим за Алису первоначальный платеж и обнуляем её банк
-    IPOTEKA_AMOUNT = alice.capital;
+
+    MORTGAGE = alice.capital;
     alice.capital = 0;
 }
 
@@ -58,8 +57,7 @@ void bob_init()
     bob.other_expenses = 17 * 1000 * 100;
     bob.rent = 30 * 1000 * 100;
     bob.deposit = 0;
-
-    //  вносим депозит в банк за Боба
+
     bob.deposit = bob.capital;
     bob.capital -= bob.deposit;
 }
@@ -85,10 +83,10 @@ void alice_expenses(const int month)
 }
 
 
-void alice_ipoteka_pay(const int month)
+void alice_mortgage_pay(const int month)
 {
     alice.capital -= alice.month_payment;
-    IPOTEKA_AMOUNT += alice.month_payment;
+    MORTGAGE += alice.month_payment;
     if (month == 12) {
         alice.home_cost += alice.home_cost * INFLATION;
     }
@@ -148,7 +146,7 @@ void bob_deposit_accrual(const int month, Money capital)
 }
 
 
-void print_coclusion(const Money bob_loot, const Money alice_loot)
+void conclusion(const Money bob_loot, const Money alice_loot)
 {
     if (alice_loot > bob_loot) {
         printf("Выгоднее стратегия Алисы\n");
@@ -171,7 +169,7 @@ void simulation(int month, int year)
     while (!((year == end_year) && (month == MONTH))) {
         alice_salary(month);
         alice_expenses(month);
-        alice_ipoteka_pay(month);
+        alice_mortgage_pay(month);
         alice_deposit_accrual(month, alice.capital);
 
         bob_salary(month);
@@ -195,7 +193,7 @@ int main()
 
     simulation(MONTH, YEAR);
 
-    print_coclusion(bob.capital + bob.deposit, alice.capital + alice.home_cost + alice.deposit);
+    conclusion(bob.capital + bob.deposit, alice.capital + alice.home_cost + alice.deposit);
 
     return 0;
 }
