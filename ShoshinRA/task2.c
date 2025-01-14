@@ -307,7 +307,7 @@ Matrix matrix_pow(const Matrix A, const unsigned long n)
 {
     if (A.cols != A.rows) {
         matrix_exception(ERROR, "Unable to power: Matrix is not square \n");
-		return MATRIX_NULL;
+        return MATRIX_NULL;
     }
 
     if (n == 0) {
@@ -315,13 +315,20 @@ Matrix matrix_pow(const Matrix A, const unsigned long n)
     }
 
     Matrix to_power_on_n = matrix_init(A.rows, A.cols);
+
     matrix_copy(to_power_on_n, A);
 
     for (size_t pow = 1; pow < n; pow++) {
         Matrix temp = matrix_multi(to_power_on_n, A);
-        matrix_free(&to_power_on_n);
+        if (temp.data == NULL) {
+            matrix_exception(ERROR, "Memory allocation failed for temp \n");
+            matrix_free(&to_power_on_n); 
+            return MATRIX_NULL;
+        }
+
+        matrix_free(&to_power_on_n); 
+
         to_power_on_n = temp;
-        matrix_free(&temp);
     }
 
     return to_power_on_n;
