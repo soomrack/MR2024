@@ -31,6 +31,8 @@ static int search_speed = 180;
 const int BLACK_THRESHOLD = 60;
 
 
+unsigned long time_end = 5000 + millis();
+
 struct Sensor_limit
 {
   int min;
@@ -120,11 +122,11 @@ void sensors_update_limits()
 
 void calibration()
 {
-  unsigned long time_end = millis() + 3500;
+  unsigned long timer = millis() + 3500;
 
   motors_set_speed(140, -140);
 
-  while (millis() < time_end) {
+  while (millis() < timer) {
     sensors_read_raw();
     sensors_update_limits();
   }
@@ -177,20 +179,20 @@ int PD_regulator()
 }
 
 
-bool line_is_not_found() {
-  static unsigned long time_end = 5000 + millis();
-
-  if (!is_on_line()) {
-    if (millis() > time_end) {
-      is_running = 0;
-      return 1;
-    }
-  } else {
-    time_end = 2000 + millis();
-  }
-
-  return 0;
-}
+//bool line_is_not_found() {
+//  static unsigned long time_end = 5000 + millis();
+//
+//  if (!is_on_line()) {
+//    if (millis() > time_end) {
+//      is_running = 0;
+//      return 1;
+//    }
+//  } else {
+//    time_end = 5000 + millis();
+//  }
+//
+//  return 0;
+//}
 
 
 void play_sound() {
@@ -211,6 +213,8 @@ void drive_line()
 
   int u = PD_regulator();
 
+  time_end = 3000 + millis();
+
   int left_speed = constrain(DEFAULT_SPEED + u, SPEED_MIN, SPEED_MAX);
   int right_speed = constrain(DEFAULT_SPEED - u, SPEED_MIN, SPEED_MAX);
   motors_set_speed(left_speed, right_speed);
@@ -218,16 +222,30 @@ void drive_line()
 
 void find_line()
 {
-  if (line_is_not_found()) {
+  //  if (line_is_not_found()) {
+  //    play_sound();
+  //    return;
+  //  }
+
+  if (millis() > time_end) {
+    is_running = 0;
     play_sound();
     return;
   }
-  
-  drive_line();
+
+  sensors_read();
+
+  int u = PD_regulator();
+
+  int left_speed = constrain(DEFAULT_SPEED + u, SPEED_MIN, SPEED_MAX);
+  int right_speed = constrain(DEFAULT_SPEED - u, SPEED_MIN, SPEED_MAX);
+  motors_set_speed(left_speed, right_speed);
 }
 
 void setup()
 {
+  time_end = 10000 + millis();
+  
   pins_init();
 
   while (true) {
@@ -245,12 +263,13 @@ void loop()
 
   if (button_is_pressed()) {
     is_running = !is_running;
+    time_end = 3000 + millis();
   }
-  
-  if (is_running) {
-    drive_line();
 
-    if(!is_on_line()) {
+  if (is_running) {
+    if (is_on_line()) {
+      drive_line();
+    } else {
       find_line();
     }
   }
