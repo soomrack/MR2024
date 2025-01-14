@@ -60,7 +60,7 @@ void matrix_free(Matrix *A) //освобождаем память
     *A = MATRIX_NULL;
 }
 
-void matrix_set(const Matrix A, const double *values) //вопрос так ли я поняла
+void matrix_set(const Matrix A, const double *values) //
 {
     memcpy(A.data, values, A.rows * A.cols * sizeof(double));
 }
