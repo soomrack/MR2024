@@ -50,27 +50,27 @@ struct Matrix matrix_allocate(const size_t rows, const size_t cols)
     Matrix M;
 
     if (rows == 0 || cols == 0) {
-        matrix_exception(INFO, "There are zero cols or rows in Matrix");
+       // matrix_exception(INFO, "There are zero cols or rows in Matrix");
         return (Matrix) { rows, cols, NULL };
     }
 
     size_t size = rows * cols;
     if (size / rows != cols) {
-        matrix_exception(ERROR, "Overflow of components");
+       // matrix_exception(ERROR, "Overflow of components");
         return MATRIX_NULL;
     }
 
     size_t size_in_bytes = size * sizeof(double);
 
     if (size_in_bytes / sizeof(double) != size) {
-        matrix_exception(ERROR, "Overflow of allocate memory");
+        //matrix_exception(ERROR, "Overflow of allocate memory");
         return MATRIX_NULL;
     }
 
     M.data = malloc(rows * cols * sizeof(double));
 
     if (M.data == NULL) {
-        matrix_exception(ERROR, "Error in memory allocation");
+       // matrix_exception(ERROR, "Error in memory allocation");
         return MATRIX_NULL;
     }
 
@@ -103,6 +103,10 @@ void matrix_free(struct Matrix* A)
 
 // A += B
 int matrix_add(struct Matrix* A, const struct Matrix* B) {
+    if (A == NULL || B == NULL) {
+      //  matrix_exception(ERROR, "Pointer on matrix arguments is NULL");
+        return 1;
+    }
     if (A->rows != B->rows || A->cols != B->cols) return 1;
 
     for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
@@ -118,6 +122,7 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
     if (A.rows != B.rows || A.cols != B.cols) return MATRIX_NULL;
 
     struct Matrix C = matrix_allocate(A.rows, A.cols);
+    memcpy(C.data, 0, A.rows * A.cols * sizeof(double));
     if (C.data == NULL) return MATRIX_NULL;
 
     memcpy(C.data, A.data, C.cols * C.rows * sizeof(Matrix));
@@ -128,6 +133,10 @@ struct Matrix matrix_sum(const struct Matrix A, const struct Matrix B)
 
 // A -= B
 int matrix_subtraction(struct Matrix* A, const struct Matrix* B) {
+    if (A == NULL || B == NULL) {
+       // matrix_exception(ERROR, "Pointer on matrix arguments is NULL");
+        return 1;
+    }
     if (A->rows != B->rows || A->cols != B->cols) return 1;
 
     for (size_t idx = 0; idx < A->cols * A->rows; idx++) {
@@ -143,6 +152,7 @@ struct Matrix matrix_diff(const struct Matrix A, const struct Matrix B)
     if (A.rows != B.rows || A.cols != B.cols) return MATRIX_NULL;
 
     struct Matrix C = matrix_allocate(A.rows, A.cols);
+    memcpy(C.data, 0, A.rows * A.cols * sizeof(double));
     if (C.data == NULL) return C;
 
 
@@ -157,6 +167,7 @@ struct Matrix matrix_diff(const struct Matrix A, const struct Matrix B)
 struct Matrix matrix_mult_scalar(const struct Matrix A, const double scalar)
 {
     struct Matrix C = matrix_allocate(A.rows, A.cols);
+    //memcpy(C.data, 0, A.rows * A.cols * sizeof(double));
     if (C.data == NULL) return MATRIX_NULL;
 
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
@@ -165,12 +176,29 @@ struct Matrix matrix_mult_scalar(const struct Matrix A, const double scalar)
     return C;
 }
 
+double matrix_trace(const struct Matrix A) {
+    double sum = 0;
+    /*
+    if (A.data = NULL) {
+      matrix_exception(ERROR, "Matrix pointer os NULL");
+       return 1;
+     }
+     */
+
+    if (A.rows != A.cols) return 1;
+
+    for (size_t idx = 0; idx < A.rows; idx++) {
+       sum += A.data[idx*A.rows+idx];
+    }
+    return sum;
+}
 
 // C = A * B
 struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B) {
     if (A.cols != B.rows) return MATRIX_NULL;
 
     struct Matrix C = matrix_allocate(A.rows, B.cols);
+    memcpy(C.data, 0, A.rows * A.cols * sizeof(double));
     if (C.data == NULL) return MATRIX_NULL;
 
     for (size_t i = 0; i < A.rows; i++) {
@@ -188,6 +216,7 @@ struct Matrix matrix_mult(const struct Matrix A, const struct Matrix B) {
 struct Matrix matrix_transp(const struct Matrix A)
 {
     struct Matrix C = matrix_allocate(A.cols, A.rows);
+    memcpy(C.data, 0, A.rows * A.cols * sizeof(double));
     if (C.data == NULL)
         return C;
 
@@ -226,10 +255,11 @@ double det(const struct Matrix A) {
 
 struct Matrix sum_for_matrix_exp(struct Matrix A, unsigned int level)
 {
-    struct Matrix S, C;
+    struct Matrix S = MATRIX_NULL, C = MATRIX_NULL;
     double n = 1.0;
 
     struct Matrix SUM = matrix_allocate(A.rows, A.cols);
+    memcpy(SUM.data, 0, A.rows * A.cols * sizeof(double));
     if (SUM.data == NULL) {
         matrix_free(&SUM);
         return MATRIX_NULL;
@@ -261,6 +291,7 @@ struct Matrix sum_for_matrix_exp(struct Matrix A, unsigned int level)
 struct Matrix matrix_E(const struct Matrix A)
 {
     struct Matrix E = matrix_allocate(A.cols, A.rows);
+    memcpy(E.data, 0, A.rows * A.cols * sizeof(double));
     if (E.data == NULL) return MATRIX_NULL;
 
     for (int idx = 0; idx < A.rows * A.cols; idx++) E.data[idx] = 0;
@@ -273,7 +304,7 @@ struct Matrix matrix_E(const struct Matrix A)
 // C = e ^ (A)
 struct Matrix matrix_exp(struct Matrix A, unsigned long int level)
 {
-    struct Matrix C, SUMEXP;
+    struct Matrix C = MATRIX_NULL, SUMEXP = MATRIX_NULL;
 
     if (A.rows != A.cols) return MATRIX_NULL;
 
@@ -311,13 +342,23 @@ void matrix_print(const struct Matrix A)
 
 int main()
 {
-    struct Matrix A, B, C, C2, C3;
+
+    struct Matrix B, C, C2, C3;
 
     printf("\nFirst matrix\n");
-    struct Matrix A = matrix_create(3, 3, (double[]) { 1, 4, 2, 4, -4, 5, 6, 2, 7 });
+    struct Matrix A = matrix_create(3, 3, (double[]) { 1, 2, 3, 4, 5, 6, 7, 8, 9});
     matrix_create(A.cols, A.rows, &A);
     matrix_print(A);
 
+    printf("Multiplying the first matrix by a scalar\n");
+    C = matrix_mult_scalar(A, 2);
+    matrix_print(C);
+
+    
+   // double sum_test = matrix_trace(A);
+    printf("%4.2f ", matrix_trace(A));
+
+    
     printf("Second matrix\n");
     struct Matrix B = matrix_create(3, 3, (double[]) { 3, 6, 2, 6, 0, -2, 9, 3, 0 });
     matrix_create(B.cols, B.rows, &B);
@@ -340,9 +381,7 @@ int main()
     C = matrix_diff(A, B);
     matrix_print(C);
 
-    printf("Multiplying the first matrix by a scalar\n");
-    C = matrix_mult_scalar(A, 2);
-    matrix_print(C);
+
 
     printf("Multiplying the first matrix by a second matrix\n");
     C = matrix_mult(A, B);
@@ -365,6 +404,6 @@ int main()
     matrix_free(&B);
     matrix_free(&C);
     matrix_free(&C3);
-
+    
     return 0;
 }
