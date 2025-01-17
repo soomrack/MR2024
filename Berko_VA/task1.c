@@ -8,7 +8,6 @@ int YEAR = 2024;
 double INFLATION = 0.08;
 double DEP_PERCENT_BOB = 0.2;
 double DEP_PERCENT_ALICE = 0.2; 
-int FLAG = 1;
 
 Money MORTGAGE;
 
@@ -41,7 +40,8 @@ void alice_init()
     alice.utility_expenses = 8 * 1000 * 100;
     alice.other_expenses = 17 * 1000 * 100;
     alice.deposit = 0;
-
+
+
     MORTGAGE = alice.capital;
     alice.capital = 0;
 }
@@ -57,7 +57,8 @@ void bob_init()
     bob.other_expenses = 17 * 1000 * 100;
     bob.rent = 30 * 1000 * 100;
     bob.deposit = 0;
-
+
+
     bob.deposit = bob.capital;
     bob.capital -= bob.deposit;
 }
@@ -136,10 +137,6 @@ void bob_deposit_accrual(const int month, Money capital)
 {
     if (month == 9) {
         bob.initial_deposit = bob.deposit;
-    }
-    if (bob.deposit >= 6*1000*1000*100 && FLAG == 1) {
-        DEP_PERCENT_BOB += 0.01;
-        FLAG = 0;
     }
     bob.deposit += bob.initial_deposit * (DEP_PERCENT_BOB / 12);
     bob.deposit += capital;
