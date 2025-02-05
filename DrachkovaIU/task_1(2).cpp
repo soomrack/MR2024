@@ -5,15 +5,15 @@
 
 using namespace std;
 
-
 class Matrix{
 private:
     size_t rows;
     size_t cols;
     vector<vector<double>> data;
-
 public:
     Matrix(size_t r, size_t c) : rows(r), cols(c), data(r, vector<double>(c,0)) {}
+
+//Деструктор, копирование, пресваивание, перенос
 
 
 //Заполнение матрицы значениями из массива
@@ -78,9 +78,8 @@ public:
         return C;
     }
 
-
 //Умножение
-    Matrix operator*(const Matrix& B)
+    Matrix operator*(const Matrix& B)                                 //Дважды выделяется память
     {
         if (cols != B.rows) {
             throw runtime_error("Число столбцов не соответствует числу строк.");
@@ -98,7 +97,6 @@ public:
         return C;
     }
 
-
 //Умножение на число
     Matrix operator*(double number) const
     {
@@ -108,12 +106,9 @@ public:
             for (size_t j = 0; j < cols; j++) {
                 C.data[i][j] = data[i][j] * number;
             }
-            
         }
-
         return C;
     }
-
 
 //Транспонирование
     Matrix matrix_trans() const
@@ -127,7 +122,6 @@ public:
         }
         return T;
     }
-
 
 //Получение подматрицы
     Matrix matrix_submatrix(size_t row_exclude, size_t col_exclude) const 
@@ -147,7 +141,6 @@ public:
         }
         return submatrix;
     }
-
 
 //Определитель
     double matrix_determinant() const
@@ -174,7 +167,6 @@ public:
         }
         return det;
     }
-
 
 //Единичная матрица
     static Matrix matrix_identity(const size_t size) 
