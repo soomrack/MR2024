@@ -50,7 +50,7 @@ public:
         Matrix C(rows, cols);
 
         for (size_t i = 0; i < rows * cols; i++) {
-            for (size_t j = 0; j < 0; j++) {
+            for (size_t j = 0; j < cols; j++) {
                C.data[i][j] = data[i][j] + B.data[i][j]; 
             }
             
@@ -105,7 +105,7 @@ public:
         Matrix C(rows, cols);
 
         for (size_t i = 0; i < rows; i++) {
-            for (size_t j = 0; j < 0; j++) {
+            for (size_t j = 0; j < cols; j++) {
                 C.data[i][j] = data[i][j] * number;
             }
             
@@ -156,7 +156,7 @@ public:
             throw runtime_error("Не квадратная матрица.");
         }
         if (rows == 1) {
-            return data[0];
+            return data[0][0];
         }
         if (rows == 2) {
             return data[0][0] * data[1][1] - data[0][1] * data[1][0]; 
@@ -196,7 +196,7 @@ public:
             throw runtime_error("Матрица не квадратная.");
         }
 
-
+        if (n == 0) return matrix_identity(rows);                    //Нулевая степень
 
         Matrix matrix_powered_to_n = matrix_identity(rows);
         Matrix temp = *this;
@@ -222,6 +222,10 @@ public:
             throw runtime_error("Определитель = 0.");
         }
 
+        if (rows == 1) {                                               //1 на 1
+            return Matrix(1, 1).matrix_fill({1.0 / data[0][0]});
+        }
+
         Matrix additional_matrix(rows, cols);
 
         for (size_t i = 0; i < rows; i++) {
@@ -244,34 +248,20 @@ public:
             throw runtime_error("Матрица не квадратная.");
         }
 
-        Matrix result = matrix_identity(rows, cols);
-        Matrix temp = MATRIX_ZERO;
-        Matrix temp2 = MATRIX_ZERO;
-        Matrix exp_result = MATRIX_ZERO;
+        Matrix result = matrix_identity(rows);
+        Matrix temp(rows, cols);
+        Matrix temp2(rows, cols);
+        Matrix exp_result = matrix_identity(rows);
         double factorial = 1.0;
 
-        for (unsigned long long int idx = 1; idx <= n; idx++) {
-            memory_free(&temp);
-            temp = matrix_power(A, idx);
-            
-            factorial *= idx;
-
-            memory_free(&temp2);
-            temp2 = matrix_multiplying_by_number(temp, 1.0 / factorial);
-
-            memory_free(&exp_result);
-            exp_result = matrix_sum(matrix_exp_result, temp2);
-            
-            memory_free(&matrix_exp_result);
-            matrix_exp_result = exp_result;
-            exp_result = MATRIX_ZERO;
-
+        for (int i = 1; i <= n; i++) {
+            temp = *this ^ i;  // temp = A^i
+            factorial *= i; 
+            temp2 = temp * (1.0 / factorial);  // temp2 = (A^i) / i!
+            exp_result = exp_result + temp2;  // exp_result += temp2
         }
 
-        memory_free(&temp);
-        memory_free(&temp2);
-        memory_free(&exp_result);
-        return matrix_exp_result;
+        return exp_result;
     }
 };
 
