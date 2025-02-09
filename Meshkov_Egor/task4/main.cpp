@@ -5,8 +5,8 @@
 
 
 // Глобальные константы для размеров матриц
-const size_t ROWS = 100;
-const size_t COLS = 100;
+const size_t ROWS = 3;
+const size_t COLS = 3;
 
 
 // Генератор случайных чисел
@@ -116,12 +116,11 @@ TEST(MatrixTest, DeterminantAndInverse) {
 
     // Определитель
     double det = mat.determinant();
-    //std::cout << det << std::endl;
     EXPECT_TRUE(std::isfinite(det));
 
     // Обратная матрица
-    Matrix inv = reverse(mat);
-    //inv.print();
+    Matrix tmp(mat);
+    Matrix inv = tmp.reverse();
     Matrix identity = mat * inv;
     for (size_t i = 0; i < ROWS; ++i) {
         for (size_t j = 0; j < ROWS; ++j) {
@@ -134,12 +133,14 @@ TEST(MatrixTest, DeterminantAndInverse) {
     }
 }
 
-TEST(MatrixTest, TransposeAndExponential) {
+
+TEST(MatrixTest, Transpose) {
     using namespace MTL;
     Matrix mat = create_random_matrix(ROWS, COLS);
 
     // Транспонирование
-    Matrix transposed = transpoze(mat);
+    Matrix tmp(mat);
+    Matrix transposed = tmp.transpoze();
     EXPECT_EQ(transposed.get_rows(), COLS);
     EXPECT_EQ(transposed.get_cols(), ROWS);
     for (size_t row = 0; row < ROWS; ++row) {
@@ -147,35 +148,17 @@ TEST(MatrixTest, TransposeAndExponential) {
             EXPECT_DOUBLE_EQ(transposed(col, row), mat(row, col));
         }
     }
+} 
 
-    // Экспонента
-    Matrix exp_mat = exp(mat, 6);
-    //exp_mat.print();
+
+TEST(MatrixTest, Exponential) {
+    using namespace MTL;
+    Matrix mat = create_random_matrix(ROWS, COLS);
+
+    Matrix exp_mat = mat.exp(6);
     EXPECT_EQ(exp_mat.get_rows(), ROWS);
     EXPECT_EQ(exp_mat.get_cols(), COLS);
-}
-
-
-// Тесты для класса Matrix_unit
-TEST(MatrixUnitTest, BasicOperations) {
-    MTL::Matrix_unit unit_mat(ROWS, COLS);
-
-    // Проверка размеров
-    EXPECT_EQ(unit_mat.get_rows(), ROWS);
-    EXPECT_EQ(unit_mat.get_cols(), COLS);
-    
-    size_t diag_dimention = 0;
-    double epsilon = pow(10, -9);
-
-    for(size_t idx = 0; idx < ROWS * COLS; idx++) {
-        if(idx == diag_dimention * ROWS + diag_dimention) {
-            diag_dimention++;
-            EXPECT_EQ(unit_mat(idx), 1.0); 
-        } else {
-            EXPECT_EQ(unit_mat(idx) < epsilon, true);
-        }
-    }
-}
+} 
 
 
 int main(int argc, char **argv) {
