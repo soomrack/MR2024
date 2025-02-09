@@ -34,9 +34,6 @@ void set_log_level(unsigned int new_level) {
         case 1:
             current_log_level = Log_levels::WARNING;
             break;
-        case 2:
-            current_log_level = Log_levels::INFO;
-            break;
         default:
             current_log_level = Log_levels::INFO;
             break;
@@ -67,20 +64,7 @@ Matrix::Matrix(double number)
     : rows(1), cols(1), data(std::make_unique<double[]>(1)) { data[0] = number; } 
 
 
-Matrix_unit::Matrix_unit(size_t rows_, size_t cols_) {
-    rows = rows_;
-    cols = cols_;
-    data = std::make_unique<double []>(rows * cols);
-    
-    std::fill(data.get(), data.get() + rows * cols, 0.0);
-    
-    for(size_t idx = 0; idx < rows * cols; idx+=(rows + 1)) {
-        data[idx] = 1.0;
-    }
-}
-
-
-//=========================   COPY CONSTRUCTOR   ===========================   
+//=========================   COPY CONSTRUCTOR   ===========================
 Matrix::Matrix(const Matrix& other) {
     this->rows = other.rows;
     this->cols = other.cols;
@@ -108,22 +92,6 @@ Matrix::~Matrix() {
 
 
 //=========================   METHODS   ====================================   
-void Matrix::resize(size_t new_rows, size_t new_cols) {
-    this->rows = new_rows;
-    this->cols = new_cols;
-    
-    std::unique_ptr<double []> buf = std::make_unique<double []>(rows * cols);
-
-    std::copy(data.get(), data.get() + rows * cols, buf.get());
-
-    if(data.get() != nullptr) data.release();   
-    
-    data = std::make_unique<double[]>(rows * cols);
-
-    std::copy(buf.get(), buf.get() + rows * cols, data.get());
-}
-
-
 size_t Matrix::get_rows() const noexcept {
     return rows;
 }
@@ -172,6 +140,28 @@ bool Matrix::is_zeros() const noexcept {
 }
 
 
+Matrix Matrix::to_unit() {
+    if(rows != cols) { 
+        throw std::runtime_error("\033[0;31mERROR:\033[0m Matrix are must be have equal sizes\n");
+    }
+
+    std::fill(data.get(), data.get() + rows * cols, 0.0);
+    
+    for(size_t idx = 0; idx < rows * cols; idx+=(rows + 1)) {
+        data[idx] = 1.0;
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::to_zeros() noexcept {
+    std::fill(data.get(), data.get() + rows * cols, 0.0);
+
+    return *this;
+}
+
+
 //=========================   UNARY OPERATORS   ============================   
 Matrix& Matrix::operator+() noexcept {
     return *this;
@@ -206,14 +196,14 @@ Matrix& Matrix::operator--() noexcept {
 
 
 double& Matrix::operator()(size_t row, size_t col) {
-    if(row > rows || col > cols) throw("\033[0;31merror: \033[0mno access to this element\n");
+    if(row > rows || col > cols) throw std::runtime_error("\033[0;31merror: \033[0mno access to this element\n");
     
     return data[row * rows + col];
 }
 
 
 double& Matrix::operator()(size_t idx) {
-    if(idx > (rows * cols)) throw("\033[0;31merror: \033[0mno access to this element\n");
+    if(idx > (rows * cols)) throw std::runtime_error("\033[0;31merror: \033[0mno access to this element\n");
     
     return data[idx];
 }
@@ -228,6 +218,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
     data = std::make_unique<double[]>(rows * cols);
     
     std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
+    
     return *this;
 }
 
@@ -268,7 +259,6 @@ Matrix& operator+=(Matrix& A, const Matrix& B) {
 
     return A;
 }
-
 
 
 Matrix operator-(const Matrix& A, const Matrix& B) {
@@ -383,10 +373,10 @@ Matrix& operator*=(Matrix& A, const Matrix& B) {
 
 
 Matrix operator^(const Matrix& A, const unsigned int degree) {
-    if(degree == 0) return Matrix_unit(A.rows, A.cols);
+    if(degree == 0) return Matrix(A.rows, A.cols).to_unit();
 
     Matrix result(A);
-    
+
     if(degree == 1) return result;
     if(A.is_unit()) return result;
     if(A.is_zeros()) return result;
@@ -409,7 +399,7 @@ bool operator==(const Matrix& A, const Matrix& B) {
 
 
 //=========================   MATRIX TRANSPOZE   ===========================   
-void Matrix::transpoze() {
+Matrix Matrix::transpoze() {
     this->check_condition(Matrix::Operations::TRANSPOSE);
     
     Matrix result(*this);
@@ -421,20 +411,7 @@ void Matrix::transpoze() {
     }
     
     *this = result;
-}
 
-
-Matrix transpoze(const Matrix& A) {
-    A.check_condition(Matrix::Operations::TRANSPOSE);
-    
-    Matrix result(A);
-
-    for(size_t row = 0; row < A.rows; ++row) {
-        for(size_t col = 0; col < A.cols; ++col) {
-            result.data[col * result.cols + row] = A.data[row * A.cols + col];
-        }
-    }
-    
     return result;
 }
 
@@ -518,11 +495,6 @@ double Matrix::determinant() const {
 }
 
 
-double determinant(const Matrix& A) {
-    return A.determinant();
-}
-
-
 //=========================   MATRIX REVERSE   =============================   
 void Matrix::fill_extend_matrix(Matrix& extend_matrix) {
     for(size_t row = 0; row < extend_matrix.rows; ++row) { 
@@ -591,7 +563,7 @@ int Matrix::transform_extend_matrix() {
 }
                                                                 
                                                                 
-void Matrix::reverse() {
+Matrix Matrix::reverse() {
     this->check_condition(Matrix::Operations::REVERSE);
 
     Matrix extend_matrix(this->rows, this->cols * 2);
@@ -599,19 +571,12 @@ void Matrix::reverse() {
     this->fill_extend_matrix(extend_matrix);
     
     if(extend_matrix.transform_extend_matrix() == 0) {
-        throw("\033[0;31mERROR:\033[0;31m Determinant of reverse matrix must not be zero\n");
+        throw std::runtime_error("\033[0;31mERROR:\033[0;31m Determinant of reverse matrix must not be zero\n");
     }
 
     this->extract_inverse_matrix(extend_matrix);
-}
 
-
-Matrix reverse(const Matrix& A) {
-    Matrix tmp(A);
-    
-    tmp.reverse();
-    
-    return tmp;
+    return *this;
 }
 
 
@@ -627,14 +592,14 @@ double Matrix::find_max_element() {
 }
 
 
-void Matrix::exp(const unsigned short accuracy) {
+Matrix Matrix::exp(const unsigned short accuracy) {
     this->check_condition(Matrix::Operations::EXP);
     
     Matrix exp_matrix = *this;
-    exp_matrix += Matrix_unit(this->rows, this->cols);
+    exp_matrix += Matrix(this->rows, this->cols).to_unit();
 
     Matrix tmp = *this;
-    
+
     double number = 1.0;
     double error = pow(10, -accuracy);
 
@@ -644,19 +609,12 @@ void Matrix::exp(const unsigned short accuracy) {
         tmp *= number;
         if(fabs(tmp.find_max_element()) < error) break;
         exp_matrix += tmp;
-        tmp *= (1.0 / number);
+        tmp *= 1.0 / number;
     }
 
-    *this = std::move(exp_matrix);
-}
+    *this = exp_matrix;
 
-
-Matrix exp(const Matrix& A, const unsigned short accuracy) {
-    Matrix tmp(A);
-
-    tmp.exp(accuracy);
-
-    return tmp;
+    return exp_matrix;
 }
 
 
