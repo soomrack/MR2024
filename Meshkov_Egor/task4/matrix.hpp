@@ -20,14 +20,16 @@ public:
     Matrix(Matrix&&);
 
     ~Matrix();
-    
-    void resize(size_t new_rows, size_t new_cols);
+
     size_t get_rows() const noexcept;
     size_t get_cols() const noexcept;
 
     bool is_empty() const noexcept;
     bool is_unit() const noexcept;
     bool is_zeros() const noexcept;
+
+    Matrix to_unit();
+    Matrix to_zeros() noexcept;
 
     Matrix& operator+() noexcept;
     Matrix& operator++() noexcept;
@@ -54,18 +56,13 @@ public:
     friend bool operator==(const Matrix&, const Matrix&);
     
     double determinant() const;
-    void reverse();
-    void transpoze();
-    void exp(const unsigned short accuracy);
+    Matrix reverse();
+    Matrix transpoze();
+    Matrix exp(const unsigned short accuracy);
     
-    friend double determinant(const Matrix&);
-    friend Matrix reverse(const Matrix&);
-    friend Matrix transpoze(const Matrix&);
-    friend Matrix exp(const Matrix&, const unsigned short accuracy);
-
     void print(unsigned char accuracy = 3);
 
-protected:
+private:
     size_t rows, cols;
     std::unique_ptr<double []> data = nullptr;
 
@@ -82,7 +79,6 @@ protected:
 
     void check_condition(Operations operation, const Matrix& A = Matrix(1.0)) const;
 
-private:
     void swap_rows(const size_t first_row, const size_t second_row);
     
     // Auxilary functions for determinant()
@@ -99,41 +95,6 @@ private:
 
     // Auxilary function for exp()
     double find_max_element();
-};
-
-
-class Matrix_unit : public Matrix {
-public:
-    Matrix_unit(size_t rows, size_t cols);
-    
-    void resize(size_t new_rows, size_t new_cols) = delete;
-
-    bool is_empty() const noexcept { return false; }
-    bool is_unit() const noexcept { return true; }
-    bool is_zeros() const noexcept { return false; }
-
-    Matrix_unit& operator++() noexcept = delete;
-    Matrix_unit& operator--() noexcept = delete;
-
-    Matrix_unit& operator=(const Matrix_unit&) = delete;
-    Matrix_unit& operator=(Matrix_unit&&) = delete;
-    
-    friend Matrix& operator+=(Matrix_unit&, const Matrix&) = delete;
-    friend Matrix& operator-=(Matrix_unit&, const Matrix&) = delete;
-    friend Matrix& operator*=(Matrix_unit& A, const double number) = delete;
-    friend Matrix& operator*=(const double number, Matrix_unit&A) = delete;
-    friend Matrix& operator*=(Matrix_unit&, const Matrix&) = delete;
-    
-    double determinant() const { return 1.0; }
-    void reverse() {}
-    void transpoze() {}
-    
-    friend double determinant(const Matrix_unit&) { return 1.0; }
-    friend Matrix_unit reverse(const Matrix_unit& A) { return Matrix_unit(A.rows, A.cols); }
-    friend Matrix_unit transpoze(const Matrix_unit& A) { return Matrix_unit(A.rows, A.cols); }
-
-private:
-    double find_max_element() { return 1.0;} ;
 };
 
 
