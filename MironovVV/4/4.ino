@@ -6,9 +6,10 @@ const int SOIL_HUMIDITY_THRESHOLD = 40;
 const int AIR_HUMIDITY_THRESHOLD = 70;
 const int TEMP_HIGH_THRESHOLD = 25;
 const int TEMP_LOW_THRESHOLD = 20;
-const int FAN_TIMER = 3;
 const int TIME_SUNRISE = 7;
 const int TIME_SUNSET = 20;
+
+const int FAN_TIMER = 3;
 const int PUMP_ON_TIME = 2000;
 const int PUMP_OFF_TIME = 3000;
 
@@ -39,8 +40,9 @@ int light_level;
 int soil_humidity;
 int current_time;
 
-void data_print() {
-  static long old_time;
+void data_print()
+{
+  static long old_time = 0;
   if (millis() - old_time > 2000)
   {
     Serial.print("Light: "); Serial.println(light_level);
@@ -53,7 +55,8 @@ void data_print() {
   }
 }
 
-void data_read() {
+void data_read()
+{
   DHT.read(DHT11_PIN);
   air_humidity = DHT.humidity;
   air_temperature = DHT.temperature;
@@ -62,7 +65,8 @@ void data_read() {
   current_time = millis() / 2000 % 24;
 }
 
-void light_check() {
+void light_check()
+{
   if (TIME_SUNRISE < current_time && current_time < TIME_SUNSET) light_timer_state = 1;
   else light_timer_state = 0;
 
@@ -70,7 +74,8 @@ void light_check() {
   else light_sensor_state = 0;
 }
 
-void temperature_check() {
+void temperature_check()
+{
   if (air_temperature < TEMP_LOW_THRESHOLD)
   {
     heater_state = 1;
@@ -88,12 +93,17 @@ void temperature_check() {
   }
 }
 
-void fan_check(){
+void fan_check()
+{
   if (current_time % FAN_TIMER == 0) fan_timer_state = 1;
   else fan_timer_state = 0;
+
+  if (air_humidity > AIR_HUMIDITY_THRESHOLD) fan_humidity_state = 1;
+  else fan_humidity_state = 0;
 }
 
-void pump_check(){
+void pump_check()
+{
   if (soil_humidity < SOIL_HUMIDITY_THRESHOLD) pump_humidity_state = 1;
   else pump_humidity_state = 0;
   
@@ -109,7 +119,8 @@ void pump_check(){
   else old_time = millis();
 }
 
-void actuate() {
+void actuate()
+{
   if (light_sensor_state && light_timer_state) digitalWrite(LIGHT_PIN, HIGH);
   else digitalWrite(LIGHT_PIN, LOW);
 
@@ -123,7 +134,8 @@ void actuate() {
   else digitalWrite(PUMP_PIN, LOW);
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
 
   pinMode(LIGHT_PIN, OUTPUT);
@@ -140,19 +152,26 @@ void setup() {
   delay(1000);
 }
 
-void loop() {
-  static long old_time;
-  if (millis() - old_time > 1000)
-  {
+void loop() 
+{
+  static long old_time = 0;
+  if (millis() - old_time > 1000) {
     data_read();
-    data_print();
     old_time = millis();
   }
 
-  light_check();
-  temperature_check();
-  fan_check();
-  pump_check();
+
+//  soil_humidity_read();
+//  light_read();
+//  time_read();
+//  dht11_read();
+
+  print_data();
+  
+  control_light();
+  control_temperature();
+  control_ventilation();
+  control_watering();
 
   actuate();
 
