@@ -45,7 +45,7 @@ public:
     }
 
     // Арифметические операции
-    Matrix operator+(const Matrix& other) const {
+    Matrix operator+(const Matrix& other) const {  //A + B
         if(rows != other.rows || cols != other.cols)
             throw "Size mismatch!";
         
@@ -55,7 +55,7 @@ public:
         return result;
     }
 
-    Matrix operator-(const Matrix& other) const {
+    Matrix operator-(const Matrix& other) const {  //A - B
         if(rows != other.rows || cols != other.cols)
             throw "Size mismatch!";
         
@@ -65,7 +65,7 @@ public:
         return result;
     }
 
-    Matrix operator*(const Matrix& other) const {
+    Matrix operator*(const Matrix& other) const {  //A * B
         if(cols != other.rows) throw "Size mismatch!";
         
         Matrix result(rows, other.cols);
@@ -81,17 +81,13 @@ public:
         return result;
     }
 
-    Matrix operator*(double scalar) const {
+    Matrix operator*(double scalar) const { // A * k
         Matrix result(rows, cols);
         for(int i = 0; i < rows * cols; i++) 
             result.data[i] = data[i] * scalar;
         return result;
     }
 
-    Matrix operator/(double scalar) const {
-        if(scalar == 0) throw "Division by zero!";
-        return *this * (1.0 / scalar);
-    }
 
     // Специальные операции
     Matrix transpose() const {
@@ -129,7 +125,6 @@ public:
         throw "Determinant cannot be calculated!";
     }
 
-    // Статические методы
     static Matrix identity(int size) {
         Matrix result(size, size);
         for(int i = 0; i < size; i++) 
