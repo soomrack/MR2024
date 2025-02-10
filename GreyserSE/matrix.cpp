@@ -120,6 +120,12 @@ Matrix& Matrix::operator=(const Matrix& A)
     printf("\ncopy assignment\n");
     if (this == &A) {return *this;};
     
+    if (cols == A.cols && rows == A.rows) {
+        memcpy(data, A.data, sizeof(MatrixItem) * rows * cols);
+        return *this;
+    }
+
+    delete[] data;
     rows = A.rows;
     cols = A.cols;
     data = new MatrixItem[rows * cols];
@@ -131,7 +137,6 @@ Matrix& Matrix::operator=(const Matrix& A)
 Matrix& Matrix::operator=(Matrix&& A)
 {
     printf("\nmove assignment\n");
-    if (this == &A) {return *this;}
     
     rows = A.rows;
     cols = A.cols;
@@ -428,4 +433,5 @@ int main()
 
     A.print();
     Matrix B = A * A;
+    B = Matrix(3, 2);
 }
