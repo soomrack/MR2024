@@ -56,7 +56,6 @@ public:
 };
 
 
-// MatrixException SIZE_WARNING("\nInitialized matrix with 0 rows/cols\n\n");
 MatrixException MEMORY_ERROR("Memory allocation failed\n");
 MatrixException DATA_ERROR("Matrix.data is nullptr\n");
 MatrixException SIZE_ERROR("Matrixes of different sizes\n");
@@ -81,9 +80,10 @@ Matrix::Matrix(const size_t rows, const size_t cols, const MatrixItem* src_data)
 Matrix::Matrix(const size_t rows, const size_t cols) :
     rows(rows), cols(cols), data(nullptr)
 {
-    // if (cols == 0 || rows == 0) {
-    //     throw SIZE_WARNING;
-    // };
+    if (cols == 0 || rows == 0) {
+        printf("Warning: Initialized matrix with 0 rows/cols\n");
+	return;
+    };
 
     if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
         throw MEMORY_ERROR;
