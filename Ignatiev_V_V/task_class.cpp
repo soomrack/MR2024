@@ -8,11 +8,17 @@ private:
 	size_t rows;
 	size_t cols;
 	double* data; 
+public:
+	void Resize();
+	Matrix();
+	Matrix(size_t rows; size_t cols = 0);
+	~Matrix();
+	Matrix(Matrix &B);
+	Matrix(Matrix &&B);
+	operator=(Matrix B);
 }
 
 
-
-typedef struct Matrix Matrix;
 
 enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
