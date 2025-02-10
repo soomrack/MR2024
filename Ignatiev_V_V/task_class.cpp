@@ -3,12 +3,15 @@
 #include <string.h>
 #include <math.h>
 
-struct Matrix 
-{
-    size_t rows;
-    size_t cols;
-    double* data;
-};
+class Matrix {
+private:
+	size_t rows;
+	size_t cols;
+	double* data; 
+}
+
+
+
 typedef struct Matrix Matrix;
 
 enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
