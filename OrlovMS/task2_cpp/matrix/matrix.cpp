@@ -6,13 +6,13 @@
 Matrix::LogLevel Matrix::current_level = Matrix::LOG_NONE;
 
 
-void Matrix::set_log_level(LogLevel level)
+void Matrix::set_log_level(LogLevel level) noexcept
 {
     current_level = level;
 }
 
 
-void Matrix::print_log(LogLevel level, const char *format, ...)
+void Matrix::print_log(LogLevel level, const char *format, ...) const noexcept
 {
 #ifdef MATRIX_LOG_ENABLE
     if(level <= current_level) {
@@ -51,15 +51,16 @@ void Matrix::alloc(const size_t rows, const size_t cols)
         this->rows = 0;
         this->cols = 0;
         print_log(LOG_ERR, "matrix size too big\n");
-        return;
+        throw PARAMS_ERR;
     }
 
-    this->data = new double[rows * cols];
-    if(this->data == NULL) {
+    try {
+        this->data = new double[rows * cols];
+    }
+    catch(...) {
         this->rows = 0;
         this->cols = 0;
-        print_log(LOG_ERR, "matrix allocation error\n");
-        return;
+        throw ALLOC_ERR;
     }
 }
 
@@ -82,73 +83,97 @@ Matrix::Matrix() : rows(0), cols(0), data(NULL)
 
 Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols), data(NULL)
 {
+    print_log(LOG_INFO, "create matrix with size\n");
+
     alloc(rows, cols);
 }
 
 
 Matrix::Matrix(const Matrix &mat) : rows(mat.rows), cols(mat.cols), data(NULL)
 {
+    print_log(LOG_INFO, "create matrix copy\n");
+
     alloc(mat.rows, mat.cols);
 
-    print_log(LOG_INFO, "copy matrix data\n");
+    print_log(LOG_INFO, "copy data\n");
 
-    memcpy(this->data, mat.data, this->rows * this->cols * sizeof(double));
+    memcpy(data, mat.data, rows * cols * sizeof(double));
 }
 
 
 Matrix::~Matrix()
 {
+    print_log(LOG_INFO, "matrix destructor\n");
+
     free();
 }
 
 
-size_t Matrix::get_rows()
+void Matrix::print() const noexcept
 {
-    return this->rows;
+    if(is_empty()) {
+        printf("matrix is empty\n");
+        return;
+    }
+
+    printf("Matrix size: %ux%u\n", rows, cols);
+    for(size_t row = 0; row < (rows * cols); row += cols) {
+        printf("[ ");
+        for(size_t idx = 0; idx < cols - 1; idx++) {
+            printf("%8.3f, ", data[row + idx]);
+        }
+        printf("%8.3f ]\n", data[row +  cols - 1]);
+    }
 }
 
 
-size_t Matrix::get_cols()
+size_t Matrix::get_rows() const noexcept
 {
-    return this->cols;
+    return rows;
+}
+
+
+size_t Matrix::get_cols() const noexcept
+{
+    return cols;
 }
 
 
 void Matrix::set(const size_t row, const size_t col, const double num)
 {
-    if(row >= this->rows || col >= this->cols) {
+    if(row >= rows || col >= cols) {
         print_log(LOG_ERR, "index out of bound\n");
-        return;
+        throw PARAMS_ERR;
     }
 
-    this->data[row * this->cols + col] = num;
+    data[row * cols + col] = num;
 }
 
 
-double Matrix::get(const size_t row, const size_t col)
+double Matrix::get(const size_t row, const size_t col) const
 {
-    if(row >= this->rows || col >= this->cols) {
+    if(row >= rows || col >= cols) {
         print_log(LOG_ERR, "index out of bound\n");
-        return 0.0;
+        throw PARAMS_ERR;
     }
 
-    return this->data[row * this->cols + col];
+    return data[row * cols + col];
 }
 
 
-bool Matrix::is_empty()
+bool Matrix::is_empty() const noexcept
 {
-    return this->data == NULL;
+    return data == NULL;
 }
 
 
-bool Matrix::is_square()
+bool Matrix::is_square() const noexcept
 {
-    return this->rows == this->cols;
+    return rows == cols;
 }
 
 
-void Matrix::set_zeros()
+void Matrix::set_zeros() noexcept
 {
     print_log(LOG_INFO, "make zero matrix\n");
 
@@ -157,7 +182,7 @@ void Matrix::set_zeros()
         return;
     }
 
-    memset(this->data, 0, this->rows * this->cols * sizeof(double));
+    memset(data, 0, rows * cols * sizeof(double));
 }
 
 
@@ -167,35 +192,12 @@ void Matrix::set_identity()
 
     if(!is_square()) {
         print_log(LOG_ERR, "matrix not square\n");
-        return;
+        throw SIZE_ERR;
     }
 
     set_zeros();
 
-    for(size_t idx = 0; idx < this->rows * this->cols; idx += this->cols + 1) {
-        this->data[idx] = 1.0;
+    for(size_t idx = 0; idx < rows * cols; idx += cols + 1) {
+        data[idx] = 1.0;
     }
-}
-
-
-std::ostream& operator<<(std::ostream& stream, Matrix &mat)
-{
-    if(mat.is_empty()) {
-        stream << "matrix is empty" << std::endl;
-        return stream;
-    }
-
-    size_t rows = mat.get_rows();
-    size_t cols = mat.get_cols();
-
-    stream << "matrix size: " << rows << "x" << cols << std::endl;
-    for(size_t row = 0; row < rows; row++) {
-        stream << "[ ";
-        for(size_t col = 0; col < cols - 1; col++) {
-            stream << mat.get(row, col) << ", ";
-        }
-        stream << mat.get(row, cols - 1) << " ]" << std::endl;
-    }
-
-    return stream;
 }
