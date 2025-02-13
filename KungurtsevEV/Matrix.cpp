@@ -4,7 +4,6 @@
 using namespace std;
 typedef double MatrixItem;
 
-
 class Matrix
 {
 private:
@@ -24,7 +23,6 @@ public:
     Matrix& operator+= (const Matrix& A);
     Matrix& operator-= (const Matrix& A);
     Matrix& operator*= (const Matrix& A);
-
     Matrix operator+ (const Matrix& A);
     Matrix operator- (const Matrix& A);
     Matrix operator* (const Matrix& A);
@@ -52,14 +50,12 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* value)
     :rows(rows), cols(cols), data(value)
 {
     if (cols == 0 || rows == 0) {
-        printf("Initialized matrix with 0 rows / cols\n");
+        throw MatrixException ("Initialized matrix with 0 rows / cols\n");
         return;
     };
 
     if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX/rows*cols) {
-        
-        MatrixException MEMORY_ERROR("Memory allocation failed\n");
-        throw MEMORY_ERROR;
+        throw MatrixException ("Memory allocation failed\n");
     };
 
     data = new MatrixItem[rows * cols];
@@ -71,15 +67,13 @@ Matrix::Matrix(const size_t rows, const size_t cols)
     : rows(rows), cols(cols)
 {
     if (cols == 0 || rows == 0) {
-        printf("Initialized matrix with 0 rows / cols\n");
+        throw MatrixException ("Initialized matrix with 0 rows / cols\n");
         return;
     };
 
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {                  //!!!!!!!!
-        MatrixException MEMORY_ERROR("Memory allocation failed\n");
-        throw MEMORY_ERROR;
+    if (rows > SIZE_MAX / cols / sizeof(MatrixItem)) {               
+        throw MatrixException ("Memory allocation failed\n");
     };
-
     data = new MatrixItem[rows * cols];
 }
 
@@ -135,14 +129,12 @@ Matrix& Matrix::operator= (Matrix&& A) noexcept
 Matrix& Matrix::operator+= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
-        throw SIZE_ERROR;
+         throw MatrixException("Matrixes of different sizes\n");
     }
 
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] += A.data[idx]; 
     }
-
     return *this;
 }
 
@@ -150,8 +142,7 @@ Matrix& Matrix::operator+= (const Matrix& A)
 Matrix& Matrix::operator-= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
-        throw SIZE_ERROR;
+        throw MatrixException ("Matrixes of different sizes\n");
     }
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] -= A.data[idx];
@@ -163,14 +154,12 @@ Matrix& Matrix::operator-= (const Matrix& A)
 Matrix& Matrix::operator*= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
-        throw SIZE_ERROR;
+        throw MatrixException ("Matrixes of different sizes\n");
     }
 
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] *= A.data[idx];
     }
-
     return *this;
 }
 
@@ -315,7 +304,6 @@ Matrix Matrix::matrix_exponent(const unsigned long long int n)
         matrix_exponent_term = matrix_exponent_term * (*this) * (1.0 / factorial);
         matrix_exponent_result += matrix_exponent_term;
     }
-
     return matrix_exponent_result;
 }
 
