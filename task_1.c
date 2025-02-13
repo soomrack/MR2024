@@ -1,0 +1,271 @@
+#include <stdio.h>
+
+typedef long long int Money;  // расчёт в рублях
+
+const int Start_year = 2024;
+const int Start_month = 9;
+const int PERIOD = 30;  // расчетный период симуляции
+
+
+struct Mortgage
+{
+    Money sum;
+    Money first_pay;
+    Money monthly_payments;
+    double rate;
+};
+
+
+struct Turtle
+{
+    Money buy;
+    Money cost;
+};
+
+
+struct Person
+{
+    Money salary;
+    Money account;
+    Money requirements;
+    Money house_price;
+    Money monthly_rent;
+    Money disaster;
+    struct Mortgage mortgage;
+    struct Turtle turtle;
+    double house_tax;
+    double deposit_rate;
+    double inflation_index;
+};
+
+struct Person alice;
+struct Person bob;
+
+
+void alice_init()
+{
+    alice.account = 1 * 1000 * 1000;
+    alice.salary = 250 * 1000;
+    alice.house_tax = 0.0001;
+    alice.requirements = 20 * 1000;
+
+    alice.deposit_rate = 0.2;
+    alice.inflation_index = 0.1;
+
+    alice.mortgage.sum = 17 * 1000 * 1000;
+    alice.mortgage.first_pay = 1 * 1000 * 1000;
+    alice.mortgage.rate = 0.13;
+    alice.mortgage.monthly_payments = 180 * 1000;  // source: url https://calcus.ru/kalkulyator-ipoteki?input=eyJjdXJyZW5jeSI6IlJVQiIsInR5cGUiOiIxIiwiY29zdCI6IjE3MDAwMDAwIiwic3RhcnRfc3VtIjoiMTAwMDAwMCIsInN0YXJ0X3N1bV90eXBlIjoiMSIsInBlcmlvZCI6IjMwIiwicGVyaW9kX3R5cGUiOiJZIiwicGVyY2VudCI6IjEzIiwicGF5bWVudF90eXBlIjoiMSJ9
+    alice.account -= alice.mortgage.first_pay;
+    alice.house_price = alice.mortgage.sum;
+}
+
+
+void alice_salary(const int month)
+{
+    if (month == 1) {
+        alice.salary *= (1. + alice.inflation_index);
+    }
+
+    alice.account += alice.salary;
+}
+
+
+void alice_requirements(const int month)
+{
+    if (month == 1) {
+        alice.requirements *= (1. + alice.inflation_index);
+    } 
+
+    alice.account -= alice.requirements;
+}
+
+
+void alice_mortgage(const int month)
+{
+    alice.account -= alice.mortgage.monthly_payments;
+}
+
+
+void alice_house_tax(const int month, const int year)
+{
+    if (month == 1) alice.house_price *= 1.07;
+    if (month == 2 && year == 2025) alice.house_price *= 1.5;
+}
+
+
+void alice_house_cost(const int month)
+{
+    if (month == 12) alice.account -= alice.house_price * alice.house_tax;
+}
+
+
+void alice_house_price(const int month)
+{
+    if (month == 1) {
+        alice.house_price *= (1. + alice.inflation_index);
+    }
+}
+
+
+void alice_deposit(const int month, const int year)
+{
+    if (month == 6 && year == 2025) alice.deposit_rate = 0.06;
+    alice.account += alice.account * (alice.deposit_rate / 12);
+}
+
+
+void alice_print()
+{
+    printf("Alice summary capital: %lld \n", alice.account + alice.house_price);
+}
+
+
+
+
+void bob_init()
+{
+    bob.account = 1 * 1000 * 1000;
+    bob.salary = 250 * 1000;
+    bob.requirements = 10 * 1000;
+    bob.turtle.buy = 30 * 1000;
+    bob.turtle.cost = 12 * 1000;
+    bob.disaster = 57 * 1000;
+
+    bob.deposit_rate = 0.2;
+    bob.inflation_index = 0.1;
+
+    bob.monthly_rent = 25 * 1000; //cource url: https://spb.cian.ru/rent/flat/310014022/
+}
+
+
+void bob_salary(const int month)
+{
+    if (month == 1) {
+        bob.salary *= (1. + bob.inflation_index);
+    }
+
+    bob.account += bob.salary;
+}
+
+
+void bob_rent(const int month)
+{
+    if (month == 1) {
+        bob.monthly_rent *= (1. + bob.inflation_index);
+    } 
+    
+    bob.account -= bob.monthly_rent;
+}
+
+
+void bob_requirements(const int month)
+{
+    if (month == 1) {
+        bob.requirements *= (1. + bob.inflation_index);
+    }
+    
+    bob.account -= bob.requirements;
+}
+
+
+void bob_turtle(const int month, const int year)
+{
+    static int the_turtle = 0;
+
+    if ((month == 11) && (year == 2029) ) {
+        bob.account -= bob.turtle.buy;
+        the_turtle = 1;
+    }
+
+    if (the_turtle == 1) {
+        if (month == 1) {
+        bob.turtle.cost *= (1. + bob.inflation_index);
+        }
+
+        bob.account -= bob.turtle.cost;
+    }
+}
+
+
+void bob_deposit(const int month, const int year)
+{
+    if (month == 9 && year == 2025) alice.deposit_rate = 0.05;
+    bob.account += bob.account * (bob.deposit_rate / 12);
+}
+
+
+void bob_disaster(const int month, const int year)
+{
+    if (month == 4 && year == 2051) bob.account -= bob.disaster;
+}
+
+
+void bob_print()
+{
+    printf("Bob summary capital: %lld \n", bob.account);
+}
+
+
+void conclusion()
+{
+    printf("----------------------------------\n");
+    if ((alice.account + alice.house_price) > bob.account) {
+        printf("Alice is winner\n");
+    } else {
+        if ((alice.account + alice.house_price) == bob.account) {
+            printf("Alice and Bob are equal\n");
+        } else {
+            printf("Bob is winner\n");
+        }
+    }
+
+}
+
+
+void simulation()          
+{
+    int year = Start_year;
+    int month = Start_month;
+    
+    while (!((year == Start_year + PERIOD) && (month == Start_month + 1))) {
+        alice_salary(month);
+        alice_mortgage(month);
+        alice_house_cost(month);
+        alice_house_tax(month, year);
+        alice_house_price(month);
+        alice_deposit(month, year);
+        alice_requirements(month);
+        
+        bob_salary(month);
+        bob_rent(month);
+        bob_requirements(month);
+        bob_turtle(month, year);
+        bob_deposit(month, year);
+        bob_disaster(month, year);
+
+        month++;
+        if (month == 13) {
+            year++;
+            month = 1;
+        }
+    }
+}
+
+void print_output()
+{
+    printf("Results for %d.%d are:\n",Start_month, Start_year + PERIOD);
+    printf("----------------------------------\n");
+    alice_print();
+    bob_print();
+    conclusion();
+}
+
+int main()
+{
+    alice_init();
+    bob_init();
+    simulation();
+    print_output();
+    return 0;
+}
