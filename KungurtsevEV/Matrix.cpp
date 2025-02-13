@@ -1,10 +1,4 @@
-﻿#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <time.h>
-#include <math.h>
-#include <stddef.h>
+﻿#include <stdlib.h>
 #include <iostream>
 
 using namespace std;
@@ -14,10 +8,9 @@ typedef double MatrixItem;
 class Matrix
 {
 private:
-    size_t cols;
     size_t rows;
+    size_t cols;
     double* data;
-
 public:
     Matrix() : rows(0), cols(0), data(nullptr) {};
     Matrix(const size_t rows, const size_t cols);
@@ -25,25 +18,26 @@ public:
     Matrix(const Matrix& A);
     Matrix(Matrix&& A) noexcept;
     ~Matrix() { rows = 0; cols = 0; delete[] data; cout << ("destructor\n"); };
-
 public:
-    Matrix& operator = (const Matrix& A);
-    Matrix& operator = (Matrix&& A) noexcept;
-    Matrix& operator += (const Matrix& A);
-    Matrix& operator -= (const Matrix& A);
-    Matrix& operator *= (const Matrix& A);
+    Matrix& operator= (const Matrix& A);
+    Matrix& operator= (Matrix&& A) noexcept;
+    Matrix& operator+= (const Matrix& A);
+    Matrix& operator-= (const Matrix& A);
+    Matrix& operator*= (const Matrix& A);
 
-    Matrix& operator + (const Matrix& A);
-    Matrix& operator - (const Matrix& A);
-    Matrix& operator * (const Matrix& A);
-
-
-
+    Matrix operator+ (const Matrix& A);
+    Matrix operator- (const Matrix& A);
+    Matrix operator* (const Matrix& A);
+    Matrix operator* (double scalar) const;
 public:
     void print();
     void set_zero();
     void set_one();
-
+    double determinant() const;
+    Matrix transpose() const;
+    Matrix minor(size_t exclude_row, size_t exclude_col) const;
+    Matrix matrix_exponent(const unsigned long long int n);
+    Matrix inverse() const;
 };
 
 
@@ -54,12 +48,6 @@ public:
 };
 
 
-// exceptions
-MatrixException MEMORY_ERROR("Memory allocation failed\n");
-MatrixException DATA_ERROR("Matrix data is nullptr\n");
-MatrixException SIZE_ERROR("Matrixes of different sizes\n");
-
-
 Matrix::Matrix(const size_t rows, const size_t cols, double* value)
     :rows(rows), cols(cols), data(value)
 {
@@ -68,7 +56,9 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* value)
         return;
     };
 
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX/rows*cols) {
+        
+        MatrixException MEMORY_ERROR("Memory allocation failed\n");
         throw MEMORY_ERROR;
     };
 
@@ -85,7 +75,8 @@ Matrix::Matrix(const size_t rows, const size_t cols)
         return;
     };
 
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {                  //!!!!!!!!
+        MatrixException MEMORY_ERROR("Memory allocation failed\n");
         throw MEMORY_ERROR;
     };
 
@@ -98,7 +89,7 @@ Matrix::Matrix(const Matrix& A)
     rows = A.rows;
     cols = A.cols;
     data = new MatrixItem[rows * cols];
-    memcpy(data, A.data, sizeof(MatrixItem));
+    memcpy(data, A.data, sizeof(MatrixItem) * rows * cols);
 }
 
 
@@ -110,7 +101,7 @@ Matrix::Matrix(Matrix&& A) noexcept : rows(A.rows), cols(A.cols), data(A.data)
 }
 
 
-Matrix& Matrix::operator=(const Matrix& A)
+Matrix& Matrix::operator= (const Matrix& A)
 {
     if (this == &A) { return *this; };
 
@@ -128,7 +119,7 @@ Matrix& Matrix::operator=(const Matrix& A)
 }
 
 
-Matrix& Matrix::operator = (Matrix&& A) noexcept
+Matrix& Matrix::operator= (Matrix&& A) noexcept
 {
     delete[] data;
     rows = A.rows;
@@ -141,9 +132,10 @@ Matrix& Matrix::operator = (Matrix&& A) noexcept
 };
 
 
-Matrix& Matrix::operator+=(const Matrix& A)
+Matrix& Matrix::operator+= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
+        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
         throw SIZE_ERROR;
     }
 
@@ -155,9 +147,10 @@ Matrix& Matrix::operator+=(const Matrix& A)
 }
 
 
-Matrix& Matrix::operator -= (const Matrix& A)
+Matrix& Matrix::operator-= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
+        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
         throw SIZE_ERROR;
     }
     for (size_t idx = 0; idx < rows * cols; idx++) {
@@ -167,9 +160,10 @@ Matrix& Matrix::operator -= (const Matrix& A)
 }
 
 
-Matrix& Matrix::operator *= (const Matrix& A)
+Matrix& Matrix::operator*= (const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
+        MatrixException SIZE_ERROR("Matrixes of different sizes\n");
         throw SIZE_ERROR;
     }
 
@@ -181,60 +175,48 @@ Matrix& Matrix::operator *= (const Matrix& A)
 }
 
 
-Matrix& Matrix::operator + (const Matrix& A)
+Matrix Matrix::operator+ (const Matrix& A)
 {
-    if (A.cols != this->cols || A.rows != this->rows)
-        throw SIZE_ERROR;
-
-    Matrix* C = new Matrix(A.cols, A.rows);
-
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        C->data[idx] = A.data[idx] + this->data[idx];
-    return *C;
+    Matrix result(*this);
+    result += A;
+    return result;
 }
 
 
-Matrix& Matrix::operator - (const Matrix& A)
+Matrix Matrix::operator- (const Matrix& A)
 {
-    if (A.cols != this->cols || A.rows != this->rows)
-        throw SIZE_ERROR;
-
-    Matrix* C = new Matrix(A.cols, A.rows);
-
-    for (size_t idx = 0; idx < A.cols * A.rows; ++idx)
-        C->data[idx] = A.data[idx] - this->data[idx];
-    return *C;
+    Matrix result(*this);
+    result -= A;
+    return result;
 }
 
 
-Matrix& Matrix::operator*(const Matrix& A)
+Matrix Matrix::operator* (const Matrix& A)
 {
-    if (A.cols != this->rows)
-        throw SIZE_ERROR;
-
-    Matrix* C = new Matrix(this->rows, A.cols);
-
-    for (size_t C_col = 0; C_col < this->rows; ++C_col) {
-        for (size_t C_row = 0; C_row < A.cols; ++C_row) {
-            C->data[C_row + C_col * A.cols] = 0;
-            for (size_t idx = 0; idx < this->cols; ++idx) {
-                C->data[C_row + C_col * A.cols] += this->data[idx + (C_col * this->cols)]
-                    * A.data[idx * A.cols + C_row];
-            };
-        };
-    };
-    return *C;
-}
-
-
-void Matrix::print()
-{
-    for (size_t row = 0; row < rows; row++) {
-        for (size_t col = 0; col < cols; col++)
-            printf("%.f ", data[row * cols + col]);
-        printf("\n");
+    if (cols != A.rows) {
+        throw MatrixException ("Matrixes dimensions do not match for multiplication\n");
     }
-    printf("\n");
+
+    Matrix result(rows, A.cols);
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < A.cols; ++j) {
+            result.data[i * A.cols + j] = 0;
+            for (size_t k = 0; k < cols; ++k) {
+                result.data[i * A.cols + j] += data[i * cols + k] * A.data[k * A.cols + j];
+            }
+        }
+    }
+    return result;
+}
+
+
+Matrix Matrix::operator* (double scalar) const
+{
+    Matrix result(rows,cols);
+    for (size_t i = 0; i < rows*cols; i++){
+        result.data[i] = data[i] * scalar;
+    }
+    return result;
 }
 
 
@@ -253,158 +235,123 @@ void Matrix::set_one()
 }
 
 
-
-
-/*
-
-//TRANSPOSITION = A ^ T
-void matrix_trans(struct Matrix A, struct Matrix T)
+Matrix Matrix::transpose() const
 {
-    for (size_t row = 0; row < A.rows; row++) {
-        for (size_t col = 0; col < A.cols; col++) {
-            T.data[col * A.rows + row] = A.data[row * A.cols + col];
-        }
-    }
+    Matrix result(cols, rows);
+    for (size_t row = 0; row < rows; ++row)
+        for (size_t col = 0; col < cols; ++col)
+            result.data[col * rows + row] = data[row * cols + col];
+    return result;
 }
 
 
-// MINOR
-struct Matrix Minor(const struct Matrix A, const size_t row, const size_t col)
+Matrix Matrix::minor(size_t exclude_row, size_t exclude_col) const
 {
-    struct Matrix Minor = matrix_create(A.rows - 1, A.cols - 1);
-    size_t idx = 0;
-
-    for (size_t rowA = 0; rowA < Minor.rows; ++rowA) {
-        if (rowA == row) continue;
-        for (size_t colA = 0; colA < Minor.cols; ++colA) {
-            if (colA == col) continue;
-            Minor.data[idx] = A.data[rowA * A.cols + colA];
-            ++idx;
-        }
+    if (rows <= 1 || cols <= 1) {
+        throw MatrixException("Cannot compute minor of a matrix with size <= 1");
     }
 
+    Matrix Minor(rows - 1, cols - 1);
+    size_t minor_row = 0;
+    size_t minor_col = 0;
+
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < cols; ++col) {
+            if (row == exclude_row || col == exclude_col) {
+                continue;
+            }
+            Minor.data[minor_row * Minor.cols + minor_col] = data[row * cols + col];
+            minor_col++;
+            if (minor_col == Minor.cols) {
+                minor_col = 0;
+                minor_row++;
+            }
+        }
+    }
     return Minor;
 }
 
 
-// DET A
-double matrix_determinant(const struct Matrix A)
+Matrix Matrix::inverse() const
 {
-    if ((A.cols != A.rows) || A.rows == 0 || A.cols == 0) {
-        return NAN;
+    if (cols != rows) {
+        throw MatrixException("Matrix is not square\n");
     }
 
-    double det = 0;
-    int sign = 1;
-
-    if (A.rows == 0) return NAN;
-    if (A.rows == 1) return A.data[0];
-    if (A.rows == 2) return (A.data[0] * A.data[3] - A.data[2] * A.data[1]);
-
-    for (size_t idx = 0; idx < A.rows; idx++) {
-        struct Matrix temp = Minor(A, 0, idx);
-        det += sign * A.data[idx] * matrix_determinant(temp);
-        sign = -sign;
-        matrix_delete(&temp);
-    }
-    return det;
-}
-
-
-void determinant_print(struct Matrix A, const char* text)
-{
-    printf("%s\n", text);
-    printf("%f\n", matrix_determinant(A));
-    printf("\n");
-}
-
-
-
-
-// A = A * n
-struct Matrix matrix_mult_number(const struct Matrix A, const double n) {
-    if (A.data == NULL)  return MATRIX_NULL;
-
-    struct Matrix Num = matrix_create(A.cols, A.rows);
-
-    if (Num.data == NULL) return MATRIX_NULL;
-
-    for (size_t idx = 0; idx < Num.cols * Num.rows; ++idx) {
-        Num.data[idx] = A.data[idx] * n;
-    }
-
-    return Num;
-}
-
-
-// A = A^(-1)
-struct Matrix matrix_inverse(const struct Matrix B) {
-    if (B.cols != B.rows) {
-        matrix_error(ERROR, "The matrix is ​​not square.\n");
-        return MATRIX_NULL;
-    }
-
-    double det = matrix_determinant(B);
+    double det = this->determinant();
     if (det == 0) {
-        printf("Error: Matrix is singular and cannot be inverted.\n");
-        return MATRIX_NULL;
+        throw MatrixException("Matrix is singular and cannot be inverted\n");
     }
 
-    struct Matrix Inv = matrix_create(B.rows, B.cols);
-    if (Inv.data == NULL) return MATRIX_NULL;
-
+    Matrix Inv(rows, cols);
     for (size_t row = 0; row < Inv.rows; row++) {
         for (size_t col = 0; col < Inv.cols; col++) {
-            struct Matrix MinorMatrix = Minor(B, row, col);
-            Inv.data[col * B.rows + row] = pow(-1, row + col) * matrix_determinant(MinorMatrix) / det;
-            matrix_delete(&MinorMatrix);
+            Matrix MinorMatrix = this->minor(row, col);
+            Inv.data[col * rows + row] = pow(-1, row + col) * MinorMatrix.determinant() / det;
         }
     }
     return Inv;
 }
 
 
-struct Matrix matrix_exponent(const struct Matrix A, const unsigned long long int n) {
-    if (A.cols != A.rows) {
-        matrix_error(ERROR, "The matrix is ​​not square.\n");
-        return MATRIX_NULL;
+Matrix Matrix::matrix_exponent(const unsigned long long int n)
+{
+    if (cols != rows) {
+        throw MatrixException("Matrix is not square\n");
     }
 
-    struct Matrix matrix_exponent_term = matrix_create(A.rows, A.cols);
-    matrix_set_one(matrix_exponent_term);
-
-    struct Matrix matrix_exponent_result = matrix_create(A.rows, A.cols);
-    matrix_set_zero(matrix_exponent_result);
+    Matrix matrix_exponent_term(*this); 
+    Matrix matrix_exponent_result(rows, cols);
+    matrix_exponent_result.set_one();
 
     if (n == 0) {
-        matrix_delete(&matrix_exponent_result);
-        return matrix_exponent_term;
+        return matrix_exponent_result;
     }
 
     double factorial = 1.0;
 
     for (unsigned long long int idx = 1; idx <= n; idx++) {
-        struct Matrix temp = matrix_create(A.rows, A.cols);
-        matrix_mult(temp, matrix_exponent_term, A);
-        matrix_delete(&matrix_exponent_term);
-
-        matrix_exponent_term = temp;
         factorial *= idx;
-
-        matrix_mult_number(matrix_exponent_term, 1.0 / factorial);
-
-        struct Matrix added = matrix_create(A.rows, A.cols);
-        matrix_sum(added, matrix_exponent_result, matrix_exponent_term);
-
-        matrix_delete(&matrix_exponent_result);
-        matrix_exponent_result = added;
+        matrix_exponent_term = matrix_exponent_term * (*this) * (1.0 / factorial);
+        matrix_exponent_result += matrix_exponent_term;
     }
 
-    matrix_delete(&matrix_exponent_term);
     return matrix_exponent_result;
 }
 
-*/
+
+double Matrix::determinant() const
+{
+    if (cols != rows) {
+        throw MatrixException("Matrix is not square\n");
+    }
+
+    if (rows == 1) return data[0];
+
+    if (rows == 2) return (data[0] * data[3] - data[1] * data[2]);
+
+    double det = 0.0;
+    int sign = 1;
+
+    for (size_t col = 0; col < cols; col++) {
+        Matrix TEMP = this->minor(0, col); 
+        det += sign * data[col] * TEMP.determinant();
+        sign = -sign;
+    }
+    return det;
+}
+
+
+void Matrix::print()
+{
+    for (size_t row = 0; row < rows; row++) {
+        for (size_t col = 0; col < cols; col++)
+            printf("%.f ", data[row * cols + col]);
+        printf("\n");
+    }
+    printf("\n");
+}
+
 
 int main()
 {
@@ -413,13 +360,25 @@ int main()
 
     Matrix A(3, 3, src_data);
     Matrix B(3, 3, src_data1);
-    Matrix C(3,3);
-    C = A + B;
+    Matrix SUM = A + B;
+    Matrix SUB = A - B;
+    Matrix MULT = A * B;
+    Matrix MULT_SCAL = A * 3;
+    Matrix TRAN = A.transpose();
+    Matrix MIN = A.minor(2,2);
+    Matrix INV = A.inverse();
+    Matrix EXP = A.matrix_exponent(3);
+    double DET = A.determinant();
 
-
-    C.print();
-    B.print();
     A.print();
-
-
+    B.print();
+    SUM.print();
+    SUB.print();
+    MULT.print();
+    MULT_SCAL.print();
+    TRAN.print();
+    MIN.print();
+    INV.print();
+    EXP.print();
+    cout << endl <<  DET << endl;
 }
