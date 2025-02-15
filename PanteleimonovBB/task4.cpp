@@ -51,7 +51,7 @@ public:
         return I;
     }
 
-    // Перегрузка оператора сложения
+    //  оператор сложения
     Matrix operator+(const Matrix &B) const {
         if (rows != B.rows || cols != B.cols) throw std::runtime_error("Размеры матриц не совпадают.");
         Matrix result(rows, cols);
@@ -61,7 +61,7 @@ public:
         return result;
     }
 
-    // Перегрузка оператора вычитания
+    //  оператор вычитания
     Matrix operator-(const Matrix &B) const {
         if (rows != B.rows || cols != B.cols) throw std::runtime_error("Размеры матриц не совпадают.");
         Matrix result(rows, cols);
@@ -71,7 +71,7 @@ public:
         return result;
     }
 
-    // Перегрузка оператора умножения на скаляр
+    // оператор умножения на скаляр
     Matrix operator*(double scalar) const {
         Matrix result(rows, cols);
         for (size_t i = 0; i < rows * cols; i++) {
@@ -80,7 +80,7 @@ public:
         return result;
     }
 
-    // Перегрузка оператора умножения матриц
+    //  оператор умножения матриц
     Matrix operator*(const Matrix &B) const {
         if (cols != B.rows) throw std::runtime_error("Нельзя умножить: число столбцов первой не равно числу строк второй.");
         Matrix result(rows, B.cols);
@@ -94,15 +94,6 @@ public:
         return result;
     }
 
-    // Перегрузка оператора деления на скаляр
-    Matrix operator/(double scalar) const {
-        if (scalar == 0) throw std::runtime_error("Деление на ноль невозможно.");
-        Matrix result(rows, cols);
-        for (size_t i = 0; i < rows * cols; i++) {
-            result.data[i] = data[i] / scalar;
-        }
-        return result;
-    }
 
     // Перегрузка оператора сравнения ==
     bool operator==(const Matrix &B) const {
