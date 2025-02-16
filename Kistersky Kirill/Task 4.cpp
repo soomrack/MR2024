@@ -196,7 +196,10 @@ void Matrix::exp(const unsigned int level) {
 // Перегрузка операторов
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-    if (data != nullptr) delete[] data; //если размеры совпадают - тогда копирование
+    if (rows == M.rows && cols == M.cols) {
+        memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
+    }
+    if (data != nullptr) delete[] data; 
 
     rows = M.rows;
     cols = M.cols;
