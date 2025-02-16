@@ -31,373 +31,377 @@ void matrix_error(const enum MatrixExceptionLevel level, const char* location)
 }
 
 
+class MatrixException : public domain_error { // Конструктор для исключений
+public:
+    explicit MatrixException(const string& message) : domain_error(message) {} 
+};
+
+
 class Matrix {
 private:
     size_t rows;
     size_t cols;
-    double* data;    
+    double* data;   
+     
 public:
-    Matrix(size_t des_rows, size_t des_cols) 
-    {
-        rows = des_rows;
-        cols = des_cols;
-
-        if (cols == 0 || rows == 0) {
-            matrix_error(INFO, "matrix_alloc");
-            printf("Matrix is ix0 or 0xj\n");
-            data = nullptr;
-        }   
-
-        if (rows > SIZE_MAX / cols) { // Проверка на переполнение cols * rows
-            matrix_error(ERROR, "matrix_alloc");
-            rows = 0;
-            cols = 0;
-            data = nullptr;
-            throw std::runtime_error("Cols * rows exceeds SIZE_MAX");
-        }
-
-        if (cols * rows > SIZE_MAX / sizeof(double)) { // Проверка на общий объем памяти
-            matrix_error(ERROR, "matrix_alloc");
-            rows = 0;
-            cols = 0;
-            data = nullptr;
-            throw std::runtime_error("Memory allocation size exceeds SIZE_MAX");
-        }
-
-        data = new double[cols * rows]();
-
-        if (data == nullptr) {
-            matrix_error(ERROR, "matrix_alloc");
-            rows = 0;
-            cols = 0;
-            throw std::runtime_error("No memory allocated");
-        }
-    }
-
-    ~Matrix() 
-    {
-        if (data) {
-            delete[] data;
-        }
-    }
+    Matrix(size_t des_rows, size_t des_cols); // Конструктор
+    ~Matrix(); // Деструктор
+    Matrix(const Matrix& other); // Конструктор копирования
+    Matrix(Matrix&& other); // Конструктор переноса
 
 public: // Сервисные методы (функции)
-    void print() // Вывод матрицы
-    {
-        printf("\n_____________________________\n");
-        for (size_t row_i = 0; row_i < rows; ++row_i) {
-            for (size_t col_j = 0; col_j < cols; ++col_j) {
-                printf("%.2f ", data[row_i * cols + col_j]);
-            }
-            printf("\n");
+    void print(); // Вывод матрицы
+    void set_zero(); // Заполнение матрицы нулями
+    void set_identity(); // Превращение матрицы в "единичную" по диагонали
+    void fill_with_Indices(); // Заполнение матрицы индексами элементов
+    void set_value(const unsigned int idx, const double value); // Заполнение элемента матрицы по индексу
+    double determinant(); // Определитель
+
+    Matrix transp(); // B = A ^ T
+    Matrix exp(const unsigned int targ_num); // E = e ^ A
+
+public: // Переопределение операторов
+    Matrix& operator=(Matrix&& other); // Оператор присваивания через перенос
+    double& operator[](unsigned int idx); // Определение значения элемента матрицы по индексу
+    Matrix& operator=(const Matrix& B); // A := B
+    Matrix& operator+=(const Matrix& B); // A += B
+    Matrix& operator*=(const double k); // A *= k
+    Matrix operator+(const Matrix& B); // C = A + B
+    Matrix operator-(const Matrix& B); // C = A - B
+    Matrix operator*(const Matrix& B); // C = A * B
+    Matrix operator^(const unsigned int targ_power); // B = A ^ n
+};
+
+
+Matrix::Matrix(size_t des_rows, size_t des_cols) 
+{
+    rows = des_rows;
+    cols = des_cols;
+
+    if (cols == 0 || rows == 0) {
+        matrix_error(INFO, "matrix_alloc");
+        throw MatrixException("Matrix is ix0 or 0xj");
+    }   
+
+    if (rows > SIZE_MAX / cols) { // Проверка на переполнение cols * rows
+        matrix_error(ERROR, "matrix_alloc");
+        rows = 0;
+        cols = 0;
+        data = nullptr;
+        throw MatrixException("Cols * rows exceeds SIZE_MAX");
+    }
+
+    if (cols * rows > SIZE_MAX / sizeof(double)) { // Проверка на общий объем памяти
+        matrix_error(ERROR, "matrix_alloc");
+        rows = 0;
+        cols = 0;
+        data = nullptr;
+        throw MatrixException("Memory allocation size exceeds SIZE_MAX");
+    }
+
+    data = new double[cols * rows];
+}
+
+
+Matrix::~Matrix() 
+{
+    if (data) {
+        delete[] data;
+    }
+}
+
+
+Matrix::Matrix(const Matrix& B) : rows(B.rows), cols(B.cols) // Конструктор копирования
+{
+    data = new double[rows * cols];
+    copy(B.data, B.data + rows * cols, data);
+}
+
+
+Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), data(other.data) // Конструтор переноса
+{
+    other.rows = 0;
+    other.cols = 0;
+    other.data = nullptr;
+}
+
+
+void Matrix::print() // Вывод матрицы
+{
+    printf("\n_____________________________\n");
+    for (size_t row_i = 0; row_i < rows; ++row_i) {
+        for (size_t col_j = 0; col_j < cols; ++col_j) {
+            printf("%.2f ", data[row_i * cols + col_j]);
         }
         printf("\n");
     }
+    printf("\n");
+}
 
-    void set_zero() // Заполнение матрицы нулями
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "set_zero");
-            throw std::runtime_error("No memory allocated");
-        }
-        
-        memset(data, 0, cols * rows * sizeof(double));
+
+void Matrix::set_zero() // Заполнение матрицы нулями
+{   
+    memset(data, 0, cols * rows * sizeof(double));
+}
+
+
+void Matrix::set_identity() // Превращение матрицы в "единичную" по диагонали
+{   
+    set_zero();
+    for (size_t idx = 0; idx < rows * cols; idx += cols + 1) {
+        data[idx] = 1.0;
     }
+}
 
-    void set_identity() // Превращение матрицы в "единичную" по диагонали
-    {   
-        if (data == nullptr) {
-            matrix_error(ERROR, "set_identity");
-            throw std::runtime_error("No memory allocated");
-        }
-    
-        set_zero();
-        for (size_t idx = 0; idx < rows * cols; idx += cols + 1) {
-            data[idx] = 1.0;
-        }
-    }
 
-    void fillWithIndices() // Заполнение матрицы индексами элементов
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "fillWithIndices");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        for (size_t row_i = 0; row_i < rows; ++row_i) {
-               for (size_t col_j = 0; col_j < cols; ++col_j) {
-                data[row_i * cols + col_j] = row_i * cols + col_j; 
-            }
+void Matrix::fill_with_Indices() // Заполнение матрицы индексами элементов
+{
+    for (size_t row_i = 0; row_i < rows; ++row_i) {
+        for (size_t col_j = 0; col_j < cols; ++col_j) {
+            data[row_i * cols + col_j] = row_i * cols + col_j; 
         }
     }
+}
 
-    void set_value(const unsigned int idx, const double value) // Заполнение элемента матрицы по индексу
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "set_value");
-            throw std::runtime_error("No memory allocated");
-        }
 
-        if (idx >= cols * rows) {
-            matrix_error(ERROR, "set_value");
-            throw std::runtime_error("The entered index exceeds the maximum for this matrix");
-        }
-
-        data[idx] = value;
+void Matrix::set_value(const unsigned int idx, const double value) // Заполнение элемента матрицы по индексу
+{
+    if (idx >= cols * rows) {
+        matrix_error(ERROR, "set_value");
+        throw MatrixException("The entered index exceeds the maximum for this matrix");
     }
 
-    double determinant() // Определитель
-    {
-        double det;
-        if (rows != cols) {
-            printf("A non-square matrix\n");
-            return NAN;
-        }
+    data[idx] = value;
+}
 
-        if (rows == 0) {
-            return NAN;
-        }
 
-        if (rows == 1) {
-            det = data[0];
-            return det;
-        }
-
-        if (rows == 2) {
-            det = data[0] * data[3] - data[1] * data[2];
-            return det;
-        }
-
-        if (rows == 3) {
-            det = data[0] * data[4] * data[8] 
-            + data[1] * data[5] * data[6] 
-            + data[3] * data[7] * data[2] 
-            - data[2] * data[4] * data[6] 
-            - data[3] * data[1] * data[8] 
-            - data[0] * data[5] * data[7];
-            return det;
-        }
-
+double Matrix::determinant() // Определитель
+{
+    double det;
+    if (rows != cols) {
+        printf("A non-square matrix\n");
         return NAN;
     }
 
-    Matrix transp() // B = A ^ T
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "transp");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        Matrix result (cols, rows);
-
-        for (size_t row = 0; row < rows; ++row) {
-            for (size_t col = 0; col < cols; ++col) {
-                result.data[row + rows * col] = data[col + cols * row];
-            }
-        }
-
-        return result;
+    if (rows == 0) {
+        return NAN;
     }
 
-    Matrix exp(const unsigned int targ_num) // E = e ^ A
-    {
-        if (rows != cols) {
-            matrix_error(ERROR, "matrix_pow");
-            throw std::runtime_error("A non-square matrix");
+    if (rows == 1) {
+        det = data[0];
+        return det;
+    }
+
+    if (rows == 2) {
+        det = data[0] * data[3] - data[1] * data[2];
+        return det;
+    }
+
+    if (rows == 3) {
+        det = data[0] * data[4] * data[8] 
+        + data[1] * data[5] * data[6] 
+        + data[3] * data[7] * data[2] 
+        - data[2] * data[4] * data[6] 
+        - data[3] * data[1] * data[8] 
+        - data[0] * data[5] * data[7];
+        return det;
+    }
+
+    return NAN;
+}
+
+
+Matrix Matrix::transp() // B = A ^ T
+{
+    Matrix result (cols, rows);
+
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < cols; ++col) {
+            result.data[row + rows * col] = data[col + cols * row];
         }
+    }
 
-        if (data == nullptr) {
-            matrix_error(ERROR, "exp");
-            throw std::runtime_error("No memory allocated");
-        }
+    return result;
+}
 
-        Matrix E (cols,rows);
-        E.set_identity();
 
-        if (targ_num == 1) {
-            return E;
-        }
+Matrix Matrix::exp(const unsigned int targ_num) // E = e ^ A
+{
+    if (rows != cols) {
+        matrix_error(ERROR, "matrix_pow");
+        throw MatrixException("A non-square matrix");
+    }
 
-        Matrix tmp (rows, cols);
-        Matrix buf_mult (rows, cols);
+    Matrix E (cols,rows);
+    E.set_identity();
 
-        tmp = E;
-
-        for (size_t num = 1; num < targ_num; ++num) { 
-
-            buf_mult = tmp * *this;
-            buf_mult * (1.0/num);
-
-            E += buf_mult;
-            tmp = buf_mult;
-        }
+    if (targ_num == 1) {
         return E;
     }
 
+    Matrix tmp (E);
+    Matrix buf_mult (rows, cols);
 
-public: // Переопределение операторов
-    double& operator[](unsigned int idx)
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "matrix_idx");
-            throw std::runtime_error("No memory allocated for matrix");
-        }
+    for (size_t num = 1; num < targ_num; ++num) { 
 
-        if (idx >= cols * rows) {
-            matrix_error(ERROR, "matrix_idx");
-            throw std::runtime_error("The entered index exceeds the maximum for this matrix");
-        }
+        buf_mult = move(tmp) * *this;
+        buf_mult *= (1.0/num);
 
-        return data[idx];
+        E += buf_mult;
+        tmp = move(buf_mult);
+    }
+    return E;
+}
+
+
+Matrix& Matrix::operator=(Matrix&& other) // Оператор присваивания через перенос
+{
+    if (this != &other) {
+        delete[] data; // Освобождаем текущие данные
+
+        rows = other.rows;
+        cols = other.cols;
+        data = other.data;
+
+        other.rows = 0;
+        other.cols = 0;
+        other.data = nullptr;
+    }
+    return *this;
+}
+
+
+double& Matrix::operator[](unsigned int idx) // Определение значения элемента матрицы по индексу
+{
+    if (idx >= cols * rows) {
+        matrix_error(ERROR, "matrix_idx");
+        throw MatrixException("The entered index exceeds the maximum for this matrix");
     }
 
-    Matrix& operator=(const Matrix& B) // A := B
-    {
-        if ((cols != B.cols) || (rows != B.rows )) {
-            matrix_error(ERROR, "matrix_copy");
-            throw std::runtime_error("Matrices of different dimensions");
-        }
-        
-        if (data == nullptr || B.data == nullptr) {
-            matrix_error(ERROR, "matrix_copy");
-            throw std::runtime_error("No memory allocated");
-        }
+    return data[idx];
+}
 
-        memcpy(data, B.data, cols * rows * sizeof(double));
+
+Matrix& Matrix::operator=(const Matrix& B) // A := B
+{
+    if (this == &B) {
+        matrix_error(INFO, "matrix_copy");
+        printf("Equating identical matrices\n");
         return *this;
     }
-
-    Matrix& operator+=(const Matrix& B) // A += B
-    {
-        if ((cols != B.cols) || (rows != B.rows )) {
-            matrix_error(ERROR, "A = A + B");
-            throw std::runtime_error("Matrices of different dimensions");
-        }
-
-        if (data == nullptr || B.data == nullptr) {
-            matrix_error(ERROR, "A += B");
-            throw std::runtime_error("No memory allocated");
-        }
     
-        for (size_t idx = 0; idx < cols * rows; ++idx) {
-            data[idx] += B.data[idx];
-        }
+    if ((cols != B.cols) || (rows != B.rows )) { 
+        matrix_error(ERROR, "matrix_copy");
+        throw MatrixException("Matrices of different dimensions");
+    }   
 
-        return *this;
+    memcpy(data, B.data, cols * rows * sizeof(double));
+    return *this;
+}
+
+
+Matrix& Matrix::operator+=(const Matrix& B) // A += B
+{
+    if ((cols != B.cols) || (rows != B.rows )) {
+        matrix_error(ERROR, "A = A + B");
+        throw MatrixException("Matrices of different dimensions");
     }
 
-    Matrix& operator*(const double k) // A *= k
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "matrix_coef");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        for (size_t idx = 0; idx < cols * rows; idx++) {
-            data[idx] *= k;
-        }
-        return *this;
+    for (size_t idx = 0; idx < cols * rows; ++idx) {
+        data[idx] += B.data[idx];
     }
 
-    Matrix operator+(const Matrix& B) // C = A + B
+    return *this;
+}
+
+
+Matrix& Matrix::operator*=(const double k) // A *= k
+{
+    for (size_t idx = 0; idx < cols * rows; idx++) {
+        data[idx] *= k;
+    }
+    return *this;
+}
+
+
+Matrix Matrix::operator+(const Matrix& B) // C = A + B
+{
+    if ((cols != B.cols) || (rows != B.rows))
     {
-        if ((cols != B.cols) || (rows != B.rows))
-        {
-            matrix_error(ERROR, "C = A + B");
-            throw std::runtime_error("Matrices of different dimensions");
-        }
-
-        if (data == nullptr || B.data == nullptr) {
-            matrix_error(ERROR, "C = A + B");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        Matrix result (rows, cols);
-
-        result = B;
-        result += *this;
-
-        return result;
+        matrix_error(ERROR, "C = A + B");
+        throw MatrixException("Matrices of different dimensions");
     }
 
-    Matrix operator-(const Matrix& B) // C = A - B
+    Matrix result(B);
+
+    result += *this;
+
+    return result;
+}
+
+
+Matrix Matrix::operator-(const Matrix& B) // C = A - B
+{
+    if ((cols != B.cols) || (rows != B.rows))
     {
-        if ((cols != B.cols) || (rows != B.rows))
-        {
-            matrix_error(ERROR, "C = A - B");
-            throw std::runtime_error("Matrices of different dimensions");
-        }
+        matrix_error(ERROR, "C = A - B");
+        throw MatrixException("Matrices of different dimensions");
 
-        if (data == nullptr || B.data == nullptr) {
-            matrix_error(ERROR, "C = A - B");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        Matrix result (rows, cols);
-
-        for (size_t idx = 0; idx < cols * rows; ++idx) {
-            result.data[idx] = data[idx] - B.data[idx];
-        }
-
-        return result;
     }
 
-    Matrix operator*(const Matrix& B) // C = A * B
+    Matrix result (rows, cols);
+
+    for (size_t idx = 0; idx < cols * rows; ++idx) {
+        result.data[idx] = data[idx] - B.data[idx];
+    }
+
+    return result;
+}
+
+
+Matrix Matrix::operator*(const Matrix& B) // C = A * B
+{
+    if (cols != B.rows)
     {
-        if (cols != B.rows)
-        {
-            matrix_error(ERROR, "C = A * B");
-            throw std::runtime_error("Incorrect matrix size");
-        }
+        matrix_error(ERROR, "C = A * B");
+        throw MatrixException("Matrices of different dimensions");
+    }
 
-        if (data == nullptr || B.data == nullptr) {
-            matrix_error(ERROR, "C = A * B");
-            throw std::runtime_error("No memory allocated");
-        }
+    Matrix result (rows, B.cols);
 
-        Matrix result (rows, B.cols);
-
-        for (size_t row = 0; row < result.rows; ++row) {
-            for (size_t col = 0; col < result.cols; ++col) {
-                result.data[row * (result.cols) + col] = 0;
-                    
-                for (size_t idx = 0; idx < cols; idx++) {
-                    result.data[row * result.cols + col] += data[row * cols + idx] * B.data[idx * B.cols + col];
-                }
+    for (size_t row = 0; row < result.rows; ++row) {
+        for (size_t col = 0; col < result.cols; ++col) {
+            result.data[row * (result.cols) + col] = 0;
+                
+            for (size_t idx = 0; idx < cols; idx++) {
+                result.data[row * result.cols + col] += data[row * cols + idx] * B.data[idx * B.cols + col];
             }
         }
+    }
 
+    return result;
+}
+
+
+Matrix Matrix::operator^(const unsigned int targ_power) // B = A ^ n
+{
+    if (rows != cols) {
+        matrix_error(WARNING, "matrix_pow");
+        throw MatrixException("A non-square matrix");
+    }
+
+    Matrix result (*this);
+
+    if (targ_power == 0) {
+        result.set_identity();
         return result;
     }
 
-    Matrix operator^(const unsigned int targ_power) // B = A ^ n
-    {
-        if (data == nullptr) {
-            matrix_error(ERROR, "B = A ^ n");
-            throw std::runtime_error("No memory allocated");
-        }
-
-        if (rows != cols) {
-            matrix_error(WARNING, "matrix_pow");
-            throw std::runtime_error("A non-square matrix");
-        }
-
-        Matrix result (rows, cols);
-
-        if (targ_power == 0) {
-            result.set_identity();
-            return result;
-        }
-
-        result = *this;
-
-        for (unsigned int pow = 1; pow < targ_power; ++pow) {
-            result = result * (*this);
-        }
-        return result;
+    for (unsigned int pow = 1; pow < targ_power; ++pow) {
+        result = move(result) * (*this);
     }
-
-};
+    return result;
+}
 
 
 int main()
@@ -406,10 +410,10 @@ int main()
     Matrix A(3,3);
     A.print();
     Matrix B(3,3);
-    B.fillWithIndices();
+    B.fill_with_Indices();
     A = B;
     A.print();
-    A * 2;
+    A *= 2;
     A.print();
     res = A[2];
     printf("%.2f\n", res);
@@ -422,9 +426,9 @@ int main()
     C.print();
 
     Matrix D(2,3);
-    D.fillWithIndices();
+    D.fill_with_Indices();
     Matrix E(3,4);
-    E.fillWithIndices();
+    E.fill_with_Indices();
     D.print();
     E.print();
     printf("above");
@@ -438,13 +442,38 @@ int main()
     B.print();
     Matrix J = B ^ 2;
     J.print();
+    
 
     printf("Matrix_exp test\n");
     B.print();
     Matrix I = B.exp(4);
     I.print();
 
-    Matrix Z (0,5);
+    //Matrix Z (0,5);
+
+    Matrix W(2,2);
+    W.print();
+    //W = W;
+    //W.set_value(256,2);
+
+
+    printf("\nNew constructors for ^ operation\n");
+    Matrix K(3,3);
+    K.fill_with_Indices();
+    printf("\nIncome matrix K \n");
+    K.print();
+    Matrix N = K ^ 3;
+    printf("\nResulting matrix N\n");
+    N.print();
+
+    printf("\nNew constructors for exp operation\n");
+    Matrix L(K);
+    L.print();
+    printf("\nL is equal to previous K\n");
+    Matrix S = L.exp(4);
+    printf("\nS is\n");
+    S.print();
+
 
     printf("\n------------\nEnd of main\n------------\n");
 }
