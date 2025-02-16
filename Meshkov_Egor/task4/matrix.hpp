@@ -1,12 +1,74 @@
 #pragma once
+#include <cmath>
 #include <cstddef>
 #include <memory>
+#include <string>
 
 
 namespace MTL { // Matrix Lib
 
 
-void set_log_level(unsigned int new_level);
+class MatrixException : public std::exception {
+protected:
+    std::string message;
+
+    enum class TypeException {
+        ERROR,
+        WARNING,
+        INFO,
+    };
+
+    const std::string get_prefix_message(TypeException type_exception) const noexcept;
+public:
+    explicit MatrixException(TypeException type_exception, const std::string msg) 
+        : message(get_prefix_message(type_exception) + msg) {}
+
+    virtual const char* what() const noexcept override {
+        return message.c_str();
+    }
+};
+
+
+class EmptyMatrixException : public MatrixException {
+public:
+    EmptyMatrixException() 
+        : MatrixException(TypeException::ERROR, "Matrix must not be empty\n") {}
+};
+
+
+class SizeMismatchException : public MatrixException {
+public:
+    SizeMismatchException() 
+        : MatrixException(TypeException::ERROR, "Matrix are must be have equal sizes\n") {}
+};
+
+
+class MultiplicationSizeMismatchException : public MatrixException {
+public:
+    MultiplicationSizeMismatchException() 
+        : MatrixException(TypeException::ERROR, "Matrix are have incorrect sizes for multiplication\n") {}
+};
+
+
+class SquareMatrixRequiredException : public MatrixException {
+public:
+    SquareMatrixRequiredException() 
+        : MatrixException(TypeException::ERROR, "Matrix must be square\n") {}
+};
+
+
+class DeterminantZeroException : public MatrixException {
+public:
+    DeterminantZeroException() 
+        : MatrixException(TypeException::ERROR, "Determinant of reverse matrix must not be zero\n") {}
+};
+
+
+class OutOfRangeException : public MatrixException {
+public:
+    OutOfRangeException() 
+        : MatrixException(TypeException::ERROR, "Element index is outside the matrix bounds\n") {}
+};
 
 
 class Matrix {
@@ -19,25 +81,24 @@ public:
     Matrix(const Matrix&);
     Matrix(Matrix&&);
 
-    ~Matrix();
+    ~Matrix() {};
 
     size_t get_rows() const noexcept;
     size_t get_cols() const noexcept;
 
     bool is_empty() const noexcept;
-    bool is_unit() const noexcept;
-    bool is_zeros() const noexcept;
+    bool is_unit(double error = pow(10, -9)) const noexcept;
+    bool is_zeros(double error = pow(10, -9)) const noexcept;
 
     Matrix to_unit();
     Matrix to_zeros() noexcept;
 
     Matrix& operator+() noexcept;
-    Matrix& operator++() noexcept;
     Matrix& operator-() noexcept;
-    Matrix& operator--() noexcept;
     
-    double& operator()(size_t row, size_t col);
-    double& operator()(size_t idx);
+    double& operator[](size_t idx) noexcept;
+    double& at(size_t idx);
+    double& at(size_t row, size_t col);
 
     Matrix& operator=(const Matrix&);
     Matrix& operator=(Matrix&&);
@@ -65,19 +126,6 @@ public:
 private:
     size_t rows, cols;
     std::unique_ptr<double []> data = nullptr;
-
-    enum class Operations {
-        ADD,
-        SUB,
-        MULTIPLY_BY_NUMBER,
-        MULTIPLY,
-        DETERMINANT,
-        REVERSE,
-        TRANSPOSE,
-        EXP
-    };
-
-    void check_condition(Operations operation, const Matrix& A = Matrix(1.0)) const;
 
     void swap_rows(const size_t first_row, const size_t second_row);
     
