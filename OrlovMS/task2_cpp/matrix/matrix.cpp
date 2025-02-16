@@ -102,9 +102,13 @@ Matrix::Matrix(const Matrix &mat) : rows(mat.rows), cols(mat.cols), data(nullptr
 }
 
 
-Matrix::Matrix(const Matrix &&mat) : rows(mat.rows), cols(mat.cols), data(mat.data)
+Matrix::Matrix(Matrix &&mat) : rows(mat.rows), cols(mat.cols), data(mat.data)
 {
     print_log(LOG_INFO, "move matrix\n");
+
+    mat.rows = 0;
+    mat.cols = 0;
+    mat.data = nullptr;
 }
 
 
@@ -196,7 +200,7 @@ bool Matrix::is_square() const noexcept
 }
 
 
-bool Matrix::equal_size(const Matrix second) const noexcept
+bool Matrix::equal_size(const Matrix &second) const noexcept
 {
     return (rows == second.rows) && (cols == second.cols);
 }
@@ -232,7 +236,7 @@ void Matrix::set_identity()
 }
 
 
-Matrix Matrix::operator=(const Matrix mat)
+Matrix& Matrix::operator=(const Matrix &mat)
 {
     print_log(LOG_INFO, "matrix assignment\n");
 
@@ -244,7 +248,39 @@ Matrix Matrix::operator=(const Matrix mat)
 }
 
 
-Matrix Matrix::operator+(const Matrix second) const
+Matrix& Matrix::operator=(Matrix &&mat)
+{
+    print_log(LOG_INFO, "matrix move assignment\n");
+
+    free();
+
+    rows = mat.rows;
+    cols = mat.cols;
+    data = mat.data;
+
+    mat.rows = 0;
+    mat.cols = 0;
+    mat.data = nullptr;
+
+    return *this;
+}
+
+
+Matrix Matrix::operator-() const
+{
+    print_log(LOG_INFO, "matrix opposite\n");
+
+    Matrix res(rows, cols);
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        res.data[idx] = -data[idx];
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::operator+(const Matrix &second) const
 {
     print_log(LOG_INFO, "matrix sum\n");
 
@@ -263,7 +299,24 @@ Matrix Matrix::operator+(const Matrix second) const
 }
 
 
-Matrix Matrix::operator-(const Matrix second) const
+Matrix& Matrix::operator+=(const Matrix &mat)
+{
+    print_log(LOG_INFO, "matrix sum assignment\n");
+
+    if(!equal_size(mat)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        throw SIZE_ERR;
+    }
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] += mat.data[idx];
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::operator-(const Matrix &second) const
 {
     print_log(LOG_INFO, "matrix subtraction\n");
 
@@ -282,7 +335,24 @@ Matrix Matrix::operator-(const Matrix second) const
 }
 
 
-Matrix Matrix::operator*(const double num) const
+Matrix& Matrix::operator-=(const Matrix &mat)
+{
+    print_log(LOG_INFO, "matrix subtraction assignment\n");
+
+    if(!equal_size(mat)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        throw SIZE_ERR;
+    }
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] -= mat.data[idx];
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::operator*(const double num) const noexcept
 {
     print_log(LOG_INFO, "matrix multiplication by number\n");
 
@@ -296,7 +366,19 @@ Matrix Matrix::operator*(const double num) const
 }
 
 
-Matrix Matrix::operator*(const Matrix second) const
+Matrix& Matrix::operator*=(const double num) noexcept
+{
+    print_log(LOG_INFO, "matrix multiplication by number assignment\n");
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] *= num;
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::operator*(const Matrix &second) const
 {
     print_log(LOG_INFO, "matrix multiplication\n");
 
@@ -320,6 +402,21 @@ Matrix Matrix::operator*(const Matrix second) const
 }
 
 
+Matrix& Matrix::operator*=(const Matrix &second)
+{
+    print_log(LOG_INFO, "matrix multiplication assignment\n");
+
+    if(cols != second.rows) {
+        print_log(LOG_ERR, "first.cols and second.rows not equals\n");
+        throw SIZE_ERR;
+    }
+
+    *this = (*this) * second;
+
+    return *this;
+}
+
+
 Matrix Matrix::pow(const unsigned int pow) const
 {
     print_log(LOG_INFO, "matrix power\n");
@@ -333,7 +430,7 @@ Matrix Matrix::pow(const unsigned int pow) const
     res.set_identity();
 
     for(unsigned int cnt = 0; cnt < pow; cnt++) {
-        res = res * (*this);
+        res *= (*this);
     }
 
     return res;
@@ -356,8 +453,9 @@ Matrix Matrix::exp() const
     term.set_identity();
 
     for(unsigned int num = 1; num < 10; num++) {
-        term = (term * (*this)) * (1 / (double)num);
-        res = res + term;
+        term *= (*this);
+        term *= (1 / (double)num);
+        res += term;
     }
 
     return res;
