@@ -18,8 +18,9 @@ protected:
         INFO,
     };
 
-    const std::string get_prefix_message(TypeException type_exception) const noexcept;
 public:
+    const std::string get_prefix_message(TypeException type_exception) const noexcept;
+
     explicit MatrixException(TypeException type_exception, const std::string msg) 
         : message(get_prefix_message(type_exception) + msg) {}
 
