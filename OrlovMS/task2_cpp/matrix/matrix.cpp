@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include <cstdarg>
 #include <cstdio>
+#include <cmath>
 
 
 Matrix::LogLevel Matrix::current_level = Matrix::LOG_NONE;
@@ -75,13 +76,13 @@ void Matrix::free()
 }
 
 
-Matrix::Matrix() : rows(0), cols(0), data(NULL)
+Matrix::Matrix() : rows(0), cols(0), data(nullptr)
 {
     print_log(LOG_INFO, "create empty matrix\n");
 }
 
 
-Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols), data(NULL)
+Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols), data(nullptr)
 {
     print_log(LOG_INFO, "create matrix with size\n");
 
@@ -89,7 +90,7 @@ Matrix::Matrix(const size_t rows, const size_t cols) : rows(rows), cols(cols), d
 }
 
 
-Matrix::Matrix(const Matrix &mat) : rows(mat.rows), cols(mat.cols), data(NULL)
+Matrix::Matrix(const Matrix &mat) : rows(mat.rows), cols(mat.cols), data(nullptr)
 {
     print_log(LOG_INFO, "create matrix copy\n");
 
@@ -101,11 +102,33 @@ Matrix::Matrix(const Matrix &mat) : rows(mat.rows), cols(mat.cols), data(NULL)
 }
 
 
+Matrix::Matrix(const Matrix &&mat) : rows(mat.rows), cols(mat.cols), data(mat.data)
+{
+    print_log(LOG_INFO, "move matrix\n");
+}
+
+
 Matrix::~Matrix()
 {
     print_log(LOG_INFO, "matrix destructor\n");
 
     free();
+}
+
+
+void Matrix::resize(const size_t rows, const size_t cols)
+{
+    print_log(LOG_INFO, "resize matrix\n");
+
+    if(this->rows * this->cols == rows * cols) {
+        print_log(LOG_INFO, "data size equals, reallocation not need\n");
+        this->rows = rows;
+        this->cols = cols;
+        return;
+    }
+
+    free();
+    alloc(rows, cols);
 }
 
 
@@ -163,13 +186,19 @@ double Matrix::get(const size_t row, const size_t col) const
 
 bool Matrix::is_empty() const noexcept
 {
-    return data == NULL;
+    return data == nullptr;
 }
 
 
 bool Matrix::is_square() const noexcept
 {
     return rows == cols;
+}
+
+
+bool Matrix::equal_size(const Matrix second) const noexcept
+{
+    return (rows == second.rows) && (cols == second.cols);
 }
 
 
@@ -200,4 +229,219 @@ void Matrix::set_identity()
     for(size_t idx = 0; idx < rows * cols; idx += cols + 1) {
         data[idx] = 1.0;
     }
+}
+
+
+Matrix Matrix::operator=(const Matrix mat)
+{
+    print_log(LOG_INFO, "matrix assignment\n");
+
+    resize(mat.rows, mat.cols);
+
+    memcpy(data, mat.data, rows * cols * sizeof(double));
+
+    return *this;
+}
+
+
+Matrix Matrix::operator+(const Matrix second) const
+{
+    print_log(LOG_INFO, "matrix sum\n");
+
+    if(!equal_size(second)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix res(rows, cols);
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        res.data[idx] = data[idx] + second.data[idx];
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::operator-(const Matrix second) const
+{
+    print_log(LOG_INFO, "matrix subtraction\n");
+
+    if(!equal_size(second)) {
+        print_log(LOG_ERR, "matrix size not equals\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix res(rows, cols);
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        res.data[idx] = data[idx] - second.data[idx];
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::operator*(const double num) const
+{
+    print_log(LOG_INFO, "matrix multiplication by number\n");
+
+    Matrix res(rows, cols);
+
+    for(size_t idx = 0; idx < rows * cols; idx++) {
+        res.data[idx] = data[idx] * num;
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::operator*(const Matrix second) const
+{
+    print_log(LOG_INFO, "matrix multiplication\n");
+
+    if(cols != second.rows) {
+        print_log(LOG_ERR, "first.cols and second.rows not equals\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix res(rows, second.cols);
+
+    for(size_t row = 0; row < rows; row++) {
+        for(size_t col = 0; col < second.cols; col++) {
+            res.data[row * res.cols + col] = 0.0;
+            for(size_t idx = 0; idx < cols; idx++) {
+                res.data[row * res.cols + col] += data[row * cols + idx] * second.data[idx * second.cols + col];
+            }
+        }
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::pow(const unsigned int pow) const
+{
+    print_log(LOG_INFO, "matrix power\n");
+
+    if(!is_square()) {
+        print_log(LOG_ERR, "matrix not square\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix res(rows, cols);
+    res.set_identity();
+
+    for(unsigned int cnt = 0; cnt < pow; cnt++) {
+        res = res * (*this);
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::exp() const
+{
+    print_log(LOG_INFO, "matrix exponent\n");
+
+    if(!is_square()) {
+        print_log(LOG_ERR, "matrix not square\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix res(rows, cols);
+    res.set_identity();
+
+    Matrix term(rows, cols);
+    term.set_identity();
+
+    for(unsigned int num = 1; num < 10; num++) {
+        term = (term * (*this)) * (1 / (double)num);
+        res = res + term;
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::transp() const
+{
+    print_log(LOG_INFO, "matrix transposition\n");
+
+    Matrix res(cols, rows);
+
+    for(size_t row = 0; row < rows; row++) {
+        for(size_t col = 0; col < cols; col++) {
+            res.data[col * rows + row] = data[row * cols + col];
+        }
+    }
+
+    return res;
+}
+
+
+size_t Matrix::find_non_zero_in_col(const size_t idx_start) const noexcept
+{
+    for(size_t row = idx_start + 1; row < rows; row++) {
+        if(fabs(data[row * cols + idx_start]) >= 0.00001) {
+            return row;
+        }
+    }
+
+    return 0;
+}
+
+
+void Matrix::swap_rows(const size_t first, const size_t second) noexcept
+{
+    for(size_t idx = 0; idx < cols; idx++) {
+        double tmp = data[first * cols + idx];
+        data[first * cols + idx] = data[second * cols + idx];
+        data[second * cols + idx] = tmp;
+    }
+}
+
+
+void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio) noexcept
+{
+    for(size_t idx = 0; idx < cols; idx++) {
+        data[row * cols + idx] -= ratio * data[row_base * cols + idx];
+    }
+}
+
+
+double Matrix::det() const
+{
+    print_log(LOG_INFO, "matrix determinant\n");
+
+    if(!is_square()) {
+        print_log(LOG_ERR, "matrix not square\n");
+        throw SIZE_ERR;
+    }
+
+    Matrix tmp(*this);
+
+    double det = 1.0;
+    for(size_t row_base = 0; row_base < rows - 1; row_base++) {
+        if(fabs(tmp.data[row_base * (cols + 1)]) < 0.00001) {
+            size_t idx_non_zero = tmp.find_non_zero_in_col(row_base);
+            if(idx_non_zero == 0) {
+                return 0.0;
+            }
+
+            tmp.swap_rows(row_base, idx_non_zero);
+            det *= -1.0;
+        }
+
+        for(size_t row = row_base + 1; row < rows; row++) {
+            double mult = tmp.data[row * cols + row_base] / tmp.data[row_base * (cols + 1)];
+            tmp.sub_row(row, row_base, mult);
+        }
+    }
+
+    for(size_t idx = 0; idx < rows; idx++) {
+        det *= tmp.data[idx * cols + idx];
+    }
+
+    return det;
 }

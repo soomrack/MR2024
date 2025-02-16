@@ -31,13 +31,20 @@ private:
 
     void alloc(const size_t rows, const size_t cols);
     void free();
+
+    size_t find_non_zero_in_col(const size_t idx_start) const noexcept;
+    void swap_rows(const size_t first, const size_t second) noexcept;
+    void sub_row(const size_t row, const size_t row_base, const double ratio) noexcept;
 public:
     static void set_log_level(LogLevel level) noexcept;
 
     Matrix();
     Matrix(const size_t rows, const size_t cols);
     Matrix(const Matrix &mat);
+    Matrix(const Matrix &&mat);
     ~Matrix();
+
+    void resize(const size_t rows, const size_t cols);
 
     void print() const noexcept;
 
@@ -49,7 +56,19 @@ public:
 
     bool is_empty() const noexcept;
     bool is_square() const noexcept;
+    bool equal_size(const Matrix second) const noexcept;
 
     void set_zeros() noexcept;
     void set_identity();
+
+    Matrix operator=(const Matrix mat);
+    Matrix operator+(const Matrix second) const;
+    Matrix operator-(const Matrix second) const;
+    Matrix operator*(const double num) const;
+    Matrix operator*(const Matrix second) const;
+
+    Matrix pow(const unsigned int pow) const;
+    Matrix exp() const;
+    Matrix transp() const;
+    double det() const;
 };
