@@ -1,622 +1,166 @@
 #include "matrix.hpp"
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-#include <ctime>
-#include <memory>
 #include <cmath>
-#include <iostream>
-#include <utility>
+#include <gtest/gtest.h>
+#include <random>
 
 
-namespace MTL {
+// Глобальные константы для размеров матриц
+const size_t ROWS = 25;
+const size_t COLS = 25;
 
 
-const std::string MatrixException::get_prefix_message(TypeException type_exception) const noexcept {
-    switch (type_exception) {
-        case TypeException::ERROR:
-            return "\033[0;31mERROR:\033[0m ";
-            break;
-        case TypeException::WARNING:
-            return "\033[0;33mWARNING:\033[0m ";
-            break;
-        default:  
-            return "INFO: ";
-            break;
-    }
-}
+// Генератор случайных чисел
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<> dis(-10.0, 10.0);
 
 
-Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
-
-
-Matrix::Matrix(size_t rows, size_t cols)
-    : rows(rows), cols(cols), data(std::make_unique<double[]>(rows * cols)) {
-    std::fill(data.get(), data.get() + rows * cols, 0.0);
-}
-
-
-Matrix::Matrix(double *new_data, size_t rows, size_t cols)
-    : rows(rows), cols(cols) {
-    
-    data = std::make_unique<double[]>(rows * cols);
-    
-    for(size_t idx = 0; idx < rows * cols; idx++ ) {
-        data[idx] = new_data[idx];
-    }
-}
-
-
-Matrix::Matrix(double number)
-    : rows(1), cols(1), data(std::make_unique<double[]>(1)) { data[0] = number; } 
-
-
-Matrix::Matrix(const Matrix& other) {
-    rows = other.rows;
-    cols = other.cols;
-
-    data = std::make_unique<double[]>(rows * cols);
-    
-    std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
-}
-
-
-Matrix::Matrix(Matrix&& other)
-    : rows(other.rows), cols(other.cols), data(std::move(other.data)) {
-
-    other.rows = 0;
-    other.cols = 0;
-    other.data = nullptr;
-}
-
-
-/*Matrix::~Matrix() {
-    std::cout << "~Matrix\n" << std::endl;
-}*/
-
-
-size_t Matrix::get_rows() const noexcept {
-    return rows;
-}
-
-
-size_t Matrix::get_cols() const noexcept {
-    return cols;
-}
-
-
-bool Matrix::is_empty() const noexcept {
-    return data.get() == nullptr;
-}
-
-
-bool Matrix::is_unit(double error) const noexcept {
-    if(data.get() == nullptr) return false;
-    if(rows != cols) return false;
-
-    size_t diag_dimention = 0;
-
+// Функция для создания случайной матрицы
+MTL::Matrix create_random_matrix(size_t rows, size_t cols) {
+    MTL::Matrix mat(rows, cols);
     for(size_t idx = 0; idx < rows * cols; idx++) {
-        if(idx == diag_dimention * rows + diag_dimention) {
-            diag_dimention++;
-            if(std::fabs(data[idx]) - 1.0 > error) return false; 
-        } else {
-            if(std::fabs(data[idx]) > error) return false;
-        }
-    }
-
-    return true;
-}
-
-
-bool Matrix::is_zeros(double error) const noexcept {
-    if(data.get() == nullptr) return false;
-    
-    for(size_t idx = 0; idx < rows * cols; idx++) {
-        if(std::fabs(data[idx]) > error) return false;
+        mat[idx] = dis(gen);
     }
     
-    return true;
+    return mat;
 }
 
 
-Matrix Matrix::to_unit() {
-    if(rows != cols) { 
-        throw SquareMatrixRequiredException();
-    }
-
-    std::fill(data.get(), data.get() + rows * cols, 0.0);
+// Тесты для класса Matrix
+TEST(MatrixTest, Constructors) {
+    using namespace MTL;
     
-    for(size_t idx = 0; idx < rows * cols; idx+=(rows + 1)) {
-        data[idx] = 1.0;
-    }
-
-    return *this;
-}
-
-
-Matrix Matrix::to_zeros() noexcept {
-    std::fill(data.get(), data.get() + rows * cols, 0.0);
-
-    return *this;
-}
-
-
-Matrix& Matrix::operator+() noexcept {
-    return *this;
-}
-
-
-Matrix& Matrix::operator-() noexcept {
-    for(size_t idx = 0; idx < rows * cols; idx++) {
-        data[idx] = -data[idx];
-    }
-
-    return *this;
-}
-
-
-double& Matrix::operator[](size_t idx) noexcept {
-    return data[idx];
-}
-
-
-double& Matrix::at(size_t idx) {
-    if(idx >= rows * cols) {
-        throw OutOfRangeException(); 
-    }
-    return data[idx];
-}
-
-
-double& Matrix::at(size_t row, size_t col) {
-    if(row * cols + col >= rows * cols) {
-        throw OutOfRangeException(); 
-    }
-    return data[row * cols + col];  
-}
-
-
-Matrix& Matrix::operator=(const Matrix& other) {
-    if(*this == other) return *this;
-
-    if(data.get() != nullptr) data.release();
+    Matrix A;
+    EXPECT_EQ(A.is_empty(), true);
+    EXPECT_EQ(A.get_rows(), 0);
+    EXPECT_EQ(A.get_cols(), 0);
     
-    rows = other.rows;
-    cols = other.cols;
+    Matrix B(ROWS, COLS);
+    EXPECT_EQ(B.is_empty(), false);
+    EXPECT_EQ(B.is_zeros(), true);
+    EXPECT_EQ(B.get_rows(), ROWS);
+    EXPECT_EQ(B.get_cols(), COLS);
+
+    double buf[ROWS * COLS];
+    for(size_t idx = 0; idx < ROWS * COLS; idx++) {
+        buf[idx] = dis(gen);
     
-    data = std::make_unique<double[]>(rows * cols);
-    
-    std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
-    
-    return *this;
-}
-
-
-Matrix& Matrix::operator=(Matrix&& other) { 
-    rows = other.rows;
-    cols = other.cols;
-    data = std::move(other.data);
-
-    other.rows = 0;
-    other.cols = 0;
-    other.data = nullptr;
-
-    return *this;
-}
-
-
-Matrix operator+(const Matrix& A, const Matrix& B) {
-    if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
+    }
+    Matrix C(buf, ROWS, COLS);
+    EXPECT_EQ(C.is_empty(), false);
+    EXPECT_EQ(C.get_rows(), ROWS);
+    EXPECT_EQ(C.get_cols(), COLS);
+    for(size_t idx = 0; idx < ROWS * COLS; idx++) {
+        EXPECT_EQ(buf[idx], C[idx]);
     }
     
-    if(A.rows != B.rows || A.cols != B.cols) {
-        throw SizeMismatchException();
-    }
-    
-    Matrix result(A.rows, A.cols);
-
-    for(size_t idx = 0; idx < result.rows * result.cols; idx++) {
-        result.data[idx] = A.data[idx] + B.data[idx]; 
-    }
-
-    return result;
+    double number = dis(gen);
+    Matrix D(number);
+    EXPECT_EQ(D.is_empty(), false);
+    EXPECT_EQ(D.get_rows(), 1);
+    EXPECT_EQ(D.get_cols(), 1);
+    EXPECT_EQ(D[0], number);
 }
 
 
-Matrix& operator+=(Matrix& A, const Matrix& B) {
-    A = A + B;
+TEST(MatrixTest, GetterSetterOperations) {
+    MTL::Matrix mat = create_random_matrix(ROWS, COLS);
 
-    return A;
+    EXPECT_EQ(mat.get_rows(), ROWS);
+    EXPECT_EQ(mat.get_cols(), COLS);
+
+    // Проверка оператора ()
+    for(size_t idx = 0; idx < ROWS * COLS; idx++) {
+        EXPECT_NO_THROW(mat[idx]);
+    }
 }
 
 
-Matrix operator-(const Matrix& A, const Matrix& B) {
-    if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
-    }
-    
-    if(A.rows != B.rows || A.cols != B.cols) {
-        throw SizeMismatchException();
-    }
-    
-    Matrix result(A.rows, A.cols);
+TEST(MatrixTest, ArithmeticOperations) {
+    using namespace MTL;
+    Matrix mat1 = create_random_matrix(ROWS, COLS);
+    Matrix mat2 = create_random_matrix(ROWS, COLS);
 
-    for(size_t idx = 0; idx < result.rows * result.cols; idx++) {
-        result.data[idx] = A.data[idx] - B.data[idx]; 
+    // Сложение
+    Matrix sum = mat1 + mat2;
+    for (size_t idx = 0; idx < ROWS * COLS; idx++) {
+        EXPECT_DOUBLE_EQ(sum[idx], mat1[idx] + mat2[idx]);
     }
 
-    return result;
+    // Вычитание
+    Matrix sub = mat1 - mat2;
+    for (size_t idx = 0; idx < ROWS * COLS; idx++) {
+        EXPECT_DOUBLE_EQ(sub[idx], mat1[idx] - mat2[idx]);
+    }
+
+    // Умножение на число
+    double scalar = dis(gen);
+    Matrix scaled = mat1 * scalar;
+    for (size_t idx = 0; idx < ROWS * COLS; idx++) {
+        EXPECT_DOUBLE_EQ(scaled[idx], mat1[idx] * scalar);
+    }
+
+    // Умножение матриц
+    Matrix mat3 = create_random_matrix(COLS, ROWS);
+    Matrix prod = mat1 * mat3;
+    EXPECT_EQ(prod.get_rows(), ROWS);
+    EXPECT_EQ(prod.get_cols(), ROWS);
 }
 
 
-Matrix& operator-=(Matrix& A, const Matrix& B) {
-    A = A - B;
+TEST(MatrixTest, DeterminantAndInverse) {
+    using namespace MTL;
+    Matrix mat = create_random_matrix(ROWS, ROWS);  // Квадратная матрица для определителя и обратной
 
-    return A;
-}
+    // Определитель
+    double det = mat.determinant();
+    EXPECT_TRUE(std::isfinite(det));
 
-
-Matrix operator*(const Matrix& A, const double number) {
-    if(A.is_empty()) {
-        throw EmptyMatrixException();
-    }
-    
-    Matrix result(A.rows, A.cols);
-
-    for(size_t idx = 0; idx < A.rows * A.cols; idx++) {
-        result.data[idx] = A.data[idx] * number; 
-    }
-
-    return result;
-}
-
-
-Matrix operator*(const double number, const Matrix&A) {
-    return A * number;
-}
-
-
-Matrix& operator*=(Matrix& A, const double number) {
-    A = A * number;
-
-    return A;
-}
-
-
-Matrix& operator*=(const double number, Matrix&A) {
-    A = A * number;
-
-    return A;
-}
-
-
-Matrix operator*(const Matrix& A, const Matrix& B) {
-    if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
-    }
-    
-    if(A.rows != B.rows || A.cols != B.cols) {
-        throw MultiplicationSizeMismatchException();
-    }
-    
-    Matrix tmp(A.rows, B.cols);
-
-    double sum = 0.0; // For cache
-    for(size_t rowA = 0; rowA < A.rows; ++rowA) {
-        for(size_t colB = 0; colB < B.cols; ++colB) {
-            sum = 0.0;
-            for(size_t innerDim = 0; innerDim < A.cols; ++innerDim) {
-                sum += A.data[rowA * A.cols + innerDim] * B.data[innerDim * B.cols + colB];
+    // Обратная матрица
+    Matrix tmp(mat);
+    Matrix inv = tmp.reverse();
+    Matrix identity = mat * inv;
+    for (size_t row = 0; row < ROWS; ++row) {
+        for (size_t col = 0; col < ROWS; ++col) {
+            if (row == col) {
+                EXPECT_NEAR(identity[row * ROWS + col], 1.0, 1e-6);
+            } else {
+                EXPECT_NEAR(identity[row * ROWS + col], 0.0, 1e-6);
             }
-            tmp.data[rowA * tmp.cols + colB] = sum; 
-        }
-    }
-    
-    return tmp;
-}
-
-
-Matrix& operator*=(Matrix& A, const Matrix& B) {
-    A = A * B;
-    
-    return A;
-}
-
-
-Matrix operator^(const Matrix& A, const unsigned int degree) {
-    if(A.is_empty()) {
-        throw EmptyMatrixException();
-    }
-
-    if(A.rows != A.cols) {
-        throw SquareMatrixRequiredException();
-    }
-
-    if(degree == 0) return Matrix(A.rows, A.cols).to_unit();
-
-    Matrix result(A);
-
-    if(degree == 1) return result;
-    if(A.is_unit()) return result;
-    if(A.is_zeros()) return result;
-
-    for(unsigned int k = 1; k < degree; k++) result *= A;
-
-    return result;
-}
-
-
-bool operator==(const Matrix& A, const Matrix& B) {
-    if (A.rows != B.rows || A.cols != B.cols) return false;
-
-    double epsilon = 1e-9; // Absolute error
-    size_t size = A.rows * A.cols;
-
-    for (size_t i = 0; i < size; ++i) {
-        double elemA = A.data[i];
-        double elemB = B.data[i];
-
-        // Adaptive error
-        double error = epsilon * std::max(std::fabs(elemA), std::fabs(elemB));
-
-        if (std::fabs(elemA - elemB) > error) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-Matrix Matrix::transpoze() {
-    if(this->is_empty()) {
-        throw EmptyMatrixException();
-    }
-
-    Matrix result(cols, rows);
-
-    for(size_t row = 0; row < result.rows; ++row) {
-        for(size_t col = 0; col < result.cols; ++col) {
-            result.data[row * result.cols + col] = data[col * cols + row];
-        }
-    }
-    
-    *this = result;
-
-    return result;
-}
-
-
-void Matrix::swap_rows(const size_t first_row, const size_t second_row) {
-    if(first_row == second_row) return;
-
-    std::unique_ptr<double[]> buf_row = std::make_unique<double[]>(cols);
-    size_t size = sizeof(double) * cols;
-
-    memcpy(buf_row.get(), data.get() + first_row * cols, size);
-    memcpy(data.get() + first_row * cols, data.get() + second_row * cols, size);
-    memcpy(data.get() + second_row * cols, buf_row.get(), size);
-}
-
-
-void Matrix::gauss_zeroing_elements_in_column_below_diagonal(const size_t current_col) {
-    // Current_col == current_row, because matrix is square
-    for (size_t row = current_col + 1; row < rows; row++) {
-        // The coefficient by which the strings are multiplied
-        double factor = data[row * cols + current_col] / data[current_col * cols + current_col];
-
-        for (size_t col = current_col; col < cols; col++) {
-            data[row * cols + col] -= factor * data[current_col * cols + col];
         }
     }
 }
 
 
-size_t Matrix::gauss_find_max_element_in_column_below_diagonal(size_t col_current_element) {
-    size_t row_max_element = col_current_element;
+TEST(MatrixTest, Transpose) {
+    using namespace MTL;
+    Matrix mat = create_random_matrix(ROWS, COLS);
 
-    // Current_col == current_row, because matrix is square
-    for(size_t row = col_current_element; row < rows; row++) {
-        if (fabs(data[row * cols + col_current_element]) > fabs(data[row_max_element * rows + col_current_element])) {
-            row_max_element = row;
+    // Транспонирование
+    Matrix tmp = mat;
+    Matrix transposed = tmp.transpoze();
+    EXPECT_EQ(transposed.get_rows(), COLS);
+    EXPECT_EQ(transposed.get_cols(), ROWS);
+    for (size_t row = 0; row < ROWS; ++row) {
+        for (size_t col = 0; col < COLS; ++col) {
+            EXPECT_DOUBLE_EQ(transposed[col * ROWS + row], mat[row * COLS + col]);
         }
     }
+} 
 
-    return row_max_element;
+
+TEST(MatrixTest, Exponential) {
+    using namespace MTL;
+    Matrix mat = create_random_matrix(ROWS, COLS);
+
+    Matrix exp_mat = mat.exp(6);
+    EXPECT_EQ(exp_mat.get_rows(), ROWS);
+    EXPECT_EQ(exp_mat.get_cols(), COLS);
+} 
+
+
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
-
-double Matrix::triangular_determinant() {
-    double det = 1.0;
-
-    for (size_t row = 0; row < rows; row++) {
-        det *= data[row * cols + row];
-    }
-
-    return det;
-}
-
-
-double Matrix::determinant() const {
-    if(this->is_empty()) {
-        throw EmptyMatrixException();
-    }
-
-    if(rows != cols) {
-        throw SquareMatrixRequiredException();
-    }
-
-    Matrix tmp(*this);
-
-    size_t row_max_element = 0;
-    int count_of_swap = 0;
-    double error = pow(10, -9);
-
-    for (size_t current_col = 0; current_col < cols; current_col++) {
-        row_max_element = tmp.gauss_find_max_element_in_column_below_diagonal(current_col);
-        
-        if(fabs(tmp.data[row_max_element * tmp.cols + current_col]) < error) return 0.;
-
-        // Current_col == current_row, because matrix is square
-        tmp.swap_rows(current_col, row_max_element);
-
-        if(current_col != row_max_element) count_of_swap++;
-
-        tmp.gauss_zeroing_elements_in_column_below_diagonal(current_col);
-    }
-
-    int sign_of_det = (count_of_swap % 2 != 0) ? -1 : 1;
-
-    return sign_of_det * tmp.triangular_determinant();
-}
-
-
-void Matrix::fill_extend_matrix(Matrix& extend_matrix) {
-    for(size_t row = 0; row < extend_matrix.rows; ++row) { 
-        for(size_t col = 0; col < cols; ++col) {
-            extend_matrix.data[row * extend_matrix.cols + col] = data[row * cols + col];
-        }
-
-        for(size_t col = cols; col < extend_matrix.cols; ++col) {
-            extend_matrix.data[row * extend_matrix.cols + col] = (row == col - cols) ? 1.0 : 0.0;
-        }
-    }
-}
-
-
-void Matrix::extract_inverse_matrix(const Matrix& extend_matrix) {
-    for(size_t row = 0; row < rows; row++) {
-        for (size_t col = 0; col < cols; col++) {
-            data[row * cols + col] = extend_matrix.data[row * extend_matrix.cols + cols + col];
-        }
-    }
-}
-
-
-void Matrix::gauss_zeroing_elements_in_column_above_diagonal(const size_t current_col) {
-    double factor = 0.0;
-
-    // Current_col == current_row, because Matrix is square
-    for(size_t row = 0; row < current_col; row++) {
-        factor = data[row * cols + current_col] / data[current_col * cols + current_col];
-        
-        for(size_t col = current_col; col < cols; col++) {
-            data[row * cols + col] -= factor * data[current_col * cols + col];
-        }
-    }
-}
-
-
-void Matrix::gauss_reduce_diagonal_element_to_one(const size_t current_row) {
-   double diagonal_element = data[current_row * cols + current_row];
-
-   for (size_t col = 0; col < cols; col++) {
-        data[current_row * cols + col] /= diagonal_element;
-   }
-}
-
-
-int Matrix::transform_extend_matrix() {
-    size_t row_max_element = 0;
-    double error = pow(10, -9);
-
-    for (size_t current_row = 0; current_row < rows; current_row++) {
-        row_max_element = this->gauss_find_max_element_in_column_below_diagonal(current_row);
-
-        if(fabs(this->data[row_max_element * cols + current_row]) < error) return 0;
-
-        this->swap_rows(current_row, row_max_element);
-        
-        this->gauss_reduce_diagonal_element_to_one(current_row);
-
-        this->gauss_zeroing_elements_in_column_below_diagonal(current_row);
-        
-        this->gauss_zeroing_elements_in_column_above_diagonal(current_row);
-    }
-
-    return 1;
-}
-                                                                
-                                                                
-Matrix Matrix::reverse() {
-    if(this->is_empty()) {
-        throw EmptyMatrixException();
-    }
-
-    if(rows != cols) {
-        throw SquareMatrixRequiredException();
-    }
-
-    Matrix extend_matrix(rows, cols * 2);
-
-    this->fill_extend_matrix(extend_matrix);
-    
-    if(extend_matrix.transform_extend_matrix() == 0) {
-        throw DeterminantZeroException();
-    }
-
-    this->extract_inverse_matrix(extend_matrix);
-
-    return *this;
-}
-
-
-double Matrix::find_max_element() {
-    double max_element = data[0];
-
-    for(size_t idx = 1; idx < rows * cols; idx++) {
-        max_element = (data[idx] > max_element) ? data[idx] : max_element;
-    }
-    
-    return max_element;
-}
-
-
-Matrix Matrix::exp(const unsigned short accuracy) {
-    if(this->is_empty()) {
-        throw EmptyMatrixException();
-    } 
-
-    if(rows != cols) {
-        throw SquareMatrixRequiredException();
-    }
-
-    Matrix exp_matrix = *this;
-    exp_matrix += Matrix(rows, cols).to_unit();
-
-    Matrix tmp = *this;
-
-    double number = 1.0;
-    double error = pow(10, -accuracy);
-
-    for(unsigned int k = 2; ; ++k) {
-        number *= 1.0 / k;
-        tmp *= (*this);
-        tmp *= number;
-        if(fabs(tmp.find_max_element()) < error) break;
-        exp_matrix += tmp;
-        tmp *= 1.0 / number;
-    }
-
-    *this = exp_matrix;
-
-    return exp_matrix;
-}
-
-
-void Matrix::print(unsigned char accuracy) {
-    for(size_t row = 0; row < rows; row++) {
-        for(size_t col = 0; col < cols; col++) {
-            double element = data[row * cols + col];
-            double rounded_element = std::round(element * pow(10, accuracy)) / pow(10, accuracy);
-            std::cout << rounded_element << " ";
-        }
-        std::cout << "\n";
-    }
-
-    std::cout << std::endl;
-}
-
-
-};
