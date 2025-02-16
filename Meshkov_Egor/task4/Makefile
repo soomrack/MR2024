@@ -1,7 +1,7 @@
 # Компилятор
 CC=g++
 # Флаги
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g 
 #Подключение библиотек
 LDFLAGS=-lgtest -lgtest_main -pthread
 #Файлы для компиляции
