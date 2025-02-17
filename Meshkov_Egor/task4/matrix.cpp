@@ -31,33 +31,41 @@ Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
 
 
 Matrix::Matrix(size_t rows, size_t cols)
-    : rows(rows), cols(cols), data(std::make_unique<double[]>(rows * cols)) {
-    std::fill(data.get(), data.get() + rows * cols, 0.0);
+    : rows(rows), cols(cols) {
+    
+    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+        throw MatrixExceptionOverflow();
+    }
+
+    if(rows != 0 && cols != 0) {
+        data = std::make_unique<double[]>(rows * cols);
+        std::fill(data.get(), data.get() + rows * cols, 0.0);
+    }
 }
 
 
 Matrix::Matrix(double *new_data, size_t rows, size_t cols)
     : rows(rows), cols(cols) {
     
-    data = std::make_unique<double[]>(rows * cols);
+    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+        throw MatrixExceptionOverflow();
+    }
     
-    for(size_t idx = 0; idx < rows * cols; idx++ ) {
-        data[idx] = new_data[idx];
+    if(rows != 0 && cols != 0) {
+        data = std::make_unique<double[]>(rows * cols);
+        std::memcpy(data.get(), new_data, rows * cols * sizeof(double)) ;
     }
 }
-
-
-Matrix::Matrix(double number)
-    : rows(1), cols(1), data(std::make_unique<double[]>(1)) { data[0] = number; } 
 
 
 Matrix::Matrix(const Matrix& other) {
     rows = other.rows;
     cols = other.cols;
 
-    data = std::make_unique<double[]>(rows * cols);
-    
-    std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
+    if(rows != 0 && cols != 0) {
+        data = std::make_unique<double[]>(rows * cols);
+        std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
+    }
 }
 
 
@@ -99,7 +107,7 @@ bool Matrix::is_unit(double error) const noexcept {
     for(size_t idx = 0; idx < rows * cols; idx++) {
         if(idx == diag_dimention * rows + diag_dimention) {
             diag_dimention++;
-            if(std::fabs(data[idx]) - 1.0 > error) return false; 
+            if(std::fabs(data[idx] - 1.0) > error) return false; 
         } else {
             if(std::fabs(data[idx]) > error) return false;
         }
@@ -122,7 +130,7 @@ bool Matrix::is_zeros(double error) const noexcept {
 
 Matrix Matrix::to_unit() {
     if(rows != cols) { 
-        throw SquareMatrixRequiredException();
+        throw MatrixExceptionNotSquare();
     }
 
     std::fill(data.get(), data.get() + rows * cols, 0.0);
@@ -156,22 +164,9 @@ Matrix& Matrix::operator-() noexcept {
 }
 
 
-double& Matrix::operator[](size_t idx) noexcept {
-    return data[idx];
-}
-
-
-double& Matrix::at(size_t idx) {
-    if(idx >= rows * cols) {
-        throw OutOfRangeException(); 
-    }
-    return data[idx];
-}
-
-
 double& Matrix::at(size_t row, size_t col) {
     if(row * cols + col >= rows * cols) {
-        throw OutOfRangeException(); 
+        throw MatrixExceptionOutOfRange(); 
     }
     return data[row * cols + col];  
 }
@@ -182,11 +177,12 @@ Matrix& Matrix::operator=(const Matrix& other) {
 
     if(data.get() != nullptr) data.release();
     
-    rows = other.rows;
-    cols = other.cols;
-    
-    data = std::make_unique<double[]>(rows * cols);
-    
+    if(rows != other.rows || cols != other.cols) {
+        rows = other.rows;
+        cols = other.cols;
+        data = std::make_unique<double[]>(rows * cols);
+    }
+
     std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
     
     return *this;
@@ -208,11 +204,11 @@ Matrix& Matrix::operator=(Matrix&& other) {
 
 Matrix operator+(const Matrix& A, const Matrix& B) {
     if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
     
     if(A.rows != B.rows || A.cols != B.cols) {
-        throw SizeMismatchException();
+        throw MatrixExceptionSizeMismatch();
     }
     
     Matrix result(A.rows, A.cols);
@@ -234,11 +230,11 @@ Matrix& operator+=(Matrix& A, const Matrix& B) {
 
 Matrix operator-(const Matrix& A, const Matrix& B) {
     if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
     
     if(A.rows != B.rows || A.cols != B.cols) {
-        throw SizeMismatchException();
+        throw MatrixExceptionSizeMismatch();
     }
     
     Matrix result(A.rows, A.cols);
@@ -260,7 +256,7 @@ Matrix& operator-=(Matrix& A, const Matrix& B) {
 
 Matrix operator*(const Matrix& A, const double number) {
     if(A.is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
     
     Matrix result(A.rows, A.cols);
@@ -294,11 +290,11 @@ Matrix& operator*=(const double number, Matrix&A) {
 
 Matrix operator*(const Matrix& A, const Matrix& B) {
     if(A.is_empty() || B.is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
     
     if(A.rows != B.rows || A.cols != B.cols) {
-        throw MultiplicationSizeMismatchException();
+        throw MatrixExceptionMultiSizeMismatch();
     }
     
     Matrix tmp(A.rows, B.cols);
@@ -327,11 +323,11 @@ Matrix& operator*=(Matrix& A, const Matrix& B) {
 
 Matrix operator^(const Matrix& A, const unsigned int degree) {
     if(A.is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
 
     if(A.rows != A.cols) {
-        throw SquareMatrixRequiredException();
+        throw MatrixExceptionNotSquare();
     }
 
     if(degree == 0) return Matrix(A.rows, A.cols).to_unit();
@@ -371,7 +367,7 @@ bool operator==(const Matrix& A, const Matrix& B) {
 
 Matrix Matrix::transpoze() {
     if(this->is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
 
     Matrix result(cols, rows);
@@ -440,11 +436,11 @@ double Matrix::triangular_determinant() {
 
 double Matrix::determinant() const {
     if(this->is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
 
     if(rows != cols) {
-        throw SquareMatrixRequiredException();
+        throw MatrixExceptionNotSquare();
     }
 
     Matrix tmp(*this);
@@ -541,11 +537,11 @@ int Matrix::transform_extend_matrix() {
                                                                 
 Matrix Matrix::reverse() {
     if(this->is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     }
 
     if(rows != cols) {
-        throw SquareMatrixRequiredException();
+        throw MatrixExceptionNotSquare();
     }
 
     Matrix extend_matrix(rows, cols * 2);
@@ -553,7 +549,7 @@ Matrix Matrix::reverse() {
     this->fill_extend_matrix(extend_matrix);
     
     if(extend_matrix.transform_extend_matrix() == 0) {
-        throw DeterminantZeroException();
+        throw MatrixExceptionDeterminantZero();
     }
 
     this->extract_inverse_matrix(extend_matrix);
@@ -573,13 +569,13 @@ double Matrix::find_max_element() {
 }
 
 
-Matrix Matrix::exp(const unsigned short accuracy) {
+Matrix Matrix::exp(const unsigned int iteration_count) {
     if(this->is_empty()) {
-        throw EmptyMatrixException();
+        throw MatrixExceptionIsEmpty();
     } 
 
     if(rows != cols) {
-        throw SquareMatrixRequiredException();
+        throw MatrixExceptionNotSquare();
     }
 
     Matrix exp_matrix = *this;
@@ -588,18 +584,14 @@ Matrix Matrix::exp(const unsigned short accuracy) {
     Matrix tmp = *this;
 
     double number = 1.0;
-    double error = pow(10, -accuracy);
 
-    for(unsigned int k = 2; ; ++k) {
+    for(unsigned int k = 2; k <= iteration_count; ++k) {
         number *= 1.0 / k;
         tmp *= (*this);
         tmp *= number;
-        if(fabs(tmp.find_max_element()) < error) break;
         exp_matrix += tmp;
         tmp *= 1.0 / number;
     }
-
-    *this = exp_matrix;
 
     return exp_matrix;
 }

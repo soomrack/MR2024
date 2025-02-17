@@ -18,9 +18,8 @@ protected:
         INFO,
     };
 
-public:
     const std::string get_prefix_message(TypeException type_exception) const noexcept;
-
+public:
     explicit MatrixException(TypeException type_exception, const std::string msg) 
         : message(get_prefix_message(type_exception) + msg) {}
 
@@ -30,80 +29,87 @@ public:
 };
 
 
-class EmptyMatrixException : public MatrixException {
+class MatrixExceptionIsEmpty : public MatrixException {
 public:
-    EmptyMatrixException() 
+    MatrixExceptionIsEmpty() 
         : MatrixException(TypeException::ERROR, "Matrix must not be empty\n") {}
 };
 
 
-class SizeMismatchException : public MatrixException {
+class MatrixExceptionSizeMismatch : public MatrixException {
 public:
-    SizeMismatchException() 
+    MatrixExceptionSizeMismatch() 
         : MatrixException(TypeException::ERROR, "Matrix are must be have equal sizes\n") {}
 };
 
 
-class MultiplicationSizeMismatchException : public MatrixException {
+class MatrixExceptionMultiSizeMismatch : public MatrixException {
 public:
-    MultiplicationSizeMismatchException() 
+    MatrixExceptionMultiSizeMismatch() 
         : MatrixException(TypeException::ERROR, "Matrix are have incorrect sizes for multiplication\n") {}
 };
 
 
-class SquareMatrixRequiredException : public MatrixException {
+class MatrixExceptionNotSquare : public MatrixException {
 public:
-    SquareMatrixRequiredException() 
+    MatrixExceptionNotSquare() 
         : MatrixException(TypeException::ERROR, "Matrix must be square\n") {}
 };
 
 
-class DeterminantZeroException : public MatrixException {
+class MatrixExceptionDeterminantZero : public MatrixException {
 public:
-    DeterminantZeroException() 
+    MatrixExceptionDeterminantZero() 
         : MatrixException(TypeException::ERROR, "Determinant of reverse matrix must not be zero\n") {}
 };
 
 
-class OutOfRangeException : public MatrixException {
+class MatrixExceptionOutOfRange : public MatrixException {
 public:
-    OutOfRangeException() 
+    MatrixExceptionOutOfRange() 
         : MatrixException(TypeException::ERROR, "Element index is outside the matrix bounds\n") {}
 };
 
 
+class MatrixExceptionOverflow : public MatrixException {
+
+public:
+    MatrixExceptionOverflow() 
+        : MatrixException(TypeException::ERROR, "Overflow, sizes of matrix is big\n") {}
+};
+
+
 class Matrix {
+private:
+    size_t rows, cols;
+    std::unique_ptr<double []> data = nullptr;
 public:
     Matrix();
     Matrix(size_t rows, size_t cols);
     Matrix(double *new_data, size_t rows, size_t cols);
-    Matrix(double number);
-
     Matrix(const Matrix&);
     Matrix(Matrix&&);
-
     ~Matrix() {};
 
     size_t get_rows() const noexcept;
     size_t get_cols() const noexcept;
-
     bool is_empty() const noexcept;
     bool is_unit(double error = pow(10, -9)) const noexcept;
     bool is_zeros(double error = pow(10, -9)) const noexcept;
-
     Matrix to_unit();
     Matrix to_zeros() noexcept;
-
-    Matrix& operator+() noexcept;
-    Matrix& operator-() noexcept;
-    
-    double& operator[](size_t idx) noexcept;
-    double& at(size_t idx);
     double& at(size_t row, size_t col);
+    double determinant() const;
+    Matrix reverse();
+    Matrix transpoze();
+    Matrix exp(const unsigned int iteration_count);
+    void print(unsigned char accuracy = 3);
+
 
     Matrix& operator=(const Matrix&);
     Matrix& operator=(Matrix&&);
-    
+    Matrix& operator+() noexcept;
+    Matrix& operator-() noexcept;
     friend Matrix operator+(const Matrix&, const Matrix&);
     friend Matrix& operator+=(Matrix&, const Matrix&);
     friend Matrix operator-(const Matrix&, const Matrix&);
@@ -117,17 +123,7 @@ public:
     friend Matrix operator^(const Matrix&, const unsigned int degree);
     friend bool operator==(const Matrix&, const Matrix&);
     
-    double determinant() const;
-    Matrix reverse();
-    Matrix transpoze();
-    Matrix exp(const unsigned short accuracy);
-    
-    void print(unsigned char accuracy = 3);
-
 private:
-    size_t rows, cols;
-    std::unique_ptr<double []> data = nullptr;
-
     void swap_rows(const size_t first_row, const size_t second_row);
     
     // Auxilary functions for determinant()
