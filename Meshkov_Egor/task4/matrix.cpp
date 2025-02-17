@@ -189,9 +189,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 }
 
 
-Matrix& Matrix::operator=(Matrix&& other) { 
-    if(*this == other) return *this;
-    
+Matrix& Matrix::operator=(Matrix&& other) {     
     rows = other.rows;
     cols = other.cols;
     data = std::move(other.data);
