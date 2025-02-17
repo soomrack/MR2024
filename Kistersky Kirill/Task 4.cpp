@@ -63,7 +63,12 @@ Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
 
 
 Matrix::Matrix(const size_t n) : rows(n), cols(n) {
-    if (n > 0 && n > std::numeric_limits<size_t>::max() / cols) {
+    if (n == 0) {
+        data = nullptr;
+        return;
+    }
+
+    if (n > std::numeric_limits<size_t>::max() / n) {     
         throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
     }
     data = new MatrixItem[n * n];
@@ -71,24 +76,26 @@ Matrix::Matrix(const size_t n) : rows(n), cols(n) {
 
 
 Matrix::Matrix(const size_t row, const size_t col) : rows(row), cols(col) {
+    if (row == 0 || col == 0) {
+        data = nullptr;
+        return;
+    }
+
+    if (row > std::numeric_limits<size_t>::max() / col) {     
+        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
+    }
     data = new MatrixItem[row * col];
 }
 
 
 Matrix::Matrix(const Matrix& M) : rows(M.rows), cols(M.cols) {
-    if (rows > 0 && cols > 0 && rows>std::numeric_limits<size_t>::max() / cols) {
-        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
-    }
     data = new MatrixItem[rows * cols];
 
     memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
 }
 
 
-Matrix::Matrix(Matrix&& M) {
-    rows = M.rows;
-    cols = M.cols;
-    data = M.data;
+Matrix::Matrix(Matrix&& M) : rows(M.rows),cols(M.cols),data(M.data) {
 
     M.rows = 0;
     M.cols = 0;
@@ -149,9 +156,15 @@ void Matrix::set(enum MatrixType mat_type)
 }
 
 
-void Matrix::transposition(const Matrix& M) //переписать, чтобы либо возвращала транспонированную, либо саму, лучше саму как в экспоненте
+void Matrix::transposition(const Matrix& M) 
 {
-    if (data == nullptr) throw NULL_MATRIX;
+    if (M.data == nullptr) {
+        delete[] data;
+        data = nullptr;
+        rows = M.cols;
+        cols = M.rows;
+        return;
+    }
 
     Matrix R(M.rows, M.cols);
 
