@@ -2,6 +2,8 @@
 #include <vector>
 #include <cmath>
 #include <stdexcept>
+#include <cstdint>
+
 
 // Функция вычисления факториала
 std::uint64_t factorial(unsigned int f) {
