@@ -37,7 +37,6 @@ typedef struct Fan_states Fan_states;
 
 Fan_states Greenhouse_fan_states;
 
-
 struct Light_states
 {
   bool light_sensor_state = 0;
@@ -107,6 +106,11 @@ void data_print()
   }
 }
 
+void warning_print(String massage)
+{
+  Serial.println(massage);
+}
+
 void dht11_read(int *air_humidity, int *air_temperature)
 {
   static long old_time = 0;
@@ -123,9 +127,31 @@ void light_read(int *light_level)
 {
   static long old_time = 0;
   if (milliseconds - old_time > 500) {
-    *light_level = map(analogRead(LIGHT_SENSOR_PIN), 980, 38, 0, 100);
-
+    int light_level_1 = map(analogRead(LIGHT_SENSOR_PIN), 980, 38, 0, 100);
+    int light_level_2 = map(analogRead(LIGHT_SENSOR_PIN), 980, 38, 0, 100);
+    int light_level_3 = map(analogRead(LIGHT_SENSOR_PIN), 980, 38, 0, 100);
+    
     old_time = milliseconds;
+
+    if (abs(light_level_1-light_level_2)>10 && abs(light_level_1-light_level_3)>10){
+      warning_print("WARNING! Check the first light sensor");
+      *light_level = (light_level_2+light_level_3)/2;
+      return;
+    }
+
+    if (abs(light_level_2-light_level_3)>10 && abs(light_level_2-light_level_1)>10){
+      warning_print("WARNING! Check the second light sensor");
+      *light_level = (light_level_1+light_level_3)/2;
+      return;
+    }
+
+    if (abs(light_level_3-light_level_1)>10 && abs(light_level_3-light_level_2)>10){
+      warning_print("WARNING! Check the third light sensor");
+      *light_level = (light_level_1+light_level_2)/2;
+      return;
+    }
+
+    *light_level = (light_level_1+light_level_2+light_level_3)/3;
   }
 }
 
