@@ -1,5 +1,4 @@
 #include <iostream>
-using namespace std;
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
@@ -31,9 +30,9 @@ void matrix_error(const enum MatrixExceptionLevel level, const char* location)
 }
 
 
-class MatrixException : public domain_error { // Конструктор для исключений
+class MatrixException : public std::domain_error { // Конструктор для исключений
 public:
-    explicit MatrixException(const string& message) : domain_error(message) {} 
+    explicit MatrixException(const std::string& message) : domain_error(message) {} 
 };
 
 
@@ -49,27 +48,27 @@ public:
     Matrix(const Matrix& other); // Конструктор копирования
     Matrix(Matrix&& other); // Конструктор переноса
 
-public: // Сервисные методы (функции)
-    void print(); // Вывод матрицы
-    void set_zero(); // Заполнение матрицы нулями
-    void set_identity(); // Превращение матрицы в "единичную" по диагонали
-    void fill_with_Indices(); // Заполнение матрицы индексами элементов
-    void set_value(const unsigned int idx, const double value); // Заполнение элемента матрицы по индексу
-    double determinant(); // Определитель
+public:  // Сервисные методы (функции)
+    void print();
+    void set_zero();
+    void set_identity();
+    void fill_with_indices();
+    void set_value(const unsigned int idx, const double value);
+    double determinant();
 
-    Matrix transp(); // B = A ^ T
+    Matrix transp();
     Matrix exp(const unsigned int targ_num); // E = e ^ A
 
-public: // Переопределение операторов
-    Matrix& operator=(Matrix&& other); // Оператор присваивания через перенос
+public:  // Переопределение операторов
     double& operator[](unsigned int idx); // Определение значения элемента матрицы по индексу
-    Matrix& operator=(const Matrix& B); // A := B
-    Matrix& operator+=(const Matrix& B); // A += B
-    Matrix& operator*=(const double k); // A *= k
-    Matrix operator+(const Matrix& B); // C = A + B
-    Matrix operator-(const Matrix& B); // C = A - B
-    Matrix operator*(const Matrix& B); // C = A * B
-    Matrix operator^(const unsigned int targ_power); // B = A ^ n
+    Matrix& operator=(Matrix&& other); // Оператор присваивания через перенос
+    Matrix& operator=(const Matrix& B);
+    Matrix& operator+=(const Matrix& B);
+    Matrix& operator*=(const double k);
+    Matrix operator+(const Matrix& B);
+    Matrix operator-(const Matrix& B);
+    Matrix operator*(const Matrix& B);
+    Matrix operator^(const unsigned int targ_power);
 };
 
 
@@ -105,16 +104,14 @@ Matrix::Matrix(size_t des_rows, size_t des_cols)
 
 Matrix::~Matrix() 
 {
-    if (data) {
-        delete[] data;
-    }
+    delete[] data;
 }
 
 
 Matrix::Matrix(const Matrix& B) : rows(B.rows), cols(B.cols) // Конструктор копирования
 {
     data = new double[rows * cols];
-    copy(B.data, B.data + rows * cols, data);
+    std::copy(B.data, B.data + rows * cols, data);
 }
 
 
@@ -141,6 +138,11 @@ void Matrix::print() // Вывод матрицы
 
 void Matrix::set_zero() // Заполнение матрицы нулями
 {   
+    if (cols == 0 || rows == 0) {
+        matrix_error(INFO, "set_zero");
+        throw MatrixException("Matrix is ix0 or 0xj");
+    }   
+
     memset(data, 0, cols * rows * sizeof(double));
 }
 
@@ -154,7 +156,7 @@ void Matrix::set_identity() // Превращение матрицы в "еди�
 }
 
 
-void Matrix::fill_with_Indices() // Заполнение матрицы индексами элементов
+void Matrix::fill_with_indices() // Заполнение матрицы индексами элементов
 {
     for (size_t row_i = 0; row_i < rows; ++row_i) {
         for (size_t col_j = 0; col_j < cols; ++col_j) {
@@ -213,7 +215,7 @@ double Matrix::determinant() // Определитель
 
 Matrix Matrix::transp() // B = A ^ T
 {
-    Matrix result (cols, rows);
+    Matrix result(cols, rows);
 
     for (size_t row = 0; row < rows; ++row) {
         for (size_t col = 0; col < cols; ++col) {
@@ -232,42 +234,25 @@ Matrix Matrix::exp(const unsigned int targ_num) // E = e ^ A
         throw MatrixException("A non-square matrix");
     }
 
-    Matrix E (cols,rows);
+    Matrix E(cols,rows);
     E.set_identity();
 
     if (targ_num == 1) {
         return E;
     }
 
-    Matrix tmp (E);
-    Matrix buf_mult (rows, cols);
+    Matrix tmp(E);
+    Matrix buf_mult(rows, cols);
 
     for (size_t num = 1; num < targ_num; ++num) { 
 
-        buf_mult = move(tmp) * *this;
+        buf_mult = std::move(tmp) * *this;
         buf_mult *= (1.0/num);
 
         E += buf_mult;
-        tmp = move(buf_mult);
+        tmp = std::move(buf_mult);
     }
     return E;
-}
-
-
-Matrix& Matrix::operator=(Matrix&& other) // Оператор присваивания через перенос
-{
-    if (this != &other) {
-        delete[] data; // Освобождаем текущие данные
-
-        rows = other.rows;
-        cols = other.cols;
-        data = other.data;
-
-        other.rows = 0;
-        other.cols = 0;
-        other.data = nullptr;
-    }
-    return *this;
 }
 
 
@@ -279,6 +264,28 @@ double& Matrix::operator[](unsigned int idx) // Определение знач�
     }
 
     return data[idx];
+}
+
+
+Matrix& Matrix::operator=(Matrix&& other) // Оператор присваивания через перенос
+{
+    if (this == &other) {
+        return *this;
+    }
+    
+    if ((rows != other.rows) && (cols != other.cols)) {
+        delete[] data;
+    }
+
+    rows = other.rows;
+    cols = other.cols;
+    data = other.data;
+
+    other.rows = 0;
+    other.cols = 0;
+    other.data = nullptr;
+
+    return *this;
 }
 
 
@@ -398,7 +405,7 @@ Matrix Matrix::operator^(const unsigned int targ_power) // B = A ^ n
     }
 
     for (unsigned int pow = 1; pow < targ_power; ++pow) {
-        result = move(result) * (*this);
+        result = std::move(result) * (*this);
     }
     return result;
 }
@@ -410,7 +417,7 @@ int main()
     Matrix A(3,3);
     A.print();
     Matrix B(3,3);
-    B.fill_with_Indices();
+    B.fill_with_indices();
     A = B;
     A.print();
     A *= 2;
@@ -426,9 +433,9 @@ int main()
     C.print();
 
     Matrix D(2,3);
-    D.fill_with_Indices();
+    D.fill_with_indices();
     Matrix E(3,4);
-    E.fill_with_Indices();
+    E.fill_with_indices();
     D.print();
     E.print();
     printf("above");
@@ -459,7 +466,7 @@ int main()
 
     printf("\nNew constructors for ^ operation\n");
     Matrix K(3,3);
-    K.fill_with_Indices();
+    K.fill_with_indices();
     printf("\nIncome matrix K \n");
     K.print();
     Matrix N = K ^ 3;
@@ -473,6 +480,20 @@ int main()
     Matrix S = L.exp(4);
     printf("\nS is\n");
     S.print();
+    
+    printf("\nAnalyze\n");
+    Matrix P(2,2);
+    Matrix Q(2,2);
+    Matrix T(2,2);
+    P.fill_with_indices();
+    Q.fill_with_indices();
+    T.fill_with_indices();
+    Matrix U = T.transp(); 
+    Matrix R = P + Q * U;
+    /* Q * U - создается временный объект Temp1, он складывается с P и получается 
+    временный объект Temp2. На последнем шаге срабатывает оператор присваивания через
+    перенос или, если его нет, конструктор копирования*/
+    R.print();
 
 
     printf("\n------------\nEnd of main\n------------\n");
