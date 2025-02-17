@@ -13,17 +13,15 @@ private:
 
 public:
     Matrix(); 
-    Matrix(size_t rows, size_t cols, const MatrixItem* src_data); // Конструктор с инициализацией данными
-    Matrix(size_t rows, size_t cols); // Конструктор с заданием размеров
-    Matrix(const Matrix& A); // Конструктор копирования
-    Matrix(Matrix&& A) noexcept; // Конструктор перемещения
+    Matrix(size_t rows, size_t cols, const MatrixItem* src_data); 
+    Matrix(size_t rows, size_t cols); 
+    Matrix(const Matrix& A); 
+    Matrix(Matrix&& A) noexcept; 
 
-    // Деструктор
     ~Matrix() = default; 
 
-    // Операторы
-    Matrix& operator=(const Matrix& A); //копирование
-    Matrix& operator=(Matrix&& A) noexcept;  //перенос
+    Matrix& operator=(const Matrix& A); 
+    Matrix& operator=(Matrix&& A) noexcept;  
     Matrix operator+(const Matrix& A) const; 
     void operator+=(const Matrix& A); 
     Matrix operator-(const Matrix& A) const; 
@@ -33,7 +31,6 @@ public:
     void operator*=(double a); 
     void operator-=(const Matrix& A); 
 
-    // Методы для работы с матрицей
     void set_zeros(); 
     void pow(int n); 
     void ident();
@@ -42,18 +39,15 @@ public:
     Matrix exp(int n) const; 
     Matrix inverse() const; 
     void print() const; 
-
-    // Метод для проверки состояния матрицы
     bool is_empty() const { return rows == 0 || cols == 0; } 
 };
 
-// Исключения для обработки ошибок
 class MatrixException : public std::domain_error {
 public:
     explicit MatrixException(const std::string& message) : std::domain_error(message) {} 
 };
 
-// Определяем сообщения об ошибках
+
 const MatrixException MEMORY_ERROR("Memory allocation failed!");
 const MatrixException SIZE_ERROR("Matrices of different sizes!");
 const MatrixException MULTIPLY_ERROR("A.cols and B.rows aren't equal!");
@@ -65,42 +59,43 @@ Matrix::Matrix() : rows(0), cols(0) {}
 Matrix::Matrix(size_t rows, size_t cols, const MatrixItem* src_data)
     : rows(rows), cols(cols), data() {
     if (src_data) {
-        data.assign(src_data, src_data + rows * cols); // Копируем данные из массива в вектор
+        data.assign(src_data, src_data + rows * cols); 
     } else {
-        data.resize(rows * cols, 0.0); // Инициализируем нулями, если данные не предоставлены
+        data.resize(rows * cols, 0.0); 
     }
 }
 
 Matrix::Matrix(size_t rows, size_t cols)
-    : rows(rows), cols(cols), data(rows * cols) {}
+    : rows(rows), cols(cols), data(rows * cols) { }
 
 Matrix::Matrix(const Matrix& A)
-    : rows(A.rows), cols(A.cols), data(A.data) {}
+    : rows(A.rows), cols(A.cols), data(A.data) { }
 
 Matrix::Matrix(Matrix&& A) noexcept
     : rows(A.rows), cols(A.cols), data(std::move(A.data)) {
+    //std::cout << "K_&&"<< std::endl; 
     A.rows = 0;
     A.cols = 0;
 }
 
-Matrix& Matrix::operator=(const Matrix& A) {
-    if (this != &A) {
-        rows = A.rows;
-        cols = A.cols;
-        data = A.data;
-    }
-    return *this;
+Matrix& Matrix::operator=(const Matrix& A) {  
+    if (this == &A) return *this; 
+    rows = A.rows;
+    cols = A.cols;
+    data = A.data;
+    std::cout << "O_&"<< std::endl; 
+    return *this; 
 }
 
 Matrix& Matrix::operator=(Matrix&& A) noexcept {
-    if (this != &A) {
-        rows = A.rows;
-        cols = A.cols;
-        data = std::move(A.data);
-        A.rows = 0;
-        A.cols = 0;
-    }
-    return *this;
+    if (this == &A) return *this; 
+    rows = A.rows;
+    cols = A.cols;
+    data = std::move(A.data);
+    A.rows = 0;
+    A.cols = 0;
+    std::cout << "O_&&"<< std::endl; 
+    return *this; 
 }
 
 Matrix Matrix::operator+(const Matrix& A) const {
@@ -112,6 +107,7 @@ Matrix Matrix::operator+(const Matrix& A) const {
     for (size_t idx = 0; idx < rows * cols; idx++) {
         result.data[idx] = data[idx] + A.data[idx];
     }
+    std::cout << "O_+"<< std::endl; 
     return result;
 }
 
@@ -123,6 +119,7 @@ void Matrix::operator+=(const Matrix& A) {
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] += A.data[idx]; 
     }
+    std::cout << "O_+="<< std::endl; 
 }
 
 Matrix Matrix::operator-(const Matrix& A) const {
@@ -134,6 +131,7 @@ Matrix Matrix::operator-(const Matrix& A) const {
     for (size_t idx = 0; idx < rows * cols; idx++) {
         result.data[idx] = data[idx] - A.data[idx]; 
     }
+    std::cout << "O_-"<< std::endl; 
     return result; 
 }
 
@@ -145,12 +143,13 @@ Matrix Matrix::operator*(const Matrix& A) const {
     Matrix result(rows, A.cols); 
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
-            result.data[row * A.cols + col] = 0; // Зануляем элемент перед вычислением
+            result.data[row * A.cols + col] = 0; 
             for (size_t idx = 0; idx < cols; ++idx) {
                 result.data[row * A.cols + col] += data[row * cols + idx] * A.data[idx * A.cols + col];
             }
         }
     }
+    std::cout << "O_*A"<< std::endl; 
     return result; 
 }
 
@@ -159,17 +158,20 @@ Matrix Matrix::operator*(double a) const {
     for (size_t idx = 0; idx < result.rows * result.cols; idx++) {
         result.data[idx] = data[idx] * a; 
     }
+    std::cout << "O_*k"<< std::endl; 
     return result; 
 }
 
 void Matrix::operator*=(const Matrix& A) {
     *this = *this * A; 
+    std::cout << "O_*=A"<< std::endl; 
 }
 
 void Matrix::operator*=(double a) {
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] *= a; 
     }
+    std::cout << "O_*k"<< std::endl; 
 }
 
 void Matrix::operator-=(const Matrix& A) {
@@ -180,6 +182,7 @@ void Matrix::operator-=(const Matrix& A) {
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] -= A.data[idx]; 
     }
+    std::cout << "O_-="<< std::endl; 
 }
 
 void Matrix::print() const {
@@ -195,13 +198,13 @@ void Matrix::print() const {
     }
 }
 
-void Matrix::set_zeros() {
+void Matrix::set_zeros() {  //0
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] = 0;
     }
 }
 
-Matrix Matrix::transp() const {
+Matrix Matrix::transp() const {  //T
     Matrix result(cols, rows); 
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
@@ -239,7 +242,7 @@ double Matrix::det() const {
     return det; 
 }
 
-void Matrix::ident() {
+void Matrix::ident() {  //ident
     if (is_empty()) { 
         throw EMP_ERROR;
     }
@@ -252,7 +255,7 @@ void Matrix::ident() {
     }
 }
 
-void Matrix::pow(int n) {
+void Matrix::pow(int n) {  //^
     if (rows != cols) {
         throw SQR_ERROR; 
     }
@@ -270,7 +273,7 @@ void Matrix::pow(int n) {
     *this = result;
 }
 
-Matrix Matrix::exp(int n) const {
+Matrix Matrix::exp(int n) const {  //exp
     if (rows != cols) {
         throw SQR_ERROR;
     }
@@ -290,12 +293,12 @@ Matrix Matrix::exp(int n) const {
     return result;
 }
 
-Matrix Matrix::inverse() const {
+Matrix Matrix::inverse() const {   //inv
     if (rows != cols) {
         throw std::runtime_error("Inverse can only be calculated for square matrices");
     }
 
-    double detValue = det(); // Вычисляем определитель
+    double detValue = det(); 
     if (detValue == 0) {
         throw std::runtime_error("Matrix is singular and cannot be inverted");
     }
@@ -324,6 +327,9 @@ int main() {
 
     Matrix A(2, 2, arr1); 
     Matrix B(2, 2, arr2); 
+    Matrix X(2, 2, arr1); 
+    Matrix Y(2, 2, arr2); 
+
 
     std::cout << "Matrix A:" << std::endl;
     A.print(); 
@@ -331,56 +337,49 @@ int main() {
     std::cout << "Matrix B:" << std::endl;
     B.print(); 
 
-    // Сложение матриц
     Matrix C = A + B; 
     std::cout << "Matrix C (A + B):" << std::endl;
     C.print(); 
 
-    // Вычитание матриц
     std::cout << "Matrix C (A - B):" << std::endl;
     Matrix D = A - B; 
     D.print(); 
 
-    // Умножение матриц
     std::cout << "Matrix C (A * B):" << std::endl;
     Matrix E = A * B; 
     E.print(); 
 
-    // Умножение матрицы на скаляр
     std::cout << "Matrix C (A * k):" << std::endl;
     Matrix F = A * 5; 
     F.print(); 
 
-    // Создание единичной матрицы
     std::cout << "Identity Matrix:" << std::endl;
     Matrix I(2, 2);
     I.ident();
     I.print();
 
-    // Транспонирование матрицы
     std::cout << "Transposed Matrix B:" << std::endl;
     Matrix T = B.transp();
     T.print();
 
-    // Вычисление и вывод определителя матрицы A
     std::cout << "Determinant of Matrix A:" << std::endl;
     double res = A.det(); 
     std::cout << res << std::endl; 
 
-    // Вычисление обратной матрицы
     std::cout << "Inverse of Matrix B:" << std::endl;
     Matrix invB = B.inverse();
     invB.print();
 
-    // Вычисление экспоненты матрицы A
     std::cout << "Exponential of Matrix A:" << std::endl;
     Matrix expA = A.exp(10);
     expA.print();
 
-    // Возведение матрицы A в степень 2
-    std::cout << "Matrix A raised to the power of 2:" << std::endl;
-    A.pow(2);
+    std::cout << "Matrix A raised to the power of 3:" << std::endl;
+    A.pow(3);
     A.print();
 
+    std::cout << "Matrix C = X * Y + C - X:" << std::endl;
+    C = X * Y + C - X;
+     
     return 0;
 }
