@@ -10,17 +10,16 @@ private:
     size_t rows;
     size_t cols;
     MatrixItem* data;
-
 public:
     Matrix();
-    Matrix(const size_t n); // Конструктор для квадратной матрицы
-    Matrix(const size_t row, const size_t col); // Конструктор для матрицы, с заданным размером столбцов и строк
-    Matrix(const Matrix& M); // Конструктор копирования
-    Matrix(Matrix&& M); // Конструктор перемещения
-    ~Matrix(); // Деструктор - освобождение памяти
-
+    Matrix(const size_t n); 
+    Matrix(const size_t row, const size_t col); 
+    Matrix(const Matrix& M); 
+    Matrix(Matrix&& M); 
+    ~Matrix(); 
 public:
-    Matrix& operator= (const Matrix& M);
+    Matrix& operator= (const Matrix& M); 
+    Matrix& operator= (Matrix&& M);
     Matrix& operator+= (const Matrix& M);
     Matrix& operator-= (const Matrix& M);
     Matrix& operator*= (const double k);
@@ -59,39 +58,24 @@ Matrix_Exception OTHER_ERROR("An unfamiliar error\n");
 
 
 // Конструкторы
-Matrix::Matrix() {
-    rows = 0;
-    cols = 0;
-    data = nullptr;
+Matrix::Matrix() : rows(0), cols(0), data(nullptr) { 
 }
 
 
-Matrix::Matrix(const size_t n) {
-    rows = n;
-    cols = n;
-
+Matrix::Matrix(const size_t n): rows(n),cols(n) {
     data = new MatrixItem[n * n];
 }
 
 
-Matrix::Matrix(const size_t row, const size_t col) {
-    rows = row;
-    cols = col;
-
+Matrix::Matrix(const size_t row, const size_t col) : rows(row),cols(col) {
     data = new MatrixItem[row * col];
 }
 
 
-Matrix::Matrix(const Matrix& M) {
-    rows = M.rows;
-    cols = M.cols;
-
-    delete[] data;
+Matrix::Matrix(const Matrix& M) : rows(M.rows),cols(M.cols) {
     data = new MatrixItem[rows * cols];
 
-    for (unsigned int idx = 0; idx < rows * cols; idx++) {
-        data[idx] = M.data[idx];
-    }
+    memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
 }
 
 
@@ -169,8 +153,12 @@ void Matrix::transposition(const Matrix& M)
 }
 
 
-double Matrix::determinant(void)
+double Matrix::determinant(void)         
 {
+    if (cols == 1) {
+        return data[0];
+    }
+    
     if (cols == 2) {
         return data[0] * data[3] - data[1] * data[2];
     }
@@ -189,7 +177,7 @@ double Matrix::determinant(void)
 
 
 void Matrix::exp(const unsigned int level) {
-    if (data == nullptr) throw NULL_MATRIX;
+    if (data == nullptr) throw NULL_MATRIX;   
 
     Matrix R(rows, cols);
     R.set(I);
@@ -208,13 +196,33 @@ void Matrix::exp(const unsigned int level) {
 // Перегрузка операторов
 Matrix& Matrix::operator= (const Matrix& M) {
     if (this == &M) return *this;
-    if (data != nullptr) delete data;
+    if (rows == M.rows && cols == M.cols) {
+        memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
+    }
+    if (data != nullptr) delete[] data; 
 
     rows = M.rows;
     cols = M.cols;
 
     this->data = new MatrixItem[rows * cols];
     memcpy(data, M.data, cols * rows * sizeof(MatrixItem));
+
+    return *this;
+}
+
+
+Matrix& Matrix::operator= (Matrix&& M) { 
+    if (this == &M)
+        return *this;
+    delete[] data;
+
+    rows = M.rows;
+    cols = M.cols;
+    data = M.data;
+
+    M.cols = 0;
+    M.rows = 0;
+    M.data = nullptr;
 
     return *this;
 }
