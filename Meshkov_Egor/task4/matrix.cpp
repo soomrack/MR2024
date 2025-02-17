@@ -175,11 +175,10 @@ double& Matrix::at(size_t row, size_t col) {
 Matrix& Matrix::operator=(const Matrix& other) {
     if(*this == other) return *this;
 
-    if(data.get() != nullptr) data.release();
-    
     if(rows != other.rows || cols != other.cols) {
         rows = other.rows;
         cols = other.cols;
+        if(data.get() != nullptr) data.release();
         data = std::make_unique<double[]>(rows * cols);
     }
 
