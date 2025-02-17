@@ -3,74 +3,104 @@
 #include <cmath>
 #include <cstring>
 
-Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
+Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
+    log(MatrixLogLevel::INFO, __func__, "Инициализирована нулевая матрица");
+}
 
-Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) 
-{
+
+Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) {
     if (rows == 0 || cols == 0) {
         data = nullptr;
-    } else {
-        data = new double[rows * cols]();
+        return;
+    
+    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+        rows = 0;
+        cols = 0;
+        log(MatrixLogLevel::ERROR, __func__, "Размер матрицы слишком велик");
+        throw MatrixException(MatrixErrorType::INTERNAL_ERROR, "Размер матрицы слишком велик");
+        return;
+    }
+    data = new double[rows * cols];
     }
 }
 
 Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols)
 {
-    if (other.data) {
-        data = new double[rows * cols];
-        std::memcpy(data, other.data, rows * cols * sizeof(double));
-    } else {
+    if (!other.data) {
         data = nullptr;
+        return;
     }
+
+    data = new double[rows * cols];
+    std::memcpy(data, other.data, rows * cols * sizeof(double));
 }
 
-// Деструктор
+
 Matrix::~Matrix() 
 {
     delete[] data;
 }
 
-// Оператор копирующего присваивания
+
 Matrix& Matrix::operator=(const Matrix& other) 
-{       // this это указатель на текущий объект, 
-    if (this != &other) { // проверяем не присваиваем ли объект самому себе
+{  
+    if (!other.data) {
+        data = nullptr;
+        log(MatrixLogLevel::WARNING, __func__, "Матрица пуста");
+        return;
+    }
+
+    if (this != &other) {
         delete[] data;
         rows = other.rows;
         cols = other.cols;
-        if (other.data) {
-            data = new double[rows * cols];
-            std::memcpy(data, other.data, rows * cols * sizeof(double));
-        } else {
-            data = nullptr;
-        }
+    }
+
+    data = new double[rows * cols];
+    std::memcpy(data, other.data, rows * cols * sizeof(double));
+
+    return *this;
+}
+
+
+Matrix& Matrix::operator=(Matrix&& other) 
+{
+    if (this != &other) {
+        delete[] data;
+        rows = other.rows;
+        cols = other.cols;
+        data = other.data;
+        other.data = nullptr;
+        other.rows = 0;
+        other.cols = 0;
     }
     return *this;
 }
 
-// Установка значения элемента
+
 void Matrix::set(size_t row, size_t col, double value) 
 {
     if (row >= rows || col >= cols) {
         log(MatrixLogLevel::ERROR, __func__, "Индекс вышел за допустимые границы");
-        throw std::out_of_range("Индекс вышел за допустимые границы");
+        throw MatrixException(MatrixErrorType::OUT_OF_BOUND_ERROR, "Индекс вышел за допустимые границы");
     }
     data[index(row, col)] = value;
 }
 
-// Получение значения элемента
+
 double Matrix::get(size_t row, size_t col) const 
 {
     if (row >= rows || col >= cols) {
         log(MatrixLogLevel::ERROR, __func__, "Индекс вышел за допустимые границы");
-        throw std::out_of_range("Индекс вышел за допустимые границы");
+        throw MatrixException(MatrixErrorType::OUT_OF_BOUND_ERROR, "Индекс вышел за допустимые границы");
     }
     return data[index(row, col)];
 }
 
-// Вывод матрицы в консоль
+
 void Matrix::print() const 
 {
-    if (isEmpty()) {
+    if (is_empty()) {
         std::cout << "Матрица не инициализирована" << std::endl;
         return;
     }
@@ -83,7 +113,7 @@ void Matrix::print() const
     std::cout << std::endl;
 }
 
-// Логирование
+
 void Matrix::log(MatrixLogLevel level, const char* location, const char* msg) 
 {
     const char* levelStr = "";
@@ -95,40 +125,40 @@ void Matrix::log(MatrixLogLevel level, const char* location, const char* msg)
     std::cerr << levelStr << ": " << msg << "\nLocation: " << location << "\n" << std::endl;
 }
 
-// Сложение матриц
+
 Matrix Matrix::operator+(const Matrix& other) const 
 {
     if (rows != other.rows || cols != other.cols) {
         log(MatrixLogLevel::ERROR, __func__, "Измерения матриц должны быть равны для сложения");
-        throw std::invalid_argument("Измерения матриц не совпадают");
+        throw MatrixException(MatrixErrorType::DIMENSION_MISMATCH_ERROR, "Измерения матриц не равны");
     }
     Matrix result(rows, cols);
-    for (size_t row = 0; row < rows; ++row)
-        for (size_t col = 0; col < cols; ++col)
-            result.data[index(row, col)] = get(row, col) + other.get(row, col);
+    for (size_t idx = 0; idx < rows * cols; ++idx) {
+        result.data[idx] = data[idx] + other.data[idx];
+    }
     return result;
 }
 
-// Вычитание матриц
+
 Matrix Matrix::operator-(const Matrix& other) const 
 {
     if (rows != other.rows || cols != other.cols) {
         log(MatrixLogLevel::ERROR, __func__, "Измерения матриц должны быть равны для вычитания");
-        throw std::invalid_argument("Измерения матриц не совпадают");
+        throw MatrixException(MatrixErrorType::DIMENSION_MISMATCH_ERROR, "Измерения матриц не равны");
     }
     Matrix result(rows, cols);
-    for (size_t row = 0; row < rows; ++row)
-        for (size_t col = 0; col < cols; ++col)
-            result.data[index(row, col)] = get(row, col) - other.get(row, col);
+    for (size_t idx = 0; idx < rows * cols; ++idx) {
+        result.data[idx] = data[idx] - other.data[idx];
+    }
     return result;
 }
 
-// Умножение матриц
+
 Matrix Matrix::operator*(const Matrix& other) const 
 {
     if (cols != other.rows) {
         log(MatrixLogLevel::ERROR, __func__, "Измерения матриц некорректны для умножения");
-        throw std::invalid_argument("Некорректные измерения для умножения");
+        throw MatrixException(MatrixErrorType::DIMENSION_ERROR, "Измерения матриц не корректны");
     }
     Matrix result(rows, other.cols);
     for (size_t row = 0; row < rows; ++row) {
@@ -142,17 +172,16 @@ Matrix Matrix::operator*(const Matrix& other) const
     return result;
 }
 
-// Умножение матрицы на число
+
 Matrix Matrix::operator*(double scalar) const 
 {
     Matrix result(rows, cols);
-    for (size_t row = 0; row < rows; ++row)
-        for (size_t col = 0; col < cols; ++col)
-            result.data[index(row, col)] = get(row, col) * scalar;
+    for (size_t idx = 0; idx < rows * cols; ++idx)
+        result.data[idx] = data[idx] * scalar;
     return result;
 }
 
-// Транспонирование матрицы
+
 Matrix Matrix::transpose() const 
 {
     Matrix result(cols, rows);
@@ -162,36 +191,35 @@ Matrix Matrix::transpose() const
     return result;
 }
 
-// Возведение матрицы в целую степень
+
 Matrix Matrix::power(int exponent) const 
 {
-    if (!isSquare()) {
+    if (!is_square()) {
         log(MatrixLogLevel::ERROR, __func__, "Только квадратные матрицы могут быть возведены в степень");
-        throw std::invalid_argument("Матрица должна быть квадратной");
+        throw MatrixException(MatrixErrorType::NOT_SQUARE_ERROR, "Матрица должна быть квадратной");
     }
     if (exponent < 0) {
         log(MatrixLogLevel::ERROR, __func__, "Возведение в отрицательную степень не поддерживается программой");
-        throw std::invalid_argument("Отрицательная степень не поддерживается");
+        throw MatrixException(MatrixErrorType::INTERNAL_ERROR, "Возведение в отрицательную степень не поддерживается");
     }
     Matrix result = Matrix::identity(rows);
     if (exponent == 0)
         return result;
-    Matrix base(*this);
     for (int idx = 0; idx < exponent; ++idx)
-        result = result * base;
+        result = result * (*this);
     return result;
 }
 
-// Вычисление определителя для матриц 1x1, 2x2, 3x3
+
 double Matrix::determinant() const 
 {
     log(MatrixLogLevel::WARNING, __func__, "Определить вычисляется только для матриц 1x1, 2x2, 3x3");
-    if (!isSquare()) {
+    if (!is_square()) {
         log(MatrixLogLevel::ERROR, __func__, "Определитель может быть вычислен только для квадратных матриц");
-        throw std::invalid_argument("Матрица должна быть квадратной");
+        throw MatrixException(MatrixErrorType::NOT_SQUARE_ERROR, "Определитель может быть вычислен только для квадратных матриц");
     }
     if (rows == 0)
-        return NAN;
+        throw MatrixException(MatrixErrorType::INTERNAL_ERROR, "Определитель не может быть вычислен для пустой матрицы");
     if (rows == 1)
         return data[0];
     if (rows == 2)
@@ -205,11 +233,10 @@ double Matrix::determinant() const
                    - get(0, 1) * get(1, 0) * get(2, 2);
         return det;
     }
-    return NAN;
+    throw MatrixException(MatrixErrorType::INTERNAL_ERROR, "Определить вычисляется только для матриц 1x1, 2x2, 3x3");
 }
 
-// Вычисление факториала
-// ф-ия статик доступна только внутри файла
+
 static unsigned long long factorial(unsigned int n) 
 {
     if (n == 0 || n == 1)
@@ -220,8 +247,25 @@ static unsigned long long factorial(unsigned int n)
     return result;
 }
 
-// Создание единичной матрицы
-Matrix Matrix::identity(size_t size) {
+
+Matrix Matrix::exponent(unsigned int num_terms) const 
+{
+    if (!is_square()) {
+        log(MatrixLogLevel::ERROR, __func__, "Экспонента матрицы определена только для квадратных матриц");
+        throw MatrixException(MatrixErrorType::NOT_SQUARE_ERROR, "Экспонента матрицы определена только для квадратных матриц");
+    }
+    Matrix result = Matrix::identity(rows);
+    Matrix term = Matrix::identity(rows); 
+    for (unsigned int k = 1; k < num_terms; ++k) {
+        term = (term * (*this)) * (1.0 / static_cast<double>(k));
+        result = result + term;
+    }
+    return result;
+}
+
+
+Matrix Matrix::identity(size_t size) 
+{
     Matrix I(size, size);
     for (size_t idx = 0; idx < size; ++idx)
         I.set(idx, idx, 1.0);

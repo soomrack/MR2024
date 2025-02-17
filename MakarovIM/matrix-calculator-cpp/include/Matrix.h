@@ -8,53 +8,76 @@ enum class MatrixLogLevel {
     ERROR,
 };
 
+
+enum class MatrixErrorType {
+    DIMENSION_MISMATCH_ERROR,  
+    DIMENSION_ERROR,  
+    NOT_SQUARE_ERROR,
+    OUT_OF_BOUND_ERROR,
+    INTERNAL_ERROR
+};
+
+
+class MatrixException {
+public:
+    MatrixErrorType error_type;
+    std::string message;
+
+    MatrixException(MatrixErrorType type, const std::string& msg)
+        : error_type(type), message(msg) {}
+
+    std::string get_message() const {
+        return message;
+    }
+
+    MatrixErrorType get_error_type() const {
+        return error_type;
+    }
+};
+
+
 class Matrix {
 private:
     size_t rows;
     size_t cols;
     double* data;
 
-    // Функция для вычисления индекса в одномерном массиве
-    size_t index(size_t row, size_t col) const { return row * cols + col; }
-
 public:
     Matrix();                            
     Matrix(size_t rows, size_t cols);    
     Matrix(const Matrix& other);          
+    Matrix(Matrix&& other);
     ~Matrix();
 
     Matrix& operator=(const Matrix& other);
 
-    // Геттеры для размеров
-    size_t getRows() const { return rows; }
-    size_t getCols() const { return cols; }
+    size_t get_rows() const { return rows; }
+    size_t get_cols() const { return cols; }
 
-    // Методы проверки
-    bool isEmpty() const { return data == nullptr; }
-    bool isSquare() const { return rows == cols; }
+    bool is_empty() const { return data == nullptr; }
+    bool is_square() const { return rows == cols; }
 
-    // Доступ к элементам
     void set(size_t row, size_t col, double value);
     double get(size_t row, size_t col) const;
 
-    // Вывод матрицы в консоль
     void print() const;
 
-    // Функция логирования (аналог matrix_log)
     static void log(MatrixLogLevel level, const char* location, const char* msg);
 
-    // Перегрузка арифметических операторов
-    Matrix operator+(const Matrix& other) const;   // Сложение
-    Matrix operator-(const Matrix& other) const;   // Вычитание
-    Matrix operator*(const Matrix& other) const;   // Умножение матриц
-    Matrix operator*(double scalar) const;         // Умножение на число
+    Matrix operator+(const Matrix& other) const; 
+    Matrix operator-(const Matrix& other) const; 
+    Matrix operator*(const Matrix& other) const; 
+    Matrix operator*(double scalar) const;       
 
-    // Другие операции
     Matrix transpose() const;
-    Matrix power(int exponent) const;  // Возведение в целую степень (только для квадратных матриц)
-    double determinant() const;        // Вычисление определителя (для 1x1, 2x2, 3x3)
-
+    Matrix power(int exponent) const;  
+    Matrix exponent(unsigned int num_terms) const; 
+    double determinant() const;        
     static Matrix identity(size_t size);
+
+private:
+    size_t index(size_t row, size_t col) const { return row * cols + col; };
 };
+
 
 // g++ -Wall -Wextra -std=c++17 -Iinclude -o bin/matrix_calculator src/main.cpp src/Matrix.cpp
