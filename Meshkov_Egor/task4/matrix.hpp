@@ -89,7 +89,7 @@ public:
     Matrix(double *new_data, size_t rows, size_t cols);
     Matrix(const Matrix&);
     Matrix(Matrix&&);
-    ~Matrix() {};
+    ~Matrix();
 
     size_t get_rows() const noexcept;
     size_t get_cols() const noexcept;

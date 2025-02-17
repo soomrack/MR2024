@@ -27,11 +27,14 @@ const std::string MatrixException::get_prefix_message(TypeException type_excepti
 }
 
 
-Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
+Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
+    std::cout << "constructor default\n" << std::endl;
+}
 
 
 Matrix::Matrix(size_t rows, size_t cols)
     : rows(rows), cols(cols) {
+    std::cout << "constructor with rows, cols\n" << std::endl;
     
     if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
         throw MatrixExceptionOverflow();
@@ -46,6 +49,7 @@ Matrix::Matrix(size_t rows, size_t cols)
 
 Matrix::Matrix(double *new_data, size_t rows, size_t cols)
     : rows(rows), cols(cols) {
+    std::cout << "constructor from double*\n" << std::endl;
     
     if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
         throw MatrixExceptionOverflow();
@@ -59,6 +63,8 @@ Matrix::Matrix(double *new_data, size_t rows, size_t cols)
 
 
 Matrix::Matrix(const Matrix& other) {
+    std::cout << "constructor copy\n" << std::endl;
+    
     rows = other.rows;
     cols = other.cols;
 
@@ -71,16 +77,17 @@ Matrix::Matrix(const Matrix& other) {
 
 Matrix::Matrix(Matrix&& other)
     : rows(other.rows), cols(other.cols), data(std::move(other.data)) {
-
+    std::cout << "constructor move\n" << std::endl;
+    
     other.rows = 0;
     other.cols = 0;
     other.data = nullptr;
 }
 
 
-/*Matrix::~Matrix() {
+Matrix::~Matrix() {
     std::cout << "~Matrix\n" << std::endl;
-}*/
+}
 
 
 size_t Matrix::get_rows() const noexcept {
@@ -173,6 +180,8 @@ double& Matrix::at(size_t row, size_t col) {
 
 
 Matrix& Matrix::operator=(const Matrix& other) {
+    std::cout << "operator copy\n" << std::endl;
+    
     if(*this == other) return *this;
     
     if((rows == other.rows && cols == other.cols) || (rows * cols == other.rows * other.cols)) {
@@ -190,7 +199,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 
 
 Matrix& Matrix::operator=(Matrix&& other) { 
-    std::cout << "MOVE\n" << std::endl;
+    std::cout << "operator move\n" << std::endl;
     
     if(*this == other) return *this;
     
