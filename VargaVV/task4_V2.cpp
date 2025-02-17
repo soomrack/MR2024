@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <cstring>
 
-using namespace std;
+using namespace std;   //УБРАТЬ!!!!!!!!!
 
 typedef double MatrixItem;
 
@@ -248,10 +248,9 @@ double Matrix::det() const {
                 }
             }
         }
-        // Рекурсивный вызов для подматрицы
         det += (p % 2 == 0 ? 1 : -1) * data[p] * submatrix.det();
     }
-    return det; // Убедитесь, что эта строка находится в конце функции
+    return det; 
 }
 /*
 void Matrix:: exp(int n) const{
