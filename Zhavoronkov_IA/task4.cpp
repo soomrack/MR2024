@@ -269,16 +269,11 @@ double& Matrix::operator[](unsigned int idx) // Определение знач�
 
 Matrix& Matrix::operator=(Matrix&& other) // Оператор присваивания через перенос
 {
-    if (this == &other) {
-        return *this;
-    }
-    
     if ((rows != other.rows) && (cols != other.cols)) {
-        delete[] data;
+        matrix_error(ERROR, "matrix_copy");
+        throw MatrixException("Matrices of different dimensions");
     }
 
-    rows = other.rows;
-    cols = other.cols;
     data = other.data;
 
     other.rows = 0;
@@ -356,7 +351,7 @@ Matrix Matrix::operator-(const Matrix& B) // C = A - B
 
     }
 
-    Matrix result (rows, cols);
+    Matrix result(rows, cols);
 
     for (size_t idx = 0; idx < cols * rows; ++idx) {
         result.data[idx] = data[idx] - B.data[idx];
@@ -374,7 +369,7 @@ Matrix Matrix::operator*(const Matrix& B) // C = A * B
         throw MatrixException("Matrices of different dimensions");
     }
 
-    Matrix result (rows, B.cols);
+    Matrix result(rows, B.cols);
 
     for (size_t row = 0; row < result.rows; ++row) {
         for (size_t col = 0; col < result.cols; ++col) {
@@ -490,9 +485,10 @@ int main()
     T.fill_with_indices();
     Matrix U = T.transp(); 
     Matrix R = P + Q * U;
-    /* Q * U - создается временный объект Temp1, он складывается с P и получается 
-    временный объект Temp2. На последнем шаге срабатывает оператор присваивания через
-    перенос или, если его нет, конструктор копирования*/
+    /* Q * U создала временный объект, который вернулся через конструктор
+    копирования. Внутри операции + сработал конструктор копирования, данные 
+    вернулись тоже через конструктор копирования. На последнем шаге срабатывает
+    оператор присваивания через перенос*/
     R.print();
 
 
