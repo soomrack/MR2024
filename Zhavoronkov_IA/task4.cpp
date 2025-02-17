@@ -110,6 +110,7 @@ Matrix::~Matrix()
 
 Matrix::Matrix(const Matrix& B) : rows(B.rows), cols(B.cols) // Конструктор копирования
 {
+    printf("\nConstructor copy\n");
     data = new double[rows * cols];
     std::copy(B.data, B.data + rows * cols, data);
 }
@@ -117,6 +118,7 @@ Matrix::Matrix(const Matrix& B) : rows(B.rows), cols(B.cols) // Конструк
 
 Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), data(other.data) // Конструтор переноса
 {
+    printf("\nConstructor move\n");
     other.rows = 0;
     other.cols = 0;
     other.data = nullptr;
@@ -269,10 +271,17 @@ double& Matrix::operator[](unsigned int idx) // Определение знач�
 
 Matrix& Matrix::operator=(Matrix&& other) // Оператор присваивания через перенос
 {
+    printf("\nOperator move\n");
+    
+    if (this == &other) {
+        return *this;
+    }
+
     if ((rows != other.rows) && (cols != other.cols)) {
         matrix_error(ERROR, "matrix_copy");
         throw MatrixException("Matrices of different dimensions");
     }
+    
     rows = other.rows;
     cols = other.cols;
     data = other.data;
@@ -338,7 +347,7 @@ Matrix Matrix::operator+(const Matrix& B) // C = A + B
     Matrix result(B);
 
     result += *this;
-
+    printf("Operator +");
     return result;
 }
 
@@ -382,6 +391,7 @@ Matrix Matrix::operator*(const Matrix& B) // C = A * B
         }
     }
 
+    printf("Operator *");
     return result;
 }
 
@@ -446,19 +456,19 @@ int main()
     Matrix J = B ^ 2;
     J.print();
     
-
+/*
     printf("Matrix_exp test\n");
     B.print();
     Matrix I = B.exp(4);
     I.print();
 
     //Matrix Z (0,5);
-
     Matrix W(2,2);
     W.print();
     //W = W;
     //W.set_value(256,2);
 
+    
 
     printf("\nNew constructors for ^ operation\n");
     Matrix K(3,3);
@@ -475,7 +485,7 @@ int main()
     printf("\nL is equal to previous K\n");
     Matrix S = L.exp(4);
     printf("\nS is\n");
-    S.print();
+    S.print();*/
     
     printf("\nAnalyze\n");
     Matrix P(2,2);
@@ -486,11 +496,13 @@ int main()
     T.fill_with_indices();
     Matrix U = T.transp(); 
     Matrix R = P + Q * U;
-    /* Q * U создала временный объект, который вернулся через конструктор
-    копирования. Внутри операции + сработал конструктор копирования, данные 
-    вернулись тоже через конструктор копирования. На последнем шаге срабатывает
-    оператор присваивания через перенос*/
+    /*
+    Операция * -- результат вернулся через копирование
+    Операция + -- результат вернулся через копирование
+    Операция = -- результат вернулся через перенос (в действительности -- копирование)
+    */
     R.print();
+    
 
 
     printf("\n------------\nEnd of main\n------------\n");
