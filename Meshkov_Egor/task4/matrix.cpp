@@ -584,7 +584,7 @@ Matrix Matrix::exp(const unsigned int iteration_count) {
 
     double number = 1.0;
 
-    for(unsigned int k = 2; k <= iteration_count; ++k) {
+    for(unsigned int k = 2; k < iteration_count; ++k) {
         number *= 1.0 / k;
         tmp *= (*this);
         tmp *= number;
