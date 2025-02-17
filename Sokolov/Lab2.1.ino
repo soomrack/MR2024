@@ -1,6 +1,4 @@
 #include <DFRobot_DHT11.h>
-#include <Wire.h>
-#include <RTClib.h>
 
 #define FAN_PIN 7
 #define LIGHT_PIN 6
@@ -30,7 +28,6 @@ struct {
 } sensor_data;
 
 DFRobot_DHT11 dht;
-RTC_DS3231 rtc;
 
 
 void setup_devices() {
@@ -38,11 +35,6 @@ void setup_devices() {
     pinMode(LIGHT_PIN, OUTPUT);
     pinMode(PUMP_PIN, OUTPUT);
     pinMode(HEATER_PIN, OUTPUT);
-    
-    if (!rtc.begin()) {
-        Serial.println("Ошибка инициализации часов реального времени!");
-        while(true);
-    }
 }
 
 
@@ -57,8 +49,8 @@ void read_sensors() {
     int raw_soil = analogRead(SOIL_SENSOR_PIN);
     sensor_data.soil_humidity = map(raw_soil, 1023, 0, 0, 100);
 
-    DateTime now = rtc.now();
-    sensor_data.current_hour = now.hour();
+    unsigned long elapsed_hours = millis() / 3600000;
+    sensor_data.current_hour = (config.sunrise_time + elapsed_hours) % 24;
 }
 
 
@@ -66,9 +58,7 @@ void control_light() {
     bool is_daytime = (sensor_data.current_hour >= config.sunrise_time) && 
                      (sensor_data.current_hour < config.sunset_time);
     
-    // Проверка уровня освещенности
     bool need_light = sensor_data.light_level < config.light_threshold;
-    
     digitalWrite(LIGHT_PIN, is_daytime && need_light ? HIGH : LOW);
 }
 
@@ -83,7 +73,6 @@ void control_fan() {
 void control_heater() {
     bool low_temp = sensor_data.air_temperature < config.temp_low_threshold;
     digitalWrite(HEATER_PIN, low_temp ? HIGH : LOW);
-    
     if(low_temp) digitalWrite(FAN_PIN, HIGH);
 }
 
@@ -98,12 +87,12 @@ void print_status() {
     static unsigned long last_print = 0;
     if(millis() - last_print < 2000) return;
     
-    Serial.println("Текущее состояние системы:");
-    Serial.print("Освещенность: "); Serial.println(sensor_data.light_level);
-    Serial.print("Влажность почвы: "); Serial.println(sensor_data.soil_humidity);
-    Serial.print("Влажность воздуха: "); Serial.println(sensor_data.air_humidity);
-    Serial.print("Температура: "); Serial.println(sensor_data.air_temperature);
-    Serial.print("Текущее время: "); Serial.println(sensor_data.current_hour);
+    Serial.println("Текущее состояние:");
+    Serial.print("Освещенность: "); Serial.print(sensor_data.light_level); Serial.println("%");
+    Serial.print("Влажность почвы: "); Serial.print(sensor_data.soil_humidity); Serial.println("%");
+    Serial.print("Влажность воздуха: "); Serial.print(sensor_data.air_humidity); Serial.println("%");
+    Serial.print("Температура: "); Serial.print(sensor_data.air_temperature); Serial.println("°C");
+    Serial.print("Текущее время: "); Serial.print(sensor_data.current_hour); Serial.println(":00");
     Serial.println("----------------------------------");
     
     last_print = millis();
