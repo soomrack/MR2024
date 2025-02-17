@@ -174,16 +174,16 @@ double& Matrix::at(size_t row, size_t col) {
 
 Matrix& Matrix::operator=(const Matrix& other) {
     if(*this == other) return *this;
-
-    if(data.get() != nullptr) data.release();
     
-    if((rows != other.rows || cols != other.cols) || (rows * cols != other.rows * other.cols)) {
+    if((rows == other.rows && cols == other.cols) || (rows * cols == other.rows * other.cols)) {
+        std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
+    } else {
         rows = other.rows;
         cols = other.cols;
+        if(data.get() != nullptr) data.release();
         data = std::make_unique<double[]>(rows * cols);
+        std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
     }
-
-    std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
     
     return *this;
 }
@@ -193,7 +193,7 @@ Matrix& Matrix::operator=(Matrix&& other) {
     rows = other.rows;
     cols = other.cols;
     data = std::move(other.data);
-
+    std::cout << "MOVE\n" << std::endl;
     other.rows = 0;
     other.cols = 0;
     other.data = nullptr;
