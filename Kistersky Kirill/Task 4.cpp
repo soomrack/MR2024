@@ -12,18 +12,18 @@ private:
     MatrixItem* data;
 public:
     Matrix();
-    Matrix(const size_t n); 
-    Matrix(const size_t row, const size_t col); 
-    Matrix(const Matrix& M); 
-    Matrix(Matrix&& M); 
-    ~Matrix(); 
+    Matrix(const size_t n);
+    Matrix(const size_t row, const size_t col);
+    Matrix(const Matrix& M);
+    Matrix(Matrix&& M);
+    ~Matrix();
 public:
-    Matrix& operator= (const Matrix& M); 
-    Matrix& operator= (Matrix&& M);
-    Matrix& operator+= (const Matrix& M);
-    Matrix& operator-= (const Matrix& M);
-    Matrix& operator*= (const double k);
-    Matrix& operator*= (const Matrix& M);
+    Matrix& operator=(const Matrix& M); 
+    Matrix& operator=(Matrix&& M);
+    Matrix& operator+=(const Matrix& M);
+    Matrix& operator-=(const Matrix& M);
+    Matrix& operator*=(const double k);
+    Matrix& operator*=(const Matrix& M);
 
 public:
     void print();
@@ -57,22 +57,28 @@ Matrix_Exception NULL_MATRIX("Your matrix is empty\n");
 Matrix_Exception OTHER_ERROR("An unfamiliar error\n");
 
 
-// Конструкторы
-Matrix::Matrix() : rows(0), cols(0), data(nullptr) { 
+// Конструкторы проверка на переполнние во всех
+Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
 }
 
 
-Matrix::Matrix(const size_t n): rows(n),cols(n) {
+Matrix::Matrix(const size_t n) : rows(n), cols(n) {
+    if (n > 0 && n > std::numeric_limits<size_t>::max() / cols) {
+        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
+    }
     data = new MatrixItem[n * n];
 }
 
 
-Matrix::Matrix(const size_t row, const size_t col) : rows(row),cols(col) {
+Matrix::Matrix(const size_t row, const size_t col) : rows(row), cols(col) {
     data = new MatrixItem[row * col];
 }
 
 
-Matrix::Matrix(const Matrix& M) : rows(M.rows),cols(M.cols) {
+Matrix::Matrix(const Matrix& M) : rows(M.rows), cols(M.cols) {
+    if (rows > 0 && cols > 0 && rows>std::numeric_limits<size_t>::max() / cols) {
+        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
+    }
     data = new MatrixItem[rows * cols];
 
     memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
@@ -143,22 +149,25 @@ void Matrix::set(enum MatrixType mat_type)
 }
 
 
-void Matrix::transposition(const Matrix& M)
+void Matrix::transposition(const Matrix& M) //переписать, чтобы либо возвращала транспонированную, либо саму, лучше саму как в экспоненте
 {
     if (data == nullptr) throw NULL_MATRIX;
+
+    Matrix R(M.rows, M.cols);
 
     for (size_t row = 0; row < M.rows; row++)
         for (size_t col = 0; col < M.cols; col++)
             data[row * M.rows + col] = M.data[col * M.cols + row];
+    *this = R;
 }
 
 
-double Matrix::determinant(void)         
+double Matrix::determinant(void)
 {
     if (cols == 1) {
         return data[0];
     }
-    
+
     if (cols == 2) {
         return data[0] * data[3] - data[1] * data[2];
     }
@@ -176,8 +185,8 @@ double Matrix::determinant(void)
 }
 
 
-void Matrix::exp(const unsigned int level) {
-    if (data == nullptr) throw NULL_MATRIX;   
+void Matrix::exp(const unsigned int level = 10) {
+    if (data == nullptr) throw NULL_MATRIX;
 
     Matrix R(rows, cols);
     R.set(I);
@@ -194,12 +203,26 @@ void Matrix::exp(const unsigned int level) {
 
 
 // Перегрузка операторов
-Matrix& Matrix::operator= (const Matrix& M) {
+Matrix& Matrix::operator=(const Matrix& M) {     
     if (this == &M) return *this;
+    if (M.data == nullptr) {
+        delete[] data;
+        data = nullptr;
+        rows = 0;
+        cols = 0;
+        return *this;
+    }
+
     if (rows == M.rows && cols == M.cols) {
         memcpy(data, M.data, rows * cols * sizeof(MatrixItem));
+        return *this;
     }
-    if (data != nullptr) delete[] data; 
+
+    if (rows == M.cols && cols == M.rows) {
+        memcpy(data, M.data, cols * rows * sizeof(MatrixItem));
+    }
+
+    if (data != nullptr) delete[] data;
 
     rows = M.rows;
     cols = M.cols;
@@ -211,9 +234,7 @@ Matrix& Matrix::operator= (const Matrix& M) {
 }
 
 
-Matrix& Matrix::operator= (Matrix&& M) { 
-    if (this == &M)
-        return *this;
+Matrix& Matrix::operator= (Matrix&& M) {
     delete[] data;
 
     rows = M.rows;
@@ -270,11 +291,12 @@ Matrix& Matrix::operator*= (const Matrix& M) {
         for (size_t col = 0; col < R.cols; col++)
             for (size_t idx = 0; idx < M.rows; idx++)
                 R.data[row * R.cols + col] += data[row * cols + idx] * M.data[idx * M.cols + col];
-
-    cols = R.cols;
-    rows = R.rows;
+    
+    delete[] data;
     data = R.data;
-    R.data = nullptr;
+    rows = R.rows;
+    cols = R.cols;
+
     return *this;
 }
 
