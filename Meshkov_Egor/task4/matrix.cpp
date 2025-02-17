@@ -184,16 +184,22 @@ Matrix& Matrix::operator=(const Matrix& other) {
     
     if(*this == other) return *this;
     
-    if((rows == other.rows && cols == other.cols) || (rows * cols == other.rows * other.cols)) {
-        std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
-    } else {
-        rows = other.rows;
-        cols = other.cols;
-        if(data.get() != nullptr) data.release();
-        data = std::make_unique<double[]>(rows * cols);
-        std::copy(other.data.get(), other.data.get() + rows * cols, data.get());
+    if (rows == other.rows && cols == other.cols) {
+        std::memcpy(data.get(), other.data.get(), rows * cols * sizeof(double)); 
+    } 
+
+    if (rows * cols == other.rows * other.cols) {
+        rows = other.cols;
+        cols = other.rows;
+        std::memcpy(data.get(), other.data.get(), rows * cols * sizeof(double));
     }
     
+    rows = other.rows;
+    cols = other.cols;
+    if(data.get() == nullptr) data.release();
+    data = std::make_unique<double[]>(rows * cols);
+    std::memcpy(data.get(), other.data.get(), rows * cols * sizeof(double));
+
     return *this;
 }
 
