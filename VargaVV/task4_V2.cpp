@@ -240,6 +240,9 @@ double Matrix::det() const {
 }
 
 void Matrix::ident() {
+    if (is_empty()) { 
+        throw EMP_ERROR;
+    }
     if (rows != cols) {
         throw SQR_ERROR; 
     }
@@ -256,6 +259,9 @@ void Matrix::pow(int n) {
     if (n == 0) {
         ident(); 
         return;
+    }
+    if (is_empty()) { 
+        throw EMP_ERROR;
     }
     Matrix result = *this;
     for (int i = 1; i < n; i++) {
