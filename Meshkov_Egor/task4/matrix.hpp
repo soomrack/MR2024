@@ -104,7 +104,7 @@ public:
     Matrix transpoze();
     Matrix exp(const unsigned int iteration_count);
     void print(unsigned char accuracy = 3);
-
+    double find_max_element();
 
     Matrix& operator=(const Matrix&);
     Matrix& operator=(Matrix&&);
@@ -137,9 +137,6 @@ private:
     void gauss_zeroing_elements_in_column_above_diagonal(const size_t current_col);
     void gauss_reduce_diagonal_element_to_one(const size_t current_row);
     int transform_extend_matrix();
-
-    // Auxilary function for exp()
-    double find_max_element();
 };
 
 
