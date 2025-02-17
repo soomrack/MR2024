@@ -177,7 +177,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 
     if(data.get() != nullptr) data.release();
     
-    if(rows != other.rows || cols != other.cols || rows * cols == other.rows * other.cols) {
+    if((rows != other.rows || cols != other.cols) || (rows * cols != other.rows * other.cols)) {
         rows = other.rows;
         cols = other.cols;
         data = std::make_unique<double[]>(rows * cols);
@@ -189,7 +189,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 }
 
 
-Matrix& Matrix::operator=(Matrix&& other) {     
+Matrix& Matrix::operator=(Matrix&& other) { 
     rows = other.rows;
     cols = other.cols;
     data = std::move(other.data);
