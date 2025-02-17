@@ -273,7 +273,8 @@ Matrix& Matrix::operator=(Matrix&& other) // Оператор присваива
         matrix_error(ERROR, "matrix_copy");
         throw MatrixException("Matrices of different dimensions");
     }
-
+    rows = other.rows;
+    cols = other.cols;
     data = other.data;
 
     other.rows = 0;
