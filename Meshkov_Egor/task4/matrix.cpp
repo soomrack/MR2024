@@ -190,6 +190,8 @@ Matrix& Matrix::operator=(const Matrix& other) {
 
 
 Matrix& Matrix::operator=(Matrix&& other) { 
+    std::cout << "MOVE\n" << std::endl;
+    
     if(*this == other) return *this;
     
     rows = other.rows;
@@ -199,8 +201,6 @@ Matrix& Matrix::operator=(Matrix&& other) {
     other.rows = 0;
     other.cols = 0;
     other.data = nullptr;
-
-    std::cout << "MOVE\n" << std::endl;
     
     return *this;
 }
