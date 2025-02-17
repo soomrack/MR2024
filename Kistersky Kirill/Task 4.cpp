@@ -231,9 +231,6 @@ Matrix& Matrix::operator=(const Matrix& M) {
         return *this;
     }
 
-    if (rows == M.cols && cols == M.rows) {
-        memcpy(data, M.data, cols * rows * sizeof(MatrixItem));
-    }
 
     if (data != nullptr) delete[] data;
 
