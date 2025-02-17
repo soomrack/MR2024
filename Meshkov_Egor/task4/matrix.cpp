@@ -175,10 +175,11 @@ double& Matrix::at(size_t row, size_t col) {
 Matrix& Matrix::operator=(const Matrix& other) {
     if(*this == other) return *this;
 
-    if(rows != other.rows || cols != other.cols) {
+    if(data.get() != nullptr) data.release();
+    
+    if(rows != other.rows || cols != other.cols || rows * cols == other.rows * other.cols) {
         rows = other.rows;
         cols = other.cols;
-        if(data.get() != nullptr) data.release();
         data = std::make_unique<double[]>(rows * cols);
     }
 
@@ -189,6 +190,8 @@ Matrix& Matrix::operator=(const Matrix& other) {
 
 
 Matrix& Matrix::operator=(Matrix&& other) { 
+    if(*this == other) return *this;
+    
     rows = other.rows;
     cols = other.cols;
     data = std::move(other.data);
@@ -584,7 +587,7 @@ Matrix Matrix::exp(const unsigned int iteration_count) {
 
     double number = 1.0;
 
-    for(unsigned int k = 2; k < iteration_count; ++k) {
+    for(unsigned int k = 2; k <= iteration_count; ++k) {
         number *= 1.0 / k;
         tmp *= (*this);
         tmp *= number;
