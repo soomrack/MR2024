@@ -16,8 +16,8 @@ struct Climate
   int TIME_SUNRISE;
   int TIME_SUNSET;
   int VENTILATION_TIMER;
-  int PUMP_ON_SECONDS;
-  int PUMP_OFF_SECONDS;
+  int  PUMP_ON_MILLISECONDS;
+  int  PUMP_FF_MILLISECONDS;
 };
 
 
@@ -68,19 +68,21 @@ Data Garden_data;
 
 unsigned long int milliseconds = 0;
 bool flag_heat_light_work = 0;
+short prev_humidity = 0;  //глобальные переменные для заглушки датчика
+short prev_temperature = 0; //глобальные переменные для заглушки датчика
 
 void initialize_climate()
 {
-  Garden.LIGHT_THRESHOLD = 70;
-  Garden.EARTH_HUMIDITY_THRESHOLD = 20;
+  Garden.LIGHT_THRESHOLD = 60;
+  Garden.EARTH_HUMIDITY_THRESHOLD = 40;
   Garden.AIR_HUMIDITY_THRESHOLD = 70;
   Garden.TEMP_HIGH_THRESHOLD = 30;
   Garden.TEMP_LOW_THRESHOLD = 17;
   Garden.TIME_SUNRISE = 8;
   Garden.TIME_SUNSET = 18;
   Garden.VENTILATION_TIMER = 3;
-  Garden.PUMP_ON_SECONDS = 2;
-  Garden.PUMP_OFF_SECONDS = 3;
+  Garden. PUMP_ON_MILLISECONDS = 2000;
+  Garden. PUMP_FF_MILLISECONDS = 3000;
 }
 
 void data_print()
@@ -106,10 +108,20 @@ void data_print()
 void read_dht11(int *air_humidity, int *air_temperature)
 {
   static long old_time = 0;
+
   if (milliseconds - old_time > TIME_CHECK_SENSORS) {
     DHT_TEMP_WET_SENSOR.read(PIN_TEMP_WET_SENSOR);
-    *air_humidity = DHT_TEMP_WET_SENSOR.humidity;
-    *air_temperature = DHT_TEMP_WET_SENSOR.temperature;
+
+    if (DHT_TEMP_WET_SENSOR.humidity >= 255 || DHT_TEMP_WET_SENSOR.temperature >= 255) { //пришлось написать заглушку на фильтрацию данных для датчика, т.к. периодически при включении реле он выдавал 255 255
+      *air_humidity = prev_humidity;
+      *air_temperature = prev_temperature;
+    }
+    else {
+      *air_humidity = DHT_TEMP_WET_SENSOR.humidity;
+      *air_temperature = DHT_TEMP_WET_SENSOR.temperature;
+      prev_temperature = DHT_TEMP_WET_SENSOR.humidity;
+      prev_temperature = DHT_TEMP_WET_SENSOR.temperature;
+    }
 
     old_time = milliseconds;
   }
@@ -219,14 +231,18 @@ void control_air_humidity()
 
 void control_earth_watering()
 {
-  if (Garden_data.earth_humidity < Garden.EARTH_HUMIDITY_THRESHOLD) Garden_pump_states.pump_humidity_state = 1;
+  if (Garden_data.earth_humidity < Garden.EARTH_HUMIDITY_THRESHOLD){ 
+    Garden_pump_states.pump_humidity_state = 1; 
+    Serial.println("Earth humidity low");
+    }
   else Garden_pump_states.pump_humidity_state = 0;
 
-  static long old_time;
-  if (milliseconds - old_time >= TIME_CHECK_SENSORS && milliseconds - old_time < Garden.PUMP_ON_SECONDS) {
+  static long old_time = 0;
+
+  if (milliseconds - old_time >= TIME_CHECK_SENSORS && milliseconds - old_time < Garden. PUMP_ON_MILLISECONDS) {
     Garden_pump_states.pump_timer_state = 1;
   }
-  else if (milliseconds - old_time >= Garden.PUMP_ON_SECONDS && milliseconds - old_time < Garden.PUMP_ON_SECONDS + Garden.PUMP_OFF_SECONDS) {
+  else if (milliseconds - old_time >= Garden. PUMP_ON_MILLISECONDS && milliseconds - old_time < Garden. PUMP_ON_MILLISECONDS + Garden. PUMP_FF_MILLISECONDS) {
     Garden_pump_states.pump_timer_state = 0;
   }
   else old_time = milliseconds;
@@ -234,28 +250,71 @@ void control_earth_watering()
 
 void actuate_light()
 {
-  (Garden_light_states.light_sensor_state && Garden_light_states.light_timer_state) ? 
-  digitalWrite(PIN_UV_LED_LIGHT, HIGH) : digitalWrite(PIN_UV_LED_LIGHT, LOW);
+  if (Garden_light_states.light_sensor_state && Garden_light_states.light_timer_state) {
+    digitalWrite(PIN_UV_LED_LIGHT, HIGH);
+    Serial.println("Light is on");
+  }
+  else digitalWrite(PIN_UV_LED_LIGHT, LOW);
 }
 
 void actuate_heat()
 {
-  Garden_heater_states.heater_state? 
-  digitalWrite(PIN_HEAT, HIGH) : digitalWrite(PIN_HEAT, LOW);
+  if (Garden_heater_states.heater_state) {
+    digitalWrite(PIN_HEAT, HIGH);
+    Serial.println("Heat is on");
+  }
+  else digitalWrite(PIN_HEAT, LOW);
 }
 
 void actuate_fan()
 {
-  (Garden_fan_states.fan_humidity_state || Garden_fan_states.fan_temperature_state || Garden_fan_states.fan_timer_state) ? 
-  digitalWrite(PIN_COOLER, HIGH) : digitalWrite(PIN_COOLER, LOW);
+  if (Garden_fan_states.fan_humidity_state || Garden_fan_states.fan_temperature_state || Garden_fan_states.fan_timer_state) {
+    digitalWrite(PIN_COOLER, HIGH);
+    Serial.println("Fun is on");
+  }
+  else digitalWrite(PIN_COOLER, LOW);
 }
 
 void actuate_pump()
 {
-  Garden_pump_states.pump_timer_state && Garden_pump_states.pump_humidity_state ? 
-  digitalWrite(PIN_WATER_PUMP, HIGH) : digitalWrite(PIN_WATER_PUMP, LOW);
+  if (Garden_pump_states.pump_timer_state && Garden_pump_states.pump_humidity_state) {
+    digitalWrite(PIN_WATER_PUMP, HIGH);
+    Serial.println("Pump is on");
+  }
+  else digitalWrite(PIN_WATER_PUMP, LOW);
 }
 
+void check_pump()
+{
+  digitalWrite(PIN_WATER_PUMP, HIGH);
+  Serial.println("Pump checking");
+  delay(CHECKING_DELAY);
+  digitalWrite(PIN_WATER_PUMP, LOW);
+}
+
+void check_light()
+{
+  digitalWrite(PIN_UV_LED_LIGHT, HIGH);
+  Serial.println("Light checking");
+  delay(CHECKING_DELAY);
+  digitalWrite(PIN_UV_LED_LIGHT, LOW);
+}
+
+void check_fan()
+{
+  digitalWrite(PIN_COOLER, HIGH);
+  Serial.println("Fan checking");
+  delay(CHECKING_DELAY);
+  digitalWrite(PIN_COOLER, LOW);
+}
+
+void check_heat()
+{
+  digitalWrite(PIN_HEAT, HIGH);
+  Serial.println("Heat checkin");
+  delay(CHECKING_DELAY);
+  digitalWrite(PIN_HEAT, LOW);
+}
 
 void pin_initialization() {
   pinMode(PIN_LIGHT_SENSOR, INPUT);
@@ -281,6 +340,11 @@ void setup() {
 
   data_print();
 
+  check_pump();
+  check_light();
+  check_heat();
+  check_fan();
+
   delay(500);
 }
 
@@ -301,20 +365,12 @@ void loop() {
     control_earth_watering();
 
     actuate_light();
-    //actuate_fan();
+    actuate_fan();
     actuate_heat();
     actuate_pump();
 
     
     delay(1);
 
-
-  //возможно сделать delay; //
-  // разести actuate в отдельные функции //
-  // read_time с т.з. названия //
-  // regular_ventilation //
-  // watering -> earth watering || dirt_watering //
-  // + control_air_humidity если высокая влажность // 
-  // добавить пару датчиков освещенности чтобы они работали в каскаде
 
 }

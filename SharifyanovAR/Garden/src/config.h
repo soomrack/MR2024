@@ -1,6 +1,7 @@
 //файл переменной конфигурации
 #pragma once
 
+// first garden pinout
 #define PIN_LIGHT_SENSOR A0
 #define PIN_EARTH_WET_SENSOR A1
 #define PIN_HEAT 4
@@ -9,10 +10,21 @@
 #define PIN_COOLER 7
 #define PIN_TEMP_WET_SENSOR 12
 
+// second garden pinout
+/*#define PIN_LIGHT_SENSOR A0
+#define PIN_EARTH_WET_SENSOR A1
+#define PIN_HEAT 4
+#define PIN_WATER_PUMP 5
+#define PIN_UV_LED_LIGHT 6
+#define PIN_COOLER 7
+#define PIN_TEMP_WET_SENSOR 12*/
+
+
 #define BASE_TIME_DAY 86400000 //в мс - одни сутки
 #define BASE_TIME_SUNTIME 43200000 //в мс - половина суток
 #define BASE_TIME_NIGHT 43200000 //в мс - половиина суток
 #define TIME_CHECK_SENSORS 10 //период времени опроса датчиков
+#define CHECKING_DELAY 2000 // время для проверки механизмов
 
 /*#define WORK_TIME_WATER_PUMP 20000 //время работы помпы в случае если почва недостаточно влажная
 #define WORK_TIME_UV_LED 60000 //время работы подсветки, если света недостаточно
