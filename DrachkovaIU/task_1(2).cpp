@@ -1,4 +1,4 @@
-##include <iostream>
+#include <iostream>
 #include <stdio.h>
 #include <cstdlib>
 #include <stdlib.h>
@@ -9,13 +9,11 @@
 
 typedef double MatrixItem;
 
-
 class Matrix{
 private:
     size_t rows;
     size_t cols;
     double* data;
-
 public:
     Matrix();
     Matrix(const size_t rows, const size_t cols);
@@ -41,13 +39,15 @@ public:
     Matrix& operator+=(const Matrix& B);
     Matrix& operator-=(const Matrix& B);
     Matrix& operator*=(const Matrix& B);
-    Matrix operator*=(const double number);
+    Matrix& operator*=(const double number);      ///!!!
     Matrix operator^(unsigned int n);
-
+//=
+//=&& (A+B=C
 };
 
 //Конструкторы Matrix и деструктор
-Matrix::Matrix() {
+//!!!
+Matrix::Matrix() : rows(0), cols (0), data(nullptr) {
 	rows = 0;
 	cols = 0;
 	data = nullptr;
@@ -190,7 +190,7 @@ void Matrix::matrix_fill(const double* values)
 
 
 //Транспонирование
-    Matrix::matrix_trans() const
+    Matrix::matrix_trans() const          ///Возвращает матрицу!
     {
         Matrix T(cols, rows);
 
@@ -204,7 +204,7 @@ void Matrix::matrix_fill(const double* values)
 
 
 //Получение подматрицы
-    Matrix::matrix_submatrix(size_t row_exclude, size_t col_exclude) const 
+    Matrix::matrix_submatrix(size_t row_exclude, size_t col_exclude) const         ///Возвращает матрицу!!!
     {
         Matrix submatrix(rows-1, cols-1);
         size_t submatrix_i = 0, submatrix_j = 0;
