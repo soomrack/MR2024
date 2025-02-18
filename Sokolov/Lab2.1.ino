@@ -16,10 +16,10 @@ struct {
     int air_humidity_threshold = 70;
     int temp_high_threshold = 25;
     int temp_low_threshold = 20;
-    int sunrise_time = 7;    // Начальное время (7:00)
-    int sunset_time = 20;    // 20:00
-    int pump_on_time = 5000; // Время работы помпы (5 секунд)
-    int pump_off_time = 5000; // Время ожидания помпы (5 секунд)
+    int sunrise_time = 7;
+    int sunset_time = 20;
+    int pump_on_time = 5000;
+    int pump_off_time = 5000;
 } config;
 
 struct {
@@ -99,7 +99,7 @@ void read_dht_sensor() {
 }
 
 void update_time() {
-    unsigned long elapsed_seconds = millis() / 1000UL; // 1 секунда = 1 час
+    unsigned long elapsed_seconds = millis() / 1000UL;
     sensor_data.current_hour = (config.sunrise_time + elapsed_seconds) % 24;
 }
 
