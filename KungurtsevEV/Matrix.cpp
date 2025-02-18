@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -16,22 +16,22 @@ private:
     size_t cols;
     double* data;
 public:
-    Matrix() : rows(0), cols(0), data(nullptr) {};
+    Matrix() : rows(0), cols(0), data(nullptr) { cout << ("constructor\n"); };
     Matrix(const size_t rows, const size_t cols);
     Matrix(const size_t rows, const size_t cols, double* data);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A) noexcept;
-    ~Matrix() { rows = 0; cols = 0; delete[] data; cout << ("destructor\n"); };
+    ~Matrix() { rows = 0; cols = 0; delete[] data;cout << ("destructor\n");};
 public:
-    Matrix& operator= (const Matrix& A);
-    Matrix& operator= (Matrix&& A) noexcept;
-    Matrix& operator+= (const Matrix& A);
-    Matrix& operator-= (const Matrix& A);
-    Matrix& operator*= (const Matrix& A);
-    Matrix operator+ (const Matrix& A);
-    Matrix operator- (const Matrix& A);
-    Matrix operator* (const Matrix& A);
-    Matrix operator* (double scalar) const;
+    Matrix& operator=(const Matrix& A);
+    Matrix& operator=(Matrix&& A) noexcept;
+    Matrix& operator+=(const Matrix& A);
+    Matrix& operator-=(const Matrix& A);
+    Matrix& operator*=(const Matrix& A);
+    Matrix operator+(const Matrix& A);
+    Matrix operator-(const Matrix& A);
+    Matrix operator*(const Matrix& A);
+    Matrix operator*(double scalar) const;
 public:
     void print();
     void set_zero();
@@ -54,13 +54,14 @@ public:
 Matrix::Matrix(const size_t rows, const size_t cols, double* value)
     :rows(rows), cols(cols), data(value)
 {
+    cout << ("constr data\n");
     if (cols == 0 || rows == 0) {
-        throw MatrixException ("Initialized matrix with 0 rows / cols\n");
+        throw MatrixException("Initialized matrix with 0 rows / cols\n");
         return;
     };
 
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX/rows*cols) {
-        throw MatrixException ("Memory allocation failed\n");
+    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX / rows * cols) {
+        throw MatrixException("Memory allocation failed\n");
     };
 
     data = new MatrixItem[rows * cols];
@@ -71,13 +72,14 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* value)
 Matrix::Matrix(const size_t rows, const size_t cols)
     : rows(rows), cols(cols)
 {
+    cout << ("constructor_r_c\n");
     if (cols == 0 || rows == 0) {
-        throw MatrixException ("Initialized matrix with 0 rows / cols\n");
+        throw MatrixException("Initialized matrix with 0 rows / cols\n");
         return;
     };
 
-    if (rows > SIZE_MAX / cols / sizeof(MatrixItem)) {               
-        throw MatrixException ("Memory allocation failed\n");
+    if (rows > SIZE_MAX / cols / sizeof(MatrixItem)) {
+        throw MatrixException("Memory allocation failed\n");
     };
     data = new MatrixItem[rows * cols];
 }
@@ -85,6 +87,7 @@ Matrix::Matrix(const size_t rows, const size_t cols)
 
 Matrix::Matrix(const Matrix& A)
 {
+    cout << ("COPY\n");
     rows = A.rows;
     cols = A.cols;
     data = new MatrixItem[rows * cols];
@@ -94,14 +97,16 @@ Matrix::Matrix(const Matrix& A)
 
 Matrix::Matrix(Matrix&& A) noexcept : rows(A.rows), cols(A.cols), data(A.data)
 {
+    cout << ("move\n");
     A.rows = 0;
     A.cols = 0;
     A.data = nullptr;
 }
 
 
-Matrix& Matrix::operator= (const Matrix& A)
+Matrix& Matrix::operator=(const Matrix& A)
 {
+    cout << ("COPY\n");
     if (this == &A) { return *this; };
 
     if (cols == A.cols && rows == A.rows) {
@@ -118,8 +123,10 @@ Matrix& Matrix::operator= (const Matrix& A)
 }
 
 
-Matrix& Matrix::operator= (Matrix&& A) noexcept
+Matrix& Matrix::operator=(Matrix&& A) noexcept
 {
+   
+    cout << ("MOVE\n");
     delete[] data;
     rows = A.rows;
     cols = A.cols;
@@ -131,23 +138,23 @@ Matrix& Matrix::operator= (Matrix&& A) noexcept
 };
 
 
-Matrix& Matrix::operator+= (const Matrix& A)
+Matrix& Matrix::operator+=(const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-         throw MatrixException("Matrixes of different sizes\n");
+        throw MatrixException("Matrixes of different sizes\n");
     }
 
     for (size_t idx = 0; idx < rows * cols; idx++) {
-        data[idx] += A.data[idx]; 
+        data[idx] += A.data[idx];
     }
     return *this;
 }
 
 
-Matrix& Matrix::operator-= (const Matrix& A)
+Matrix& Matrix::operator-=(const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-        throw MatrixException ("Matrixes of different sizes\n");
+        throw MatrixException("Matrixes of different sizes\n");
     }
     for (size_t idx = 0; idx < rows * cols; idx++) {
         data[idx] -= A.data[idx];
@@ -156,10 +163,10 @@ Matrix& Matrix::operator-= (const Matrix& A)
 }
 
 
-Matrix& Matrix::operator*= (const Matrix& A)
+Matrix& Matrix::operator*=(const Matrix& A)
 {
     if (rows != A.rows || cols != A.cols) {
-        throw MatrixException ("Matrixes of different sizes\n");
+        throw MatrixException("Matrixes of different sizes\n");
     }
 
     for (size_t idx = 0; idx < rows * cols; idx++) {
@@ -171,6 +178,7 @@ Matrix& Matrix::operator*= (const Matrix& A)
 
 Matrix Matrix::operator+ (const Matrix& A)
 {
+    cout << ("SUM\n");
     Matrix result(*this);
     result += A;
     return result;
@@ -187,8 +195,9 @@ Matrix Matrix::operator- (const Matrix& A)
 
 Matrix Matrix::operator* (const Matrix& A)
 {
+    cout << ("MULT\n");
     if (cols != A.rows) {
-        throw MatrixException ("Matrixes dimensions do not match for multiplication\n");
+        throw MatrixException("Matrixes dimensions do not match for multiplication\n");
     }
 
     Matrix result(rows, A.cols);
@@ -200,14 +209,15 @@ Matrix Matrix::operator* (const Matrix& A)
             }
         }
     }
+
     return result;
 }
 
 
 Matrix Matrix::operator* (double scalar) const
 {
-    Matrix result(rows,cols);
-    for (size_t i = 0; i < rows*cols; i++){
+    Matrix result(rows, cols);
+    for (size_t i = 0; i < rows * cols; i++) {
         result.data[i] = data[i] * scalar;
     }
     return result;
@@ -294,7 +304,7 @@ Matrix Matrix::matrix_exponent(const unsigned long long int n)
         throw MatrixException("Matrix is not square\n");
     }
 
-    Matrix matrix_exponent_term(*this); 
+    Matrix matrix_exponent_term(*this);
     Matrix matrix_exponent_result(rows, cols);
     matrix_exponent_result.set_one();
 
@@ -327,7 +337,7 @@ double Matrix::determinant() const
     int sign = 1;
 
     for (size_t col = 0; col < cols; col++) {
-        Matrix TEMP = this->minor(0, col); 
+        Matrix TEMP = this->minor(0, col);
         det += sign * data[col] * TEMP.determinant();
         sign = -sign;
     }
@@ -348,23 +358,29 @@ void Matrix::print()
 
 int main()
 {
-    double src_data[9] = { 0., 1., 2., 3., 4., 5., 6., 7., 8. };
+    double src_data[9] = { 0., 1., 2., 3., 9., 5., 6., 7., 8. };
     double src_data1[9] = { 8., 7., 6., 5., 4., 3., 2., 1., 0. };
+    double src_data2[9] = { 3., 5., 8., 6., 4., 6., 9., 2., 1. };
 
     Matrix A(3, 3, src_data);
     Matrix B(3, 3, src_data1);
+    Matrix C(3, 3, src_data2);
     Matrix SUM = A + B;
     Matrix SUB = A - B;
     Matrix MULT = A * B;
     Matrix MULT_SCAL = A * 3;
     Matrix TRAN = A.transpose();
-    Matrix MIN = A.minor(2,2);
+    Matrix MIN = A.minor(2, 2);
     Matrix INV = A.inverse();
     Matrix EXP = A.matrix_exponent(3);
     double DET = A.determinant();
+    Matrix EXE;
+    EXE = A * B + C;
+
 
     A.print();
     B.print();
+    C.print();
     SUM.print();
     SUB.print();
     MULT.print();
@@ -373,5 +389,7 @@ int main()
     MIN.print();
     INV.print();
     EXP.print();
-    cout << endl <<  DET << endl;
+    cout << endl << DET << endl;
+    EXE.print();
+
 }
