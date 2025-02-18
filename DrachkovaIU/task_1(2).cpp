@@ -34,9 +34,13 @@ private:
     void matrix_identity(const size_t size);
 public:
     Matrix& operator+=(const Matrix& B);
+    Matrix operator+(const Matrix& B);           //
     Matrix& operator-=(const Matrix& B);
+    Matrix operator-(const Matrix& B);           //
     Matrix& operator*=(const Matrix& B);
+    Matrix operator*(const Matrix& B);           //
     Matrix& operator*=(const double number);
+    Matrix operator*(const double number);       //
     Matrix& operator^(unsigned int n);
     Matrix& operator=(const Matrix& B);
     Matrix& operator=(Matrix&& B);
@@ -165,6 +169,13 @@ void Matrix::matrix_fill(const double* values)
         return *this;
     }
 
+Matrix Matrix::operator+(const Matrix& B)
+{
+    Matrix sum(*this);
+    sum += B;
+    return sum;
+}
+
 //Вычитание
     Matrix& Matrix::operator-=(const Matrix& B)
     {
@@ -179,6 +190,12 @@ void Matrix::matrix_fill(const double* values)
         return *this;
     }
 
+Matrix Matrix::operator-(const Matrix& B)
+{
+    Matrix sub(*this);
+    sub += B;
+    return sub;
+}
 
 //Умножение
     Matrix& Matrix::operator*=(const Matrix& B)
@@ -202,6 +219,12 @@ void Matrix::matrix_fill(const double* values)
         return *this;
     }
 
+Matrix Matrix::operator*(const Matrix& B)
+{
+    Matrix mult(*this);
+    mult *= B;
+    return mult;
+}
 
 //Умножение на число
     Matrix& Matrix::operator*=(const double number)
@@ -213,6 +236,12 @@ void Matrix::matrix_fill(const double* values)
     return *this;
     }
 
+Matrix Matrix::operator*(const double number)
+{
+    Matrix multi(*this);
+    multi *= number;
+    return multi;
+}
 
 //Транспонирование
     void Matrix::matrix_trans()
