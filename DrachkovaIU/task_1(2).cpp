@@ -1,88 +1,166 @@
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-#include <cmath>
+##include <iostream>
+#include <stdio.h>
+#include <cstdlib>
+#include <stdlib.h>
+#include <math.h>
+#include <stdint.h>
+#include <cstring>
 
-using namespace std;
+
+typedef double MatrixItem;
+
 
 class Matrix{
 private:
     size_t rows;
     size_t cols;
-    vector<vector<double>> data;
+    double* data;
+
 public:
-    Matrix(size_t r, size_t c) : rows(r), cols(c), data(r, vector<double>(c,0)) {}
+    Matrix();
+    Matrix(const size_t rows, const size_t cols);
+    Matrix(const size_t rows, const size_t cols, const MatrixItem* data);
+    Matrix(const Matrix &A);
+    Matrix(Matrix &&A);
+    ~Matrix();
 
-//Деструктор, копирование, присваивание, перенос
+public:
+    void print();
+    void matrix_fill(const double* values);
+    void matrix_trans();
+    void matrix_submatrix(size_t row_exclude, size_t col_exclude);
+    void matrix_determinant();
+    void matrix_inverse();
+    void matrix_exponent(int n);
+
+private:
+    void matrix_identity(const size_t size);
 
 
-//Заполнение матрицы значениями из массива
-    void matrix_fill(const vector<double>& values) 
-    {
-        if (values.size() != rows * cols) {
-            throw runtime_error("Неверное количество элементов для заполнения матрицы.");
-        }
-        for (size_t i=0; i < rows; i++) {
-            for (size_t j=0; j < cols; j++) {
-                data[i][j] = values[i * cols + j];
-            }
-        }
+public:
+    Matrix& operator+=(const Matrix& B);
+    Matrix& operator-=(const Matrix& B);
+    Matrix& operator*=(const Matrix& B);
+    Matrix operator*=(const double number);
+    Matrix operator^(unsigned int n);
+
+};
+
+//Конструкторы Matrix и деструктор
+Matrix::Matrix() {
+	rows = 0;
+	cols = 0;
+	data = nullptr;
+}
+
+Matrix::Matrix(const size_t rows, const size_t cols) {
+    if (rows == 0 || cols == 0) {
+        throw std::runtime_error("Нулевая матрица.");
+    }
+    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+        throw std::runtime_error("Ошибка размера матрицы.");
+    };
+
+    data = new MatrixItem[rows * cols];
+}
+
+Matrix::Matrix(const size_t rows, const size_t cols, const MatrixItem* value) {
+    if (data == nullptr)
+		throw std::runtime_error("Нулевая матрица.");
+
+    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+        throw std::runtime_error("Ошибка размера матрицы.");
+    };
+
+	data = new MatrixItem[rows * cols];
+    
+    std::memcpy(data, value, rows * cols * sizeof(MatrixItem));
+}
+
+Matrix::Matrix(const Matrix &A) {
+    rows = A.rows;
+    cols = A.cols;
+    data = new MatrixItem[rows * cols];
+    memcpy(data, A.data, sizeof(MatrixItem) * rows * cols);
+}
+
+Matrix::Matrix(Matrix &&A) {
+    rows = A.rows;
+    cols = A.cols;
+    data = A.data;
+
+    A.rows = 0;
+    A.cols = 0;
+    A.data = nullptr;
+}
+
+Matrix::~Matrix() {
+    rows = 0;
+    cols = 0;
+    delete[] data;
+}
+
+
+//Операции
+
+void Matrix::print()
+{
+    for (size_t row = 0; row < rows; row++) {
+        for (size_t col = 0; col < cols; col++)
+            printf("%.f ", data[row * cols + col]);
+        printf("\n");
+    } 
+    printf("\n");
+}
+
+void Matrix::matrix_fill(const double* values) 
+{
+    if (!values) {
+        throw std::runtime_error("Передан недопустимый массив значений.");
     }
 
-    void matrix_print() const 
-    {
-        for (const auto& row : data) {
-            for (double val : row) {
-                cout << val << " ";
-            }
-            cout << endl;
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            data[i * cols + j] = values[i * cols + j];
         }
-        cout << endl;
     }
+}
+
 
 //Сложение
-    Matrix operator+(const Matrix& B)
+    Matrix& Matrix::operator+=(const Matrix& B)
     {
         if (cols != B.cols || rows != B.rows) {
-            throw runtime_error("Размеры матриц не совпадают.");
+            throw std::runtime_error("Размеры матриц не совпадают.");
         }
-
-        Matrix C(rows, cols);
 
         for (size_t i = 0; i < rows * cols; i++) {
-            for (size_t j = 0; j < cols; j++) {
-               C.data[i][j] = data[i][j] + B.data[i][j]; 
-            }
-            
+            data[i] += B.data[i]; 
         }
 
-        return C;
+        return *this;
     }
 
 //Вычитание
-    Matrix operator-(const Matrix& B)
+    Matrix& Matrix::operator-=(const Matrix& B)
     {
         if (cols != B.cols || rows != B.rows) {
-            throw runtime_error("Размеры матриц не совпадают.");
+            throw std::runtime_error("Размеры матриц не совпадают.");
         }
-
-        Matrix C(rows, cols);
 
         for (size_t i = 0; i < rows; i++) {
-            for (size_t j = 0; j < cols; j++) {
-              C.data[i][j] = data[i][j] - B.data[i][j];  
-            }
-            
+            data[i] -= B.data[i];  
         }
 
-        return C;
+        return *this;
     }
 
+
 //Умножение
-    Matrix operator*(const Matrix& B)                                 //Дважды выделяется память
+    Matrix& Matrix::operator*=(const Matrix& B)
     {
         if (cols != B.rows) {
-            throw runtime_error("Число столбцов не соответствует числу строк.");
+            throw std::runtime_error("Число столбцов не соответствует числу строк.");
         }
 
         Matrix C(rows, B.cols);
@@ -90,28 +168,29 @@ public:
         for (size_t i = 0; i < rows; i++) {
             for (size_t j = 0; j < B.cols; j++) {
                 for (size_t k = 0; k < cols; k++) {
-                    C.data[i][j] += data[i][k] * B.data[k][j];
+                    C.data[i * C.cols + j] += data[i * cols + k] * B.data[k * B.cols + j];
                 }
             }
         }
-        return C;
+
+        *this = C;
+        return *this;
     }
+
 
 //Умножение на число
-    Matrix operator*(double number) const
+    Matrix& Matrix::operator*=(const double number) const
     {
-        Matrix C(rows, cols);
-
-        for (size_t i = 0; i < rows; i++) {
-            for (size_t j = 0; j < cols; j++) {
-                C.data[i][j] = data[i][j] * number;
-            }
-        }
-        return C;
+        for (size_t i = 0; i < rows * cols; i++) {
+        data[i] *= number;
     }
 
+    return *this;
+    }
+
+
 //Транспонирование
-    Matrix matrix_trans() const
+    Matrix::matrix_trans() const
     {
         Matrix T(cols, rows);
 
@@ -123,8 +202,9 @@ public:
         return T;
     }
 
+
 //Получение подматрицы
-    Matrix matrix_submatrix(size_t row_exclude, size_t col_exclude) const 
+    Matrix::matrix_submatrix(size_t row_exclude, size_t col_exclude) const 
     {
         Matrix submatrix(rows-1, cols-1);
         size_t submatrix_i = 0, submatrix_j = 0;
@@ -142,8 +222,9 @@ public:
         return submatrix;
     }
 
+
 //Определитель
-    double matrix_determinant() const
+    double Matrix::matrix_determinant() const
     {
         if ((cols != rows) || rows == 0 || cols == 0) {
             throw runtime_error("Не квадратная матрица.");
@@ -168,8 +249,9 @@ public:
         return det;
     }
 
+
 //Единичная матрица
-    static Matrix matrix_identity(const size_t size) 
+    static Matrix::matrix_identity(const size_t size) 
     {
         Matrix identity_matrix(size, size);
 
@@ -182,7 +264,7 @@ public:
 
 
 //Возведение в степень
-    Matrix operator^(unsigned int n)
+    Matrix& Matrix::operator^(unsigned int n)
     {
         if (rows != cols) {
             throw runtime_error("Матрица не квадратная.");
@@ -206,7 +288,7 @@ public:
 
 
 //Инверсия
-    Matrix matrix_inverse() const
+    Matrix::matrix_inverse() const
     {
         double det = matrix_determinant();
 
@@ -234,7 +316,7 @@ public:
 
 
 //Экспонента
-    Matrix matrix_exponent(int n) const
+    Matrix::matrix_exponent(int n) const
     {
         if (rows != cols) {
             throw runtime_error("Матрица не квадратная.");
@@ -255,7 +337,6 @@ public:
 
         return exp_result;
     }
-};
 
 //Итоговые вычисления
 void calculations ()
@@ -266,36 +347,37 @@ void calculations ()
     A.matrix_fill({1, 2, 3, 4});
     B.matrix_fill({5, 6, 7, 8});
 
-    cout << "Matrix A:\n";
+    printf("Matrix A:\n");
     A.matrix_print();
 
-    cout << "Matrix B:\n";
+    cprintf("Matrix B:\n");
     B.matrix_print();
 
-    cout << "Addition:\n";
+    printf("Addition:\n");
     (A + B).matrix_print();
 
-    cout << "Subtraction:\n";
+    printf("Subtraction:\n");
     (A - B).matrix_print();
 
-    cout << "Multiplication:\n";
+    printf("Multiplication:\n");
     (A * B).matrix_print();
 
-    cout << "Multiplication by 2:\n";
+    printf("Multiplication by 2:\n");
     (A * 2).matrix_print();
 
-    cout << "Transpose A:\n";
+    printf("Transpose A:\n");
     A.matrix_trans().matrix_print();
 
-    cout << "Determinant of A: " << A.matrix_determinant() << endl;
+    printf("Determinant of A: ");
+    A.matrix_determinant();
 
-    cout << "A ^ 2:\n";
+    printf("A ^ 2:\n");
     (A ^ 2).matrix_print();
 
-    cout << "Inverse of A:\n";
+    printf("Inverse of A:\n");
     A.matrix_inverse().matrix_print();
 
-    cout << "Matrix Exponential of A:\n";
+    printf("Matrix Exponential of A:\n");
     A.matrix_exponent().matrix_print();
 
 }
