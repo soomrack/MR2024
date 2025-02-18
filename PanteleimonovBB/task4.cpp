@@ -6,16 +6,6 @@
 #include <limits>
 #include <algorithm>
 
-std::uint64_t factorial(unsigned int f) {
-    std::uint64_t res = 1;
-    for (unsigned int idx = 1; idx <= f; idx++) {
-        if (res > UINT64_MAX / idx) {
-            throw std::overflow_error("Переполнение при вычислении факториала!");
-        }
-        res *= idx;
-    }
-    return res;
-}
 
 class Matrix {
 private:
@@ -30,6 +20,7 @@ public:
     Matrix(const Matrix& M);
     Matrix(Matrix&& M) noexcept;
     ~Matrix();
+     static uint64_t factorial(unsigned int f);
 public:
     Matrix& operator=(const Matrix& M);
     Matrix& operator=(Matrix&& M) noexcept;
@@ -52,6 +43,16 @@ public:
 Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
 }
 
+ uint64_t Matrix::factorial(unsigned int f) {
+    std::uint64_t res = 1;
+    for (unsigned int idx = 1; idx <= f; idx++) {
+        if (res > UINT64_MAX / idx) {
+            throw std::overflow_error("Переполнение при вычислении факториала!");
+        }
+        res *= idx;
+    }
+    return res;
+}
 
 Matrix::Matrix(size_t n) : rows(n), cols(n) {
     if (n == 0) {
