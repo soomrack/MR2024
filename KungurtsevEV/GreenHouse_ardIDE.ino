@@ -1,6 +1,6 @@
 #include <DHT.h>
 
-#define LUX_SENSOR A3
+#define PIN_LUX_SENSOR A3
 #define LED_STRIP 6
 #define HUMIDITY_SENSOR A1
 #define WATER_PUMP 5
@@ -20,7 +20,7 @@ public:
     double max_humidity;
     int min_soil_humidity;
     int max_soil_humidity;
-
+public:
     void set_for_basil();
 };
 
@@ -42,7 +42,7 @@ public:
     double temperature;
     double humidity;
     int soil_humidity;
-
+public:
     void read_sensors();
 };
 
@@ -50,7 +50,7 @@ public:
 void Sensors::read_sensors() {
     dht.read();
     soil_humidity = analogRead(HUMIDITY_SENSOR);
-    light = analogRead(LUX_SENSOR);
+    light = analogRead(PIN_LUX_SENSOR);
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
 }
@@ -209,7 +209,7 @@ void GreenhouseController::control_pump() {
     if (state.pump) {
         unsigned long start = millis();
         while (millis() - start < WATER_TIME * 1000) {
-            digitalWrite(WATER_PUMP, HIGH);
+            digitalWrite(WATER_PUMP, HIGH); //////
             digitalWrite(HEAT_VENT, LOW);
         }
     }
@@ -220,17 +220,22 @@ void GreenhouseController::control_pump() {
 void GreenhouseController::periodic_check() {
     time.update_time();
     if (time.seconds % 5 == 0) {
+        //sensors
         sens.read_sensors();
+        //control
         check_ventilation();
         check_air_temperature();
         check_air_humidity();
-        check_ground_humidity();
+        check_ground_watering();
         check_light();
 
-        control_light();
+        //act
+        control_light(); //turn
         control_heat();
         control_vent();
         control_pump();
+        
+        //log
         Serial.println(sens.light);
     }
 }
