@@ -28,7 +28,7 @@ public:
 void Climate::set_for_basil() {
     min_light = 500;
     min_temp = 15;
-    max_temp = 30;
+    max_temp = 27;
     min_soil_humidity = 20;
     max_soil_humidity = 120;
     min_humidity = 40;
@@ -159,8 +159,8 @@ void GreenhouseController::check_air_temperature() {
         state.vent = false;
         state.heat = false;
     } else {
-        state.vent = false;
-        state.heat = true;
+        state.vent = true;
+        state.heat = false;
     }
 }
 
@@ -170,10 +170,10 @@ void GreenhouseController::check_air_humidity() {
         state.vent = true;
         state.pump = false;
     } else if (sens.humidity < clim.min_humidity) {
-        state.vent = true;
+        state.vent = false;
         state.pump = true;
     } else {
-        state.vent = false;
+        state.vent = true;
         state.pump = false;
     }
 }
@@ -210,6 +210,7 @@ void GreenhouseController::control_pump() {
         unsigned long start = millis();
         while (millis() - start < WATER_TIME * 1000) {
             digitalWrite(WATER_PUMP, HIGH);
+            digitalWrite(HEAT_VENT, LOW);
         }
     }
     digitalWrite(WATER_PUMP, LOW);
@@ -218,7 +219,7 @@ void GreenhouseController::control_pump() {
 
 void GreenhouseController::periodic_check() {
     time.update_time();
-    if (time.seconds % 10 == 0) {
+    if (time.seconds % 5 == 0) {
         sens.read_sensors();
         check_ventilation();
         check_air_temperature();
@@ -243,13 +244,17 @@ void setup() {
 
 
 void loop() {
-  //controller.periodic_check();
-
-  float l = analogRead(LUX_SENSOR);
-  float t = dht.readTemperature();
+  controller.periodic_check();
+//   digitalWrite(HEAT_VENT, HIGH);
+//   digitalWrite(VENTILATION, HIGH );
+//   float l = analogRead(LUX_SENSOR);
+//float hum = analogRead(HUMIDITY_SENSOR);
+ float t = dht.readTemperature();
   Serial.print("temp:");
   Serial.println(t);
-  Serial.print("lux:");
-  Serial.println(l);
-  delay(500);
+//   Serial.print("lux:");
+//   Serial.println(l);
+//   Serial.print("hum:");
+//   Serial.println(hum);
+//   delay(500);
 }
