@@ -1,0 +1,175 @@
+#include <stdio.h>
+
+typedef long long int Rubls;
+
+typedef struct Ipoteka {
+    Rubls sum;
+    Rubls first_pay;
+    Rubls monthly_payment;
+    double Ipoteka_rate;
+} Ipoteka;
+
+typedef struct Person {
+    Rubls account;
+    Rubls zarplata;
+    Rubls food;
+    Rubls komunalka;
+    Rubls rent;
+    Ipoteka ipoteka;
+} Person;
+
+Person alice;
+Person bob;
+
+void alice_init()
+{
+    alice.account = 100 * 1000 * 100; //стартовый капитал Алисы
+    alice.zarplata = 200 * 1000 * 100; //зарплата Алисы
+    alice.food = 20 * 1000 * 100; //траты Алисы на жили-были
+    alice.komunalka = 15 * 1000 * 100; //стоимость комуналки и различных бытовых затрат Алисы
+    alice.rent = 28 * 1000 * 100; //стоимость арендуемой Алисой квартиры
+}
+
+void bob_init()
+{
+    bob.account = 100 * 1000 * 100; //стартовый капитал Роберта
+    bob.zarplata = 200 * 1000 * 100; //зарплата Роберта
+    bob.food = 20 * 1000 * 100; //траты Роберта на жили-были
+    bob.komunalka = 15 * 1000 * 100; //стоимость комуналки и различных бытовых затрат Роберта
+    bob.ipoteka.sum = 10 * 1000 * 1000 * 100; //общая сумма взятого Робертом ипотечного кредита
+    bob.ipoteka.first_pay = 1000 * 1000 * 100; //первоначальный взнос Роберта по кредиту
+    bob.ipoteka.monthly_payment = 126444 * 100; // https://calcus.ru/kalkulyator-ipoteki
+    bob.ipoteka.Ipoteka_rate = 0.15; //процентная ставка по ипотеке
+    bob.account -= bob.ipoteka.first_pay; //оплата Робертом первого взноса
+}
+
+void alice_zarplata(const int month)
+{
+    alice.account += alice.zarplata;
+
+    if(month == 12) {
+        alice.zarplata *= 1.07;
+    }
+}
+
+void bob_zarplata(const int month)
+{
+    bob.account += bob.zarplata;
+
+    if(month == 12) {
+        bob.zarplata *= 1.07;
+    }
+}
+
+void alice_food(const int month)
+{
+    alice.account -= alice.food;
+
+    if (month == 12) {
+        alice.food *= 1.07;
+    }
+}
+
+void bob_food(const int month)
+{
+    bob.account -= bob.food;
+
+    if (month == 12) {
+        bob.food *= 1.07;
+    }
+}
+
+void alice_komunalka(const int month, const int year)
+{
+    alice.account -= alice.komunalka;
+    if(month == 12) {
+        alice.komunalka *= 1.07;
+    }
+
+    if(year == 2030 && month == 9) {
+        alice.komunalka *= 2;
+    }
+
+    if(year == 2031 && month == 2) {
+        alice.account -= 1000;
+    }
+}
+
+void bob_komunalka(const int month)
+{
+    bob.account -= bob.komunalka;
+    if(month == 12) {
+        bob.komunalka *= 1.07;
+    }
+}
+
+void alice_rent(const int month, const int year)
+{
+    alice.account -=alice.rent;
+    if(month == 12) {
+        alice.rent *= 1.07;
+    }
+}
+
+void bob_ipoteka()
+{
+    bob.account -= bob.ipoteka.monthly_payment;
+}
+
+void alice_deposit()
+{
+    alice.account *= (1 + 0.2/12);
+}
+
+void bob_deposit()
+{
+    bob.account *= (1 + 0.2/12);
+}
+
+void alice_print()
+{
+    printf("Alice account = %lld RUB\n", alice.account);
+}
+
+void bob_print()
+{
+    printf("Bob account = %lld RUB\n", bob.account);
+}
+
+void simulation()
+{
+    int year = 2025;
+    int month = 2;
+
+    while( !((year == 2025 + 30) && (month == 3)) ){
+
+        alice_zarplata(month);
+        alice_deposit();
+        alice_food(month);
+        alice_komunalka(month, year);
+        alice_rent(month, year);
+
+        bob_zarplata(month);
+        bob_deposit();
+        bob_food(month);
+        bob_komunalka(month);
+        bob_ipoteka();
+
+        ++month;
+        if(month == 13) {
+            month = 1;
+            ++year;
+        }
+    }
+}
+
+int main()
+{
+    alice_init();
+    bob_init();
+
+    simulation();
+
+    alice_print();
+    bob_print();
+}
