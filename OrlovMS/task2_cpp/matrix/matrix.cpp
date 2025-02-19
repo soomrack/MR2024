@@ -52,17 +52,10 @@ void Matrix::alloc(const size_t rows, const size_t cols)
         m_rows = 0;
         m_cols = 0;
         print_log(LOG_ERR, "matrix size too big\n");
-        throw PARAMS_ERR;
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
 
-    try {
-        m_data = new double[rows * cols];
-    }
-    catch(...) {
-        m_rows = 0;
-        m_cols = 0;
-        throw ALLOC_ERR;
-    }
+    m_data = new double[rows * cols];
 
     m_rows = rows;
     m_cols = cols;
@@ -173,7 +166,7 @@ void Matrix::set(const size_t row, const size_t col, const double num)
 {
     if(row >= m_rows || col >= m_cols) {
         print_log(LOG_ERR, "index out of bound\n");
-        throw PARAMS_ERR;
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
 
     m_data[row * m_cols + col] = num;
@@ -184,7 +177,7 @@ double Matrix::get(const size_t row, const size_t col) const
 {
     if(row >= m_rows || col >= m_cols) {
         print_log(LOG_ERR, "index out of bound\n");
-        throw PARAMS_ERR;
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
 
     return m_data[row * m_cols + col];
@@ -228,7 +221,7 @@ void Matrix::set_identity()
 
     if(!is_square()) {
         print_log(LOG_ERR, "matrix not square\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     set_zeros();
@@ -299,7 +292,7 @@ Matrix Matrix::operator+(const Matrix &second) const
 
     if(!equal_size(second)) {
         print_log(LOG_ERR, "matrix size not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(m_rows, m_cols);
@@ -318,7 +311,7 @@ Matrix& Matrix::operator+=(const Matrix &mat)
 
     if(!equal_size(mat)) {
         print_log(LOG_ERR, "matrix size not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     for(size_t idx = 0; idx < m_rows * m_cols; idx++) {
@@ -335,7 +328,7 @@ Matrix Matrix::operator-(const Matrix &second) const
 
     if(!equal_size(second)) {
         print_log(LOG_ERR, "matrix size not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(m_rows, m_cols);
@@ -354,7 +347,7 @@ Matrix& Matrix::operator-=(const Matrix &mat)
 
     if(!equal_size(mat)) {
         print_log(LOG_ERR, "matrix size not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     for(size_t idx = 0; idx < m_rows * m_cols; idx++) {
@@ -397,7 +390,7 @@ Matrix Matrix::operator*(const Matrix &second) const
 
     if(m_cols != second.m_rows) {
         print_log(LOG_ERR, "first.cols and second.rows not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(m_rows, second.m_cols);
@@ -421,7 +414,7 @@ Matrix& Matrix::operator*=(const Matrix &second)
 
     if(m_cols != second.m_rows) {
         print_log(LOG_ERR, "first.cols and second.rows not equals\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     *this = (*this) * second;
@@ -436,7 +429,7 @@ Matrix Matrix::pow(const unsigned int pow) const
 
     if(!is_square()) {
         print_log(LOG_ERR, "matrix not square\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(m_rows, m_cols);
@@ -456,7 +449,7 @@ Matrix Matrix::exp(const unsigned int iterations) const
 
     if(!is_square()) {
         print_log(LOG_ERR, "matrix not square\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(m_rows, m_cols);
@@ -527,7 +520,7 @@ double Matrix::det() const
 
     if(!is_square()) {
         print_log(LOG_ERR, "matrix not square\n");
-        throw SIZE_ERR;
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix tmp(*this);

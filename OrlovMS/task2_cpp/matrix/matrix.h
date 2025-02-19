@@ -1,19 +1,50 @@
 #pragma once
 #include <cstring>
-#include <ostream>
+#include <exception>
 
 // uncomment line below to enable print_log calls
 #define MATRIX_LOG_ENABLE
 
-class Matrix
+class MatrixException : public std::exception
 {
 public:
     enum Exceptions {
-        ALLOC_ERR,
         PARAMS_ERR,
         SIZE_ERR
     };
 
+    MatrixException(const enum Exceptions code) : m_code(code)
+    {}
+
+
+    const char* what() const noexcept override
+    {
+        switch(m_code)
+        {
+        case PARAMS_ERR:
+            return "Input parameters error";
+            break;
+        case SIZE_ERR:
+            return "Matrix wrong size";
+            break;
+        default:
+            return nullptr;
+        }
+    }
+
+
+    enum Exceptions get_code() const noexcept
+    {
+        return m_code;
+    }
+private:
+    enum Exceptions m_code;
+};
+
+
+class Matrix
+{
+public:
     enum LogLevel {
         LOG_NONE,
         LOG_ERR,
