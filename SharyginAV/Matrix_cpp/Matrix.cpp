@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+using namespace std;
 
 class Matrix
 {
@@ -13,21 +14,75 @@ public:
 
     ~Matrix() = default;
 
-    double& operator()(size_t row_num, size_t col_num) {
+    double& operator()(const size_t row_num,const size_t col_num) {
         if(row_num >= rows || col_num >= cols) {
             throw "Out of range";
         }
         return data[row_num * cols + col_num];
     }
 
-    const double& operator()(size_t row_num, size_t col_num) const {
+    const double& operator()(const size_t row_num, const size_t col_num) const {
         if(row_num >= rows || col_num >= cols) {
             throw "Out of range";
         }
         return data[row_num * cols + col_num];
     }
 
-    void print() const
+    Matrix operator+(const Matrix &A) const
+    {
+        if(!A.equal_size(*this)) {
+            throw "Matrices of unequal sizes";
+        }
+
+        Matrix result(A.rows, A.cols);
+        for(size_t idx = 0; idx < rows * cols; ++idx) {
+            result.data[idx] = data[idx] + A.data[idx];
+        }
+
+        return result;
+    }
+
+    Matrix operator-(const Matrix &A) const
+    {
+        if(!A.equal_size(*this)) {
+            throw "Matrices of unequal sizes";
+        }
+
+        Matrix result(A.rows, A.cols);
+        for(size_t idx = 0; idx < rows * cols; ++idx) {
+            result.data[idx] = data[idx] - A.data[idx];
+        }
+
+        return result;
+    }
+
+    Matrix& operator+=(const Matrix &A)
+    {
+        if(!A.equal_size(*this)) {
+            throw "Matrices of unequal sizes";
+        }
+
+        for(size_t idx = 0; idx < rows * cols; ++idx) {
+            data[idx] += A.data[idx];
+        }
+
+        return *this;
+    }
+
+    Matrix& operator-=(const Matrix &A)
+    {
+        if(!A.equal_size(*this)) {
+            throw "Matrices of unequal sizes";
+        }
+
+        for(size_t idx = 0; idx < rows * cols; ++idx) {
+            data[idx] -= A.data[idx];
+        }
+
+        return *this;
+    }
+
+    void print() const noexcept
     {
         for(size_t row_idx = 0; row_idx < rows; ++row_idx) {
             for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
@@ -37,6 +92,12 @@ public:
         }
     }
 
+    bool equal_size(const Matrix &A) const
+    {
+        return (rows == A.rows) && (cols == A.cols);
+    }
+
+    
 
 private:
     size_t rows;
@@ -47,9 +108,10 @@ private:
 
 int main()
 {
-    Matrix m1(3, 3);
-    m1(0, 0) = 6;
+    Matrix m1(2, 2);
+    m1(0, 0) = 5;
     m1.print();
     Matrix m2(m1);
-    m2.print();
+    m1 -= m2;
+    m1.print();
 }
