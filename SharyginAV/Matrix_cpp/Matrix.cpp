@@ -97,6 +97,24 @@ public:
         return (rows == A.rows) && (cols == A.cols);
     }
 
+    Matrix transposition()
+    {
+        Matrix res(cols, rows);
+
+        for(size_t row_idx = 0; row_idx < rows; ++row_idx) {
+            for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
+                res(col_idx, row_idx) = (*this)(row_idx, col_idx);
+            }            
+        }
+
+        return res;
+    }
+
+    void get_size()
+    {
+        cout << "Количество строк: " << rows << "\tКоличество столбцов: " << cols << '\n';
+    }
+
     
 
 private:
@@ -108,10 +126,15 @@ private:
 
 int main()
 {
-    Matrix m1(2, 2);
-    m1(0, 0) = 5;
+    Matrix m1(2, 3);
+    m1(0, 0) = 1;
+    m1(0, 1) = 2;
+    m1(1, 0) = 3;
+    m1(1, 1) = 4;
+    
     m1.print();
-    Matrix m2(m1);
-    m1 -= m2;
+    m1.get_size();
+    m1 = m1.transposition();
     m1.print();
+    m1.get_size();
 }
