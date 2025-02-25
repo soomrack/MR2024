@@ -37,11 +37,15 @@ public:
 
     Matrix& operator*=(const double num);
 
+    Matrix& operator*=(const Matrix &A);
+
     void print() const noexcept;
 
     bool equal_size(const Matrix &A) const;
 
     Matrix transpos();
+
+    Matrix pow(const unsigned int pow);
 
     void get_size();
 

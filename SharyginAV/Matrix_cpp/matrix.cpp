@@ -117,16 +117,20 @@ Matrix Matrix::operator*(const double num)
 
 Matrix Matrix::operator*(const Matrix &A)
 {
-    // должна быть проверка размеров
+    if(cols != A.rows) {
+        throw "Matrices are incompatible";
+    }
     Matrix res(rows, A.cols);
 
     for(size_t row_idx = 0; row_idx < rows; ++row_idx) {
-        for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
+        for(size_t col_idx = 0; col_idx < A.cols; ++col_idx) {
             for(size_t idx = 0; idx < A.rows; ++idx) {
-                res(row_idx, col_idx) += 
+                res(row_idx, col_idx) += (*this)(row_idx, idx) * A(idx, col_idx);
             }
         }
     }
+
+    return res;
 }
 
 
@@ -135,6 +139,18 @@ Matrix& Matrix::operator*=(const double num)
     for(size_t idx = 0; idx < rows * cols; ++idx) {
         data[idx] *= num;
     }
+
+    return *this;
+}
+
+
+Matrix& Matrix::operator*=(const Matrix &A)
+{
+    if(cols != A.rows) {
+        throw "Matrices are incompatible";
+    }
+
+    *this = (*this) * A;
 
     return *this;
 }
@@ -165,6 +181,20 @@ Matrix Matrix::transpos()
         for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
             res(col_idx, row_idx) = (*this)(row_idx, col_idx);
         }            
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::pow(const unsigned int pow)
+{
+    // проверка на rows = cols
+    // добавить степени 0 и 1
+    Matrix res(*this);
+
+    for(unsigned int idx = 1; idx < pow; ++idx) {
+        res *= (*this);
     }
 
     return res;
