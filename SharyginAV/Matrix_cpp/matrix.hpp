@@ -43,13 +43,17 @@ public:
 
     bool equal_size(const Matrix &A) const;
 
+    bool is_square() const;
+
+    void set_identity();
+
     Matrix transpos();
 
-    Matrix pow(const unsigned int pow);
+    Matrix pow(const unsigned int pow) const;
+
+    Matrix exp(const unsigned int iretations) const;
 
     void get_size();
-
-    
 
 private:
     size_t rows;

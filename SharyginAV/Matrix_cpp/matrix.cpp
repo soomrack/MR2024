@@ -173,6 +173,26 @@ bool Matrix::equal_size(const Matrix &A) const
 }
 
 
+bool Matrix::is_square() const
+{
+    return rows == cols;
+}
+
+
+void Matrix::set_identity()
+{
+    if(!(*this).is_square()) {
+        throw "Matrix is not square";
+    }
+
+    data.assign(rows * cols, 0.0);
+
+    for(size_t idx = 0; idx < rows; ++idx) {
+        (*this)(idx, idx) = 1;
+    }
+}
+
+
 Matrix Matrix::transpos()
 {
     Matrix res(cols, rows);
@@ -187,14 +207,39 @@ Matrix Matrix::transpos()
 }
 
 
-Matrix Matrix::pow(const unsigned int pow)
+Matrix Matrix::pow(const unsigned int pow) const
 {
-    // проверка на rows = cols
-    // добавить степени 0 и 1
-    Matrix res(*this);
+    if(!(*this).is_square()) {
+        throw "Matrix is not square";
+    }
+    
+    Matrix res(rows, cols);
+    res.set_identity();
 
-    for(unsigned int idx = 1; idx < pow; ++idx) {
+    for(unsigned int idx = 0; idx < pow; ++idx) {
         res *= (*this);
+    }
+
+    return res;
+}
+
+
+Matrix Matrix::exp(const unsigned int iterations) const
+{
+    if(!(*this).is_square()) {
+        throw "Matrix is not square";
+    }
+
+    Matrix res(rows, cols);
+    res.set_identity();
+
+    Matrix term(rows, cols);
+    term.set_identity();
+
+    for(unsigned int idx = 1; idx < iterations; ++idx) {
+        term *= (*this);
+        term *= (1 / (double)idx);
+        res += term;
     }
 
     return res;
@@ -205,3 +250,4 @@ void Matrix::get_size()
 {
     cout << "Количество строк: " << rows << "\tКоличество столбцов: " << cols << '\n';
 }
+
