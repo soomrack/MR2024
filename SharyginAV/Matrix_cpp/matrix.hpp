@@ -55,6 +55,14 @@ public:
 
     void get_size();
 
+    size_t find_non_zero_in_col(const size_t idx_start) const noexcept;
+
+    void swap_rows(const size_t row_1, const size_t row_2) noexcept;
+
+    void sub_row(const size_t row, const size_t row_base, const double ratio) noexcept;
+
+    double det() const;
+
 private:
     size_t rows;
     size_t cols;

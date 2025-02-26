@@ -1,6 +1,7 @@
 #include "matrix.hpp"
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 
 Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols), data(rows * cols, 0.0) {}
@@ -249,5 +250,78 @@ Matrix Matrix::exp(const unsigned int iterations) const
 void Matrix::get_size()
 {
     cout << "Количество строк: " << rows << "\tКоличество столбцов: " << cols << '\n';
+}
+
+
+size_t Matrix::find_non_zero_in_col(const size_t idx_start) const noexcept
+{
+    for(size_t row_idx = idx_start + 1; row_idx < rows; ++row_idx) {
+        if(fabs((*this)(row_idx, row_idx)) >= 0.00001) {
+            return row_idx;
+        }
+    }
+
+    return 0;
+}
+
+void Matrix::swap_rows(const size_t row_1, const size_t row_2) noexcept
+{
+    double tmp = 0.0;
+
+    for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
+        tmp = (*this)(row_1, col_idx);
+        (*this)(row_1, col_idx) = (*this)(row_2, col_idx);
+        (*this)(row_2, col_idx) = tmp;
+    }
+}
+
+
+void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio) noexcept
+{
+    /*
+    if(row > rows or row_base > rows) {
+        throw "Out of range";
+    }
+    */
+
+    for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
+        (*this)(row, col_idx) -= ratio * (*this)(row_base, col_idx);
+    }
+}
+
+
+double Matrix::det() const
+{
+    if(!(*this).is_square()) {
+        throw "Matrix is not square";
+    }
+
+    Matrix tmp(*this);
+
+    double det = 1.0;
+    for(size_t row_idx = 0; row_idx < rows - 1; ++row_idx) {
+        if(fabs(tmp(row_idx, row_idx)) < 0.00001) {
+            size_t idx_non_zero = tmp.find_non_zero_in_col(row_idx);
+            if(idx_non_zero == 0) {
+                return 0.0;
+            }
+
+            tmp.swap_rows(row_idx, idx_non_zero);
+            det *= -1.0;
+        }
+
+        for(size_t row = row_idx + 1; row < rows; ++row) {
+            double mult = tmp(row, row_idx) / tmp(row_idx, row_idx);
+            tmp.sub_row(row, row_idx, mult);
+            tmp.print();
+            cout << "--------------" << '\n';
+        }
+    }
+
+    for(size_t idx = 0; idx < rows; ++idx) {
+        det *= tmp(idx, idx);
+    }
+
+    return det;
 }
 
