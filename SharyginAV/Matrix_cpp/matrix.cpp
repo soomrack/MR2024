@@ -313,8 +313,6 @@ double Matrix::det() const
         for(size_t row = row_idx + 1; row < rows; ++row) {
             double mult = tmp(row, row_idx) / tmp(row_idx, row_idx);
             tmp.sub_row(row, row_idx, mult);
-            tmp.print();
-            cout << "--------------" << '\n';
         }
     }
 
