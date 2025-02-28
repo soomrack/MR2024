@@ -18,7 +18,7 @@ Matrix::~Matrix() = default;
 
 double& Matrix::operator()(const size_t row_num,const size_t col_num) {
     if(row_num >= rows || col_num >= cols) {
-        throw "Out of range";
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
     return data[row_num * cols + col_num];
 }
@@ -26,7 +26,7 @@ double& Matrix::operator()(const size_t row_num,const size_t col_num) {
 
 const double& Matrix::operator()(const size_t row_num, const size_t col_num) const {
     if(row_num >= rows || col_num >= cols) {
-        throw "Out of range";
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
     return data[row_num * cols + col_num];
 }
@@ -35,7 +35,7 @@ const double& Matrix::operator()(const size_t row_num, const size_t col_num) con
 Matrix Matrix::operator+(const Matrix &A) const
 {
     if(!A.equal_size(*this)) {
-        throw "Matrices of unequal sizes";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix result(A.rows, A.cols);
@@ -50,7 +50,7 @@ Matrix Matrix::operator+(const Matrix &A) const
 Matrix Matrix::operator-(const Matrix &A) const
 {
     if(!A.equal_size(*this)) {
-        throw "Matrices of unequal sizes";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix result(A.rows, A.cols);
@@ -65,7 +65,7 @@ Matrix Matrix::operator-(const Matrix &A) const
 Matrix& Matrix::operator+=(const Matrix &A)
 {
     if(!A.equal_size(*this)) {
-        throw "Matrices of unequal sizes";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     for(size_t idx = 0; idx < rows * cols; ++idx) {
@@ -79,7 +79,7 @@ Matrix& Matrix::operator+=(const Matrix &A)
 Matrix& Matrix::operator-=(const Matrix &A)
 {
     if(!A.equal_size(*this)) {
-        throw "Matrices of unequal sizes";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     for(size_t idx = 0; idx < rows * cols; ++idx) {
@@ -119,7 +119,7 @@ Matrix Matrix::operator*(const double num)
 Matrix Matrix::operator*(const Matrix &A)
 {
     if(cols != A.rows) {
-        throw "Matrices are incompatible";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
     Matrix res(rows, A.cols);
 
@@ -148,7 +148,7 @@ Matrix& Matrix::operator*=(const double num)
 Matrix& Matrix::operator*=(const Matrix &A)
 {
     if(cols != A.rows) {
-        throw "Matrices are incompatible";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     *this = (*this) * A;
@@ -183,7 +183,7 @@ bool Matrix::is_square() const
 void Matrix::set_identity()
 {
     if(!(*this).is_square()) {
-        throw "Matrix is not square";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     data.assign(rows * cols, 0.0);
@@ -211,7 +211,7 @@ Matrix Matrix::transpos()
 Matrix Matrix::pow(const unsigned int pow) const
 {
     if(!(*this).is_square()) {
-        throw "Matrix is not square";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
     
     Matrix res(rows, cols);
@@ -228,7 +228,7 @@ Matrix Matrix::pow(const unsigned int pow) const
 Matrix Matrix::exp(const unsigned int iterations) const
 {
     if(!(*this).is_square()) {
-        throw "Matrix is not square";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix res(rows, cols);
@@ -264,8 +264,12 @@ size_t Matrix::find_non_zero_in_col(const size_t idx_start) const noexcept
     return 0;
 }
 
-void Matrix::swap_rows(const size_t row_1, const size_t row_2) noexcept
+void Matrix::swap_rows(const size_t row_1, const size_t row_2)
 {
+    if(row_1 >= rows || row_2 >= rows) {
+        throw MatrixException(MatrixException::PARAMS_ERR);
+    }
+
     double tmp = 0.0;
 
     for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
@@ -276,13 +280,11 @@ void Matrix::swap_rows(const size_t row_1, const size_t row_2) noexcept
 }
 
 
-void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio) noexcept
+void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio)
 {
-    /*
-    if(row > rows or row_base > rows) {
-        throw "Out of range";
+    if(row >= rows || row_base >= rows) {
+        throw MatrixException(MatrixException::PARAMS_ERR);
     }
-    */
 
     for(size_t col_idx = 0; col_idx < cols; ++col_idx) {
         (*this)(row, col_idx) -= ratio * (*this)(row_base, col_idx);
@@ -293,7 +295,7 @@ void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio
 double Matrix::det() const
 {
     if(!(*this).is_square()) {
-        throw "Matrix is not square";
+        throw MatrixException(MatrixException::SIZE_ERR);
     }
 
     Matrix tmp(*this);

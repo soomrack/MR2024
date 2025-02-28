@@ -1,10 +1,44 @@
-#ifndef MATRIX_H
-#define MATRIX_H
+#pragma once
 
 #include <iostream>
 #include <vector>
+#include <exception>
 
 using namespace std;
+
+class MatrixException : public std::exception
+{
+public:
+    enum Exceptions {
+        PARAMS_ERR,
+        SIZE_ERR
+    };
+
+    MatrixException(const enum Exceptions code) : m_code(code) {}
+
+    const char* what() const noexcept override
+    {
+        switch(m_code)
+        {
+            case PARAMS_ERR:
+                return "Input parametrs error";
+                break;
+            case SIZE_ERR:
+                return "Matrix wrong size";
+                break;
+            default:
+                return nullptr;
+        }
+    }
+
+    enum Exceptions get_code() const noexcept
+    {
+        return m_code;
+    }
+
+private:
+    enum Exceptions m_code;
+};
 
 class Matrix
 {
@@ -57,9 +91,9 @@ public:
 
     size_t find_non_zero_in_col(const size_t idx_start) const noexcept;
 
-    void swap_rows(const size_t row_1, const size_t row_2) noexcept;
+    void swap_rows(const size_t row_1, const size_t row_2);
 
-    void sub_row(const size_t row, const size_t row_base, const double ratio) noexcept;
+    void sub_row(const size_t row, const size_t row_base, const double ratio);
 
     double det() const;
 
@@ -68,5 +102,3 @@ private:
     size_t cols;
     std::vector<double> data;
 };
-
-#endif
