@@ -43,6 +43,13 @@ private:
 class Matrix
 {
 public:
+enum LogLevel {
+    LOG_NONE,
+    LOG_ERR,
+    LOG_WARN,
+    LOG_INFO
+};
+
     Matrix(size_t rows, size_t cols);
 
     Matrix();
@@ -89,7 +96,7 @@ public:
 
     void get_size();
 
-    size_t find_non_zero_in_col(const size_t idx_start) const noexcept;
+    size_t find_non_zero_in_col(const size_t idx_start) const;
 
     void swap_rows(const size_t row_1, const size_t row_2);
 
@@ -97,7 +104,12 @@ public:
 
     double det() const;
 
+    static void set_log_level(LogLevel level) noexcept;
+
 private:
+    static LogLevel s_current_level;
+    void print_log(LogLevel level, const char* format, ...) const noexcept;
+
     size_t rows;
     size_t cols;
     std::vector<double> data;

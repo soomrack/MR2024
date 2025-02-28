@@ -2,22 +2,69 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <cstdarg>
 
 
-Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols), data(rows * cols, 0.0) {}
+Matrix::LogLevel Matrix::s_current_level = Matrix::LOG_INFO;
 
 
-Matrix::Matrix() : rows(0), cols(0) {}
+void Matrix::set_log_level(LogLevel level) noexcept
+{
+    s_current_level = level;
+}
 
 
-Matrix::Matrix(const Matrix &M) : rows(M.rows), cols(M.cols), data(M.data) {}  // конструктор копирования
+void Matrix::print_log(LogLevel level, const char* format, ...) const noexcept
+{
+    if(level <= s_current_level) {
+        switch(level)
+        {
+        case LOG_ERR:
+            printf("\033[0;31mERROR: \033[0m");
+            break;
+        case LOG_WARN:
+            printf("\033[1;33mWARNING: \033[0m");
+            break;
+        case LOG_INFO:
+            printf("INFO: ");
+        default:
+            break;
+        }
+        va_list list;
+        va_start(list, format);
+        vprintf(format, list);
+        va_end(list);
+    }
+}
 
 
-Matrix::~Matrix() = default;
+Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols), data(rows * cols, 0.0)
+{
+    print_log(LOG_INFO, "create matrix %ld x %ld\n", rows, cols);
+}
+
+
+Matrix::Matrix() : rows(0), cols(0)
+{
+    print_log(LOG_INFO, "create empty matrix\n");
+}
+
+
+Matrix::Matrix(const Matrix &M) : rows(M.rows), cols(M.cols), data(M.data)
+{
+    print_log(LOG_INFO, "copy matrix\n");
+}
+
+
+Matrix::~Matrix()
+{
+    print_log(LOG_INFO, "matrix delete\n");
+}
 
 
 double& Matrix::operator()(const size_t row_num,const size_t col_num) {
     if(row_num >= rows || col_num >= cols) {
+        print_log(LOG_ERR, "index out of range\n");
         throw MatrixException(MatrixException::PARAMS_ERR);
     }
     return data[row_num * cols + col_num];
@@ -26,6 +73,7 @@ double& Matrix::operator()(const size_t row_num,const size_t col_num) {
 
 const double& Matrix::operator()(const size_t row_num, const size_t col_num) const {
     if(row_num >= rows || col_num >= cols) {
+        print_log(LOG_ERR, "index out of range\n");
         throw MatrixException(MatrixException::PARAMS_ERR);
     }
     return data[row_num * cols + col_num];
@@ -35,6 +83,7 @@ const double& Matrix::operator()(const size_t row_num, const size_t col_num) con
 Matrix Matrix::operator+(const Matrix &A) const
 {
     if(!A.equal_size(*this)) {
+        print_log(LOG_ERR, "matrices is not equal\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -50,6 +99,7 @@ Matrix Matrix::operator+(const Matrix &A) const
 Matrix Matrix::operator-(const Matrix &A) const
 {
     if(!A.equal_size(*this)) {
+        print_log(LOG_ERR, "matrices is not equal\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -65,6 +115,7 @@ Matrix Matrix::operator-(const Matrix &A) const
 Matrix& Matrix::operator+=(const Matrix &A)
 {
     if(!A.equal_size(*this)) {
+        print_log(LOG_ERR, "matrices is not equal\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -79,6 +130,7 @@ Matrix& Matrix::operator+=(const Matrix &A)
 Matrix& Matrix::operator-=(const Matrix &A)
 {
     if(!A.equal_size(*this)) {
+        print_log(LOG_ERR, "matrices is not equal\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -119,6 +171,7 @@ Matrix Matrix::operator*(const double num)
 Matrix Matrix::operator*(const Matrix &A)
 {
     if(cols != A.rows) {
+        print_log(LOG_ERR, "number of columns of first matrix is ​​not equal to number of rows of second matrix\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
     Matrix res(rows, A.cols);
@@ -148,6 +201,7 @@ Matrix& Matrix::operator*=(const double num)
 Matrix& Matrix::operator*=(const Matrix &A)
 {
     if(cols != A.rows) {
+        print_log(LOG_ERR, "number of columns of first matrix is ​​not equal to number of rows of second matrix\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -183,6 +237,7 @@ bool Matrix::is_square() const
 void Matrix::set_identity()
 {
     if(!(*this).is_square()) {
+        print_log(LOG_ERR, "matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -211,6 +266,7 @@ Matrix Matrix::transpos()
 Matrix Matrix::pow(const unsigned int pow) const
 {
     if(!(*this).is_square()) {
+        print_log(LOG_ERR, "matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
     
@@ -228,6 +284,7 @@ Matrix Matrix::pow(const unsigned int pow) const
 Matrix Matrix::exp(const unsigned int iterations) const
 {
     if(!(*this).is_square()) {
+        print_log(LOG_ERR, "matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
@@ -253,8 +310,13 @@ void Matrix::get_size()
 }
 
 
-size_t Matrix::find_non_zero_in_col(const size_t idx_start) const noexcept
-{
+size_t Matrix::find_non_zero_in_col(const size_t idx_start) const
+{   
+    if(idx_start >= rows) {
+        print_log(LOG_ERR, "out of range\n");
+        throw MatrixException(MatrixException::PARAMS_ERR);
+    }
+
     for(size_t row_idx = idx_start + 1; row_idx < rows; ++row_idx) {
         if(fabs((*this)(row_idx, row_idx)) >= 0.00001) {
             return row_idx;
@@ -267,6 +329,7 @@ size_t Matrix::find_non_zero_in_col(const size_t idx_start) const noexcept
 void Matrix::swap_rows(const size_t row_1, const size_t row_2)
 {
     if(row_1 >= rows || row_2 >= rows) {
+        print_log(LOG_ERR, "out of range\n");
         throw MatrixException(MatrixException::PARAMS_ERR);
     }
 
@@ -283,6 +346,7 @@ void Matrix::swap_rows(const size_t row_1, const size_t row_2)
 void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio)
 {
     if(row >= rows || row_base >= rows) {
+        print_log(LOG_ERR, "out of range\n");
         throw MatrixException(MatrixException::PARAMS_ERR);
     }
 
@@ -295,6 +359,7 @@ void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio
 double Matrix::det() const
 {
     if(!(*this).is_square()) {
+        print_log(LOG_ERR, "Matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
 
