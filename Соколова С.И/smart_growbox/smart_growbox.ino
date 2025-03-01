@@ -148,10 +148,11 @@ void heaterTurning () {
 //Включаем вентилятор каждые 3 часа на 5 минут
 void airing (const int hours) {
 
+  // если прошло время, кратное 3 часам с начала работы программы
   if ((initialTime.hours - hours) / 3) {
     digitalWrite(PIN_FAN, HIGH);
 
-    delay(300000);
+    delay(300000); // задержка 5 минут для работы вентилятора
 
     digitalWrite(PIN_FAN, LOW);
   } 
