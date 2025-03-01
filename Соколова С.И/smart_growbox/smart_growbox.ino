@@ -147,10 +147,13 @@ void heaterTurning () {
 
 //Включаем вентилятор каждые 3 часа на 5 минут
 void airing (const int hours) {
-  int counter = 0;
 
   if ((initialTime.hours - hours) / 3) {
     digitalWrite(PIN_FAN, HIGH);
+
+    delay(300000);
+
+    digitalWrite(PIN_FAN, LOW);
   } 
 
   else {
