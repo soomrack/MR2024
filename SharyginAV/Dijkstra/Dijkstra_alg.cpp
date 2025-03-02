@@ -11,9 +11,9 @@ size_t** get_matrix_from_csv(std::ifstream &file)
 {
     size_t** matrix = new size_t*[SIZE];
     for (size_t i = 0; i < SIZE; ++i) {
-        matrix[i] = new size_t[SIZE]; // Выделяем память для столбцов
+        matrix[i] = new size_t[SIZE];
         for (size_t j = 0; j < SIZE; ++j) {
-            matrix[i][j] = 0; // Инициализация нулями
+            matrix[i][j] = 0;
         }
     }
     std::string line;
