@@ -149,7 +149,7 @@ void heaterTurning () {
 void airing (const int hours) {
 
   // если прошло время, кратное 3 часам с начала работы программы
-  if ((initialTime.hours - hours) / 3) {
+  if ((initialTime.hours - hours) % 3 == 0) {
     digitalWrite(PIN_FAN, HIGH);
 
     delay(300000); // задержка 5 минут для работы вентилятора
