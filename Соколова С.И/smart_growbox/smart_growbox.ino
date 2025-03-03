@@ -6,10 +6,10 @@
 #define PIN_HEATER 4 // нагреватель
 #define LIGHT_SENSOR_PIN A0 // датчик света
 #define PIN_WET_SOIL_SENSOR A1 // датчик почвы
-#define PIN_DHT11 13 // датчик температуры и влажности
+#define PIN_DHT11 12 // датчик температуры и влажности
 
 
-DHT11 dht11(13); // сообщаем на каком порту будет датчик
+DHT11 dht11(13); // сообщаем на каком порт  ту будет датчик
 
 
 int middle_light, middle_wet_soil;
@@ -75,9 +75,13 @@ int middleValue(const byte pin)
 {
   int first_value = analogRead(pin);
 
+  Serial.println(first_value);
+
   delay(3000); // задержка 3 секунды, чтобы поместить датчик в другую среду
 
   int second_value = analogRead(pin);
+
+  Serial.println(second_value);
 
   int middle_value = (first_value + second_value) / 2; // определяем границу между измененными средами
 
@@ -150,6 +154,7 @@ void heaterTurning () {
 void airing (const int hours, const int minutes, const int seconds) {
 
   // если прошло время, кратное 3 часам с начала работы программы
+  
   if (((initialTime.hours - hours) % 3 == 0) && (initialTime.minutes - minutes == 0) && (initialTime.seconds - seconds == 0)) {
     digitalWrite(PIN_FAN, HIGH);
 
@@ -167,7 +172,9 @@ void airing (const int hours, const int minutes, const int seconds) {
 void setup() {
   Serial.begin(9600);
 
-  setInitialTime(18,44,30);
+  setInitialTime(11,50,30);
+
+  Serial.println("Programm begin");
 
   pinMode(PIN_FAN, OUTPUT); // включаем пины на выход
   pinMode(PIN_LED_LIGHT, OUTPUT); 
@@ -180,8 +187,6 @@ void setup() {
   delay(5000); // задержка, чтобы успеть переключиться со считывания света на считывание влажности почвы
 
   middle_wet_soil = middleValue(PIN_WET_SOIL_SENSOR); // определяем среднее значение для влажности почвы
-
-  Greenhouse.air_humidity = dht11.readHumidity(); // считываем значение влажности воздуха в теплице 
 }
 
 void loop() {
@@ -202,6 +207,6 @@ void loop() {
   Serial.print(":");
   Serial.println(currentTime.seconds);
 
-  delay(1000); // Задержка 1 секунда
+ 
 
 }
