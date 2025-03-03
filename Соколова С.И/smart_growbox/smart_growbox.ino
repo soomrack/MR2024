@@ -51,6 +51,7 @@ void setInitialTime(int hours, int minutes, int seconds) {
 }
 
 
+// функция определения времени 
 time timeDefining () {
 
   unsigned long totalMillis = millis(); // время с начала отсчета
@@ -146,10 +147,10 @@ void heaterTurning () {
 
 
 //Включаем вентилятор каждые 3 часа на 5 минут
-void airing (const int hours) {
+void airing (const int hours, const int minutes, const int seconds) {
 
   // если прошло время, кратное 3 часам с начала работы программы
-  if ((initialTime.hours - hours) % 3 == 0) {
+  if (((initialTime.hours - hours) % 3 == 0) && (initialTime.minutes - minutes == 0) && (initialTime.seconds - seconds == 0)) {
     digitalWrite(PIN_FAN, HIGH);
 
     delay(300000); // задержка 5 минут для работы вентилятора
@@ -190,7 +191,7 @@ void loop() {
   ledTurning (middle_light);
   pumpTurning(middle_wet_soil);
   heaterTurning ();
-  airing(currentTime.hours);
+  airing(currentTime.hours, currentTime.minutes ,currentTime.seconds);
 
 
   // Выводим время в формате HH:MM:SS
