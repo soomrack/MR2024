@@ -21,6 +21,7 @@
 
 
 static bool heater_is_active = false;
+static bool priority = false;   //if 0 pomp 1 hetar 0 if 1 pomp 0 haeter 1
 static bool pomp_is_active = false;
 static bool ventilation_is_need_for_heater = false;
 
@@ -51,10 +52,11 @@ void wait(const uint16_t duration) {
 
 
 uint16_t get_current_time() {
-    uint16_t minutes = millis() / (60 * 1000);
-    uint16_t count_minutes_in_day = 24 * 60;
+    uint16_t count_day = 0;
+    uint16_t minutes = millis() / (60 * 1000) - count_day * 24 * 60;
+    uint16_t one_day = 24 * 60;
 
-    while(minutes >= count_minutes_in_day) { minutes -= count_minutes_in_day; }
+    while(minutes >= one_day) { count_day++; }
 
     return minutes;
 }
@@ -84,7 +86,16 @@ void control_pomp(const uint8_t min_deviation = 5, const uint16_t deadtime = 100
     uint8_t current_soil_humidity = analogRead(PIN_SOIL_HUMIDITY_SENSOR);
 
     if(current_soil_humidity < min_soil_humidity) {
-        if(heater_is_active) return;
+        if(heater_is_active){ 
+            if(priority == false){
+                digitalWrite(PIN_HEATER, LOW);
+                digitalWrite(PIN_PUMP, HIGH);
+                priority = true;
+                wait(4500);
+                return;
+            }
+            else return; 
+        }
         digitalWrite(PIN_PUMP, HIGH);
         pomp_is_active = true;
         wait(deadtime);
@@ -102,7 +113,16 @@ void control_heater(const uint8_t min_deviation = 5, const uint16_t deadtime = 1
     int current_temp = dht.getTemperature();
     
     if(current_temp < min_temp) {
-        if(pomp_is_active) return;
+        if(pomp_is_active){
+            if(priority == true){
+                digitalWrite(PIN_PUMP, LOW);
+                digitalWrite(PIN_HEATER, HIGH);
+                priority = false;
+                wait(4500);
+                return;
+            }
+            else return; 
+        }
         
         digitalWrite(PIN_HEATER, HIGH);
         heater_is_active = true;
