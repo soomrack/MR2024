@@ -13,7 +13,7 @@
 
 
 #define TIME_DAY_START 7 // hours
-#define TIME_DAY_END 23 // hours
+#define TIME_DAY_END 20 // hours
 #define TARGET_LIGHTING_LEVEL 40 // %
 #define TARGET_SOIL_HUMIDITY_LEVEL 30 // %
 #define TARGET_TEPM_LEVEL 35 // °C
@@ -68,15 +68,9 @@ void control_backlight(const uint8_t min_deviation = 5) {
     uint8_t min_lighting_level = TARGET_LIGHTING_LEVEL - min_deviation;
     uint8_t current_lighting_level = analogRead(PIN_LIGHT_SENSOR);
 
-    if(current_time >= (TIME_DAY_START * 60) && current_time <= (TIME_DAY_END * 60)) {
-        if(current_lighting_level < min_lighting_level) {
-            digitalWrite(PIN_PUMP, HIGH);
-        } else if(current_lighting_level > max_lighting_level) {
-            digitalWrite(PIN_PUMP, LOW);
-        }
-    } else {
-        digitalWrite(PIN_BACKLIGHT, LOW);
-    }
+    if(current_time <= (TIME_DAY_START * 60) && current_time >= (TIME_DAY_END * 60) && current_lighting_level < max_lighting_level) { digitalWrite(PIN_BACKLIGHT, HIGH); }
+    else if(current_lighting_level < min_lighting_level) { digitalWrite(PIN_BACKLIGHT, HIGH); }
+    else { digitalWrite(PIN_BACKLIGHT, LOW); }
 }
 
 
@@ -99,7 +93,8 @@ void control_pomp(const uint8_t min_deviation = 5, const uint16_t deadtime = 100
         digitalWrite(PIN_PUMP, HIGH);
         pomp_is_active = true;
         wait(deadtime);
-    } else if (current_soil_humidity > max_soil_humidity) {
+    } 
+    else if (current_soil_humidity > max_soil_humidity) {
         digitalWrite(PIN_PUMP, LOW);
         pomp_is_active = false;
         wait(deadtime);
