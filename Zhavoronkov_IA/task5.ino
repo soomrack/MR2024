@@ -28,16 +28,17 @@ struct Climate
 };
 
 
-Climate currentClimate = { // Default climate
-  360,   // TEMP
+Climate currentClimate = // Default climate
+{
+  250,   // TEMP
   550,   // SOIL_HUMI
-  50,    // AIR_HUMI
+  30,    // AIR_HUMI
   700,   // LIGHT
-  1 * 60 * 1000, // Pump 1 min
-  1 * 60 * 1000, // Light 1 min
+  1/20 * 60 * 1000, // Pump 3 sec
+  1/60 * 60 * 1000, // Light 1 sec
   1 * 60 * 1000,  // Vent 1 min
-  20, // Sleep in
-  8 // Wake up in
+  20, // Sleep in (hours)
+  8 // Wake up in (hours)
 };
 
 
@@ -50,8 +51,8 @@ Climate tomatoes =
   2 * 60 * 1000, // Pump 2 min
   5 * 60 * 1000, // Light 5 min
   3 * 60 * 1000,  // Vent 3 min
-  21, // Sleep in
-  7 // Wake up in
+  21, // Sleep in (hours)
+  7 // Wake up in (hours)
 };
 
 
@@ -63,9 +64,9 @@ Climate cucumbers =
   650,   // LIGHT
   2 * 60 * 1000,  // Punp 2 min
   7 * 60 * 1000,  // Light 7 min
-  10 * 60 * 1000,   // Vent 10 
-  19, // Sleep in
-  6 // Wake up in
+  10 * 60 * 1000,   // Vent 10 min
+  19, // Sleep in (hours)
+  6 // Wake up in (hours)
 };
 
 
@@ -73,7 +74,8 @@ typedef unsigned long int time;
 
 unsigned int cur_hour, cur_min, cur_sec;
 unsigned int ext_light, soil_humi, air_humi, air_temp;
-bool is_heating, is_airing, allow_heating;
+bool is_heating, is_airing;
+bool allow_heating = 1;
 
 
 void pin_init() 
@@ -98,11 +100,11 @@ void RTC_set(unsigned int hour_to_set, unsigned int min_to_set, unsigned int sec
 
 void RTC_count()
 {
-  static time last_millis;
+  static time last_millis = millis();
 
   if ((millis() - last_millis) >= 1000)
   {
-    cur_sec = cur_sec + (millis() / last_millis);
+    cur_sec = cur_sec + (millis() - last_millis) / 1000;
     last_millis = millis();
   }
   
@@ -127,7 +129,8 @@ void RTC_count()
 
 void RTC_print()
 {
-  Serial.print("Time: " + String(cur_hour) + ":" + String(cur_min) + ":" + String(cur_sec));
+  Serial.print("------------------------------\n");
+  Serial.println("Time: " + String(cur_hour) + ":" + String(cur_min) + ":" + String(cur_sec));
 }
 
 
@@ -159,6 +162,7 @@ void lighting_check()
   if ((cur_hour < currentClimate.sleep_end) || (cur_hour >= currentClimate.sleep_start))
   {
     off(LED_LIGHT_PIN);
+    //Serial.println("NIGHT"); // For debugging
     return;
   }
 
@@ -217,9 +221,13 @@ void fan_check()
   airing_check();
   heating_check();
 
-  if ((is_heating && allow_heating) || is_airing) {
+  if (is_heating || is_airing) {
     if (is_heating && allow_heating) {
       on(HEAT_FAN_PIN);
+      //Serial.println("HEAT ON"); // For debugging
+    } else {
+      off(HEAT_FAN_PIN);
+      //Serial.println("HEAT OFF"); // For debugging
     }
 
     if (digitalRead(FAN_PIN) == 0) {
@@ -234,10 +242,21 @@ void fan_check()
   }
 }
 
+void pump_temp_check()
+{
+  Serial.println("------------------------------");
+  Serial.println("Status temp: " + String(digitalRead(HEAT_FAN_PIN)));
+  Serial.println("Status pump: " + String(digitalRead(WATER_PUMP_PIN)));
+
+  Serial.println("Allow heating: " + String(allow_heating));
+  Serial.println("Is airing: " + String(is_airing));
+  Serial.println("IS heating: " + String(is_heating));
+
+}
 
 void sensor_print() 
 {
-  Serial.print("------------------------------\n");
+  Serial.println("------------------------------");
   Serial.print("Light: "); Serial.println(ext_light);
   Serial.print("Soil humidity: "); Serial.println(soil_humi);
   Serial.print("Air humidity: "); Serial.println(air_humi);
@@ -247,9 +266,9 @@ void sensor_print()
 
 void setup() 
 {
-  currentClimate = tomatoes;
+  //currentClimate = tomatoes; // Comment to use standard settings
   pin_init();
-  RTC_set(19,14,48);
+  RTC_set(19,59,16);
 
   Serial.begin(9600); // For debugging
 }
@@ -261,8 +280,9 @@ void loop()
   RTC_count();
 
   // For debugging 
-  sensor_print();
   RTC_print();
+  sensor_print();
+  pump_temp_check();
   //
 
   lighting_check();
