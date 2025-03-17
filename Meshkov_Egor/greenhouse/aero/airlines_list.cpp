@@ -8,14 +8,14 @@
 #include "opencv4/opencv2/opencv.hpp"
 #include "opencv4/opencv2/core/mat.hpp"
 
-GL::Airlines_list& GL::Airlines_list::getInstance() noexcept {
-    static Airlines_list instance;
+GL::AirlinesList& GL::AirlinesList::get_instance() noexcept {
+    static AirlinesList instance;
     cv::Mat mat;
     return instance;
 }
 
 
-void GL::Airlines_list::load_data(const std::string& csv_file) {
+void GL::AirlinesList::load_data(const std::string& csv_file) {
     if (!graph.empty()) this->clear();
 
     try {
@@ -37,29 +37,29 @@ void GL::Airlines_list::load_data(const std::string& csv_file) {
             graph[info.origin_airport_id].emplace_back(info.dest_airport_id, info);
         }
     } catch (const std::exception& e) {
-        throw Airlines_listException("Error of read CSV-file: " + std::string(e.what()));
+        throw AirlinesListException("Error of read CSV-file: " + std::string(e.what()));
     }
 }
 
 
-void GL::Airlines_list::clear() noexcept {
+void GL::AirlinesList::clear() noexcept {
     graph.clear();
     airports.clear();
 }
 
 
-bool GL::Airlines_list::contains_airport(int index) const noexcept {
+bool GL::AirlinesList::contains_airport(int index) const noexcept {
     return (airports.find(index) != airports.end()); 
 }
 
 
-GL::FlightPath GL::Airlines_list::find_flight_path_between(int origin_index, int dest_index) const {
+GL::FlightPath GL::AirlinesList::find_flight_path_between(int origin_index, int dest_index) const {
     if(!this->contains_airport(origin_index)) {
-        throw Airlines_listException("Origin airport index not found: " + std::to_string(origin_index));
+        throw AirlinesListException("Origin airport index not found: " + std::to_string(origin_index));
     }
 
     if(!this->contains_airport(dest_index)) {
-        throw Airlines_listException("Dest airport index not found: " + std::to_string(dest_index));
+        throw AirlinesListException("Dest airport index not found: " + std::to_string(dest_index));
     }
 
     FlightPathRow path = dijkstra(origin_index);
@@ -68,7 +68,7 @@ GL::FlightPath GL::Airlines_list::find_flight_path_between(int origin_index, int
 }
 
 
-GL::Airlines_list::FlightPathRow GL::Airlines_list::dijkstra(int origin_index) const noexcept {
+GL::AirlinesList::FlightPathRow GL::AirlinesList::dijkstra(int origin_index) const noexcept {
     std::unordered_map<int, double> distance;
     std::unordered_map<int, int> parents;
 
@@ -105,7 +105,7 @@ GL::Airlines_list::FlightPathRow GL::Airlines_list::dijkstra(int origin_index) c
 }
 
 
-GL::FlightPath GL::Airlines_list::reconstruct_path(GL::Airlines_list::FlightPathRow& path, int dest_index) const noexcept {
+GL::FlightPath GL::AirlinesList::reconstruct_path(GL::AirlinesList::FlightPathRow& path, int dest_index) const noexcept {
     std::vector<int> reconstruct_parents;
     std::vector<double> reconstruct_distances;
 

@@ -43,7 +43,7 @@ private:
     Graph graph;
     Airports airports;
 public:
-    static AirlinesList& getInstance() noexcept;
+    static AirlinesList& get_instance() noexcept;
     void load_data(const std::string& file_path);
     void clear() noexcept;
     bool contains_airport(int index) const noexcept;
@@ -52,8 +52,8 @@ public:
     using FlightPathRow = std::pair<std::unordered_map<int, double>, std::unordered_map<int, int>>;
 private:
     AirlinesList() : graph(), airports() {}
-    AirlinesList(const Airlines_list&) = delete;
-    AirlinesList(Airlines_list&&) = delete;
+    AirlinesList(const AirlinesList&) = delete;
+    AirlinesList(AirlinesList&&) = delete;
     ~AirlinesList() = default;
 
     FlightPathRow dijkstra(int origin_index) const noexcept;

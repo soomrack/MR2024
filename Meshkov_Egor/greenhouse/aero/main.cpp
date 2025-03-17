@@ -6,7 +6,7 @@
 #include <string>
 
 
-std::string get_file_path(const GL::Airlines_list& airlines_list) {
+std::string get_file_path(const GL::AirlinesList& airlines_list) {
     std::string file_path;
     bool file_path_is_correct = false;
 
@@ -27,7 +27,7 @@ std::string get_file_path(const GL::Airlines_list& airlines_list) {
 }
 
 
-int get_airport_index(const GL::Airlines_list& airlines_list) {
+int get_airport_index(const GL::AirlinesList& airlines_list) {
     int index = 0;
     bool index_is_correct = false;
 
@@ -71,7 +71,7 @@ void print_flight_path(const GL::FlightPath& flight_path) {
 int main (int argc, char *argv[]) {
     int origin_index = 0, dest_index = 0;
     std::string file_path;
-    GL::Airlines_list& airlines_list = GL::Airlines_list::getInstance();
+    GL::AirlinesList& airlines_list = GL::AirlinesList::get_instance();
     GL::FlightPath flight_path;
 
     try {
@@ -94,7 +94,7 @@ int main (int argc, char *argv[]) {
 
         flight_path = airlines_list.find_flight_path_between(origin_index, dest_index);
         print_flight_path(flight_path);
-    } catch (GL::Airlines_listException& e) {
+    } catch (GL::AirlinesListException& e) {
         std::cout << e.what() << std::endl;
     }
 
