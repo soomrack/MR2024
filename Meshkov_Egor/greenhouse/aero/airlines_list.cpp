@@ -5,12 +5,10 @@
 #include <string>
 #include <exception>
 #include <queue>
-#include "opencv4/opencv2/opencv.hpp"
-#include "opencv4/opencv2/core/mat.hpp"
+
 
 GL::AirlinesList& GL::AirlinesList::get_instance() noexcept {
     static AirlinesList instance;
-    cv::Mat mat;
     return instance;
 }
 
