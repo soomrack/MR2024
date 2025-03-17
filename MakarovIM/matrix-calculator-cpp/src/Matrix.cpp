@@ -10,7 +10,7 @@ Matrix::Matrix() : rows(0), cols(0), data(nullptr) {
 
 Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) {
     if (rows == 0 || cols == 0) {
-        data = nullptr;
+        log(MatrixLogLevel::WARNING, __func__, "Матрица содержит 0 строк/колонок");
         return;
     
     if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
@@ -18,7 +18,6 @@ Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) {
         cols = 0;
         log(MatrixLogLevel::ERROR, __func__, "Размер матрицы слишком велик");
         throw MatrixException(MatrixErrorType::INTERNAL_ERROR, "Размер матрицы слишком велик");
-        return;
     }
     data = new double[rows * cols];
     }
@@ -257,7 +256,7 @@ Matrix Matrix::exponent(unsigned int num_terms) const
     Matrix result = Matrix::identity(rows);
     Matrix term = Matrix::identity(rows); 
     for (unsigned int k = 1; k < num_terms; ++k) {
-        term = (term * (*this)) * (1.0 / static_cast<double>(k));
+        term = (term * (*this)) * 1.0 / static_cast<double>(k);
         result = result + term;
     }
     return result;
