@@ -11,11 +11,11 @@
 namespace GL {
 
 
-class Airlines_listException {
+class AirlinesListException {
 private:
     std::string msg_err;
 public:
-    explicit Airlines_listException(const std::string& msg) : msg_err(msg) {} 
+    explicit AirlinesListException(const std::string& msg) : msg_err(msg) {} 
     
     const char* what() const noexcept {
         return msg_err.c_str();
@@ -26,7 +26,7 @@ public:
 using FlightPath = std::pair<std::vector<int>, std::vector<double>>; // parents && distance
 
 
-class Airlines_list {
+class AirlinesList {
 private:
     struct FlightInfo {
         double air_time;
@@ -43,7 +43,7 @@ private:
     Graph graph;
     Airports airports;
 public:
-    static Airlines_list& getInstance() noexcept;
+    static AirlinesList& getInstance() noexcept;
     void load_data(const std::string& file_path);
     void clear() noexcept;
     bool contains_airport(int index) const noexcept;
@@ -51,10 +51,10 @@ public:
     
     using FlightPathRow = std::pair<std::unordered_map<int, double>, std::unordered_map<int, int>>;
 private:
-    Airlines_list() : graph(), airports() {}
-    Airlines_list(const Airlines_list&) = delete;
-    Airlines_list(Airlines_list&&) = delete;
-    ~Airlines_list() = default;
+    AirlinesList() : graph(), airports() {}
+    AirlinesList(const Airlines_list&) = delete;
+    AirlinesList(Airlines_list&&) = delete;
+    ~AirlinesList() = default;
 
     FlightPathRow dijkstra(int origin_index) const noexcept;
     FlightPath reconstruct_path(FlightPathRow& path, int dest_index) const noexcept;
