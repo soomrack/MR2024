@@ -1,15 +1,15 @@
 #include <DHT.h>
 
-#define PIN_LUX_SENSOR A3
-#define LED_STRIP 6
-#define HUMIDITY_SENSOR A1
-#define WATER_PUMP 5
-#define ATAD_SENSOR 12
-#define HEAT_VENT 4
-#define VENTILATION 7
-#define WATER_TIME 3
+#define PIN_LUX_SENSOR 9 //фоторез
+#define PIN_LED_STRIP 6 // лед лента
+#define PIN_HUMIDITY_SENSOR A1 //влажность почвы
+#define PIN_WATER_PUMP 5 // помпа
+#define PIN_ATAD_SENSOR 12 // темп и влаж возд
+#define PIN_HEAT_VENT 4 // нагрев дулки
+#define PIN_VENTILATION 7 // дулка
+const int WATER_TIME = 1;
 
-DHT dht(ATAD_SENSOR, DHT11);
+DHT dht(PIN_ATAD_SENSOR, DHT11);
 
 class Climate {
 public:
@@ -42,18 +42,7 @@ public:
     double temperature;
     double humidity;
     int soil_humidity;
-public:
-    void read_sensors();
 };
-
-
-void Sensors::read_sensors() {
-    dht.read();
-    soil_humidity = analogRead(HUMIDITY_SENSOR);
-    light = analogRead(PIN_LUX_SENSOR);
-    temperature = dht.readTemperature();
-    humidity = dht.readHumidity();
-}
 
 
 class SystemState {
@@ -64,6 +53,8 @@ public:
     bool pump;
     bool heat;
     bool day;
+    bool vent_flag;
+    bool heat_flag;
     int water_time;
 
     SystemState();
@@ -83,6 +74,8 @@ void SystemState::reset_state() {
     pump = false;
     heat = false;
     day = false;
+    vent_flag = false;
+    heat_flag = false;
     water_time = 0;
 }
 
@@ -93,13 +86,13 @@ public:
     long hours;
     int minutes;
     int seconds;
-
+    unsigned long long int ms;
     void update_time();
 };
 
 
 void Time::update_time() {
-    unsigned long ms = millis();
+    unsigned long long int ms = millis();
     days = ms / (1000 * 60 * 60 * 24);
     hours = (ms / (1000 * 60 * 60)) % 24;
     minutes = (ms / (1000 * 60)) % 60;
@@ -116,15 +109,17 @@ private:
 public:
     GreenhouseController();
     void setup_pins();
+    //void check_air_temperature();
+    //void check_air_humidity();
     void check_ventilation();
-    void check_air_temperature();
-    void check_air_humidity();
-    void check_ground_humidity();
+    void check_heat();
+    void check_ground_watering();
     void check_light();
-    void control_light();
-    void control_heat();
-    void control_vent();
-    void control_pump();
+    void turn_regulators();
+    void turn_light();
+    void turn_heat();
+    void turn_vent();
+    void turn_pump();
     void periodic_check();
 };
 
@@ -136,130 +131,161 @@ GreenhouseController::GreenhouseController() {
 
 
 void GreenhouseController::setup_pins() {
-    pinMode(LED_STRIP, OUTPUT);
-    pinMode(WATER_PUMP, OUTPUT);
-    pinMode(HEAT_VENT, OUTPUT);
-    pinMode(VENTILATION, OUTPUT);
+    pinMode(PIN_LED_STRIP, OUTPUT);
+    pinMode(PIN_WATER_PUMP, OUTPUT);
+    pinMode(PIN_HEAT_VENT, OUTPUT);
+    pinMode(PIN_VENTILATION, OUTPUT);
     dht.begin();
 }
 
-
 void GreenhouseController::check_ventilation() {
     if ((time.days % 4 == 0) && (time.hours == 13)) {
-        state.vent = true;
+      state.vent_flag = true;
+    }
+    if (sens.temperature > clim.max_temp) {
+      state.vent_flag = true;
+    }
+    if (sens.humidity > clim.min_humidity) {
+      state.vent_flag = true;
     }
 }
 
-
-void GreenhouseController::check_air_temperature() {
-    if (sens.temperature >= clim.min_temp && sens.temperature <= clim.max_temp) {
-        state.vent = true;
-        state.heat = true;
-    } else if (sens.temperature < clim.min_temp) {
-        state.vent = false;
-        state.heat = false;
-    } else {
-        state.vent = true;
-        state.heat = false;
-    }
+void GreenhouseController::check_heat() {
+  if (sens.temperature < clim.min_temp) {
+    state.heat_flag = true;
+  }
 }
 
-
-void GreenhouseController::check_air_humidity() {
-    if (sens.humidity >= clim.min_humidity && sens.humidity <= clim.max_humidity) {
-        state.vent = true;
-        state.pump = false;
-    } else if (sens.humidity < clim.min_humidity) {
-        state.vent = false;
-        state.pump = true;
-    } else {
-        state.vent = true;
-        state.pump = false;
-    }
-}
-
-
-void GreenhouseController::check_ground_humidity() {
-    state.pump = (sens.soil_humidity < clim.min_soil_humidity);
+void GreenhouseController::check_ground_watering() {
+  state.pump = (sens.soil_humidity < clim.min_soil_humidity);
 }
 
 
 void GreenhouseController::check_light() {
-    state.light = (sens.light > clim.min_light);
+  state.light = (sens.light > clim.min_light);
 }
 
 
-void GreenhouseController::control_light() {
-    digitalWrite(LED_STRIP, state.light ? HIGH : LOW);
-}
-
-
-void GreenhouseController::control_heat() {
-    digitalWrite(HEAT_VENT, state.heat ? HIGH : LOW);
-    digitalWrite(VENTILATION, state.heat ? HIGH : LOW);
-}
-
-
-void GreenhouseController::control_vent() {
-    digitalWrite(VENTILATION, state.vent ? HIGH : LOW);
-}
-
-
-void GreenhouseController::control_pump() {
-    if (state.pump) {
-        unsigned long start = millis();
-        while (millis() - start < WATER_TIME * 1000) {
-            digitalWrite(WATER_PUMP, HIGH); //////
-            digitalWrite(HEAT_VENT, LOW);
-        }
+void GreenhouseController::turn_regulators() {
+    if (state.vent_flag) {
+      state.vent = true;
     }
-    digitalWrite(WATER_PUMP, LOW);
+    else {
+      state.vent = false;
+    }
+
+    if (state.heat_flag) {
+      state.heat = true;
+    }
+    else {
+      state.heat = false;
+    }
+}
+
+
+// void GreenhouseController::check_air_temperature() {
+//     if (sens.temperature >= clim.min_temp && sens.temperature <= clim.max_temp) {
+//         state.vent = false;
+//         state.heat = false;
+//     } else if (sens.temperature < clim.min_temp) {
+//         state.vent = false;
+//         state.heat = true;
+//     } else { 
+//         state.vent = true;
+//         state.heat = false;
+//     }
+// }
+
+
+// void GreenhouseController::check_air_humidity() {
+//     if (sens.humidity >= clim.min_humidity && sens.humidity <= clim.max_humidity) {
+//         state.vent = false;
+//         state.pump = false;
+//     } else if (sens.humidity < clim.min_humidity) {
+//         state.vent = false;
+//         state.pump = true;
+//     } else {
+//         state.vent = true;
+//         state.pump = false;
+//     }
+// }
+
+
+void GreenhouseController::turn_light() {
+  digitalWrite(PIN_LED_STRIP, state.light ? HIGH : LOW);
+}
+
+
+void GreenhouseController::turn_heat() {
+  digitalWrite(PIN_HEAT_VENT, state.heat ? HIGH : LOW);
+  digitalWrite(PIN_VENTILATION, state.heat ? HIGH : LOW);
+}
+
+
+void GreenhouseController::turn_vent() {
+  digitalWrite(PIN_VENTILATION, state.vent ? HIGH : LOW);
+}
+
+
+void GreenhouseController::turn_pump() {
+  unsigned long pump_start_time = 0; 
+  bool pump_active = false; 
+
+  if (state.pump) {
+      if (!pump_active) { 
+          pump_start_time = millis(); 
+          pump_active = true;
+          digitalWrite(PIN_WATER_PUMP, HIGH); 
+          digitalWrite(PIN_HEAT_VENT, LOW); 
+      } else if (millis() - pump_start_time >= WATER_TIME * 100) { 
+          digitalWrite(PIN_WATER_PUMP, LOW); 
+          pump_active = false; 
+      }
+  } else {
+      if (pump_active) { 
+          digitalWrite(PIN_WATER_PUMP, LOW);
+      }
+  }
 }
 
 
 void GreenhouseController::periodic_check() {
-    time.update_time();
-    if (time.seconds % 5 == 0) {
-        //sensors
-        sens.read_sensors();
-        //control
-        check_ventilation();
-        check_air_temperature();
-        check_air_humidity();
-        check_ground_watering();
-        check_light();
+  time.update_time();
+  if (time.seconds % 5 == 0) {
+    //sensors
+    sens.soil_humidity = analogRead(PIN_HUMIDITY_SENSOR);
+    sens.light = analogRead(PIN_LUX_SENSOR);
+    sens.temperature = dht.readTemperature();
+    sens.humidity = dht.readHumidity();
 
-        //act
-        control_light(); //turn
-        control_heat();
-        control_vent();
-        control_pump();
-        
-        //log
-        Serial.println(sens.light);
-    }
+    //control
+    check_ventilation();
+    check_ventilation();
+    check_heat();
+    check_ground_watering();
+    check_light();
+
+    //actuator
+    turn_light();
+    turn_heat();
+    turn_vent();
+    turn_pump();
+    
+    //log
+    Serial.println(sens.light);
+    Serial.println(sens.temperature);
+    Serial.println(sens.humidity);
+    Serial.println(sens.soil_humidity); 
+  }
 }
-
 GreenhouseController controller;
 
 
 void setup() {
-    Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 
 void loop() {
-  controller.periodic_check();
-//   digitalWrite(HEAT_VENT, HIGH);
-//   digitalWrite(VENTILATION, HIGH );
-//   float l = analogRead(LUX_SENSOR);
-//float hum = analogRead(HUMIDITY_SENSOR);
- float t = dht.readTemperature();
-  Serial.print("temp:");
-  Serial.println(t);
-//   Serial.print("lux:");
-//   Serial.println(l);
-//   Serial.print("hum:");
-//   Serial.println(hum);
-//   delay(500);
+    controller.periodic_check();
 }
