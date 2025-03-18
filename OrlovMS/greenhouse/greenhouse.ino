@@ -1,19 +1,48 @@
 #include <DHT11.h>
 
 
-#define PIN_LIGHT_SENS 11
-#define PIN_SOIL_SENS A1
-#define PIN_HEAT_CTRL 4
-#define PIN_PUMP_CTRL 5
-#define PIN_LIGHT_CTRL 6
-#define PIN_VENT_CTRL 7
-#define PIN_DHT11_SENS 12
+#define PIN_LIGHT_SENS      11
+#define PIN_SOIL_SENS       A1
+#define PIN_HEAT_CTRL       4
+#define PIN_PUMP_CTRL       5
+#define PIN_LIGHT_CTRL      6
+#define PIN_VENT_CTRL       7
+#define PIN_DHT11_SENS      12
 
 
-#define SET_TEMP 26 // °C
-#define LIGHT_START 8 // hour
-#define LIGHT_END 21 // hour
-#define SET_AIR_HUM 50 // %
+// TODO: configure system parameters
+#define SET_TEMP            26  // °C
+#define TEMP_HYST           5   // tempreture hysteresis, °C
+#define LIGHT_START         8   // hour
+#define LIGHT_END           21  // hour
+#define PLAN_VENT_START     12  // hour
+#define PLAN_VENT_END       13  // hour
+#define SET_AIR_HUM         50  // %
+
+#define CONTROL_ON_TIME     3   // control enable time, seconds
+#define CONTROL_TIMEOUT     7   // control disable time, seconds
+
+
+struct ctrl_data_t
+{
+    // sensors data
+    int air_temp;  // °C
+    int air_hum;  // humidity, %
+    bool soil_hum;  // 1 - low soil humidity
+    bool light_sens;  // 1 - low light
+
+    // control flags
+    bool enable_heater;
+    bool enable_vent;
+    bool enable_pump;
+    bool enable_light;
+
+    bool control_on;
+    unsigned long timeout_end;
+};
+
+
+ctrl_data_t ctrl_data;
 
 
 DHT11 dht(PIN_DHT11_SENS);
@@ -35,31 +64,9 @@ void setup()
 {
     pins_init();
 
+    ctrl_data.timeout_end = millis();
+
     Serial.begin(9600);
-}
-
-
-void control_heat()
-{
-    int temp = dht.readTemperature();
-
-    if(temp < SET_TEMP) {
-        digitalWrite(PIN_HEAT_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_HEAT_CTRL, LOW);
-    }
-}
-
-
-void control_pump()
-{
-  if(digitalRead(PIN_SOIL_SENS)) {
-        digitalWrite(PIN_PUMP_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_PUMP_CTRL, LOW);
-    }
 }
 
 
@@ -72,38 +79,92 @@ int get_time_of_day() //minutes
 }
 
 
-void control_light()
+void collect_sensors_data()
 {
-    int tim = get_time_of_day();
+    ctrl_data.air_temp = dht.readTemperature();
+    ctrl_data.air_hum = dht.readHumidity();
+    ctrl_data.soil_hum = digitalRead(PIN_SOIL_SENS);
+    ctrl_data.light_sens = digitalRead(PIN_LIGHT_SENS);
+}
 
-    if(tim > (LIGHT_START * 60) && tim < (LIGHT_END * 60) && digitalRead(PIN_LIGHT_SENS)) {
-        digitalWrite(PIN_LIGHT_CTRL, HIGH);
+
+void climate_control()
+{
+    if(millis() > ctrl_data.timeout_end) {
+        ctrl_data.control_on = !ctrl_data.control_on;
+        if(ctrl_data.control_on) {
+            ctrl_data.timeout_end = millis() + CONTROL_ON_TIME * 1000;
+        }
+        else {
+            ctrl_data.timeout_end = millis() + CONTROL_TIMEOUT * 1000;
+        }
     }
-    else {
-        digitalWrite(PIN_LIGHT_CTRL, LOW);
+
+    ctrl_data.enable_heater = 0;
+    ctrl_data.enable_vent = 0;
+    ctrl_data.enable_pump = 0;
+    ctrl_data.enable_light = 0;
+
+    if(ctrl_data.control_on) {
+        if(ctrl_data.air_temp < SET_TEMP - TEMP_HYST) {
+            ctrl_data.enable_heater = 1;
+            ctrl_data.enable_vent = 1;
+        }
+
+        if(ctrl_data.air_temp > SET_TEMP + TEMP_HYST) {
+            ctrl_data.enable_vent = 1;
+        }
+
+        if(ctrl_data.air_hum > SET_AIR_HUM) {
+            ctrl_data.enable_vent = 1;
+        }
+
+        if(ctrl_data.soil_hum) {
+            ctrl_data.enable_pump = 1;
+        }
+    }
+
+    int time = get_time_of_day();
+
+    if(time > (LIGHT_START * 60) && time < (LIGHT_END * 60) && ctrl_data.light_sens) {
+        ctrl_data.enable_light = 1;
+    }
+
+    if(time > (PLAN_VENT_START * 60) && time < (PLAN_VENT_END * 60)) {
+        ctrl_data.enable_vent = 1;
     }
 }
 
 
-void control_vent()
+void control_apply()
 {
-    int hum = dht.readHumidity();
+    digitalWrite(PIN_HEAT_CTRL, ctrl_data.enable_heater);
+    digitalWrite(PIN_VENT_CTRL, ctrl_data.enable_vent);
+    digitalWrite(PIN_PUMP_CTRL, ctrl_data.enable_pump);
+    digitalWrite(PIN_LIGHT_CTRL, ctrl_data.enable_light);
+}
 
-    if(hum > SET_AIR_HUM) {
-        digitalWrite(PIN_VENT_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_VENT_CTRL, LOW);
-    }
+
+void print_data()
+{
+    Serial.println("Sensors data:");
+    Serial.print("air temp: ");
+    Serial.print(ctrl_data.air_temp);
+    Serial.print(", air hum: ");
+    Serial.print(ctrl_data.air_hum);
+    Serial.print(", soil is dry: ");
+    Serial.print(ctrl_data.soil_hum);
+    Serial.print(", low light: ");
+    Serial.println(ctrl_data.light_sens);
 }
 
 
 void loop()
 {
-    control_heat();
-    control_light();
-    control_pump();
-    control_vent();
+    collect_sensors_data();
+    climate_control();
+    control_apply();
+    print_data();
 
     delay(100);
 }
