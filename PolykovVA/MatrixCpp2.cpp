@@ -43,6 +43,7 @@ public:
     void matrix_zero();
     double det();
 
+    // power -- возведение в степень
 };
 
 
@@ -77,7 +78,7 @@ Matrix::Matrix(const size_t rows, const size_t cols) :
         return;
     };
 
-    if (sizeof(double) * rows * cols >= SIZE_MAX) {
+    if (sizeof(double) * rows * cols >= SIZE_MAX) {  // BUG: nonsense
         throw MEMORY_ERROR;
     };
 
@@ -129,7 +130,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* data2) :
         return;
     };
 
-    if (sizeof(double) * rows * cols >= SIZE_MAX / rows * cols) {
+    if (sizeof(double) * rows * cols >= SIZE_MAX / rows * cols) {   // BUG:
         throw MEMORY_ERROR;
     };
 
@@ -231,7 +232,7 @@ Matrix Matrix::exp(int x)
         return matrix_exponent_result;
     }
 
-    for (size_t n = 1; n <= x; n++) {
+    for (size_t n = 1; n <= x; n++) {   // BUG: size_t or int ?
         matrix_term = matrix_term * (*this) * (1.0 / n);
         matrix_exponent_result += matrix_term;
     }
@@ -266,6 +267,8 @@ double Matrix::det()
             data[1] * (data[3] * data[8] - data[5] * data[6]) +
             data[2] * (data[3] * data[7] - data[4] * data[6]);
     }
+
+    // BUG: return what?
 }
 
 
@@ -314,7 +317,7 @@ Matrix& Matrix::operator*=(const Matrix& A) // A = A * B
         for (size_t col = 0; col < multi.cols; col++) {
             for (size_t idx = 0; idx < A.cols; idx++) {
                 multi.data[row * multi.cols + col] += data[row * cols + idx] * A.data[idx * A.cols + col];
-            }
+            }  // BUG: initial value? 
         }
     }
     *this = multi;
