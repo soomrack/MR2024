@@ -15,7 +15,6 @@ private:
 
 public:
     Matrix();
-    public:
     Matrix(size_t n); 
     Matrix(size_t r, size_t c);
     Matrix(const Matrix& M);
