@@ -1,7 +1,7 @@
 #include <DHT11.h>
 
 
-#define PIN_LIGHT_SENS      11
+#define PIN_LIGHT_SENS      9
 #define PIN_SOIL_SENS       A1
 #define PIN_HEAT_CTRL       4
 #define PIN_PUMP_CTRL       5
@@ -11,16 +11,17 @@
 
 
 // TODO: configure system parameters
-#define SET_TEMP            26  // °C
+#define SET_TEMP            35  // °C
 #define TEMP_HYST           5   // tempreture hysteresis, °C
 #define LIGHT_START         8   // hour
 #define LIGHT_END           21  // hour
 #define PLAN_VENT_START     12  // hour
 #define PLAN_VENT_END       13  // hour
+#define SET_SOIL_HUM        50  // parrots
 #define SET_AIR_HUM         50  // %
 
-#define CONTROL_ON_TIME     3   // control enable time, seconds
-#define CONTROL_TIMEOUT     7   // control disable time, seconds
+#define CONTROL_ON_TIME     7   // control enable time, seconds
+#define CONTROL_TIMEOUT     3   // control disable time, seconds
 
 
 struct ctrl_data_t
@@ -28,7 +29,7 @@ struct ctrl_data_t
     // sensors data
     int air_temp;  // °C
     int air_hum;  // humidity, %
-    bool soil_hum;  // 1 - low soil humidity
+    int soil_hum;  // humidity, in parrots
     bool light_sens;  // 1 - low light
 
     // control flags
@@ -83,7 +84,7 @@ void collect_sensors_data()
 {
     ctrl_data.air_temp = dht.readTemperature();
     ctrl_data.air_hum = dht.readHumidity();
-    ctrl_data.soil_hum = digitalRead(PIN_SOIL_SENS);
+    ctrl_data.soil_hum = map(analogRead(PIN_SOIL_SENS), 0, 1023, 100, 0);
     ctrl_data.light_sens = digitalRead(PIN_LIGHT_SENS);
 }
 
@@ -119,7 +120,7 @@ void climate_control()
             ctrl_data.enable_vent = 1;
         }
 
-        if(ctrl_data.soil_hum) {
+        if(ctrl_data.soil_hum < SET_SOIL_HUM) {
             ctrl_data.enable_pump = 1;
         }
     }
@@ -152,10 +153,12 @@ void print_data()
     Serial.print(ctrl_data.air_temp);
     Serial.print(", air hum: ");
     Serial.print(ctrl_data.air_hum);
-    Serial.print(", soil is dry: ");
+    Serial.print(", soil hum: ");
     Serial.print(ctrl_data.soil_hum);
     Serial.print(", low light: ");
     Serial.println(ctrl_data.light_sens);
+    Serial.print("time, hours: ");
+    Serial.println(get_time_of_day() / 60.0f);
 }
 
 
