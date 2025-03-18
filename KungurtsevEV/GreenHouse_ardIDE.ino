@@ -1,6 +1,6 @@
 #include <DHT.h>
 
-#define PIN_LUX_SENSOR 9 //фоторез
+#define PIN_LUX_SENSOR A3 //фоторез
 #define PIN_LED_STRIP 6 // лед лента
 #define PIN_HUMIDITY_SENSOR A1 //влажность почвы
 #define PIN_WATER_PUMP 5 // помпа
@@ -139,7 +139,7 @@ void GreenhouseController::setup_pins() {
 }
 
 void GreenhouseController::check_ventilation() {
-    if ((time.days % 4 == 0) && (time.hours == 13)) {
+  if ((time.days % 4 == 0) && (time.hours == 13)) {
       state.vent_flag = true;
     }
     if (sens.temperature > clim.max_temp) {
@@ -167,7 +167,7 @@ void GreenhouseController::check_light() {
 
 
 void GreenhouseController::turn_regulators() {
-    if (state.vent_flag) {
+    if ((state.vent_flag) && (!state.pump)) {
       state.vent = true;
     }
     else {
@@ -228,23 +228,18 @@ void GreenhouseController::turn_vent() {
 
 
 void GreenhouseController::turn_pump() {
-  unsigned long pump_start_time = 0; 
-  bool pump_active = false; 
-
+  static long pump_start_time = 0; 
+  static bool pump_active = false; 
   if (state.pump) {
-      if (!pump_active) { 
-          pump_start_time = millis(); 
-          pump_active = true;
-          digitalWrite(PIN_WATER_PUMP, HIGH); 
-          digitalWrite(PIN_HEAT_VENT, LOW); 
-      } else if (millis() - pump_start_time >= WATER_TIME * 100) { 
-          digitalWrite(PIN_WATER_PUMP, LOW); 
-          pump_active = false; 
-      }
-  } else {
-      if (pump_active) { 
-          digitalWrite(PIN_WATER_PUMP, LOW);
-      }
+    pump_start_time = millis(); 
+    digitalWrite(PIN_WATER_PUMP, HIGH); 
+    digitalWrite(PIN_HEAT_VENT, LOW); 
+  }else if(millis() - pump_start_time >= WATER_TIME * 100) { 
+    digitalWrite(PIN_WATER_PUMP, LOW); 
+    digitalWrite(PIN_HEAT_VENT, LOW); 
+    state.pump = false;
+  }else{
+    digitalWrite(PIN_WATER_PUMP, LOW);
   }
 }
 
@@ -260,7 +255,6 @@ void GreenhouseController::periodic_check() {
 
     //control
     check_ventilation();
-    check_ventilation();
     check_heat();
     check_ground_watering();
     check_light();
@@ -270,11 +264,16 @@ void GreenhouseController::periodic_check() {
     turn_heat();
     turn_vent();
     turn_pump();
+    turn_regulators();
     
     //log
+    Serial.println("Свет:");
     Serial.println(sens.light);
+    Serial.println("Температура:");
     Serial.println(sens.temperature);
+    Serial.println("Влажность:");
     Serial.println(sens.humidity);
+    Serial.println("Влажность почвы:");
     Serial.println(sens.soil_humidity); 
   }
 }
@@ -288,4 +287,11 @@ void setup() {
 
 void loop() {
     controller.periodic_check();
+    /*float l = analogRead(PIN_LUX_SENSOR);
+    float t = dht.readTemperature();
+    Serial.print("temp:");
+    Serial.println(t);
+    Serial.print("lux:");
+    Serial.println(l);
+    delay(500);*/
 }
