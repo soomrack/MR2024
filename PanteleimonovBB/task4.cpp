@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <limits>
 #include <algorithm>
+#include <iomanip> 
 
 
 class Matrix {
@@ -109,9 +110,9 @@ void Matrix::input() {
 }
 
 void Matrix::print() const {
-    for (size_t i = 0; i < rows; i++) {
+    for (size_t idx = 0; idx < rows; idx++) {
         for (size_t j = 0; j < cols; j++) {
-            std::cout << data[i * cols + j] << " ";
+            std::cout << data[idx * cols + j] << " ";
         }
         std::cout << std::endl;
     }
@@ -169,10 +170,10 @@ Matrix Matrix::operator*(double scalar) const {
 Matrix Matrix::operator*(const Matrix& B) const {
     if (cols != B.rows) throw std::runtime_error("Нельзя умножить: число столбцов первой не равно числу строк второй.");
     Matrix result(rows, B.cols);
-    for (size_t i = 0; i < rows; i++) {
+    for (size_t idx = 0; idx < rows; idx++) {
         for (size_t j = 0; j < B.cols; j++) {
             for (size_t k = 0; k < cols; k++) {
-                result.data[i * B.cols + j] += data[i * cols + k] * B.data[k * B.cols + j];
+                result.data[idx * B.cols + j] += data[idx * cols + k] * B.data[k * B.cols + j];
             }
         }
     }
@@ -182,9 +183,9 @@ Matrix Matrix::operator*(const Matrix& B) const {
 
 Matrix Matrix::transpose() const {
     Matrix result(cols, rows);
-    for (size_t i = 0; i < rows; i++) {
+    for (size_t idx = 0; idx < rows; idx++) {
         for (size_t j = 0; j < cols; j++) {
-            result.data[j * rows + i] = data[i * cols + j];
+            result.data[j * rows + idx] = data[idx * cols + j];
         }
     }
     return result;
@@ -203,35 +204,60 @@ Matrix Matrix::power(size_t exp) const {
 }
 
 double Matrix::determinant() const {
-    if (rows != cols) throw std::runtime_error("Определитель вычисляется только для квадратных матриц.");
-    if (rows == 1) return data[0];
-
-    double det = 0.0;
-    for (size_t i = 0; i < cols; i++) {
-        det += (i % 2 == 0 ? 1 : -1) * data[i] * determinant();
+    if (rows != cols) {
+        throw std::runtime_error("Определитель можно вычислить только у квадратной матрицы!");
     }
+    
+    Matrix copy(*this);
+    double det = 1.0;
+
+    for (size_t idx = 0; idx < rows; ++idx) {
+        if (copy.data[idx * cols + idx] == 0) {
+            return 0;  
+        }
+
+        det *= copy.data[idx * cols + idx];
+        for (size_t j = idx + 1; j < rows; ++j) {
+            double factor = copy.data[j * cols + idx] / copy.data[idx * cols + idx];
+            for (size_t k = idx; k < cols; ++k) {
+                copy.data[j * cols + k] -= factor * copy.data[idx * cols + k];
+            }
+        }
+    }
+
     return det;
 }
+
 
 Matrix Matrix::exponent(size_t order) const {
     if (rows != cols) throw std::runtime_error("Экспонента определена только для квадратных матриц.");
     Matrix result = identity(rows);
     Matrix term = identity(rows);
-    for (size_t n = 1; n <= order; n++) {
-        term = term * (*this) * (1.0 / n);
-        result = result + term;
+
+    double divisor = 1.0;
+
+    for (size_t idx = 1; idx <= order; idx++) {
+        term = term * (*this);
+        divisor *= idx;
+        result = result + (term * (1.0 / divisor));
     }
     return result;
 }
 
 Matrix Matrix::identity(size_t n) {
     Matrix id(n, n);
-    for (size_t i = 0; i < n; i++) id.data[i * n + i] = 1.0;
+    for (size_t idx = 0; idx < n; idx++) id.data[idx * n + idx] = 1.0;
     return id;
 }
 
 std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
-    matrix.print();
+    os << std::fixed << std::setprecision(4); // 4 знака после запятой
+    for (size_t idx = 0; idx < matrix.rows; ++idx) {
+        for (size_t j = 0; j < matrix.cols; ++j) {
+            os << std::setw(10) << matrix.data[idx * matrix.cols + j] << " "; 
+        }
+        os << "\n";
+    }
     return os;
 }
 
