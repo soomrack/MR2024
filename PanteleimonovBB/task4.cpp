@@ -6,6 +6,12 @@
 #include <iomanip> 
 
 
+class MatrixException : public std::runtime_error { 
+public:
+    explicit MatrixException(const std::string& message) : std::runtime_error(message) {} 
+};
+
+
 class Matrix {
 private:
     size_t rows, cols;
@@ -48,7 +54,7 @@ Matrix::Matrix(size_t n) : rows(n), cols(n) {
     }
 
     if (n > std::numeric_limits<size_t>::max() / n) {     
-        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
+        throw MatrixException ("Размер матрицы слишком велик для выделения памяти.");
     }
     data = new double[n * n];
 }
@@ -61,7 +67,7 @@ Matrix::Matrix(const size_t row, const size_t col) : rows(row), cols(col) {
     }
 
     if (row > std::numeric_limits<size_t>::max() / col) {     
-        throw std::overflow_error("Размер матрицы слишком велик для выделения памяти.");
+        throw MatrixException ("Размер матрицы слишком велик для выделения памяти.");
     }
     data = new double[row * col];
 }
@@ -128,7 +134,7 @@ Matrix& Matrix::operator=(Matrix&& M) noexcept {
 
 
 Matrix Matrix::operator+(const Matrix& B) const {
-    if (rows != B.rows || cols != B.cols) throw std::runtime_error("Размеры матриц не совпадают.");
+    if (rows != B.rows || cols != B.cols) throw MatrixException ("Размеры матриц не совпадают.");
     Matrix result(rows, cols);
     for (size_t idx = 0; idx < rows * cols; idx++) {
         result.data[idx] = data[idx] + B.data[idx];
@@ -137,7 +143,7 @@ Matrix Matrix::operator+(const Matrix& B) const {
 }
 
 Matrix Matrix::operator-(const Matrix& B) const {
-    if (rows != B.rows || cols != B.cols) throw std::runtime_error("Размеры матриц не совпадают.");
+    if (rows != B.rows || cols != B.cols) throw MatrixException ("Размеры матриц не совпадают.");
     Matrix result(rows, cols);
     for (size_t idx = 0; idx < rows * cols; idx++) {
         result.data[idx] = data[idx] - B.data[idx];
@@ -154,12 +160,13 @@ Matrix Matrix::operator*(double scalar) const {
 }
 
 Matrix Matrix::operator*(const Matrix& B) const {
-    if (cols != B.rows) throw std::runtime_error("Нельзя умножить: число столбцов первой не равно числу строк второй.");
+    if (cols != B.rows) throw MatrixException ("Нельзя умножить: число столбцов первой не равно числу строк второй.");
     Matrix result(rows, B.cols);
-    for (size_t idx = 0; idx < rows; idx++) {
-        for (size_t j = 0; j < B.cols; j++) {
+    std::fill(result.data, result.data + rows * B.cols, 0.0);
+    for (size_t row = 0; row < rows; row++) {
+        for (size_t col = 0; col < B.cols; col++) {
             for (size_t k = 0; k < cols; k++) {
-                result.data[idx * B.cols + j] += data[idx * cols + k] * B.data[k * B.cols + j];
+                result.data[row * B.cols + col] += data[row * cols + k] * B.data[k * B.cols + col];
             }
         }
     }
@@ -178,7 +185,7 @@ Matrix Matrix::transpose() const {
 }
 
 Matrix Matrix::power(size_t exp) const {
-    if (rows != cols) throw std::runtime_error("Только квадратные матрицы могут возводиться в степень.");
+    if (rows != cols) throw MatrixException ("Только квадратные матрицы могут возводиться в степень.");
     Matrix result = identity(rows);
     Matrix base = *this;
     while (exp) {
@@ -191,7 +198,7 @@ Matrix Matrix::power(size_t exp) const {
 
 double Matrix::determinant() const {
     if (rows != cols) {
-        throw std::runtime_error("Определитель можно вычислить только у квадратной матрицы!");
+        throw MatrixException ("Определитель можно вычислить только у квадратной матрицы!");
     }
     
     Matrix copy(*this);
@@ -216,7 +223,7 @@ double Matrix::determinant() const {
 
 
 Matrix Matrix::exponent(size_t order) const {
-    if (rows != cols) throw std::runtime_error("Экспонента определена только для квадратных матриц.");
+    if (rows != cols) throw MatrixException ("Экспонента определена только для квадратных матриц.");
     Matrix result = identity(rows);
     Matrix term = identity(rows);
 
