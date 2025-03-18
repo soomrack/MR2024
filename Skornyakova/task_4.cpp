@@ -28,12 +28,15 @@ public:
 
 
     Matrix& operator=(const Matrix& );
+    Matrix&& operator=(const Matrix&&);
     Matrix operator+(const Matrix&);
     Matrix operator*(double k) const;
     Matrix operator*(const Matrix&)const; 
     Matrix operator^(const unsigned int degree);   
       
 };
+
+
 class MatrixException : public std::exception { 
     private:
         std::string message;
@@ -43,6 +46,7 @@ class MatrixException : public std::exception {
             return message.c_str();
         }
     };
+
 
  Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) {
     if (rows == 0 || cols == 0) {
@@ -57,6 +61,7 @@ class MatrixException : public std::exception {
     }
 }
 
+
 Matrix::Matrix(std::vector<double> new_data, size_t rows, size_t cols): rows(rows), cols(cols) {
     if (rows == 0 || cols == 0) {
         throw MatrixException("Matrix dimensions cannot be zero");
@@ -70,23 +75,38 @@ Matrix::Matrix(std::vector<double> new_data, size_t rows, size_t cols): rows(row
     }
 }
 
-//конструктор копирования 
+
 Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), data(other.data) {}
 
-// Конструктор перемещения
+
 Matrix::Matrix(Matrix&& other) 
         : rows(other.rows), cols(other.cols), data(std::move(other.data)) { 
     }
 
 
 Matrix& Matrix::operator=(const Matrix& other) {
-    if (this != &other) {
+    if (this == &other)  return *this;
+
         rows = other.rows;
         cols = other.cols;
-        data = other.data;
-    }
-    return *this;
+        data = other.data; 
+
+        return *this; 
+
 }
+
+
+Matrix& Matrix::operator=(const Matrix&& other) {
+    if (this == &other) return *this; 
+
+        rows = other.rows;
+        cols = other.cols;
+        data = std::move(other.data);
+
+        return *this;
+   
+}
+
 
 //result = this + B
  Matrix Matrix::operator+(const Matrix& B)  {
@@ -100,6 +120,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return result;
 }
 
+
 // result = this * k
 Matrix Matrix::operator*(double k) const {
     Matrix result(rows, cols);
@@ -108,6 +129,7 @@ Matrix Matrix::operator*(double k) const {
     }
     return result;
 }
+
 
 // result = this * other 
 Matrix Matrix::operator*(const Matrix& other) const {
@@ -127,6 +149,7 @@ Matrix Matrix::operator*(const Matrix& other) const {
     return result;
 }
 
+
 // Возведение матрицы в степень
 Matrix Matrix::operator^(const unsigned int degree) {
     if (rows != cols) {
@@ -142,6 +165,7 @@ Matrix Matrix::operator^(const unsigned int degree) {
     return result;
 }
 
+
 // Печать матрицы
 void Matrix::print() const {
     for (size_t row = 0; row < rows; ++row) {
@@ -153,6 +177,7 @@ void Matrix::print() const {
     std::cout << std::endl;
 }
 
+
 // Транспонирование матрицы
 Matrix Matrix::transpose() const {
     Matrix result(cols, rows);
@@ -163,6 +188,7 @@ Matrix Matrix::transpose() const {
     }
     return result;
 }
+
 
 // Вычисление определителя
 double Matrix::determinant() const {
@@ -181,13 +207,12 @@ double Matrix::determinant() const {
                 if (c == col) continue;
                 submatrix.data[(subrow - 1) * submatrix.cols + subcol] = data[subrow * cols + c];
                 ++subcol;
-            }
+            }  
         }
         det += (col % 2 == 0 ? 1 : -1) * data[col] * submatrix.determinant();
     }
     return det;
 }
-
 
 
 // Единичная матрица
@@ -198,6 +223,7 @@ double Matrix::determinant() const {
     }
     return result;
 }
+
 
 // Экспонента матрицы
 Matrix Matrix::exp(unsigned int terms = 20) const {
