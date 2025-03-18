@@ -13,10 +13,11 @@
 
 
 #define TIME_DAY_START 7 // hours
+#define TIME_DAY_CURRENT 10 // hours
 #define TIME_DAY_END 23 // hours
 #define TARGET_SOIL_HUMIDITY_LEVEL 40 // %
 #define TARGET_TEPM_LEVEL 26 // °C
-#define TARGET_AIR_HUMIDITY_LEVEL 30 // %
+#define TARGET_AIR_HUMIDITY_LEVEL 10 // %
 
 
 static bool heater_is_active = false;
@@ -52,10 +53,10 @@ inline void wait(const uint16_t duration) {
 
 
 uint16_t get_current_time() { // In minutes
-    uint16_t minutes = (millis() / 1000) / (60);
+    uint16_t minutes = ((millis() / 1000) / (60) + TIME_DAY_CURRENT * 60);
     uint16_t count_minutes_in_day = 24 * 60;
 
-    while(minutes >= count_minutes_in_day) { minutes -= count_minutes_in_day; }
+    while (minutes >= count_minutes_in_day) { minutes -= count_minutes_in_day; }
 
     return minutes;
 }
@@ -65,7 +66,7 @@ void control_backlight() {
     uint16_t current_time = get_current_time();
     uint8_t current_lighting_level = digitalRead(PIN_LIGHT_SENSOR);
 
-    if(current_time >= (TIME_DAY_START * 60) && current_time <= (TIME_DAY_END * 60) || current_lighting_level == 1) {
+    if(current_time >= (TIME_DAY_START * 60) && current_time <= (TIME_DAY_END * 60) && current_lighting_level == 1) {
             digitalWrite(PIN_BACKLIGHT, HIGH);
     } else {
         digitalWrite(PIN_BACKLIGHT, LOW);
@@ -79,7 +80,7 @@ void control_pomp(const uint8_t min_deviation = 5, const uint16_t deadtime = 100
 
     uint8_t max_soil_humidity = TARGET_SOIL_HUMIDITY_LEVEL + min_deviation; 
     uint8_t min_soil_humidity = TARGET_SOIL_HUMIDITY_LEVEL - min_deviation;
-    uint8_t current_soil_humidity = map(analogRead(PIN_SOIL_HUMIDITY_SENSOR), 0, 1024, 0, 100);
+    uint8_t current_soil_humidity = map(analogRead(PIN_SOIL_HUMIDITY_SENSOR), 0, 1024, 100, 0);
 
     if(current_soil_humidity < min_soil_humidity) {
         if(heater_is_active) return;
@@ -171,9 +172,9 @@ void plan_air_out(const uint8_t start_hour, const uint16_t start_minut, const ui
 void print_current_environment_params() {
     uint16_t current_time = get_current_time();
     Serial.print("Status is active, current time: ");
-    Serial.print(current_time / 24);
+    Serial.print(current_time / 60);
     Serial.print(" hour ");
-    Serial.print(current_time % 24);
+    Serial.print(current_time % 60);
     Serial.println(" minut");
 
     Serial.print("Current lighting: ");
@@ -201,7 +202,7 @@ void loop() {
     control_pomp();
     control_heater();
     control_ventilation();
-    plan_air_out(15, 30, 16, 0);
+    plan_air_out(14, 30, 16, 0);
 
     print_current_environment_params();
     
