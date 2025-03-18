@@ -5,27 +5,11 @@
 #include <cmath>
 
 
-enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
-
-
-void matrix_exception(const enum MatrixExceptionLevel level, const char *msg)
+class MatrixException : public std::domain_error 
 {
-    if(level == ERROR) {
-        printf("ERROR: %s", msg);
-    }
-
-    if(level == WARNING) {
-        printf("WARNING: %s", msg);
-    }
-
-    if(level == INFO) {
-        printf("INFO: %s", msg);
-    }
-
-    if(level == DEBUG) {
-        printf("DEBUG: %s", msg);
-    }
-}
+    public:
+        explicit MatrixException(const std::string& message) : domain_error(message) {} 
+};
 
 
 class Matrix {
@@ -35,22 +19,23 @@ private:
     double* data;
 
 public:
+    Matrix();
     Matrix(size_t rows, size_t cols);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A);
 
     ~Matrix();
 
-    void matrix_print() const;
-    void matrix_free();
+    void print() const;
     double determinant();
-    void matrix_identity();
-    void matrix_zero();
+    void identity();
+    void zero();
 
-    Matrix matrix_transp();
-    Matrix matrix_exp(const unsigned int accuracy);
+    Matrix transp();
+    Matrix exp(const unsigned int accuracy);
 
-    Matrix operator=(const Matrix& B);
+    Matrix& operator=(const Matrix& B);
+    Matrix& operator=(Matrix&& B);
     Matrix operator+(const Matrix& B);
     Matrix operator-(const Matrix& B);
     Matrix operator*(const double k);
@@ -59,24 +44,27 @@ public:
 };
 
 
+Matrix::Matrix() {}
+
+
 Matrix::Matrix(size_t A_rows, size_t A_cols)
 {
     rows = A_rows;
     cols = A_cols;
 
-    if (rows == 0  || cols == 0) { 
-        matrix_exception(WARNING, "Матрица содержит 0 элементов!\n");
+    if (rows == 0  || cols == 0) {
+        throw MatrixException ("Матрица содержит 0 элементов\n");
     }
 
     if (SIZE_MAX / cols < rows) { 
-        matrix_exception(ERROR, "Число строк или столбцов равно 0\n");
+        throw MatrixException ("Число строк или столбцов равно 0\n");
         rows = 0;
         cols = 0;
         data = NULL;
     }
 
     if (SIZE_MAX / (cols * sizeof(double)) < rows) { 
-        matrix_exception(ERROR, "Не хватит места для выделения памяти под строки и столбцы\n");
+        throw MatrixException ("Не хватит места для выделения памяти под строки и столбцы\n");
         rows = 0;
         cols = 0;
         data = NULL;
@@ -110,7 +98,7 @@ Matrix::Matrix(Matrix&& other) : rows(other.rows), cols(other.cols), data(other.
 }
 
 
-void Matrix::matrix_print() const
+void Matrix::print() const
 {
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < cols; col++) {
@@ -122,16 +110,10 @@ void Matrix::matrix_print() const
 }
 
 
-void Matrix::matrix_free()
-{ 
-    free(data);
-}
-
-
 double Matrix::determinant()
 {
     if (rows != cols) {
-        matrix_exception(WARNING, "Размеры матрицы не подходят для вычисления определителя");
+        throw MatrixException("Размеры матрицы не подходят для вычисления определителя\n");
         return NAN;
     }
 
@@ -151,14 +133,14 @@ double Matrix::determinant()
                data[1] * data[3] * data[8] -
                data[0] * data[5] * data[7];
     }
-    matrix_exception(INFO, "Matrix is too big, I do not want to do it");
+    throw MatrixException("Matrix is too big\n");
     return NAN;
 }
 
 
-void Matrix::matrix_identity()
+void Matrix::identity()
 {
-    matrix_zero();
+    zero();
 
     for (size_t idx = 0; idx < rows * cols; idx += cols + 1) {
         data[idx] = 1.0;
@@ -166,17 +148,17 @@ void Matrix::matrix_identity()
 }
 
 
-void Matrix::matrix_zero()
+void Matrix::zero()
 {
     if (cols == 0 || rows == 0) {
-        matrix_exception(INFO, "Матрица не содержит элементов");
+        throw MatrixException("Матрица не содержит элементов\n");
     }   
 
     memset(data, 0, cols * rows * sizeof(double));
 }
 
 
-Matrix Matrix::matrix_transp()
+Matrix Matrix::transp()
 {
     Matrix B(cols, rows);
 
@@ -189,34 +171,28 @@ Matrix Matrix::matrix_transp()
 }
 
 
-Matrix Matrix::matrix_exp(const unsigned int accuracy)
+Matrix Matrix::exp(const unsigned int accuracy)
 {
     if (rows != cols) {
-        matrix_exception(WARNING, "Размеры матрицы не подходят для вычисления экспоненты");
+        throw MatrixException ("Размеры матрицы не подходят для вычисления экспоненты");
         return MATRIX_NULL;
     }
 
     double fact = 1.0;
 
     Matrix B(*this);
-    B.matrix_identity();
+    B.identity();
 
-    for (int n = 1; n <= accuracy; n++) {
+    for (unsigned int n = 1; n <= accuracy; n++) {
         fact *= n;
-        Matrix P = *this ^ n;
-        Matrix M = P * (1/fact);
-        P.matrix_free();
-        Matrix C = B + M;
-        B.matrix_free();
-        B = C;
-        M.matrix_free();
+        B = std::move(B) + ((*this ^ n) * (1/fact));
     }
 
     return B;
 }
 
 
-Matrix Matrix::operator=(const Matrix& B)
+Matrix &Matrix::operator=(const Matrix& B)
 {
     if (this == &B) {
         return *this;
@@ -234,10 +210,27 @@ Matrix Matrix::operator=(const Matrix& B)
 }
 
 
+Matrix &Matrix::operator=(Matrix&& B)
+{
+    if (this == &B) {
+        return *this;
+    }
+    
+    delete[] data;
+    rows = B.rows;
+    cols = B.cols;
+    data = B.data;
+
+    B.rows = 0;
+    B.cols = 0;
+    B.data = NULL;
+}
+
+
 Matrix Matrix::operator+(const Matrix& B)
 {
     if (rows != B.rows || cols != B.cols) {
-        matrix_exception(WARNING, "Размеры матриц не подходят для сложения");
+        throw MatrixException ("Размеры матриц не подходят для сложения");
         return MATRIX_NULL;
     }
 
@@ -254,7 +247,7 @@ Matrix Matrix::operator+(const Matrix& B)
 Matrix Matrix::operator-(const Matrix& B)
 {
     if (rows != B.rows || cols != B.cols) {
-        matrix_exception(WARNING, "Размеры матриц не подходят для вычитания");
+        throw MatrixException ("Размеры матриц не подходят для вычитания");
         return MATRIX_NULL;
     }
 
@@ -283,7 +276,7 @@ Matrix Matrix::operator*(const double k)
 Matrix Matrix::operator*(const Matrix& B)
 {
     if (cols != B.rows) {
-        matrix_exception(WARNING, "Размеры матриц не подходят для умножения");
+        throw MatrixException ("Размеры матриц не подходят для умножения");
         return MATRIX_NULL;
     }
 
@@ -305,11 +298,16 @@ Matrix Matrix::operator*(const Matrix& B)
 Matrix Matrix::operator^(const unsigned int power)
 {
     if (rows != cols) {
-        matrix_exception(WARNING, "Размеры матрицы не подходят для возведения в степень");
+        throw MatrixException ("Размеры матрицы не подходят для возведения в степень");
         return MATRIX_NULL;
     }
 
     Matrix B(*this);
+
+    if (power == 0) {
+        B.identity();
+        return B;
+    }
     
     for (unsigned int pow = 1; pow < power; ++pow) {
         B = std::move(B) * (*this);
@@ -323,46 +321,46 @@ int main()
 {
     Matrix A(3,3);
     printf("A =\n");
-    A.matrix_print();
+    A.print();
 
     Matrix B(3,3);
     A = B;
     printf("A = B =\n");
-    A.matrix_print();
+    A.print();
 
     B = A * 2;
     printf("B = A *2 =\n");
-    B.matrix_print();
+    B.print();
 
     printf("det(A) = \n");
     printf("%.2f", A.determinant());
 
     Matrix C = B - A;
     printf("C = B - A\n");
-    C.matrix_print();
+    C.print();
 
     Matrix D(2,3);
     Matrix E(3,4);
     printf("D =\n");
-    D.matrix_print();
+    D.print();
     printf("E =\n");
-    E.matrix_print();
+    E.print();
    
     Matrix F = D * E;
     printf("F = D * E\n");
-    F.matrix_print();
+    F.print();
 
-    Matrix G = F.matrix_transp();
+    Matrix G = F.transp();
     printf("G = transp(F)\n");
-    G.matrix_print();
+    G.print();
 
     printf("B =\n");
-    B.matrix_print();
+    B.print();
     Matrix J = B ^ 2;
     printf("J = B ^ 2\n");
-    J.matrix_print();
+    J.print();
     
-    Matrix I = B.matrix_exp(4);
+    Matrix I = B.exp(4);
     printf("I = exp(B,4)\n");
-    I.matrix_print();
+    I.print();
 }
