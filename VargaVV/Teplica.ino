@@ -65,12 +65,8 @@ void control_backlight() {
     uint16_t current_time = get_current_time();
     uint8_t current_lighting_level = digitalRead(PIN_LIGHT_SENSOR);
 
-    if(current_time >= (TIME_DAY_START * 60) && current_time <= (TIME_DAY_END * 60)) {
-        if(current_lighting_level == 1) {
+    if(current_time >= (TIME_DAY_START * 60) && current_time <= (TIME_DAY_END * 60) || current_lighting_level == 1) {
             digitalWrite(PIN_BACKLIGHT, HIGH);
-        } else if(current_lighting_level == 0) {
-            digitalWrite(PIN_BACKLIGHT, LOW);
-        }
     } else {
         digitalWrite(PIN_BACKLIGHT, LOW);
     }
@@ -205,7 +201,6 @@ void loop() {
     control_pomp();
     control_heater();
     control_ventilation();
-
     plan_air_out(15, 30, 16, 0);
 
     print_current_environment_params();
