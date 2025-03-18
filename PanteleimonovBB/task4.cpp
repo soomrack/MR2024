@@ -1,8 +1,6 @@
 #include <iostream>
-#include <vector>
 #include <cmath>
 #include <stdexcept>
-#include <cstdint>
 #include <limits>
 #include <algorithm>
 #include <iomanip> 
