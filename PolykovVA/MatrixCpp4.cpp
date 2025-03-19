@@ -36,12 +36,12 @@ public:
 
     void print();
     void matrix_random();
-    Matrix exp( int x);
+    Matrix exp(const unsigned long long int x);
     Matrix transp();
     void matrix_identity();
     void matrix_zero();
     double det();
-    void pow(const unsigned long long int n);
+    void pow(const int n);
 
 };
 
