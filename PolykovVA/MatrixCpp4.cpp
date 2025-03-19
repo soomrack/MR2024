@@ -41,7 +41,7 @@ public:
     void matrix_identity();
     void matrix_zero();
     double det();
-    void pow(const int n);
+    void pow(const unsigned long long int n);
 
 };
 
@@ -77,7 +77,7 @@ Matrix::Matrix(const size_t rows, const size_t cols) :
         return;
     };
 
-    if (rows > SIZE_MAX / sizeof(double) / cols) {//исправил
+    if (rows > SIZE_MAX / sizeof(double) / cols) {
         throw MEMORY_ERROR;
     }
 
@@ -129,7 +129,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* data2) :
         return;
     };
 
-    if (rows > SIZE_MAX / sizeof(double) / cols) {//исправил
+    if (rows > SIZE_MAX / sizeof(double) / cols) {
         throw MEMORY_ERROR;
     }
 
@@ -217,7 +217,7 @@ void Matrix::matrix_random()
 
 
 
-Matrix Matrix::exp( int x)
+Matrix Matrix::exp(const unsigned long long int x)
 {
     if (cols != rows) {
         throw SIZE_ERROR;
@@ -231,7 +231,7 @@ Matrix Matrix::exp( int x)
         return matrix_exponent_result;
     }
 
-    for ( int n = 1; n <= x; n++) {
+    for ( unsigned long long int n = 1; n <= x; n++) {
         matrix_term = matrix_term * (*this) * (1.0 / n);
         matrix_exponent_result += matrix_term;
     }
