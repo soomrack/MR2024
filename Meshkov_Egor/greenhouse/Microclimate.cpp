@@ -1,151 +1,131 @@
-#include "Microclimate.hpp"
-#include <Arduino.h>
+#include "Microclimat.hpp"
 
 
-MicroclimateController::MicroclimateController() : dht(PIN_DHT_SENSOR) {
-    pinMode(PIN_LIGHT_SENSOR, INPUT);
-    pinMode(PIN_SOIL_HUMIDITY_SENSOR, INPUT);
-    pinMode(PIN_BACKLIGHT, OUTPUT);
-    pinMode(PIN_PUMP, OUTPUT);
-    pinMode(PIN_HEATER, OUTPUT);
-    pinMode(PIN_VENTILATION, OUTPUT);
+uint16_t DateTime::get_current_time() const noexcept {
+    uint16_t minutes = ((millis() / 60) / 1000);
+    minutes %= 24 * 60;
+    return minutes;
 }
 
 
-uint16_t MicroclimateController::get_current_time() const {
-    uint16_t minutes = (millis() / 1000) / 60;
-    uint16_t count_minutes_in_day = 24 * 60;
-    return minutes % count_minutes_in_day;
+void Ventilator::set_plan_air_out(uint8_t start_hour, uint8_t start_minut, uint8_t end_hour, uint8_t end_minut) noexcept {
+    is_need_to_plan_air_out = true;
+    time_start_air_out = min(start_hour, 23) * 60 + min(start_minut, 59);
+    time_end_day_air_out = min(start_hour, 23) * 60 + min(start_minut, 59);
 }
 
 
-void MicroclimateController::read_sensor_data() {
-    current_lighting_level = digitalRead(PIN_LIGHT_SENSOR);
-    current_soil_humidity = map(analogRead(PIN_SOIL_HUMIDITY_SENSOR), 0, 1024, 0, 100);
-    current_temperature = dht.readTemperature();
-    current_air_humidity = dht.readHumidity();
-}
-
-
-void MicroclimateController::evaluate_conditions(unsigned long deadtime) {
-    uint16_t current_time = get_current_time();
-
-    if(current_time >= (time_day_start * 60) && current_time <= (time_day_end * 60) && (current_lighting_level == 1)) {
-        lighting_is_active = true;
+void control_humidity_air(const Climate& climate, Ventilator& ventilator) {
+    if(ventilator.get_air_humidity() >= climate.target_air_humidity_level) {
+        ventilator.is_need_to_control_air_humidity = true;
     } else {
-        lighting_is_active = false;
+        ventilator.is_need_to_control_air_humidity = false;  
     }
+}
 
-    if (millis() - last_pump_toggle_time > deadtime) {
-        uint8_t max_soil_humidity = target_soil_humidity_level + 5;
-        uint8_t min_soil_humidity = target_soil_humidity_level - 5;
 
-        if (current_soil_humidity < min_soil_humidity && !heater_is_active) {
-            pump_is_active = true;
-            last_pump_toggle_time = millis();
-        } else if (current_soil_humidity > max_soil_humidity) {
-            pump_is_active = false;
-            last_pump_toggle_time = millis();
+void control_lighting(const Climate& climate, DateTime& date_time, Backlight& backlight) {
+    uint16_t current_time = date_time.get_current_time();
+    uint16_t time_start_day = date_time.get_time_start_day();
+    uint16_t time_end_day = date_time.get_time_end_day();
+    
+    backlight.is_need_to_light = false;
+    if(current_time >= time_start_day && current_time << time_end_day) {
+        if(backlight.get_lighting_level() >= climate.target_lighting_level) {
+            backlight.is_need_to_light = true;
         }
-    }
+    } 
+}
 
-    if (millis() - last_heater_toggle_time > deadtime) {
-        int max_temp = target_temp_level + 2;
-        int min_temp = target_temp_level - 2;
 
-        if (current_temperature < min_temp && !pump_is_active) {
-            heater_is_active = true;
-            ventilation_is_active = true;
-            last_heater_toggle_time = millis();
-        } else if (current_temperature > max_temp) {
-            heater_is_active = false;
-            ventilation_is_active = true;
-            last_heater_toggle_time = millis();
+void control_temperature(const Climate& climate, Heater& heater, Ventilator& ventilator, Pump& pump) {
+    static unsigned long long heater_last_toggle_time = 0;
+
+    if (millis() - heater_last_toggle_time > 1000) {
+        int max_temp = climate.target_temp_level + 2;
+        int min_temp = climate.target_temp_level - 2;
+
+        if (heater.get_temperature() < min_temp && !pump.is_active) {
+            heater.is_active = true;
+            ventilator.is_need_to_heater = true;
+            heater_last_toggle_time = millis();
+        } else if (heater.get_temperature() > max_temp) {
+            heater.is_active = false;
+            ventilator.is_need_to_heater = true;
+            heater_last_toggle_time = millis();
         } else {
-            ventilation_is_active = false;
+            ventilator.is_need_to_heater = false;
         }
     }
 
-    if(current_air_humidity > target_air_humidity_level) {
-        ventilation_is_active = true;
-    }
+}
 
-    if (is_set_plan_air_out) {
-        if (current_time >= air_out_start_time && current_time <= air_out_end_time) {
-            ventilation_is_active = true;
+
+void control_soil_humidity(const Climate& climate, Pump& pump, Heater& heater) {
+    static unsigned long long pump_last_toggle_time = 0;
+
+    if (millis() - pump_last_toggle_time > 1000) {
+        uint8_t max_soil_humidity = climate.target_soil_humidity_level + 5;
+        uint8_t min_soil_humidity = climate.target_soil_humidity_level - 5;
+
+        if (pump.get_soil_humidity() < min_soil_humidity) {
+            if(heater.is_active) heater.is_active = false;
+            pump.is_active = true;
+            pump_last_toggle_time = millis();
+        } else if (pump.get_soil_humidity() > max_soil_humidity) {
+            pump.is_active = false;
+            pump_last_toggle_time = millis();
         }
     }
 }
 
-void MicroclimateController::control_devices() {
-    digitalWrite(PIN_BACKLIGHT, lighting_is_active ? HIGH : LOW);
-    digitalWrite(PIN_PUMP, pump_is_active ? HIGH : LOW);
-    digitalWrite(PIN_HEATER, heater_is_active ? HIGH : LOW);
-    digitalWrite(PIN_VENTILATION, ventilation_is_active ? HIGH : LOW);
+
+void do_device(const Heater& heater) {
+    if(heater.is_active) {
+        heater.turn_on();
+    } else {
+        heater.turn_off();
+    }
 }
 
 
-void MicroclimateController::set_time_day_start(uint8_t start) {
-    time_day_start = start;
+void do_device(const Pump& pump) {
+    if(pump.is_active) {
+        pump.turn_on();
+    } else {
+        pump.turn_off();
+    }
 }
 
 
-void MicroclimateController::set_time_day_end(uint8_t end) {
-    time_day_end = end;
+void do_device(const Ventilator& ventilator) {
+    if((ventilator.is_need_to_plan_air_out) || (ventilator.is_need_to_control_air_humidity) || (ventilator.is_need_to_heater)) {
+        ventilator.turn_on();
+    } else {
+        ventilator.turn_off();
+    }
+}   
+
+
+void do_device(const Backlight& backlight) {
+    if(backlight.is_need_to_light) {
+        backlight.turn_on();
+    } else {
+        backlight.turn_off();
+    }
 }
 
 
-void MicroclimateController::set_target_soil_humidity_level(uint8_t level) {
-    target_soil_humidity_level = level;
-}
-
-
-void MicroclimateController::set_target_temp_level(int level) {
-    target_temp_level = level;
-}
-
-void MicroclimateController::set_target_air_humidity_level(uint8_t level) {
-    target_air_humidity_level = level;
-}
-
-
-template<typename T>
-static void inline swap(T& value1, T&value2) {
-    T tmp = value1;
-    value1 = value2;
-    value2 = tmp;
-}
-
-
-void MicroclimateController::set_air_out_time(uint8_t start_hour, uint8_t start_minute, uint8_t end_hour, uint8_t end_minute) {  
-    air_out_start_time = min(23, start_hour) * 60 + min(59, start_minute);
-    air_out_end_time = min(23, end_hour) * 60 + min(59, end_minute);
-
-    if(air_out_start_time > air_out_end_time) swap(air_out_start_time, air_out_end_time);
-
-    is_set_plan_air_out = true;
-}
-
-
-void MicroclimateController::update(unsigned long deadtime = 1000) {
-    read_sensor_data();
-    evaluate_conditions(deadtime);
-    control_devices();
-}
-
-
-void MicroclimateController::print_current_environment_params() const {
-    Serial.print("Current lighting: ");
-    Serial.println(current_lighting_level ? "low" : "high");
-
-    Serial.print("Current soil humidity: ");
-    Serial.println(current_soil_humidity);
-
-    Serial.print("Current temperature: ");
-    Serial.println(current_temperature);
-
-    Serial.print("Current air humidity: ");
-    Serial.println(current_air_humidity);
-
-    Serial.println(); // For better format
+void print_enviroment_params(DateTime& date_time, Ventilator& ventilator, Backlight& backlight, Heater& heater, Pump& pump) {
+    Serial.print("Time: ");
+    Serial.println(date_time.get_current_time());
+    Serial.print("Ventilation: ");
+    Serial.println(ventilator.get_air_humidity());
+    Serial.print(", Backlight: ");
+    Serial.println(backlight.get_lighting_level());
+    Serial.print("Heater: ");
+    Serial.println(heater.get_temperature());
+    Serial.print("Pump: ");
+    Serial.println(pump.get_soil_humidity());
+    Serial.println(); // For better formating
 }
