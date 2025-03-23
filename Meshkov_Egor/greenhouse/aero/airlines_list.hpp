@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <exception>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -11,12 +12,12 @@
 namespace GL {
 
 
-class AirlinesListException {
+class AirlinesListException : std::exception {
 private:
     std::string msg_err;
 public:
-    explicit AirlinesListException(const std::string& msg) : msg_err(msg) {} 
-    
+    explicit AirlinesListException(const std::string& msg) : msg_err(msg) {}
+
     const char* what() const noexcept {
         return msg_err.c_str();
     }
@@ -37,7 +38,7 @@ private:
         int month;
     };
 
-    using Graph = std::map<int, std::vector<std::pair<int, FlightInfo>>>;
+    using Graph = std::map<int, std::vector<std::pair<int, FlightInfo>>>; // airport index && vector of pair "vertex - edge"
     using Airports = std::unordered_set<int>;
 
     Graph graph;
@@ -56,6 +57,7 @@ private:
     AirlinesList(AirlinesList&&) = delete;
     ~AirlinesList() = default;
 
+    std::vector<std::string> parse_csv_line(const std::string& line);
     FlightPathRow dijkstra(int origin_index) const noexcept;
     FlightPath reconstruct_path(FlightPathRow& path, int dest_index) const noexcept;
 };
