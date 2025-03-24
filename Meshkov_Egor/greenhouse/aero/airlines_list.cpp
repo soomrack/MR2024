@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 #include <string>
-#include <exception>
 #include <queue>
 
 
@@ -80,7 +80,7 @@ void GL::AirlinesList::load_data(const std::string& csv_file) {
             info.year = std::stoi(row[column_indexes.at("YEAR")]);
             info.quarter = std::stoi(row[column_indexes.at("QUARTER")]);
             info.month = std::stoi(row[column_indexes.at("MONTH")]);
-        } catch (const std::exception& e) {
+        } catch (const std::invalid_argument& e) {
             throw AirlinesListException("Error parsing data at line " + std::to_string(row_number) + ": " + e.what());
         }
 
@@ -100,12 +100,12 @@ void GL::AirlinesList::clear() noexcept {
 }
 
 
-bool GL::AirlinesList::contains_airport(int index) const noexcept {
+bool GL::AirlinesList::contains_airport(const AirportID index) const noexcept {
     return (airports.find(index) != airports.end()); 
 }
 
 
-GL::FlightPath GL::AirlinesList::find_flight_path_between(int origin_index, int dest_index) const {
+GL::FlightPath GL::AirlinesList::find_flight_path_between(const AirportID origin_index, const AirportID dest_index) const {
     if(!this->contains_airport(origin_index)) {
         throw AirlinesListException("Origin airport index not found: " + std::to_string(origin_index));
     }
@@ -120,7 +120,7 @@ GL::FlightPath GL::AirlinesList::find_flight_path_between(int origin_index, int 
 }
 
 
-GL::AirlinesList::FlightPathRow GL::AirlinesList::dijkstra(int origin_index) const noexcept {
+GL::AirlinesList::FlightPathRow GL::AirlinesList::dijkstra(const AirportID origin_index) const noexcept {
     std::unordered_map<int, double> min_distance;
     std::unordered_map<int, int> parents_airports;
 
@@ -157,7 +157,7 @@ GL::AirlinesList::FlightPathRow GL::AirlinesList::dijkstra(int origin_index) con
 }
 
 
-GL::FlightPath GL::AirlinesList::reconstruct_path(GL::AirlinesList::FlightPathRow& path, int dest_index) const noexcept {
+GL::FlightPath GL::AirlinesList::reconstruct_path(GL::AirlinesList::FlightPathRow& path, const AirportID dest_index) const noexcept {
     std::vector<int> reconstruct_parents;
     std::vector<double> reconstruct_distances;
 

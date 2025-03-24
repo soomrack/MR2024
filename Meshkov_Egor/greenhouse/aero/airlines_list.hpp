@@ -24,7 +24,9 @@ public:
 };
 
 
-using FlightPath = std::pair<std::vector<int>, std::vector<double>>; // parents && distance
+using AirportID = int;
+using AirTime = double;
+using FlightPath = std::pair<std::vector<AirportID>, std::vector<AirTime>>;
 
 
 class AirlinesList {
@@ -38,19 +40,21 @@ private:
         int month;
     };
 
-    using Graph = std::map<int, std::vector<std::pair<int, FlightInfo>>>; // airport index && vector of pair "vertex - edge"
-    using Airports = std::unordered_set<int>;
+    using GraphEdge = std::vector<std::pair<AirportID, FlightInfo>>;
+    using Graph = std::map<AirportID, GraphEdge>;
+    using Airports = std::unordered_set<AirportID>;
 
     Graph graph;
     Airports airports;
 public:
+    FlightPath find_flight_path_between(const AirportID origin_index, const AirportID dest_index) const;
+public:
     static AirlinesList& get_instance() noexcept;
     void load_data(const std::string& file_path);
     void clear() noexcept;
-    bool contains_airport(int index) const noexcept;
-    FlightPath find_flight_path_between(int origin_index, int dest_index) const;
+    bool contains_airport(const AirportID index) const noexcept;
     
-    using FlightPathRow = std::pair<std::unordered_map<int, double>, std::unordered_map<int, int>>;
+    using FlightPathRow = std::pair<std::unordered_map<AirportID, AirTime>, std::unordered_map<AirportID, AirportID>>;
 private:
     AirlinesList() : graph(), airports() {}
     AirlinesList(const AirlinesList&) = delete;
@@ -58,8 +62,8 @@ private:
     ~AirlinesList() = default;
 
     std::vector<std::string> parse_csv_line(const std::string& line);
-    FlightPathRow dijkstra(int origin_index) const noexcept;
-    FlightPath reconstruct_path(FlightPathRow& path, int dest_index) const noexcept;
+    FlightPathRow dijkstra(const AirportID origin_index) const noexcept;
+    FlightPath reconstruct_path(FlightPathRow& path, const AirportID dest_index) const noexcept;
 };
 
 
