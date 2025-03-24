@@ -76,17 +76,13 @@ Matrix::Matrix(const Matrix &M) : rows(M.rows), cols(M.cols), data(M.data)
 
 
 Matrix& Matrix::operator=(Matrix&& other) noexcept {
-    if (this != &other) {
-        rows = other.rows;
-        cols = other.cols;
-        data = std::move(other.data);
-
-        other.rows = 0;
-        other.cols = 0;
-        other.data.clear();
-
-        print_log(LOG_INFO, "move matrix\n");
-    }
+    if(this == &other) return *this;
+    rows = other.rows;
+    cols = other.cols;
+    data = std::move(other.data);
+    other.rows = 0;
+    other.cols = 0;
+    other.data.clear();
     return *this;
 }
 
