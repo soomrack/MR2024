@@ -51,7 +51,7 @@ protected:
 };
 
 
-class MultiPhotoresistor : Photoresistor {
+class MultiPhotoresistor {
 private:
     const Photoresistor* sensors;
     const uint8_t count;
@@ -117,13 +117,13 @@ private:
 };
 
 
-class MultiDHT : DHT11 {
+class MultiDHT {
 private:
     const DHT11* sensors;
     const uint8_t count;
 public:
     explicit MultiDHT(const DHT11* sensors_array, uint8_t sensor_count) noexcept
-        : DHT11(0), sensors(sensors_array), count(sensor_count) {}
+        : sensors(sensors_array), count(sensor_count) {}
 
     int readTemperature() const noexcept;
     int readHumidity() const noexcept;
