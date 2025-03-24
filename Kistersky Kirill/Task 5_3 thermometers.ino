@@ -3,6 +3,9 @@
 // Sensors:
 #define EXTERNAL_LIGHT_PIN A0
 #define SOIL_HUMI_PIN A1
+#define PIN_SEN_HEAT_EARTH_1 A2 
+#define PIN_SEN_HEAT_EARTH_2 A3
+#define PIN_SEN_HEAT_EARTH_3 A4
 #define AIR_PIN 12
 
 DHT11 dht11(AIR_PIN);
