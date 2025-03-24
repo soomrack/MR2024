@@ -87,8 +87,7 @@ Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), data(n
     std::memcpy(data, other.data, rows * cols * sizeof(double));
 }
 
-Matrix::Matrix(Matrix&& other) noexcept
-    : rows(other.rows), cols(other.cols), data(other.data) {
+Matrix::Matrix(Matrix&& other) noexcept: rows(other.rows), cols(other.cols), data(other.data) {
     // Just move poiner with no copying data
     other.rows = 0;
     other.cols = 0;
