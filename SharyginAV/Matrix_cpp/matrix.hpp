@@ -46,7 +46,7 @@ public:
     Matrix(size_t rows, size_t cols);
     Matrix();
     Matrix(const Matrix &M);
-    Matrix& operator=(Matrix&& other) noexcept;
+    Matrix(Matrix&& other) noexcept;
     ~Matrix();
     double& operator()(const size_t row_num,const size_t col_num);
     const double& operator()(const size_t row_num, const size_t col_num) const;
@@ -55,6 +55,7 @@ public:
     Matrix& operator+=(const Matrix &A);
     Matrix& operator-=(const Matrix &A);
     Matrix& operator=(const Matrix &A);
+    Matrix& operator=(Matrix&& other) noexcept;
     Matrix operator*(const double num);
     Matrix operator*(const Matrix &A);
     Matrix& operator*=(const double num);

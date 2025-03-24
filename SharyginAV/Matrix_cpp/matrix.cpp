@@ -75,16 +75,12 @@ Matrix::Matrix(const Matrix &M) : rows(M.rows), cols(M.cols), data(M.data)
 }
 
 
-Matrix& Matrix::operator=(Matrix&& other) noexcept {
-    if(this == &other) return *this;
-    rows = other.rows;
-    cols = other.cols;
-    data = std::move(other.data);
-    other.rows = 0;
-    other.cols = 0;
-    other.data.clear();
-    return *this;
-}
+Matrix::Matrix(Matrix&& other) noexcept
+    : rows(other.rows), cols(other.cols), data(std::move(other.data)) {
+        other.rows = 0;
+        other.cols = 0;
+        print_log(LOG_INFO, "move matrix\n");
+    }
 
 
 Matrix::~Matrix()
@@ -169,6 +165,21 @@ Matrix& Matrix::operator-=(const Matrix &A)
         data[idx] -= A.data[idx];
     }
 
+    return *this;
+}
+
+
+Matrix& Matrix::operator=(Matrix&& other) noexcept {
+    if(this == &other) {
+        print_log(LOG_INFO, "move matrix\n");
+        return *this; 
+    }
+    rows = other.rows;
+    cols = other.cols;
+    data = std::move(other.data);
+    other.rows = 0;
+    other.cols = 0;
+    print_log(LOG_INFO, "move matrix\n");
     return *this;
 }
 
