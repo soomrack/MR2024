@@ -292,13 +292,13 @@ void heating_check() {
     diff_2 = abs(air_temp_3 - air_temp_2);
     diff_3 = abs(air_temp_3 - air_temp_1);
 
-    if (diff_1 > diff_2 && diff_1 > diff_3) {
+    if ((diff_1 > diff_2) && (diff_1 > diff_3)) {
         Serial.println("Датчик 1 может быть дефективным.");
         air_temp = ((air_temp_2 + air_temp_3)/2);
-    } else if (diff_2 > diff_1 && diff_2 > diff_3) {
+    } else if ((diff_2 > diff_1) && (diff_2 > diff_3)) {
         Serial.println("Датчик 2 может быть дефективным.");
         air_temp = ((air_temp_1 + air_temp_3)/2);
-    } else if (diff_3 > diff_1 && diff_3 > diff_2) {
+    } else if ((diff_3 > diff_1) && (diff_3 > diff_2)) {
         Serial.println("Датчик 3 может быть дефективным.");
         air_temp = ((air_temp_1 + air_temp_2)/2);
     } else {
