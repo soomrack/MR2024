@@ -147,7 +147,7 @@ void read_sensors()
 
 void read_time()
 {
-    data.current_hour = (millis() / (1000 * 60 * 60)) % 24;
+    data.current_hour = (millis() / (1000)) % 24;
 }
 
 
