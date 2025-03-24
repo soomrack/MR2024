@@ -117,13 +117,13 @@ Climate currentClimate({
     600, // LIGHT_MIN
     700, // LIGHT_MAX
 
-    20000, // Pump work time (20 sec)
-    30000, // Pump dead time (30 sec)
+    2000, // Pump work time (2 sec)
+    3000, // Pump dead time (3 sec)
 
     1000, // Light duration (1 sec)
     60000, // Ventilation duration (1 minute)
 
-    20, // Sleep start (hours)
+    21, // Sleep start (hours)
     8 // Sleep end (hours)
 });
 
