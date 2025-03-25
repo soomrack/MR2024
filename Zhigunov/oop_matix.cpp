@@ -345,19 +345,19 @@ Matrix Matrix::exp(int accuracy)
         throw SIZE_ERROR;
     }
 
-    Matrix multiplied(*this);
+    Matrix multiplied(cols_, rows_);
 
-    Matrix result (*this);
-    result.idenity(cols_);
+    Matrix result = idenity(cols_);
 
-    int factorial = 1;
+    double factorial = 1;
 
-    for ( int acc = 1; acc <= accuracy; ++acc ){
+    for ( int acc = 1; acc <= accuracy; acc++ ){
         
-        factorial *= acc;
+        factorial /= acc;
+        // printf("%f \n", factorial);
 
         // multiplied.Free();
-        multiplied = degree(acc) * (1 / factorial);
+        multiplied = degree(acc) * factorial;
         // multiplied.print();
 
 
@@ -375,9 +375,9 @@ Matrix Matrix::degree(unsigned int degr){
 
     size_t n_cols = cols_;
     size_t n_rows = rows_;
-    Matrix result_matrix(n_cols, n_rows);
+    Matrix result_matrix(*this);
 
-    for (int i = 0; i < degr; i++){
+    for (int i = 1; i < degr; i++){
         result_matrix = *this * *this;
     }
 
