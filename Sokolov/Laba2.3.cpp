@@ -18,10 +18,10 @@
 #include <vector>
 #include <algorithm>
 
-// Глобальные константы
-const int MIN_CONNECTION_TIME = 3600; // 1 час в секундах
 
-// Иерархия исключений
+const int MIN_CONNECTION_TIME = 3600;
+
+
 class BaseException : public std::exception {
 protected:
     std::string message;
@@ -52,7 +52,7 @@ public:
     }
 };
 
-// Класс аэропорта
+
 class airport {
 private:
     int index_;
@@ -92,7 +92,7 @@ public:
     }
 };
 
-// Класс рейса
+
 class flight {
 private:
     airport origin_;
@@ -129,7 +129,7 @@ public:
     }
 };
 
-// Класс чтения файлов
+
 class file_reader {
 private:
     std::unordered_map<std::string, int> header_map;
@@ -208,7 +208,7 @@ public:
     }
 };
 
-// Класс графа рейсов
+
 class flight_graph {
 private:
     std::unordered_map<int, std::vector<flight>> adj_list;
@@ -233,7 +233,7 @@ public:
     }
 };
 
-// Класс поиска кратчайшего пути
+
 class shortest_path_finder {
 private:
     const flight_graph& graph;
@@ -295,7 +295,7 @@ public:
     }
 };
 
-// Функция получения ввода от пользователя
+
 bool get_user_input(airport& start_airport, airport& destination_airport, time_t& user_departure_time) {
     std::cout << "Введите код аэропорта отправления: ";
     std::string start_code;
@@ -333,7 +333,7 @@ bool get_user_input(airport& start_airport, airport& destination_airport, time_t
     return true;
 }
 
-// Функция вывода результата
+
 void print_shortest_path(const std::vector<flight>& path, time_t user_departure_time) {
     if (path.empty()) {
         std::cout << "Маршрут не найден." << std::endl;
@@ -371,7 +371,7 @@ void print_shortest_path(const std::vector<flight>& path, time_t user_departure_
         << (total_time % 3600) / 60 << " минут." << std::endl;
 }
 
-// Главная функция
+
 int main() {
     try {
         file_reader reader;
