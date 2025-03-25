@@ -19,10 +19,11 @@ int LAST_DIRECTION = 0;
 
 int ERROLD = 0;
 
-bool FLAG = false;
+bool IS_TURNED = false;
 bool BUTTON_OLD = 1;
 
 bool RECOVERING = false; // Флаг восстановления линии
+
 
 // Функция управления движением
 void drive(int left, int right)
@@ -33,6 +34,7 @@ void drive(int left, int right)
   analogWrite(LEFT_PWM, abs(left));
   analogWrite(RIGHT_PWM, abs(right));
 }
+
 
 // Функция восстановления линии с дуговым движением
 void recoverLine(int LAST_DIRECTION)
@@ -49,26 +51,27 @@ void recoverLine(int LAST_DIRECTION)
 
 }
 
+
 void end_music() // Сигнал прекращения попыток возврата на линию
 {
   tone(SOUND, 1000, 2000);
 }
 
-void check_line(int s1, int s2)
+void check_line(int sensor1, int sensor2)
 {
-  if (s1 < 60 && s2 < 60) {
+  if (sensor1 < 60 && sensor2 < 60) {
     if (millis() - TIME_SOUND > 5 * 1000) {
       end_music();
-      FLAG = 0;
+      IS_TURNED = 0;
     }
-    recoverLine(LAST_DIRECTION); // Вызов функции восстановления линии
+     // Убрал recoverLine здесь, она будет вызываться после
   } else {
     TIME_SOUND = millis();
-    double err = (s1 - s2);
+    double err = (sensor1 - sensor2);
     double u = err * K_P + (err - ERROLD) * K_D;
     drive(constrain(V + u, -250, 250), constrain(V - u, -250, 250));
     ERROLD = err;
-    if (s2 > s1) { /*толкнули влево*/
+    if (sensor2 > sensor1) { /*толкнули влево*/
       LAST_DIRECTION = 0;
     }
     else {
@@ -77,16 +80,18 @@ void check_line(int s1, int s2)
   }
 }
 
+
 void start_button()
 {
   if (digitalRead(A2) == 1 && BUTTON_OLD == 0) {
     delay(5);
     if (digitalRead(A2) == 1) {
-      FLAG = !FLAG;
+      IS_TURNED = !IS_TURNED;
     }
   }
   BUTTON_OLD = digitalRead(A2);
 }
+
 
 void setup()
 {
@@ -118,18 +123,24 @@ void setup()
   }
 }
 
+
 void loop()
 {
-  if (FLAG) {
-    int s1 = map(analogRead(A0), LEFT_MIN, LEFT_MAX, 0, 100);
-    int s2 = map(analogRead(A1), RIGHT_MIN, RIGHT_MAX, 0, 100);
+  if (IS_TURNED) {
+    // Чтение сенсоров
+    int sensor1 = map(analogRead(A0), LEFT_MIN, LEFT_MAX, 0, 100);
+    int sensor2 = map(analogRead(A1), RIGHT_MIN, RIGHT_MAX, 0, 100);
     // Проверяем, потеряна ли линия
-    check_line(s1, s2);
+    check_line(sensor1, sensor2);
+
+     // Вызов, если потеряли линию
+    if (sensor1 < 60 && sensor2 < 60) {
+        recoverLine(LAST_DIRECTION);
+    }
   }
   else {
     drive(0, 0);
-  }
-}
+  };
 
   // Обработка кнопки включения/выключения режима
   start_button();
