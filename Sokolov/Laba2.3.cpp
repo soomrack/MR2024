@@ -18,10 +18,10 @@
 #include <vector>
 #include <algorithm>
 
+// Глобальные константы
+const int MIN_CONNECTION_TIME = 3600; // 1 час в секундах
 
-const int MIN_CONNECTION_TIME = 3600;
-
-
+// Иерархия исключений
 class BaseException : public std::exception {
 protected:
     std::string message;
@@ -52,7 +52,7 @@ public:
     }
 };
 
-
+// Класс аэропорта
 class airport {
 private:
     int index_;
@@ -92,7 +92,7 @@ public:
     }
 };
 
-
+// Класс рейса
 class flight {
 private:
     airport origin_;
@@ -103,6 +103,7 @@ private:
     double distance_;
 
 public:
+    flight() : origin_(), destination_(), departure_time_(0), total_time_(0), flight_time_(0), distance_(0) {}
     flight(const airport& orig, const airport& dest, time_t depart, time_t total, time_t flight, double dist)
         : origin_(orig), destination_(dest), departure_time_(depart), total_time_(total),
         flight_time_(flight), distance_(dist) {
@@ -116,16 +117,19 @@ public:
     double get_distance() const { return distance_; }
 
     void print() const {
+        char time_buf[26];
+        ctime_s(time_buf, sizeof(time_buf), &departure_time_);
+
         std::cout << "Рейс из " << origin_.get_index() << " (" << origin_.get_name() << ") в "
             << destination_.get_index() << " (" << destination_.get_name() << ")"
-            << " | Время вылета: " << ctime(&departure_time_)
+            << " | Время вылета: " << time_buf
             << " | Время в пути: " << total_time_ / 60 << " минут"
             << " | Время полета: " << flight_time_ / 60 << " минут"
             << " | Расстояние: " << distance_ << " миль" << std::endl;
     }
 };
 
-
+// Класс чтения файлов
 class file_reader {
 private:
     std::unordered_map<std::string, int> header_map;
@@ -204,7 +208,7 @@ public:
     }
 };
 
-
+// Класс графа рейсов
 class flight_graph {
 private:
     std::unordered_map<int, std::vector<flight>> adj_list;
@@ -229,7 +233,7 @@ public:
     }
 };
 
-
+// Класс поиска кратчайшего пути
 class shortest_path_finder {
 private:
     const flight_graph& graph;
@@ -291,7 +295,7 @@ public:
     }
 };
 
-
+// Функция получения ввода от пользователя
 bool get_user_input(airport& start_airport, airport& destination_airport, time_t& user_departure_time) {
     std::cout << "Введите код аэропорта отправления: ";
     std::string start_code;
@@ -329,7 +333,7 @@ bool get_user_input(airport& start_airport, airport& destination_airport, time_t
     return true;
 }
 
-
+// Функция вывода результата
 void print_shortest_path(const std::vector<flight>& path, time_t user_departure_time) {
     if (path.empty()) {
         std::cout << "Маршрут не найден." << std::endl;
@@ -367,7 +371,7 @@ void print_shortest_path(const std::vector<flight>& path, time_t user_departure_
         << (total_time % 3600) / 60 << " минут." << std::endl;
 }
 
-
+// Главная функция
 int main() {
     try {
         file_reader reader;
