@@ -13,9 +13,10 @@ class Matrix
     public:
         Matrix(size_t cols, size_t rows);
         Matrix(const Matrix &);
+        Matrix(Matrix &&);
         ~Matrix();
 
-        void exception(const enum err::MatrixExceptionLevel level, char *msg);
+        // void exception(const enum err::MatrixExceptionLevel level, char *msg);
         void random();
         void print();
         double deter();
@@ -25,12 +26,14 @@ class Matrix
         Matrix idenity(size_t size);
         Matrix invert();
         Matrix exp(int accuracy);
+        Matrix degree(unsigned int degree);
 
-        Matrix operator + (const Matrix& B);
-        Matrix operator - (const Matrix&B);
-        void operator = (const Matrix& B);
-        Matrix operator * (const Matrix& B);
-        Matrix operator * (double count);
+        Matrix operator+(const Matrix& B);
+        Matrix operator-(const Matrix&B);
+        void operator=(const Matrix& B);
+        void operator=( Matrix && B);
+        Matrix operator*(const Matrix& B);
+        Matrix operator*(double count);
 
     private:
         size_t cols_;
@@ -38,48 +41,70 @@ class Matrix
         double* data_;
 };
 
+class MatrixExeption : public std::domain_error {
+    public:
+        explicit MatrixExeption( const std::string& message) : std::domain_error(message) {}
+};
+
 const Matrix MATRIX_NULL(0, 0);
 
-Matrix :: Matrix( size_t cols, size_t rows )
+
+Matrix::Matrix( size_t cols, size_t rows )
 {
     cols_ = cols;
     rows_ = rows;
     data_ = new double[cols_ * rows_];
 }
 
-Matrix :: Matrix( const Matrix & B )
+
+Matrix::Matrix( const Matrix & B )
 {
     cols_ = B.cols_;
     rows_ = B.rows_;
     data_ = new double[cols_ * rows_];
 
-    for(size_t i = 0; i < B.rows_ * B.cols_; ++i){
-        data_[i] = B.data_[i];
-    }
+    memcpy(data_, B.data_, sizeof(double) * cols_ * rows_);
+
+    // for(size_t i = 0; i < B.rows_ * B.cols_; ++i){
+    //     data_[i] = B.data_[i];
+    // }
 }
 
-Matrix :: ~Matrix()
+
+Matrix::Matrix( Matrix && B ){
+    cols_ = B.cols_;
+    rows_ = B.rows_;
+    data_ = B.data_;
+    B.data_ = nullptr;
+    B.cols_ = 0;
+    B.rows_ = 0;
+}
+
+
+Matrix::~Matrix()
 {
     delete [] data_;
     data_ = nullptr;
 }
 
-void Matrix :: exception( const enum err::MatrixExceptionLevel level, char *msg )
-{
-    if (level == err::ERROR) {
-        printf("ERROR: %s", msg);
-    }
 
-    if (level == err::WARNING) {
-        printf("WARNING: %s", msg);
-    }
+// void Matrix::exception( const enum err::MatrixExceptionLevel level, char *msg )
+// {
+//     if (level == err::ERROR) {
+//         printf("ERROR: %s", msg);
+//     }
 
-    if (level == err::INFO) {
-        printf("INFO: %s", msg);
-    }
-}
+//     if (level == err::WARNING) {
+//         printf("WARNING: %s", msg);
+//     }
 
-void Matrix :: random()
+//     if (level == err::INFO) {
+//         printf("INFO: %s", msg);
+//     }
+// }
+
+
+void Matrix::random()
 {
     for (size_t i = 0; i < cols_ * rows_; i++){
         data_[i] = i +1;
@@ -87,7 +112,8 @@ void Matrix :: random()
     }
 }
 
-void Matrix :: print()
+
+void Matrix::print()
 {
     for (size_t i = 0; i < rows_; i++){
         for(size_t j = 0; j < cols_; j++){
@@ -98,11 +124,12 @@ void Matrix :: print()
     printf("\n");
 }
 
-double Matrix :: deter()
+
+double Matrix::deter()
 {
     if (cols_ != rows_){
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.\n");
-        return 0;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
     double result = 0;
@@ -135,7 +162,8 @@ double Matrix :: deter()
     return result;
 }
 
-void Matrix :: Free()
+
+void Matrix::Free()
 {
     delete [] data_;
     data_ = nullptr;
@@ -143,13 +171,14 @@ void Matrix :: Free()
     rows_ = 0;
 }
 
-Matrix Matrix :: operator +( const Matrix &B )  /// A+B   A.operator+(B)
+
+Matrix Matrix::operator +( const Matrix &B )  /// A+B   A.operator+(B)
 {
     Matrix R(*this);
 
     if ( rows_!=B.rows_ || cols_ != B.cols_ ) {
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.");
-        return MATRIX_NULL;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
     for ( size_t i = 0; i < cols_ * rows_; i++ ){
@@ -158,31 +187,36 @@ Matrix Matrix :: operator +( const Matrix &B )  /// A+B   A.operator+(B)
     return R;
 }
 
-void Matrix:: operator = ( const Matrix & A )
+
+void Matrix::operator=( const Matrix & A )
 {
-    // if (rows_!=A.rows_ || cols_ != A.cols_) {
+    // if (rows_ != A.rows_ || cols_ != A.cols_) {
     //     exception(err::ERROR, (char*)"не соответствующие размеры матрицы.\n");
-    //     return MATRIX_NULL;
+    // } else {
+            
     // }
-
-    Free();
-    cols_ = A.cols_;
-    rows_ = A.rows_;
-    data_ = new double[cols_ * rows_];
-
-    for (size_t i = 0; i < A.cols_ * A.rows_; i++){
-        data_[i] = A.data_[i];
-    }
-
+    memcpy(data_, A.data_, sizeof(double) * rows_ * cols_);
 }
 
-Matrix Matrix :: operator -( const Matrix &B )
+
+void Matrix::operator=(  Matrix && B ){
+    delete data_;
+    data_ = B.data_;
+    cols_ = B.cols_;
+    rows_ = B.rows_;
+    B.data_ = nullptr;
+    B.cols_ = 0;
+    B.rows_ = 0;
+}
+
+
+Matrix Matrix::operator-( const Matrix &B )
 {
     Matrix R(*this);
 
     if ( rows_!=B.rows_ || cols_ != B.cols_ ) {
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.");
-        return MATRIX_NULL;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
     for ( size_t i = 0; i < cols_ * rows_; i++ ){
@@ -190,6 +224,7 @@ Matrix Matrix :: operator -( const Matrix &B )
     }
     return R;
 }
+
 
 Matrix Matrix::operator*( double count ) 
 {
@@ -202,11 +237,12 @@ Matrix Matrix::operator*( double count )
     return result_matrix;
 }
 
+
  Matrix Matrix::operator*( const Matrix &B )
 {
     if (cols_!=rows_) {
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.");
-        return MATRIX_NULL;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
     size_t n_cols = B.cols_;
@@ -227,6 +263,7 @@ Matrix Matrix::operator*( double count )
     return result_matrix;
 }
 
+
 Matrix Matrix::transpose()
 {
     Matrix result_matrix( rows_, cols_ );
@@ -241,25 +278,26 @@ Matrix Matrix::transpose()
     return result_matrix;
 }
 
+
 Matrix Matrix::idenity(size_t size)
 {
     Matrix result_matrix(size, size);
 
-    for (size_t i = 0; i < size; ++i){
-        for (size_t j = 0; j < size; ++j){
-            result_matrix.data_[i * result_matrix.cols_ + j] = 
-            (i == j) ? 1. : 0.;
-        }
+    memset(result_matrix.data_, 0, sizeof(double) * size * size);
+
+    for (size_t ind = 0; ind < size; ind++){
+        result_matrix.data_[ind * result_matrix.cols_ + ind] = 1;
     }
 
     return result_matrix;
 }
 
+
 Matrix Matrix::invert()
 {
     if (cols_ != rows_) {
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.");
-        return MATRIX_NULL;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
     Matrix transponent = transpose();
@@ -299,44 +337,51 @@ Matrix Matrix::invert()
     return multiplied_result;
 }
 
+
 Matrix Matrix::exp(int accuracy)
 {
     if (cols_ != rows_ || cols_ == 0) {
-        exception(err::ERROR, (char*)"не соответствующие размеры матрицы.");
-        return MATRIX_NULL;
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
-    Matrix new_result(MATRIX_NULL), new_powered(MATRIX_NULL), 
-    multiplied(*this), powered(*this);
+    Matrix multiplied(*this);
 
     Matrix result (*this);
     result.idenity(cols_);
 
     int factorial = 1;
 
-    for (int acc = 1; acc <= accuracy; ++acc){
+    for ( int acc = 1; acc <= accuracy; ++acc ){
         
         factorial *= acc;
 
-        new_powered.Free();
+        // multiplied.Free();
+        multiplied = degree(acc) * (1 / factorial);
+        // multiplied.print();
 
-        multiplied.Free();
-        multiplied = powered * (1 / factorial);
 
-        new_result.Free();
-        new_result = result + multiplied;
+        result = result + multiplied;
+    }
+    multiplied.Free();
+    return result;
+}
 
-        result.Free();
-        result = new_result;
-
-        new_powered = powered * *this;
-
-        powered.Free();
-        powered = new_powered;
+Matrix Matrix::degree(unsigned int degr){
+    if (cols_!=rows_) {
+        MatrixExeption SIZE_ERROR("Matrites of different sizes!");
+        throw SIZE_ERROR;
     }
 
-    powered.Free();
-    return result;
+    size_t n_cols = cols_;
+    size_t n_rows = rows_;
+    Matrix result_matrix(n_cols, n_rows);
+
+    for (int i = 0; i < degr; i++){
+        result_matrix = *this * *this;
+    }
+
+    return result_matrix;
 }
 
 int main()
@@ -385,6 +430,11 @@ int main()
     invertible = invertible.invert();
     invertible.print();
     invertible.Free();
+
+    Matrix degr (A);
+    degr = degr.degree(2);
+    degr.print();
+    degr.Free();
 
     Matrix exponenta (A);
     exponenta = A.exp(3);
