@@ -1,0 +1,70 @@
+DEF russia( )
+
+INI
+
+PTP HOME Vel= 180 % DEFAULT
+
+234567898
+WAIT Time=1 sec
+
+OUT 3 'razgim' State=TRUE CONT
+
+WAIT Time=2 sec
+
+OUT 3 'razgim' State=FALSE CONT
+-
+WAIT Time=2 sec
+PTP P4 Vel=100 % PDAT4 Tool[1]:shunka Base[1]:base1
+LIN P5 Vel=2 m/s CPDAT1 Tool[1]:shunka Base[1]:base1
+OUT 4 'zagim' State=TRUE CONT
+WAIT Time=2 sec
+OUT 4 'zagim' State=FALSE CONT
+LIN P6 Uel=2 m/s CPDAT2 Tool[1]:shunka Base[1]:base1
+PTP P7 Vel=100 % PDAT5 Tool[1]:shunka Base[1] :base1
+LIN P8 Uel=2 m/s CPDAT3 Tool[1]:shunka Base[1]:base1
+OUT 3 'razgim' State=TRUE CONT
+WAIT Time=2 sec
+OUT 3 'razgim' State=FALSE CONT
+LIN P9 Vel=2 m/s CPDAT4 Tool[1]:shunka Base[1]:base1
+PTP P10 Vel=100 % PDAT6 Tool[1]:shunka Base[1] :base1
+LIN P11 Vel=2 m/s CPDAT5 Tool[1] :shunka
+
+4 Base[1]:base1
+OUT 4 'zagim' State=TRUE CONT
+WAIT Time=2 sec
+OUT 4 'zagim' State=FALSE CONT
+LIN P13 Vel=2 m/s CPDAT6 Tool[1] :shunka
+
+* Base[1]:base1
+PTP P14 Vel=100 % PDAT8 Tool[1]:shunka Base[1]:base1
+
+LIN P15 Vel=2 m/s CPDAT7 Tool[1]: shunka
+
+4 Base[1] :base1
+OUT 3 'razgim' State=TRUE CONT
+WAIT Time=2 sec
+OUT 3 'razgim' State=FALSE CONT
+LIN P16 Vel=2 m/s CPDAT8 Tool[1]: shunka
+
+4 Base[1] :base1
+PTP P17 Vel=100 % PDAT9 Tool[1]:shunka Base[1] :base1
+LIN P18 Vel=2 m/s CPDAT9 Tool[1]: shunka
+4 Base [1] :base1
+OUT 4 'zagim' State=TRUE CONT
+WAIT Time=2
+Sec
+OUT 4 'zagim' State=FALSE CONT
+LIN P19 Vel=2 m/s CPDAT10 Tool[1] =shunka
+4 Base[1] :base1
+PTP P20 Vel-100 % PDAT10 T001[1]:shunka
+4 Base[1] :base1
+LIN P21 Vel=2 m/s CPDAT11 Tool[1]:shunka
+4 Base [1]:base1
+OUT 3 'razgim'
+State=TRUE CONT
+WAIT Time=2 sec
+OUT 3 'razgim' State=FALSE CONT
+LIN P22 Vel=2 m/s CPDAT12 Tool[1] :shunka
+• Base[1]:base1
+PTP HOME Vel= 100 % DEFAULT
+END
