@@ -3,9 +3,9 @@
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
+#include <climits>  // For SIZE_MAX
 
 using namespace std;
-using std::vector;
 
 class Matrix
 {
@@ -14,34 +14,30 @@ private:
     vector<double> data;
 
 public:
-    // Конструктор для создания матрицы
+    // Constructors
     Matrix() : rows(0), cols(0), data() { }
     Matrix(size_t rows, size_t cols);
-    Matrix(vector<double> data, size_t rows, size_t cols);
-    Matrix(const Matrix&) ;
-    Matrix(Matrix&& other);    
+    Matrix(const vector<double>& data, size_t rows, size_t cols);
+    Matrix(const Matrix&);
+    Matrix(Matrix&& other) noexcept;    
 
-
-    // Шаблоны функций
+    // Methods
     void print() const;
     Matrix transpose() const;
     double determinant() const;
     static Matrix identity(size_t size);
-    Matrix matrixExponent(const Matrix &A, unsigned int terms) const;
-    void set_elems(Matrix& other) const;
+    Matrix matrixExponent(unsigned int terms) const;
+    void set_elems();
 
-
-    // Операторы
-    Matrix& operator=(const Matrix& );
-    Matrix& operator=(const Matrix&&);
-    Matrix operator+(const Matrix&);
-    Matrix operator-(const Matrix&);
+    // Operators
+    Matrix& operator=(const Matrix&);
+    Matrix& operator=(Matrix&&) noexcept;
+    Matrix operator+(const Matrix&) const;
+    Matrix operator-(const Matrix&) const;
     Matrix operator*(double k) const;
-    Matrix operator*(const Matrix&)const; 
-    Matrix operator^(const unsigned int degree);
-    
+    Matrix operator*(const Matrix&) const; 
+    Matrix operator^(unsigned int degree) const;
 };
-
 
 class MatrixException : public exception 
 { 
@@ -49,74 +45,69 @@ private:
     string message;
 public:
     explicit MatrixException(const string& msg) : message(msg) {} 
-    const char* what() const noexcept override{
+    const char* what() const noexcept override {
         return message.c_str();
     }
 };
-
 
 Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols) {
     if (rows == 0 || cols == 0) {
         throw MatrixException("Matrix dimensions cannot be zero");
     }
     
-    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+    if(SIZE_MAX / rows / cols / sizeof(double) == 0) {
         throw MatrixException("Overflow, sizes of matrix is big");
     }
-    if(rows != 0 && cols != 0) {
-        data = std::vector<double> (rows * cols, 0);
-    }
+    data = vector<double>(rows * cols, 0);
 }
 
-
-Matrix::Matrix(vector<double> new_data, size_t rows, size_t cols): rows(rows), cols(cols) {
+Matrix::Matrix(const vector<double>& new_data, size_t rows, size_t cols) 
+    : rows(rows), cols(cols), data(new_data) {
     if (rows == 0 || cols == 0) {
         throw MatrixException("Matrix dimensions cannot be zero");
     }
     
-    if(__SIZE_MAX__ / rows / cols / sizeof(double) == 0) {
+    if(SIZE_MAX / rows / cols / sizeof(double) == 0) {
         throw MatrixException("Overflow, sizes of matrix is big");
     }
-    if(rows != 0 && cols != 0) {
-        data = new_data;
+    if (data.size() != rows * cols) {
+        throw MatrixException("Data size doesn't match matrix dimensions");
     }
 }
 
+Matrix::Matrix(const Matrix& other) 
+    : rows(other.rows), cols(other.cols), data(other.data) {}
 
-Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), data(other.data) {}
-
-
-Matrix::Matrix(Matrix&& other) 
-        : rows(other.rows), cols(other.cols), data(move(other.data)) { 
-    }
-
+Matrix::Matrix(Matrix&& other) noexcept 
+    : rows(other.rows), cols(other.cols), data(move(other.data)) {
+    other.rows = 0;
+    other.cols = 0;
+}
 
 Matrix& Matrix::operator=(const Matrix& other) {
-    if (this == &other)  return *this;
+    if (this == &other) return *this;
     
-        rows = other.rows;
-        cols = other.cols;
-        data = other.data; 
+    rows = other.rows;
+    cols = other.cols;
+    data = other.data;
     
-        return *this; 
-    
+    return *this;
 }
 
+Matrix& Matrix::operator=(Matrix&& other) noexcept {
+    if (this == &other) return *this;
 
-Matrix& Matrix::operator=(const Matrix&& other) {
-    if (this == &other) return *this; 
+    rows = other.rows;
+    cols = other.cols;
+    data = move(other.data);
 
-        rows = other.rows;
-        cols = other.cols;
-        data = std::move(other.data);
+    other.rows = 0;
+    other.cols = 0;
 
-        return *this;
-   
+    return *this;
 }
 
-
-//result = this + B
- Matrix Matrix::operator+(const Matrix& B)  {
+Matrix Matrix::operator+(const Matrix& B) const {
     if (rows != B.rows || cols != B.cols) {
         throw MatrixException("Matrix must be same size");
     }
@@ -127,8 +118,7 @@ Matrix& Matrix::operator=(const Matrix&& other) {
     return result;
 }
 
-
-Matrix Matrix::operator-(const Matrix& B)  {
+Matrix Matrix::operator-(const Matrix& B) const {
     if (rows != B.rows || cols != B.cols) {
         throw MatrixException("Matrix must be same size");
     }
@@ -139,8 +129,6 @@ Matrix Matrix::operator-(const Matrix& B)  {
     return result;
 }
 
-
-// result = this * k
 Matrix Matrix::operator*(double scalar) const {
     Matrix result(rows, cols);
     for (size_t elem = 0; elem < data.size(); elem++) {
@@ -149,47 +137,42 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
-
-// result = this * other 
-Matrix Matrix::operator*(const Matrix& other) const 
-{
+Matrix Matrix::operator*(const Matrix& other) const {
     if (cols != other.rows) {
         throw MatrixException("Wrong sizes of matrices");
     }
-
     Matrix result(rows, other.cols);
-    for (size_t row = 0; row < rows; ++row)
-    {
-        for (size_t col = 0; col < other.cols; ++col)
-        {
-            result.data[row * rows + col] = 0;
-            for (int k = 0; k < cols; ++k)
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < other.cols; ++col) {
+            result.data[row * other.cols + col] = 0;
+            for (size_t k = 0; k < cols; ++k) {
                 result.data[row * other.cols + col] += data[row * cols + k] * other.data[k * other.cols + col];
+            }
         }
     }
     return result;
 }
 
-
-// Возведение матрицы в степень
-Matrix Matrix::operator^(const unsigned int power) {
+Matrix Matrix::operator^(unsigned int power) const {
     if (rows != cols) {
         throw MatrixException("Matrix must be square to be raised to a power!");
     }
     if (power == 0) {
         return identity(rows);
     }
-    Matrix result = *this;
-    for (unsigned int ind = 1; ind < power; ++ind) {
-        result = result * (*this);
+    Matrix result = identity(rows);
+    Matrix temp = *this;
+    while (power > 0) {
+        if (power % 2 == 1) {
+            result = result * temp;
+        }
+        temp = temp * temp;
+        power /= 2;
     }
     return result;
 }
 
-
-// Печать матрицы
-void Matrix::print() const
-{
+void Matrix::print() const {
     for (size_t row = 0; row < rows; ++row) {
         for (size_t col = 0; col < cols; ++col) {
             cout << data[row * cols + col] << " ";
@@ -198,18 +181,14 @@ void Matrix::print() const
     }
 }
 
-// Функция для заполнения массива случайными числами
-void Matrix::set_elems(Matrix& other) {
-    for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < cols; ++col) {
-            other.data[row * cols + col] = rand() % 10;
+void Matrix::set_elems() {
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < cols; ++col) {
+            data[row * cols + col] = rand() % 10;
         }
     }
 }
 
-
-
-// Транспонирование матрицы
 Matrix Matrix::transpose() const {
     Matrix result(cols, rows);
     for (size_t row = 0; row < rows; ++row) {
@@ -220,29 +199,24 @@ Matrix Matrix::transpose() const {
     return result;
 }
 
-
-// Вычисление определителя
 double Matrix::determinant() const {
     if (rows != cols) {
         throw MatrixException("Matrix must be square to compute determinant");
     }
     if (rows == 2) {
-        return data[0] * data[3] - data[1] * data[2]; // Детеhрминант для 2x2
+        return data[0] * data[3] - data[1] * data[2];
     }
     else if (rows == 3) {
         return data[0] * (data[4] * data[8] - data[5] * data[7]) 
-        - data[1] * (data[4] * data[8] - data[5] * data[6]) 
-        + data[2] * (data[3] * data[7] - data[14] * data[6]); // Детерминант для 3x3
+             - data[1] * (data[3] * data[8] - data[5] * data[6]) 
+             + data[2] * (data[3] * data[7] - data[4] * data[6]);
     }
     else {
-        cout << "Determinant may be computing only for 2x2 and 3x3 matrices" << endl;
-        return 0;
+        throw MatrixException("Determinant may be computing only for 2x2 and 3x3 matrices");
     }
 }
 
-
-// Единичная матрица
- Matrix Matrix::identity(size_t size) {
+Matrix Matrix::identity(size_t size) {
     Matrix result(size, size);
     for (size_t i = 0; i < size; ++i) {
         result.data[i * size + i] = 1.0;
@@ -250,8 +224,6 @@ double Matrix::determinant() const {
     return result;
 }
 
-
-// Экспонента матрицы
 Matrix Matrix::matrixExponent(unsigned int terms) const {
     if (rows != cols) {
         throw MatrixException("Matrix must be square to compute exponential");
@@ -265,38 +237,55 @@ Matrix Matrix::matrixExponent(unsigned int terms) const {
     return result;
 }
 
-
 int main()
 {
-    srand(time(nullptr)); // Инициализация генератора случайных чисел
+    srand(time(nullptr));
 
-    int rows = 3;
-    int cols = 3;
+    try {
+        int rows = 3;
+        int cols = 3;
 
-    // Создаем матрицы размером 3x3
-    Matrix arr_A(rows, cols);
-    Matrix arr_B(rows, cols);
+        Matrix arr_A(rows, cols);
+        Matrix arr_B(rows, cols);
 
-    arr_A.set_elems(arr_A);
-    arr_B.set_elems(arr_B);
+        arr_A.set_elems();
+        arr_B.set_elems();
 
-    Matrix C = arr_A + arr_B;
-    C.print();
+        cout << "Matrix A:" << endl;
+        arr_A.print();
+        cout << "Matrix B:" << endl;
+        arr_B.print();
 
-    Matrix D = arr_A * arr_B;
-    D.print();
+        cout << "A + B:" << endl;
+        Matrix C = arr_A + arr_B;
+        C.print();
 
-    Matrix E = arr_A.transpose();
-    E.print();
+        cout << "A * B:" << endl;
+        Matrix D = arr_A * arr_B;
+        D.print();
 
-    double det = arr_A.determinant();
-    std::cout << "Determinant of A: " << det << std::endl;
+        cout << "Transpose of A:" << endl;
+        Matrix E = arr_A.transpose();
+        E.print();
 
-    Matrix F = arr_A^2;
-    F.print();
+        cout << "Determinant of A: " << arr_A.determinant() << endl;
 
-    Matrix G = arr_A.matrixExponent(20);
-    G.print();
+        cout << "A^2:" << endl;
+        Matrix F = arr_A^2;
+        F.print();
+
+        cout << "exp(A):" << endl;
+        Matrix G = arr_A.matrixExponent(20);
+        G.print();
+    }
+    catch (const MatrixException& e) {
+        cerr << "Matrix error: " << e.what() << endl;
+        return 1;
+    }
+    catch (...) {
+        cerr << "Unknown error occurred" << endl;
+        return 2;
+    }
 
     return 0;
 }
