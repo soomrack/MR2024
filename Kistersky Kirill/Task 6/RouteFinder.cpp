@@ -4,213 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <limits>
-
-using namespace std;
-
-struct AirportInfo {
-    string code;
-    string city;
-};
-
-void clearInputBuffer() {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-}
-
-bool fileExists(const string& filename) {
-    ifstream file(filename);
-    return file.good();
-}
-
-string getInputFilename() {
-    string filename;
-    while (true) {
-        cout << "Enter input CSV filename (or drag file here): ";
-
-        if (cin.peek() == '\n') {
-            clearInputBuffer();
-        }
-        getline(cin, filename);
-
-        // Удаляем кавычки если файл перетащен в окно терминала
-        filename.erase(remove(filename.begin(), filename.end(), '"'), filename.end());
-
-        // Удаляем возможные пробелы в начале и конце
-        filename.erase(0, filename.find_first_not_of(" \t"));
-        filename.erase(filename.find_last_not_of(" \t") + 1);
-
-        if (filename.empty()) {
-            cout << "Filename cannot be empty. Please try again.\n";
-            continue;
-        }
-
-        if (!fileExists(filename)) {
-            cout << "File '" << filename << "' not found. Please try again.\n";
-            continue;
-        }
-
-        return filename;
-    }
-}
-
-void convertAirlineData(const string& inputFile, const string& outputFile, const string& mappingFile) {
-    ifstream inFile(inputFile);
-    ofstream outFile(outputFile);
-    ofstream mapFile(mappingFile);
-
-    if (!inFile.is_open()) {
-        cerr << "Error: Could not open input file " << inputFile << endl;
-        return;
-    }
-    if (!outFile.is_open()) {
-        cerr << "Error: Could not create output file " << outputFile << endl;
-        return;
-    }
-    if (!mapFile.is_open()) {
-        cerr << "Error: Could not create mapping file " << mappingFile << endl;
-        return;
-    }
-
-    // Заголовки выходных файлов
-    outFile << "from,to,distance\n";
-    mapFile << "original_code,normalized_id,city\n";  // Добавили город
-
-    unordered_map<string, pair<int, string>> airportCodes;  // code -> (id, city)
-    int currentId = 1;
-    string line;
-    int processedCount = 0;
-    int errorCount = 0;
-
-    // Читаем заголовок входного файла
-    getline(inFile, line);
-    vector<string> headers;
-    stringstream headerStream(line);
-    string header;
-
-    while (getline(headerStream, header, ',')) {
-        headers.push_back(header);
-    }
-
-    // Находим индексы нужных столбцов
-    int originIdx = -1, destIdx = -1, distIdx = -1, originCityIdx = -1, destCityIdx = -1;
-    for (size_t i = 0; i < headers.size(); ++i) {
-        if (headers[i] == "ORIGIN") originIdx = i;
-        else if (headers[i] == "DEST") destIdx = i;
-        else if (headers[i] == "DISTANCE") distIdx = i;
-        else if (headers[i] == "ORIGIN_CITY_NAME") originCityIdx = i;
-        else if (headers[i] == "DEST_CITY_NAME") destCityIdx = i;
-    }
-
-    if (originIdx == -1 || destIdx == -1 || distIdx == -1) {
-        cerr << "Error: Required columns not found in input file" << endl;
-        return;
-    }
-
-    while (getline(inFile, line)) {
-        try {
-            stringstream ss(line);
-            vector<string> row;
-            string cell;
-
-            // Читаем строку с учетом кавычек
-            bool inQuotes = false;
-            string currentCell;
-            for (char c : line) {
-                if (c == '"') {
-                    inQuotes = !inQuotes;
-                }
-                else if (c == ',' && !inQuotes) {
-                    row.push_back(currentCell);
-                    currentCell.clear();
-                }
-                else {
-                    currentCell += c;
-                }
-            }
-            row.push_back(currentCell);
-
-            // Проверяем что строка содержит достаточно данных
-            if (row.size() <= max(originIdx, max(destIdx, distIdx))) {
-                errorCount++;
-                continue;
-            }
-
-            string origin = row[originIdx];
-            string dest = row[destIdx];
-            string distStr = row[distIdx];
-            string originCity = originCityIdx != -1 ? row[originCityIdx] : "Unknown";
-            string destCity = destCityIdx != -1 ? row[destCityIdx] : "Unknown";
-
-            // Удаляем возможные оставшиеся кавычки
-            origin.erase(remove(origin.begin(), origin.end(), '"'), origin.end());
-            dest.erase(remove(dest.begin(), dest.end(), '"'), dest.end());
-            distStr.erase(remove(distStr.begin(), distStr.end(), '"'), distStr.end());
-
-            // Пропускаем пустые значения
-            if (origin.empty() || dest.empty() || distStr.empty()) {
-                errorCount++;
-                continue;
-            }
-
-            int distance = stoi(distStr);
-
-            // Добавляем аэропорты в маппинг если их еще нет
-            if (airportCodes.find(origin) == airportCodes.end()) {
-                airportCodes[origin] = { currentId, originCity };
-                mapFile << origin << "," << currentId << "," << originCity << "\n";
-                currentId++;
-            }
-            if (airportCodes.find(dest) == airportCodes.end()) {
-                airportCodes[dest] = { currentId, destCity };
-                mapFile << dest << "," << currentId << "," << destCity << "\n";
-                currentId++;
-            }
-
-            // Записываем ребро графа
-            outFile << airportCodes[origin].first << ","
-                << airportCodes[dest].first << ","
-                << distance << "\n";
-
-            processedCount++;
-            if (processedCount % 10000 == 0) {
-                cout << "Processed " << processedCount << " records..." << endl;
-            }
-
-        }
-        catch (...) {
-            errorCount++;
-            continue;
-        }
-    }
-
-    cout << "\nConversion complete!\n"
-        << "- Output graph: " << outputFile << "\n"
-        << "- Airport mapping: " << mappingFile << "\n"
-        << "- Total airports: " << airportCodes.size() << "\n"
-        << "- Total routes processed: " << processedCount << "\n"
-        << "- Errors encountered: " << errorCount << endl;
-}
-
-int main() {
-    cout << "=== Airline Data Converter ===" << endl;
-
-    string inputFile = getInputFilename();
-    string outputFile = "airline_graph.csv";
-    string mappingFile = "airport_mapping.csv";
-
-    convertAirlineData(inputFile, outputFile, mappingFile);
-
-    cout << "\nPress Enter to exit...";
-    cin.get();
-    return 0;
-}#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <vector>
 #include <queue>
 #include <limits>
 #include <algorithm>
@@ -220,6 +13,12 @@ int main() {
 
 using namespace std;
 
+struct AirportInfo {
+    string code;
+    string name;
+    string city;
+};
+
 struct Vertex {
     int prev = -1;
     int dist = numeric_limits<int>::max();
@@ -227,18 +26,18 @@ struct Vertex {
 
 // Объявления функций
 void loadMappings(const string& filename,
-    unordered_map<int, string>& id_to_airport,
+    unordered_map<int, AirportInfo>& id_to_airport,
     unordered_map<string, int>& airport_to_id);
 vector<vector<pair<int, int>>> loadGraph(const string& filename, int max_id);
 void findShortestPath(int start, int end,
     const vector<vector<pair<int, int>>>& graph,
-    const unordered_map<int, string>& id_to_airport);
-int findMaxId(const unordered_map<int, string>& id_to_airport);
-void printAirportList(const unordered_map<int, string>& id_to_airport);
+    const unordered_map<int, AirportInfo>& id_to_airport);
+int findMaxId(const unordered_map<int, AirportInfo>& id_to_airport);
+void printAirportList(const unordered_map<int, AirportInfo>& id_to_airport);
 
 // Реализации функций
 void loadMappings(const string& filename,
-    unordered_map<int, string>& id_to_airport,
+    unordered_map<int, AirportInfo>& id_to_airport,
     unordered_map<string, int>& airport_to_id) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -251,11 +50,16 @@ void loadMappings(const string& filename,
 
     while (getline(file, line)) {
         stringstream ss(line);
-        string code, id_str;
+        string code, id_str, name, city;
+
+        // Формат CSV: code,id,name,city
         getline(ss, code, ',');
-        getline(ss, id_str);
+        getline(ss, id_str, ',');
+        getline(ss, name, ',');
+        getline(ss, city);
+
         int id = stoi(id_str);
-        id_to_airport[id] = code;
+        id_to_airport[id] = { code, name, city };
         airport_to_id[code] = id;
     }
 }
@@ -290,7 +94,7 @@ vector<vector<pair<int, int>>> loadGraph(const string& filename, int max_id) {
 
 void findShortestPath(int start, int end,
     const vector<vector<pair<int, int>>>& graph,
-    const unordered_map<int, string>& id_to_airport) {
+    const unordered_map<int, AirportInfo>& id_to_airport) {
     if (start == end) {
         cout << "Start and end airports are the same.\n";
         return;
@@ -325,8 +129,9 @@ void findShortestPath(int start, int end,
     }
 
     if (vertices[end].dist == numeric_limits<int>::max()) {
-        cout << "No flight path exists between " << id_to_airport.at(start)
-            << " and " << id_to_airport.at(end) << endl;
+        cout << "No flight path exists between " << id_to_airport.at(start).code
+            << " (" << id_to_airport.at(start).name << ") and "
+            << id_to_airport.at(end).code << " (" << id_to_airport.at(end).name << ")\n";
     }
     else {
         cout << "\nShortest flight path:\n";
@@ -337,14 +142,15 @@ void findShortestPath(int start, int end,
 
         cout << "Route: ";
         for (auto it = path.rbegin(); it != path.rend(); ++it) {
-            cout << id_to_airport.at(*it);
+            const auto& airport = id_to_airport.at(*it);
+            cout << airport.code << " (" << airport.name << ")";
             if (it + 1 != path.rend()) cout << " -> ";
         }
         cout << "\nTotal distance: " << vertices[end].dist << " miles\n";
     }
 }
 
-int findMaxId(const unordered_map<int, string>& id_to_airport) {
+int findMaxId(const unordered_map<int, AirportInfo>& id_to_airport) {
     int max_id = 0;
     for (const auto& pair : id_to_airport) {
         if (pair.first > max_id) {
@@ -354,28 +160,31 @@ int findMaxId(const unordered_map<int, string>& id_to_airport) {
     return max_id;
 }
 
-void printAirportList(const unordered_map<int, string>& id_to_airport) {
+void printAirportList(const unordered_map<int, AirportInfo>& id_to_airport) {
     cout << "\nAvailable airports (" << id_to_airport.size() << "):\n";
-    cout << "----------------------------------------\n";
-    cout << left << setw(10) << "ID" << setw(10) << "Code" << "\n";
-    cout << "----------------------------------------\n";
+    cout << "----------------------------------------------------------------------\n";
+    cout << left << setw(10) << "ID" << setw(10) << "Code" << setw(30) << "Airport Name" << setw(20) << "City" << "\n";
+    cout << "----------------------------------------------------------------------\n";
 
     // Создаем временный map для сортировки по ID
-    map<int, string> sorted_airports(id_to_airport.begin(), id_to_airport.end());
+    map<int, AirportInfo> sorted_airports(id_to_airport.begin(), id_to_airport.end());
 
     for (const auto& pair : sorted_airports) {
-        cout << setw(10) << pair.first << setw(10) << pair.second << "\n";
+        cout << setw(10) << pair.first
+            << setw(10) << pair.second.code
+            << setw(30) << pair.second.name
+            << setw(20) << pair.second.city << "\n";
     }
 
-    cout << "----------------------------------------\n";
-    cout << "Example: For JFK -> LAX, enter 'JFK' then 'LAX'\n";
+    cout << "----------------------------------------------------------------------\n";
+    cout << "Example: For New York (JFK) -> Los Angeles (LAX), enter 'JFK' then 'LAX'\n";
 }
 
 int main() {
     cout << "=== Airline Route Finder ===\n";
 
     // Загрузка данных
-    unordered_map<int, string> id_to_airport;
+    unordered_map<int, AirportInfo> id_to_airport;
     unordered_map<string, int> airport_to_id;
     loadMappings("airport_mapping.csv", id_to_airport, airport_to_id);
 
