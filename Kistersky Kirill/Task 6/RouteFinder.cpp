@@ -7,7 +7,9 @@
 #include <queue>
 #include <limits>
 #include <algorithm>
-#include <cctype> // Для tolower()
+#include <cctype>
+#include <iomanip>
+#include <map>
 
 using namespace std;
 
@@ -16,6 +18,18 @@ struct Vertex {
     int dist = numeric_limits<int>::max();
 };
 
+// Объявления функций
+void loadMappings(const string& filename,
+    unordered_map<int, string>& id_to_airport,
+    unordered_map<string, int>& airport_to_id);
+vector<vector<pair<int, int>>> loadGraph(const string& filename, int max_id);
+void findShortestPath(int start, int end,
+    const vector<vector<pair<int, int>>>& graph,
+    const unordered_map<int, string>& id_to_airport);
+int findMaxId(const unordered_map<int, string>& id_to_airport);
+void printAirportList(const unordered_map<int, string>& id_to_airport);
+
+// Реализации функций
 void loadMappings(const string& filename,
     unordered_map<int, string>& id_to_airport,
     unordered_map<string, int>& airport_to_id) {
@@ -133,10 +147,27 @@ int findMaxId(const unordered_map<int, string>& id_to_airport) {
     return max_id;
 }
 
+void printAirportList(const unordered_map<int, string>& id_to_airport) {
+    cout << "\nAvailable airports (" << id_to_airport.size() << "):\n";
+    cout << "----------------------------------------\n";
+    cout << left << setw(10) << "ID" << setw(10) << "Code" << "\n";
+    cout << "----------------------------------------\n";
+
+    // Создаем временный map для сортировки по ID
+    map<int, string> sorted_airports(id_to_airport.begin(), id_to_airport.end());
+
+    for (const auto& pair : sorted_airports) {
+        cout << setw(10) << pair.first << setw(10) << pair.second << "\n";
+    }
+
+    cout << "----------------------------------------\n";
+    cout << "Example: For JFK -> LAX, enter 'JFK' then 'LAX'\n";
+}
+
 int main() {
     cout << "=== Airline Route Finder ===\n";
 
-    // Загружаем данные
+    // Загрузка данных
     unordered_map<int, string> id_to_airport;
     unordered_map<string, int> airport_to_id;
     loadMappings("airport_mapping.csv", id_to_airport, airport_to_id);
@@ -144,17 +175,12 @@ int main() {
     int max_id = findMaxId(id_to_airport);
     auto graph = loadGraph("airline_graph.csv", max_id);
 
-    // Выводим список доступных аэропортов
-    cout << "\nAvailable airports (" << id_to_airport.size() << "):\n";
-    int count = 0;
-    for (const auto& pair : id_to_airport) {
-        cout << pair.second << " ";
-        if (++count % 10 == 0) cout << endl;
-    }
+    // Вывод списка аэропортов
+    printAirportList(id_to_airport);
 
     // Основной цикл программы
     while (true) {
-        cout << "\n\nEnter departure airport code (3 letters, e.g. LAX): ";
+        cout << "\nEnter departure airport code (3 letters, e.g. LAX): ";
         string start_code;
         cin >> start_code;
 
@@ -162,7 +188,7 @@ int main() {
         string end_code;
         cin >> end_code;
 
-        // Преобразуем к верхнему регистру
+        // Преобразование в верхний регистр
         transform(start_code.begin(), start_code.end(), start_code.begin(), ::toupper);
         transform(end_code.begin(), end_code.end(), end_code.begin(), ::toupper);
 
