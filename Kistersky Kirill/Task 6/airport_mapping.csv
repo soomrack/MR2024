@@ -1,0 +1,2696 @@
+original_code,normalized_id
+Philadelphia,1
+23,2
+Bedford,3
+13,4
+Long Beach,5
+91,6
+Block Island,7
+15,8
+Westerly,9
+Santa Ana,10
+Charlotte Amalie,11
+4,12
+Glendive,13
+84,14
+Glasgow,15
+Wolf Point,16
+Sidney,17
+Montrose/Delta,18
+82,19
+Christiansted,20
+Vieques,21
+3,22
+St. Louis,23
+64,24
+Quincy,25
+41,26
+San Juan,27
+Boston,28
+Portland,29
+12,30
+Virgin Gorda,31
+282,32
+Cleveland,33
+44,34
+San Diego,35
+Columbus,36
+South Bend,37
+42,38
+Colorado Springs,39
+The Valley,40
+202,41
+Raleigh/Durham,42
+36,43
+Knoxville,44
+54,45
+Phoenix,46
+81,47
+White Plains,48
+22,49
+Martha's Vineyard,50
+New York,51
+Oklahoma City,52
+73,53
+Baltimore,54
+35,55
+Nantucket,56
+Shreveport,57
+72,58
+Norfolk,59
+38,60
+Atlanta,61
+34,62
+31453,63
+US,64
+Chicago,65
+Washington,66
+Minneapolis,67
+63,68
+32073,69
+CU,70
+Las Vegas,71
+85,72
+Nevis,73
+275,74
+Buffalo,75
+Green Bay,76
+45,77
+Salt Lake City,78
+87,79
+30172,80
+Gulfport/Biloxi,81
+53,82
+Cincinnati,83
+52,84
+Los Angeles,85
+Indianapolis,86
+Tucson,87
+Milwaukee,88
+33198,89
+New Orleans,90
+Montreal,91
+941,92
+30185,93
+Alexandria,94
+Little Rock,95
+71,96
+Pittsburgh,97
+Baton Rouge,98
+Calgary,99
+916,100
+Detroit,101
+43,102
+Memphis,103
+Nashville,104
+Newark,105
+21,106
+Savannah,107
+Topeka,108
+62,109
+State College,110
+30615,111
+Miami,112
+33,113
+Denver,114
+30852,115
+30194,116
+Tampa,117
+St. Petersburg,118
+30466,119
+Austin,120
+74,121
+Sanford,122
+Harlingen/San Benito,123
+Willemstad,124
+262,125
+Mexico City,126
+148,127
+Kansas City,128
+Pointe A Pitre,129
+235,130
+32575,131
+El Paso,132
+Ogden,133
+Port of Spain,134
+280,135
+Sacramento,136
+Mountain Home,137
+83,138
+32051,139
+EC,140
+31703,141
+31488,142
+GB,143
+Killeen,144
+Sirnak,145
+679,146
+Riverside,147
+Yuma,148
+Portsmouth,149
+14,150
+Genting,151
+749,152
+Teterboro,153
+Boca Raton,154
+30372,155
+Fort Lauderdale,156
+Trenton,157
+34027,158
+Westhampton,159
+35167,160
+Naples,161
+Sarasota/Bradenton,162
+West Palm Beach/Palm Beach,163
+Van Nuys,164
+Stuart,165
+Orlando,166
+Nassau,167
+204,168
+Toronto,169
+936,170
+Jacksonville,171
+33105,172
+30693,173
+Bangor,174
+30198,175
+34100,176
+Providence,177
+Monticello,178
+Palm Springs,179
+Houston,180
+33342,181
+Newburgh/Poughkeepsie,182
+Brunswick,183
+34570,184
+33495,185
+Pontiac,186
+32945,187
+Charlotte,188
+34524,189
+Columbia,190
+Rochester,191
+Morristown,192
+San Antonio,193
+Dallas/Fort Worth,194
+33214,195
+Hamilton,196
+207,197
+32206,198
+Melbourne,199
+Dallas,200
+Fayetteville,201
+Lubbock,202
+San Jose,203
+St. Cloud,204
+31650,205
+30436,206
+Jackson,207
+88,208
+Grand Junction,209
+Eagle,210
+Coeur d'Alene,211
+Burbank,212
+San Francisco,213
+Honolulu,214
+2,215
+Victorville,216
+Anchorage,217
+1,218
+Guam,219
+5,220
+Belo Horizonte,221
+316,222
+Hong Kong,223
+729,224
+Healy,225
+Pellston,226
+Oscoda,227
+Chihuahua,228
+Aurora,229
+Smyrna,230
+Brockport,231
+Saltillo,232
+Minneapolis/St. Paul,233
+Laredo,234
+Aguascalientes,235
+Cabo San Lucas,236
+Dothan,237
+51,238
+Wichita,239
+Fernandina Beach,240
+Fort Smith,241
+Bozeman,242
+Taipei,243
+781,244
+Seoul,245
+778,246
+Tokyo,247
+736,248
+31126,249
+34448,250
+VG,251
+34992,252
+92,253
+35084,254
+SX,255
+35626,256
+34945,257
+Victoria,258
+906,259
+30721,260
+Keflavik/Reykjavik,261
+439,262
+Nome,263
+Busan,264
+Saipan,265
+Shannon,266
+441,267
+33770,268
+30405,269
+35798,270
+30113,271
+30241,272
+32855,273
+32709,274
+32853,275
+32831,276
+35257,277
+31492,278
+35862,279
+32719,280
+31227,281
+32769,282
+31952,283
+33894,284
+32708,285
+Bettles,286
+Galena,287
+Prospect Creek,288
+Koyukuk,289
+Fairbanks/Ft. Wainwright,290
+Fairbanks,291
+Coldfoot,292
+Ruby,293
+Circle,294
+Fort Yukon,295
+Barter Island,296
+Lake Minchumina,297
+Buckland,298
+Ivotuk,299
+Arctic Village,300
+Anaktuvuk Pass,301
+Kavik River,302
+St. George Island,303
+Rampart,304
+Juneau,305
+Gustavus,306
+Hoonah,307
+Haines,308
+Angoon,309
+Pelican,310
+Skagway,311
+Sitka,312
+Petersburg,313
+Baranof,314
+Excursion Inlet,315
+Pack Creek,316
+Wrangell,317
+Tracy Arm,318
+Kodiak Island,319
+Ouzinkie,320
+Port Lions,321
+Port Bailey,322
+Eagle Harbor,323
+Kitoi Bay,324
+Kiluda Bay,325
+Big Bay,326
+Amook Bay,327
+Larsen Bay,328
+Red Lake,329
+Kizhuyak,330
+Blue Fox Bay,331
+Lazy Bay,332
+Danger Bay,333
+Afognak Lake,334
+Port Vita,335
+Malina Bay,336
+Old Harbor,337
+Village Islands,338
+Port Hobron,339
+Zachar Bay,340
+Hallo Bay,341
+Cooper Lodge,342
+Lopez Island,343
+93,344
+Kenmore,345
+Seattle,346
+Friday Harbor,347
+Sequim,348
+Olympia,349
+Rosario,350
+Westsound,351
+Bellingham,352
+Poulsbo,353
+Vancouver,354
+Tacoma,355
+Tofino,356
+Allakaket,357
+Nulato,358
+Kiavak,359
+International Falls,360
+Iqaluit,361
+934,362
+Goose Bay,363
+961,364
+Minot,365
+66,366
+31445,367
+Paris,368
+427,369
+Tanana,370
+Kobuk,371
+Manley Hot Springs,372
+Nenana,373
+Minto,374
+Stevens Village,375
+Kantishna,376
+Beaver,377
+Dahl Creek,378
+Bornite/Ruby Creek,379
+Chicken,380
+Hughes,381
+Hog River,382
+Tatalina,383
+Kaltag,384
+Birch Creek,385
+Chalkyitsik,386
+Huslia,387
+Tok,388
+Karluk,389
+Sitkinak,390
+Akhiok,391
+False Pass,392
+30775,393
+Homer,394
+30073,395
+30247,396
+Naknek,397
+30107,398
+Chignik,399
+31517,400
+Cold Bay,401
+Tyonek,402
+Skwentna,403
+Beluga,404
+Kodiak,405
+New Haven,406
+11,407
+35472,408
+Port Graham,409
+Egegik,410
+Stella Maris,411
+San Andros,412
+Deadman's Cay,413
+Moss Town,414
+34819,415
+Nice,416
+Chisana,417
+Dillingham,418
+Clarks Point,419
+Koliganek,420
+Igiugig,421
+King Salmon,422
+Kotlik,423
+Kwigillingok,424
+Bethel,425
+Toksook,426
+Stebbins,427
+Kokhanok,428
+Unalakleet,429
+Port Heiden,430
+St. Mary's,431
+Sheldon Point,432
+Emmonak,433
+Mountain Village,434
+Grayling,435
+Togiak,436
+London,437
+493,438
+Belfast,439
+Farnborough,440
+Fargo,441
+Sydney,442
+802,443
+Aniak,444
+Sleetmute,445
+Chuathbaluk,446
+Kwethluk,447
+Stony River,448
+Crooked Creek,449
+Kalskag,450
+Red Devil,451
+Shageluk,452
+Anvik,453
+Kipnuk,454
+Hooper Bay,455
+Platinum,456
+Kongiganak,457
+Russian Mission,458
+Shaktoolik,459
+Holy Cross,460
+St. Michael,461
+Donlin Creek Mine,462
+Rota,463
+Tinian,464
+Kasigluk,465
+34816,466
+32779,467
+32851,468
+30416,469
+32807,470
+Ketchikan,471
+35282,472
+34130,473
+Napakiak,474
+34880,475
+35887,476
+30996,477
+31406,478
+33434,479
+34234,480
+33710,481
+31241,482
+Metlakatla,483
+30313,484
+32676,485
+32195,486
+31336,487
+35554,488
+34718,489
+31550,490
+35085,491
+34627,492
+34987,493
+36883,494
+34493,495
+30304,496
+31512,497
+Terror Lake,498
+33369,499
+31028,500
+Hollis,501
+West Point,502
+32087,503
+Alakanuk,504
+36311,505
+Karluk Lake,506
+Karluk Portage,507
+Moser Bay,508
+Newtok,509
+Nightmute,510
+34895,511
+32653,512
+35721,513
+33196,514
+32211,515
+30299,516
+34922,517
+35293,518
+31638,519
+30857,520
+32457,521
+33771,522
+33117,523
+30540,524
+35498,525
+30140,526
+34674,527
+31097,528
+34689,529
+31884,530
+31098,531
+31041,532
+35160,533
+Afognak Straits,534
+Craig,535
+33570,536
+34262,537
+34236,538
+31844,539
+33251,540
+34433,541
+34081,542
+30617,543
+34057,544
+34530,545
+35041,546
+35956,547
+30559,548
+36007,549
+CA,550
+34794,551
+31215,552
+Onion Bay,553
+Red Fox Bay,554
+Naukiti,555
+Goodnews Bay,556
+33115,557
+33192,558
+36016,559
+Chomondely Sound,560
+30561,561
+Seal Bay,562
+Tuluksak,563
+31695,564
+32247,565
+34489,566
+30325,567
+34877,568
+Nunapitchuk,569
+32737,570
+31589,571
+MX,572
+34614,573
+32946,574
+PT,575
+Lajes,576
+469,577
+Funter Bay Alaska,578
+Barrow,579
+Manchester,580
+Olbia,581
+450,582
+Tel Aviv,583
+636,584
+Zurich,585
+486,586
+Providenciales,587
+281,588
+Milan,589
+Chinitna Bay,590
+Kenai,591
+Seldovia,592
+Nondalton,593
+Iliamna,594
+Pedro Bay,595
+Keyes Point,596
+Port Alsworth,597
+New Stuyahok,598
+Manokotak,599
+Ekwok,600
+30154,601
+30469,602
+35447,603
+30647,604
+33541,605
+34150,606
+Malaga,607
+482,608
+Port Alexander,609
+Port Armstrong,610
+Little Port Walter,611
+Deerpark,612
+Napaskiak,613
+Akiachak,614
+Tuntutuliak,615
+Eek,616
+Quinhagak,617
+Pilot Station,618
+Chefornak,619
+Cape Newenham,620
+Chevak,621
+Cape Romanzof,622
+Tununak,623
+Akiak,624
+Atmautluak,625
+33767,626
+35383,627
+30327,628
+30661,629
+31811,630
+34792,631
+30977,632
+30928,633
+34943,634
+33502,635
+32965,636
+34653,637
+31986,638
+34832,639
+30666,640
+35637,641
+30225,642
+32297,643
+33264,644
+35389,645
+31503,646
+30630,647
+34905,648
+31648,649
+36546,650
+30817,651
+31086,652
+33785,653
+35232,654
+30849,655
+Lansing,656
+Gander,657
+Venetie,658
+34889,659
+31555,660
+35086,661
+30009,662
+35069,663
+34088,664
+36651,665
+31828,666
+35508,667
+Pilot Point,668
+Marshall,669
+34942,670
+South Naknek,671
+Scammon Bay,672
+Diomede Island,673
+Center Island,674
+Decatur,675
+Blakely Island,676
+Eastsound,677
+Powell River,678
+Oak Harbor,679
+Shelton,680
+Decatur Island,681
+Port Hardy,682
+Port Townsend,683
+McGrath,684
+Kulik Lake,685
+Des Moines,686
+61,687
+Bromont,688
+Richmond,689
+Muskoka,690
+Hyannis,691
+Newport,692
+Beverly,693
+36789,694
+30967,695
+30285,696
+36106,697
+32441,698
+32467,699
+34965,700
+31481,701
+32323,702
+34252,703
+32598,704
+34312,705
+34275,706
+34492,707
+34744,708
+31295,709
+30208,710
+36004,711
+30437,712
+35649,713
+33388,714
+32337,715
+32164,716
+31123,717
+30397,718
+30329,719
+32600,720
+31454,721
+36233,722
+35815,723
+31714,724
+30423,725
+33830,726
+33424,727
+32134,728
+35210,729
+33049,730
+Albany,731
+Marsh Harbour,732
+35877,733
+30189,734
+33851,735
+36422,736
+33244,737
+33514,738
+36306,739
+30146,740
+33486,741
+30434,742
+32758,743
+36353,744
+33361,745
+North Eleuthera,746
+35165,747
+32873,748
+30643,749
+31233,750
+30444,751
+AI,752
+31898,753
+31057,754
+36115,755
+32132,756
+30511,757
+31603,758
+30210,759
+31216,760
+KI,761
+33316,762
+30157,763
+30257,764
+35249,765
+36083,766
+32899,767
+33277,768
+30529,769
+30558,770
+35147,771
+BS,772
+31049,773
+35412,774
+33469,775
+31218,776
+34691,777
+33211,778
+31719,779
+34696,780
+30868,781
+31003,782
+33725,783
+31921,784
+31624,785
+30939,786
+Taranto,787
+Santa Fe,788
+86,789
+Montpellier,790
+Regina,791
+921,792
+Allentown/Bethlehem/Easton,793
+Ottawa,794
+Chelan,795
+Myrtle Beach,796
+37,797
+Oakland,798
+Napa,799
+30463,800
+Nuiqsut,801
+Louisville,802
+Marion/Herrin,803
+Montgomery,804
+Greensboro,805
+Point Hope,806
+35051,807
+34673,808
+33572,809
+31728,810
+31430,811
+30958,812
+35454,813
+30713,814
+33044,815
+Bismarck/Mandan,816
+Destin,817
+32511,818
+34685,819
+31731,820
+34838,821
+CR,822
+34259,823
+33118,824
+35882,825
+Asheville,826
+35177,827
+32012,828
+34670,829
+31337,830
+34695,831
+Waterloo,832
+33038,833
+Broomfield,834
+30994,835
+33485,836
+31399,837
+34344,838
+Mobile,839
+31525,840
+Greensboro/High Point,841
+32131,842
+34871,843
+30731,844
+33195,845
+33289,846
+30583,847
+36925,848
+34716,849
+34153,850
+TC,851
+Omaha,852
+65,853
+36033,854
+32448,855
+35235,856
+33743,857
+35532,858
+30011,859
+33194,860
+34004,861
+32280,862
+34534,863
+31066,864
+34875,865
+31582,866
+33252,867
+35153,868
+36879,869
+34572,870
+31637,871
+Rock Sound,872
+34960,873
+33964,874
+30781,875
+33158,876
+34810,877
+Bardstown,878
+33546,879
+30519,880
+33297,881
+35245,882
+35570,883
+Ocala,884
+30960,885
+31274,886
+Pitts Town,887
+Great Harbour Cay,888
+Governors Harbour,889
+Chub Cay,890
+Kotzebue,891
+Corner Bay,892
+Tenakee,893
+False Island,894
+Kake,895
+Elfin Cove,896
+31435,897
+IE,898
+Ambler,899
+Santa Barbara,900
+31534,901
+Moses Lake,902
+Norman Wells,903
+931,904
+Edinburgh,905
+Thermal,906
+Teller,907
+White Mountain,908
+Brevig Mission,909
+Elim,910
+Shishmaref,911
+Savoonga,912
+Port Clarence,913
+Koyuk,914
+Golovin,915
+Wales,916
+Gambell,917
+King Cove,918
+Akun,919
+Unalaska,920
+Nelson Lagoon,921
+Sandpoint,922
+Nikolski,923
+Key West,924
+Bimini,925
+Vero Beach,926
+Lakeland,927
+Norman's Cay,928
+Halifax,929
+951,930
+33579,931
+35478,932
+32321,933
+32755,934
+35794,935
+32370,936
+31833,937
+32822,938
+30070,939
+30245,940
+32294,941
+34856,942
+32704,943
+31535,944
+33873,945
+34805,946
+30114,947
+35061,948
+35601,949
+34162,950
+Hilton Head,951
+30863,952
+30620,953
+32250,954
+30294,955
+33072,956
+Queretaro,957
+36846,958
+Kitchener,959
+Galbraith Lake,960
+30581,961
+Dublin,962
+31636,963
+Madrid,964
+Amsterdam,965
+461,966
+St. John's,967
+Cartagena,968
+327,969
+Philipsburg,970
+264,971
+Northway,972
+Marathon,973
+Tetlin,974
+Tonga Tapu,975
+881,976
+Pago Pago,977
+33605,978
+Nanaimo,979
+Monterey,980
+Central,981
+Sun Valley/Hailey/Ketchum,982
+Santa Maria,983
+Lisbon,984
+Lyon,985
+Klawock,986
+Port Moller,987
+Middleton Island,988
+Chignik Bay,989
+Hogatza,990
+Pisa,991
+Venice,992
+Saskatoon,993
+Minchumina,994
+36023,995
+36131,996
+36477,997
+31764,998
+32479,999
+33731,1000
+32320,1001
+36690,1002
+32222,1003
+35548,1004
+32927,1005
+35855,1006
+30785,1007
+33450,1008
+30431,1009
+36490,1010
+32397,1011
+33280,1012
+34306,1013
+30975,1014
+Bennington,1015
+16,1016
+Islip,1017
+Everett,1018
+Roche Harbor,1019
+Hillsboro,1020
+Spokane,1021
+Kalispell,1022
+San Carlos,1023
+North Bend/Coos Bay,1024
+Renton,1025
+Burlington/Mount Vernon,1026
+Yakima,1027
+Campbell River,1028
+Kelowna,1029
+Pasco/Kennewick/Richland,1030
+Bella Coola,1031
+Missoula,1032
+Bandon,1033
+Salmon,1034
+West Yellowstone,1035
+Driggs,1036
+Concord,1037
+Aspen,1038
+Flagstaff,1039
+Livermore,1040
+Port Angeles,1041
+Bend,1042
+Auburn,1043
+Bend/Redmond,1044
+McCall,1045
+Boise,1046
+Smithers,1047
+Bermuda Dunes,1048
+Medford,1049
+Twin Falls,1050
+Salem,1051
+Cody,1052
+Astoria/Seaside,1053
+Pullman,1054
+34849,1055
+KN,1056
+Deadhorse,1057
+Atqasuk,1058
+Chandalar,1059
+Wainwright,1060
+Umiat,1061
+Point Lay,1062
+Lonely,1063
+Talkeetna,1064
+Wasilla,1065
+Takotna,1066
+Shungnak,1067
+Flat,1068
+Bible Camp,1069
+Elko,1070
+Anacortes,1071
+Sioux Falls,1072
+67,1073
+Punta Cana,1074
+224,1075
+San Jose del Cabo,1076
+East Farmingdale,1077
+Sal Island,1078
+507,1079
+Kivalina,1080
+Palmer,1081
+Seward,1082
+Thorne Bay,1083
+Zaragoza,1084
+Brussels,1085
+409,1086
+Budapest,1087
+437,1088
+Sandefjord,1089
+465,1090
+Geneva,1091
+Stockholm,1092
+484,1093
+Belize City,1094
+106,1095
+Catania,1096
+31584,1097
+ES,1098
+Turin,1099
+34125,1100
+34102,1101
+Charleston,1102
+Cornelia,1103
+Ramona,1104
+Fort Collins/Loveland,1105
+Statesville,1106
+Atlantic City,1107
+Jamestown,1108
+Athens,1109
+Augusta,1110
+Jackson/Vicksburg,1111
+Holland,1112
+Traverse City,1113
+Panama City,1114
+Greenwood,1115
+Amarillo,1116
+La Romana,1117
+Wilmington,1118
+Fairhope,1119
+Springfield,1120
+Marco Island,1121
+Telluride,1122
+Saratoga,1123
+Hartford,1124
+Sheboygan,1125
+Pensacola,1126
+Fort Wayne,1127
+Clemson,1128
+Hayward,1129
+Midland/Odessa,1130
+Madison,1131
+Waukesha,1132
+Elkhart,1133
+Gallatin,1134
+Laconia,1135
+Latrobe,1136
+Bowling Green,1137
+35171,1138
+North Kingstown,1139
+31501,1140
+33676,1141
+Bemidji,1142
+Thomasville,1143
+Bristol/Johnson City/Kingsport,1144
+Coatesville,1145
+Walterboro,1146
+Rifle,1147
+Searcy,1148
+Saranac Lake/Lake Placid,1149
+Franklin,1150
+New Bedford/Fall River,1151
+Grand Rapids,1152
+Lancaster,1153
+Aiken,1154
+Reno,1155
+Norman,1156
+Kennesaw,1157
+Rhinelander,1158
+Ballinger,1159
+Conroe,1160
+Huntsville,1161
+Greenville,1162
+Dayton,1163
+Lawrence,1164
+Birmingham,1165
+Lexington,1166
+Lebanon-Hanover,1167
+Camden,1168
+Muscle Shoals,1169
+Erie,1170
+Wichita Falls,1171
+Fort Myers,1172
+Daytona Beach,1173
+New London/Groton,1174
+Gunnison,1175
+Rutland,1176
+Jeffersonville,1177
+Cedar Rapids/Iowa City,1178
+Winston-Salem,1179
+Belmar/Farmingdale,1180
+Kamloops,1181
+San Luis Obispo,1182
+Twin Hills,1183
+Chignik Lagoon,1184
+Ontario,1185
+110,1186
+Bishop,1187
+33625,1188
+FR,1189
+Beirut,1190
+647,1191
+30224,1192
+30920,1193
+Waco,1194
+32982,1195
+433,1196
+34577,1197
+Munich,1198
+429,1199
+Rio de Janeiro,1200
+Rotterdam,1201
+Waterbury,1202
+Grand Cayman,1203
+233,1204
+Toluca,1205
+Altenrhein,1206
+33068,1207
+DO,1208
+Blackpool,1209
+34721,1210
+Santiago de Compostela,1211
+St. Moritz,1212
+Scranton/Wilkes-Barre,1213
+30730,1214
+36769,1215
+30517,1216
+30411,1217
+AW,1218
+Berne,1219
+32026,1220
+CH,1221
+30790,1222
+HU,1223
+Puerto Plata,1224
+Vienna,1225
+403,1226
+Darlington,1227
+Fez,1228
+548,1229
+La Macaza,1230
+Asuncion,1231
+365,1232
+Medellin,1233
+Cape Lisburne,1234
+Fort St. John,1235
+Moncton,1236
+946,1237
+Page,1238
+Omsk,1239
+770,1240
+Sault Ste. Marie,1241
+34986,1242
+35030,1243
+31027,1244
+33304,1245
+31032,1246
+32169,1247
+JP,1248
+31726,1249
+30670,1250
+32990,1251
+33472,1252
+31868,1253
+KY,1254
+Liberia,1255
+Thunder Bay,1256
+31,1257
+Oxford,1258
+Aalesund,1259
+Humberside,1260
+Bridgeport,1261
+Kristiansand,1262
+Marseille,1263
+Rome,1264
+Oberpfaffenhofen,1265
+Dakar Thies,1266
+569,1267
+Florence,1268
+Stuttgart,1269
+Liverpool,1270
+Shanghai,1271
+713,1272
+Auckland,1273
+851,1274
+St. Nazaire,1275
+Malta,1276
+456,1277
+Dijon,1278
+Corfu,1279
+Palma Mallorca,1280
+Sao Paulo,1281
+Chongqing,1282
+Istanbul,1283
+Berlin,1284
+Santa Rosa,1285
+Toulon/Hyeres,1286
+Copenhagen,1287
+419,1288
+Kona,1289
+Larnaca,1290
+611,1291
+Lagos,1292
+555,1293
+Antalya,1294
+Nagoya,1295
+Avignon,1296
+Singapore,1297
+776,1298
+Kitakyushu,1299
+Jebel Ali,1300
+678,1301
+Abu Dhabi,1302
+Lanseria,1303
+562,1304
+Manila,1305
+766,1306
+Samana,1307
+Bogota,1308
+Lincoln,1309
+St. Johns,1310
+206,1311
+Canouan,1312
+279,1313
+Zanderij,1314
+379,1315
+162,1316
+Reykjavik,1317
+Northolt,1318
+Mountain View,1319
+Exeter,1320
+Southampton,1321
+Bordeaux,1322
+Barcelona,1323
+Osaka,1324
+Eindhoven,1325
+Tours,1326
+Dusseldorf,1327
+Genoa,1328
+Ibiza,1329
+Reading,1330
+Porto,1331
+Warsaw,1332
+467,1333
+Marrakech,1334
+Kerry County,1335
+Tallahassee,1336
+Trapani/Marsala,1337
+Montevideo,1338
+385,1339
+Rzeszow,1340
+Brisbane,1341
+Greer,1342
+Cologne,1343
+Hamburg,1344
+Bremen,1345
+Hayden,1346
+Karlsruhe/Baden-Baden,1347
+Gulf Shores,1348
+Shenzhen,1349
+Porto Alegre,1350
+Mineral Wells,1351
+Beijing,1352
+Nadi,1353
+821,1354
+San Bernardino,1355
+Kristianstad,1356
+Mulhouse,1357
+Murcia,1358
+Perugia,1359
+Kuwait,1360
+644,1361
+Kinshasa,1362
+517,1363
+Santiago,1364
+324,1365
+Riyadh,1366
+670,1367
+Kahului,1368
+Dubai,1369
+Bangkok,1370
+782,1371
+Barranquilla,1372
+Brownsville,1373
+Merida,1374
+Manzanillo,1375
+Belem,1376
+Guayaquil,1377
+337,1378
+Sapporo,1379
+Worcester,1380
+Bournemouth,1381
+Derby,1382
+Antwerp,1383
+Frankfurt,1384
+Tenerife,1385
+Groningen,1386
+Bilbao,1387
+Santorini,1388
+Turku,1389
+425,1390
+Leeds/Bradford,1391
+Vaxjo,1392
+Hangzhou,1393
+Ho Chi Minh City,1394
+791,1395
+Jeju,1396
+Hanoi,1397
+New Bight,1398
+Cozumel,1399
+David,1400
+Puerto Vallarta,1401
+Gibraltar,1402
+431,1403
+Duluth,1404
+Road Town,1405
+Mahon,1406
+Prague,1407
+418,1408
+Helsinki,1409
+Figari,1410
+Barbados/Bridgetown,1411
+205,1412
+Ezeiza,1413
+303,1414
+San Carlos de Bariloche,1415
+Prescott,1416
+Nuremberg,1417
+Dunedin,1418
+Bologna,1419
+Kos,1420
+Casablanca,1421
+Cluj-Napoca,1422
+473,1423
+Izmir,1424
+Jakarta,1425
+832,1426
+Ponta Delgada,1427
+Beja,1428
+Rijeka,1429
+415,1430
+Bergen,1431
+Bucharest,1432
+Accra,1433
+529,1434
+Phnom Penh,1435
+709,1436
+Palermo,1437
+Cancun,1438
+Waukegan,1439
+Lima,1440
+368,1441
+Rabat,1442
+Recife,1443
+Nouakchott,1444
+545,1445
+Trieste,1446
+Papeete,1447
+823,1448
+Akron,1449
+Friedrichshafen,1450
+Cagliari,1451
+Miyazaki,1452
+Christchurch,1453
+Jeddah,1454
+Oslo,1455
+Southend-On-Sea,1456
+Hannover,1457
+Krakow,1458
+Jersey,1459
+Split,1460
+Zakinthos,1461
+Saguenay,1462
+Chania,1463
+Macau,1464
+747,1465
+Mikonos Island,1466
+Qingdao,1467
+Brindisi,1468
+Montego Bay,1469
+243,1470
+Winnipeg,1471
+926,1472
+Longyearbyen,1473
+Cork,1474
+Valencia,1475
+Syracuse,1476
+Kalamata,1477
+Cedar City,1478
+St. Kitts,1479
+Inverness,1480
+Grenada,1481
+273,1482
+Watertown,1483
+Manassas,1484
+Bari,1485
+Chengdu,1486
+Buenos Aires,1487
+Chapelco,1488
+Bodo,1489
+Lihue,1490
+Natal,1491
+Aruba,1492
+277,1493
+Freetown,1494
+571,1495
+Chambery,1496
+Calvi,1497
+36286,1498
+Salamanca,1499
+Liege,1500
+Sheridan,1501
+Toledo,1502
+31928,1503
+30980,1504
+31146,1505
+Odense,1506
+Gary,1507
+Seville,1508
+34332,1509
+30621,1510
+30535,1511
+35656,1512
+30589,1513
+36802,1514
+33984,1515
+32932,1516
+32916,1517
+Portage Creek,1518
+Levelock,1519
+Perryville,1520
+Nyac,1521
+Ugashik,1522
+Atka,1523
+Noatak,1524
+Valdez,1525
+Mekoryuk,1526
+Adak Island,1527
+Nikolai,1528
+Provo,1529
+Kearney,1530
+Clarksburg/Fairmont,1531
+39,1532
+St. Augustine,1533
+Sedona,1534
+Elmira/Corning,1535
+Fort Pierce,1536
+30746,1537
+Pamplona,1538
+New Jersey,1539
+Caldwell,1540
+Pahokee,1541
+Suffolk,1542
+East Hampton,1543
+Montauk Point,1544
+Shirley,1545
+Whitefield,1546
+Cat Cay,1547
+Immokalee,1548
+West End,1549
+Freeport,1550
+Fishers Island,1551
+Okeechobee,1552
+Punta Gorda,1553
+Baker Bay,1554
+Harbour Island,1555
+Port Washington,1556
+West Palm Beach,1557
+Walker's Cay,1558
+Pompano Beach,1559
+Linden,1560
+Exuma,1561
+Andros Town,1562
+Escanaba,1563
+Cordova,1564
+35579,1565
+31845,1566
+31511,1567
+30007,1568
+35991,1569
+31941,1570
+34256,1571
+32721,1572
+Oxnard/Ventura,1573
+Bratislava,1574
+483,1575
+Greven,1576
+Verona,1577
+Toulouse,1578
+Santander,1579
+Vigo,1580
+35356,1581
+32402,1582
+34321,1583
+34237,1584
+30135,1585
+31995,1586
+33398,1587
+30158,1588
+34286,1589
+PA,1590
+30575,1591
+BB,1592
+31564,1593
+31164,1594
+CO,1595
+33987,1596
+31165,1597
+33667,1598
+31252,1599
+31871,1600
+30979,1601
+33461,1602
+32547,1603
+30312,1604
+AG,1605
+36927,1606
+34553,1607
+33155,1608
+30683,1609
+32556,1610
+31092,1611
+31309,1612
+33728,1613
+36039,1614
+30947,1615
+32106,1616
+36487,1617
+30779,1618
+31840,1619
+31197,1620
+36166,1621
+34314,1622
+33029,1623
+32390,1624
+30408,1625
+32124,1626
+35628,1627
+34255,1628
+32136,1629
+35096,1630
+30347,1631
+31823,1632
+33795,1633
+31621,1634
+33046,1635
+34699,1636
+31617,1637
+31219,1638
+32348,1639
+33180,1640
+JM,1641
+33184,1642
+30599,1643
+31135,1644
+35574,1645
+31470,1646
+31423,1647
+33095,1648
+30711,1649
+34512,1650
+31977,1651
+32190,1652
+34293,1653
+32244,1654
+32028,1655
+31067,1656
+30521,1657
+BM,1658
+31136,1659
+31656,1660
+32896,1661
+33594,1662
+36078,1663
+34952,1664
+32156,1665
+30543,1666
+32587,1667
+36256,1668
+31693,1669
+30846,1670
+BZ,1671
+33034,1672
+33418,1673
+36788,1674
+30486,1675
+34918,1676
+30933,1677
+31953,1678
+31950,1679
+GD,1680
+32396,1681
+30478,1682
+33321,1683
+35440,1684
+33032,1685
+36133,1686
+33501,1687
+34539,1688
+33809,1689
+33151,1690
+35615,1691
+36293,1692
+32544,1693
+33464,1694
+36568,1695
+34812,1696
+32694,1697
+36096,1698
+35221,1699
+34113,1700
+30427,1701
+33121,1702
+36273,1703
+35497,1704
+36149,1705
+32363,1706
+35569,1707
+Carbondale,1708
+32886,1709
+32987,1710
+IT,1711
+35338,1712
+32693,1713
+36321,1714
+34761,1715
+34711,1716
+Glendale,1717
+Terrace,1718
+Casper,1719
+Lulea,1720
+Dresden,1721
+Belgrade,1722
+480,1723
+Gothenburg,1724
+Luebeck,1725
+Gainesville,1726
+Kortrijk,1727
+Rocky Mount,1728
+Innsbruck,1729
+Billund,1730
+Luxembourg,1731
+454,1732
+Grand Canyon,1733
+Appleton,1734
+Clarksville,1735
+Pittsfield,1736
+34239,1737
+CZ,1738
+Great Falls,1739
+Monterrey,1740
+Hendersonville,1741
+Danbury,1742
+Blue Bell,1743
+Doylestown,1744
+Mansfield,1745
+West Creek,1746
+Somerville,1747
+Westfield,1748
+West Chester,1749
+Chicopee Falls,1750
+Marshfield,1751
+Saint Barthelemy,1752
+237,1753
+Altoona,1754
+Skaneateles,1755
+Norwood,1756
+Saratoga Springs,1757
+Georgetown,1758
+Ithaca/Cortland,1759
+Provincetown,1760
+Burlington,1761
+Glens Falls,1762
+Princeton,1763
+Selinsgrove,1764
+Chatham,1765
+Wiscasset,1766
+Gettysburg,1767
+Norwich,1768
+Lakewood,1769
+Great Barrington,1770
+Harrisburg,1771
+Easton,1772
+Penn Yan,1773
+Annapolis,1774
+Moultonboro,1775
+Bradford,1776
+Ogdensburg,1777
+Plymouth,1778
+Rockland,1779
+Louisa,1780
+Staunton,1781
+Charlottesville,1782
+Gaithersburg,1783
+Augusta/Waterville,1784
+Bar Harbor,1785
+Michellville,1786
+Roanoke,1787
+Bequia,1788
+Lebel-sur-Quevillon,1789
+Terrell,1790
+Santo Domingo,1791
+Ashland,1792
+Monument Valley,1793
+Poughkeepsie,1794
+North Adams,1795
+Hudson,1796
+Binghamton,1797
+Simsbury,1798
+Westminster,1799
+Keene,1800
+Canandaigua,1801
+Placida,1802
+Dover-Cheswold,1803
+Carlisle,1804
+Fitchburg,1805
+Nashua,1806
+Leesburg,1807
+Schenectady,1808
+Mount Holly,1809
+Millbrook,1810
+Lewiston/Auburn,1811
+Connellsville,1812
+Fryeburg,1813
+Morrisville,1814
+Montpelier/Barre,1815
+Salisbury,1816
+Frederick,1817
+Youngstown/Warren,1818
+Peterborough,1819
+Ponce,1820
+Marigot,1821
+221,1822
+Plainville,1823
+Kingston,1824
+Middletown,1825
+Hopedale,1826
+Blairstown,1827
+Brooksville,1828
+Ludington,1829
+Lake Placid,1830
+Stafford,1831
+Gaspe,1832
+Zanesville,1833
+Culebra,1834
+Edgartown,1835
+Andover,1836
+Oneonta,1837
+Lynchburg,1838
+Port Hawkesbury,1839
+Ceiba,1840
+Newport News/Williamsburg,1841
+Cape May,1842
+Fort Meade,1843
+Mt. Pocono,1844
+Toms River,1845
+Hawthorne,1846
+Quebec,1847
+Churchville,1848
+Niagara Falls,1849
+Front Royal,1850
+Ocean City,1851
+St. Catharines,1852
+Charleston/Dunbar,1853
+North Bay,1854
+Lake City,1855
+Abingdon,1856
+Cabo Rojo,1857
+Trois Rivieres,1858
+Aguadilla,1859
+Northampton,1860
+Sherbrooke,1861
+Biddeford,1862
+Oshawa,1863
+Morgantown,1864
+St. Lucia,1865
+276,1866
+Butler,1867
+Pinehurst/Southern Pines,1868
+Red Dog,1869
+Deering,1870
+Noorvik,1871
+33109,1872
+Lost River,1873
+33347,1874
+Tin City,1875
+Selawik,1876
+Candle,1877
+Kiana,1878
+33520,1879
+32492,1880
+32092,1881
+32174,1882
+Zagreb,1883
+Abbotsford,1884
+36363,1885
+31911,1886
+30732,1887
+30747,1888
+30680,1889
+31015,1890
+VC,1891
+36158,1892
+33242,1893
+33241,1894
+30470,1895
+32070,1896
+30792,1897
+31565,1898
+30709,1899
+33360,1900
+34488,1901
+Guadalajara,1902
+30966,1903
+BR,1904
+Conakry,1905
+531,1906
+34967,1907
+32745,1908
+30762,1909
+Payerne,1910
+Hahn,1911
+32786,1912
+34273,1913
+30082,1914
+32649,1915
+Albuquerque,1916
+30279,1917
+32951,1918
+Arequipa,1919
+Utopia,1920
+Tintina,1921
+Denton,1922
+Braunschweig,1923
+Chattanooga,1924
+Trondheim,1925
+Puebla,1926
+34648,1927
+Atwater,1928
+35323,1929
+33506,1930
+33381,1931
+31327,1932
+31859,1933
+34218,1934
+35236,1935
+31036,1936
+34738,1937
+31214,1938
+30913,1939
+34166,1940
+33604,1941
+Acapulco,1942
+36085,1943
+36178,1944
+Rockford,1945
+Havana,1946
+219,1947
+Meadow Lake,1948
+Cambridge,1949
+Ostrava,1950
+Klagenfurt,1951
+Salzburg,1952
+Akureyri,1953
+34785,1954
+33540,1955
+32878,1956
+Halmstad,1957
+Ostersund,1958
+Angelholm/Helsingborg,1959
+Sofia,1960
+411,1961
+Sonderborg,1962
+Mankato,1963
+Windsor,1964
+Szczecin,1965
+Rogers,1966
+Kirksville,1967
+Lafayette,1968
+Tulsa,1969
+32993,1970
+30243,1971
+30783,1972
+35228,1973
+31924,1974
+36775,1975
+34474,1976
+31559,1977
+Vidalia,1978
+Manhattan/Ft. Riley,1979
+Wheeling,1980
+Lewisburg,1981
+Tuscaloosa,1982
+Scott,1983
+Anderson,1984
+Monroeville,1985
+Kenora,1986
+Hiawatha,1987
+Murray,1988
+Oak Island,1989
+Lawrenceville,1990
+Blytheville,1991
+Camilla,1992
+Apalachicola,1993
+Farewell,1994
+Katmai Lodge,1995
+St. Paul,1996
+Tatitlek,1997
+Yakutat,1998
+Tivat,1999
+459,2000
+Flint,2001
+Lorain/Elyria,2002
+Mission/McAllen/Edinburg,2003
+Del Rio,2004
+Arlington,2005
+Bloomington/Normal,2006
+Hermosillo,2007
+Peoria,2008
+Evansville,2009
+Moline,2010
+Dubuque,2011
+San Luis Potosi,2012
+Anniston,2013
+Leon/Guanajuato,2014
+Pueblo,2015
+Walnut Ridge,2016
+Grand Forks,2017
+Grand Island,2018
+Hickory,2019
+Battle Creek,2020
+Gaylord,2021
+La Crosse,2022
+Meridian,2023
+Beloit/Janesville,2024
+New Richmond,2025
+Longview,2026
+St. Vincent,2027
+34705,2028
+RO,2029
+33043,2030
+NG,2031
+32991,2032
+30338,2033
+WS,2034
+36756,2035
+SN,2036
+35256,2037
+30155,2038
+34704,2039
+32119,2040
+31267,2041
+33865,2042
+31874,2043
+31939,2044
+34828,2045
+35380,2046
+31421,2047
+31288,2048
+32523,2049
+30374,2050
+30010,2051
+31628,2052
+32884,2053
+32365,2054
+31883,2055
+33144,2056
+35052,2057
+36232,2058
+31577,2059
+30205,2060
+36268,2061
+34884,2062
+LC,2063
+34750,2064
+34120,2065
+33932,2066
+SR,2067
+35141,2068
+30255,2069
+33988,2070
+32324,2071
+31732,2072
+30216,2073
+36528,2074
+33314,2075
+34574,2076
+33976,2077
+33933,2078
+36162,2079
+36661,2080
+31122,2081
+31834,2082
+36251,2083
+35529,2084
+34941,2085
+34082,2086
+35511,2087
+35342,2088
+Scottsbluff,2089
+Taos,2090
+Parkersburg,2091
+Macon,2092
+34303,2093
+Paducah,2094
+33792,2095
+33024,2096
+Eau Claire,2097
+30549,2098
+DE,2099
+Dubrovnik,2100
+30739,2101
+33470,2102
+34802,2103
+Sao Luiz,2104
+Brno,2105
+Sudbury,2106
+36101,2107
+33518,2108
+36097,2109
+33606,2110
+Tallinn,2111
+422,2112
+Perpignan,2113
+Ljubljana,2114
+481,2115
+San Sebastian,2116
+Nimes,2117
+Aberdeen,2118
+Kinston,2119
+St Stephan,2120
+Vilnius,2121
+452,2122
+Nantes,2123
+Calhoun,2124
+Owensboro,2125
+Salina,2126
+Mitchell,2127
+Corpus Christi,2128
+Cape Girardeau,2129
+Hot Springs,2130
+Bainbridge,2131
+Rawlins,2132
+Durant,2133
+Greeneville,2134
+Dyersburg,2135
+Beckley,2136
+Williamsburg,2137
+Charlottetown,2138
+956,2139
+Parry Sound,2140
+Branson,2141
+Marfa,2142
+Manistee/Ludington,2143
+Belleville,2144
+Somerset,2145
+Plattsburgh,2146
+Tupelo,2147
+Corvallis,2148
+St Thomas,2149
+Centralia,2150
+Fresno,2151
+Fort Leonard Wood,2152
+Crestview,2153
+Dumas,2154
+Logan,2155
+Ruston,2156
+Crescent City,2157
+Cheyenne,2158
+New Iberia,2159
+Eugene,2160
+Marana,2161
+Rock Springs,2162
+North Platte,2163
+Champaign/Urbana,2164
+Bloomington,2165
+Laramie,2166
+SNP,2167
+United States,2168
+CDB,2169
+AKN,2170
+BET,2171
+ANC,2172
+GAL,2173
+BRW,2174
+VDZ,2175
+SCC,2176
+SDP,2177
+ENA,2178
+RDB,2179
+OTZ,2180
+ANI,2181
+FAI,2182
+KSM,2183
+DLG,2184
+ADQ,2185
+DUT,2186
+31076,2187
+31185,2188
+CW,2189
+34324,2190
+HOM,2191
+Brescia,2192
+Dundee,2193
+Almeria,2194
+Mosinee,2195
+Monroe,2196
+Valparaiso,2197
+Ganes Creek,2198
+Saginaw/Bay City/Midland,2199
+Terre Haute,2200
+Talladega,2201
+Thief River Falls,2202
+Chino,2203
+Findlay,2204
+Hagerstown,2205
+Zumpango,2206
+Ciudad Obregon,2207
+Brazzaville,2208
+515,2209
+Presque Isle/Houlton,2210
+College Station/Bryan,2211
+Billings,2212
+Lake Charles,2213
+Valdosta,2214
+Jacksonville/Camp Lejeune,2215
+Kalamazoo,2216
+Cayman Brac,2217
+San Salvador,2218
+118,2219
+San Pedro Sula,2220
+131,2221
+Guatemala City,2222
+127,2223
+Idaho Falls,2224
+Edmonton,2225
+Marquette,2226
+Torreon,2227
+Titusville,2228
+Pohnpei,2229
+810,2230
+Rovaniemi,2231
+Male,2232
+750,2233
+Stillwater,2234
+Beaumont/Port Arthur,2235
+Abilene,2236
+Stockton,2237
+30167,2238
+35074,2239
+31308,2240
+32010,2241
+GT,2242
+30136,2243
+31150,2244
+34681,2245
+HN,2246
+31888,2247
+GY,2248
+34012,2249
+HT,2250
+32105,2251
+34677,2252
+SV,2253
+34722,2254
+33290,2255
+34924,2256
+32180,2257
+Kosrae,2258
+31982,2259
+33256,2260
+30894,2261
+32474,2262
+33139,2263
+31775,2264
+30918,2265
+30631,2266
+34454,2267
+32986,2268
+PE,2269
+33269,2270
+NI,2271
+31075,2272
+31391,2273
+Sparrevohn,2274
+32888,2275
+Pereira,2276
+Cherry Point,2277
+Beaufort,2278
+Mt. Clemens,2279
+Hattiesburg/Laurel,2280
+Fairfield,2281
+Patuxent River,2282
+Lawton/Fort Sill,2283
+Sumter,2284
+Fort Drum,2285
+Alpena,2286
+St. George,2287
+Mattoon/Charleston,2288
+Sioux City,2289
+Pocatello,2290
+Lewiston,2291
+Rapid City,2292
+Hilo,2293
+Comayagua,2294
+Roswell,2295
+34842,2296
+34783,2297
+32216,2298
+30569,2299
+34618,2300
+32228,2301
+35374,2302
+31973,2303
+34576,2304
+31847,2305
+31612,2306
+34092,2307
+31905,2308
+33306,2309
+34457,2310
+34210,2311
+TT,2312
+31641,2313
+30476,2314
+35013,2315
+34025,2316
+35550,2317
+31244,2318
+30838,2319
+30990,2320
+32891,2321
+30562,2322
+Managua,2323
+153,2324
+Kwajalein,2325
+844,2326
+Bullhead City,2327
+Racine,2328
+32651,2329
+IS,2330
+30638,2331
+Cali,2332
+30659,2333
+Fort Dix,2334
+Bakersfield,2335
+Yap,2336
+Bucaramanga,2337
+Quito,2338
+Apia,2339
+892,2340
+34108,2341
+33166,2342
+33377,2343
+32265,2344
+Majuro,2345
+Manaus,2346
+Roatan Island,2347
+Bonaire,2348
+BQ,2349
+Tijuana,2350
+Mazatlan,2351
+36242,2352
+31205,2353
+Port-au-Prince,2354
+238,2355
+Ixtapa/Zihuatanejo,2356
+Loreto,2357
+Morelia,2358
+Zacatecas,2359
+Ciudad Juarez,2360
+Durango,2361
+Uruapan,2362
+Oaxaca,2363
+Santa Cruz/Huatulco,2364
+Brasilia,2365
+Culiacan,2366
+Fort de France,2367
+252,2368
+Brainerd,2369
+Hibbing,2370
+Santa Clara,2371
+Guantanamo,2372
+Varadero,2373
+Muskegon,2374
+34767,2375
+GL,2376
+Garden City,2377
+San Angelo,2378
+Las Cruces,2379
+Fort Dodge,2380
+Newport News/Hampton,2381
+33047,2382
+Roxboro,2383
+Old Crow,2384
+911,2385
+Illinois Creek,2386
+Deadhorse1,2387
+Yellowknife,2388
+Fortaleza,2389
+Kapolei,2390
+Andeness,2391
+Kuparuk,2392
+Blackstone,2393
+33370,2394
+Williamsport,2395
+350,2396
+35980,2397
+Johannesburg,2398
+Delhi,2399
+733,2400
+Chuuk,2401
+Cardiff,2402
+Tirana,2403
+401,2404
+Townsville,2405
+Sendai,2406
+Okinawa,2407
+Sondre Stromfjord,2408
+975,2409
+Cape Town,2410
+Santa Cruz,2411
+312,2412
+JFK,2413
+BNA,2414
+ONT,2415
+TYS,2416
+36253,2417
+33697,2418
+34990,2419
+BO,2420
+Iwakuni,2421
+Deauville,2422
+Ulaanbaator,2423
+751,2424
+Evreux,2425
+Mildenhall,2426
+Port Moresby,2427
+804,2428
+Kushiro,2429
+Ramstein,2430
+Newcastle,2431
+Oshkosh,2432
+Mumbai,2433
+Bristol,2434
+30610,2435
+33543,2436
+30268,2437
+31876,2438
+PL,2439
+32046,2440
+34664,2441
+Stephenville,2442
+Adelaide,2443
+Leipzig,2444
+Guangzhou,2445
+Hopkinsville,2446
+Constanta,2447
+Ankeny,2448
+Homestead,2449
+Prince George,2450
+Maastricht,2451
+Baku,2452
+407,2453
+Dover,2454
+Ostend,2455
+Port Hueneme,2456
+Polson,2457
+Fairford,2458
+Spangdahlem,2459
+Osan,2460
+Edwards,2461
+Cayenne,2462
+344,2463
+Wake Island,2464
+Goldsboro,2465
+Katowice,2466
+Amman,2467
+639,2468
+Muscat,2469
+658,2470
+Orebro,2471
+Zhengzhou,2472
+Graz,2473
+Glasgow/Prestwick,2474
+Luzon Island,2475
+Cairo,2476
+591,2477
+Tucuman,2478
+Changsha,2479
+Indian Springs,2480
+Xiamen,2481
+Wuhan,2482
+Whidbey Island,2483
+31647,2484
+NO,2485
+Whitehorse,2486
+Newquay,2487
+Ningbo,2488
+Hefei,2489
+31702,2490
+Silver Salmon Creek,2491
+35289,2492
+36169,2493
+32343,2494
+35709,2495
+35049,2496
+Pogo Mines,2497
+Vava'u,2498
+Winthrop,2499
+Walla Walla,2500
+Soldotna,2501
+Bunnell,2502
+35250,2503
+Center,2504
+35427,2505
+Treasure Cay,2506
+South Andos,2507
+34288,2508
+Wiseman,2509
+30419,2510
+30938,2511
+36553,2512
+Kougarok,2513
+Independence,2514
+GBH,2515
+PPC,2516
+NUI,2517
+Santa Marta,2518
+35627,2519
+Camp Douglas,2520
+Aalborg,2521
+Fort McMurray,2522
+Selma,2523
+Camaguey,2524
+Holguin,2525
+Hancock/Houghton,2526
+Alpine,2527
+LAS,2528
+Harbin,2529
+Utapao,2530
+Fuzhou,2531
+Olga Bay,2532
+Laura Lake,2533
+Mangrove Cay,2534
+Dry Bay,2535
+Iwoto,2536
+30911,2537
+VE,2538
+Funchal,2539
+Shenyang,2540
+Xi'an,2541
+Wuxi,2542
+30925,2543
+Trading Bay,2544
+Tobago,2545
+Christmas Island,2546
+824,2547
+Brooks Lodge,2548
+Charlo,2549
+36704,2550
+Jinan,2551
+Addis Ababa,2552
+522,2553
+35917,2554
+CN,2555
+San Andres Island,2556
+Yinchuan,2557
+Carlsbad,2558
+34440,2559
+Tashkent,2560
+788,2561
+Nanjing,2562
+Llano,2563
+Boulder City,2564
+Lome,2565
+586,2566
+Nairobi,2567
+535,2568
+Bangalore,2569
+31000,2570
+UNK,2571
+South Haven,2572
+Doha,2573
+664,2574
+34470,2575
+Uganik,2576
+Port Williams,2577
+Whale Pass,2578
+Coffman Cove,2579
+Edna Bay,2580
+Port Protection,2581
+Hydaburg,2582
+Meyers Chuck,2583
+Kasaan,2584
+Point Baker,2585
+Hyder,2586
+Dora Bay,2587
+36797,2588
+Deer Harbor,2589
+Big Bay Marina,2590
+Molly Creek,2591
+31085,2592
+31348,2593
+Desolation Sound,2594
+31961,2595
+Gulkana,2596
+Roseburg,2597
+Klamath Falls,2598
+Lake Havasu City,2599
+Wenatchee,2600
+Williston,2601
+Gasquet,2602
+El Centro,2603
+Iron Mountain/Kingsfd,2604
+Hoolehua,2605
+Dickinson,2606
+Gallup,2607
+McCook,2608
+Redding,2609
+Eureka,2610
+Millinocket,2611
+Lanai,2612
+Lakeport,2613
+Dodge City,2614
+Farmington,2615
+Uvalde,2616
+Inyokern,2617
+Paso Robles,2618
+Houlton,2619
+Johnstown,2620
+Arcata/Eureka,2621
+Eagle Pass,2622
+Tulare,2623
+Pierre,2624
+Walker,2625
+Moab,2626
+Vernal,2627
+Liberal,2628
+Hays,2629
+Joplin,2630
+Riverton/Lander,2631
+Gillette,2632
+Devils Lake,2633
+Helena,2634
+Mason City,2635
+Tyler,2636
+Texarkana,2637
+Nixon Fork Mine,2638
+New Bern/Morehead/Beaufort,2639
+Goodyear,2640
+Hobbs,2641
+Butte,2642
+Tampico,2643
+Armenia,2644
+Cap-Haitien,2645
+Fukuoka,2646
+Millington,2647
+Visalia,2648
+Santa Ynez,2649
+Avarua,2650
+813,2651
+La Paz,2652
+Veracruz,2653
+Dent Island,2654
+Torrington,2655
+Headland,2656
+30371,2657
+Chenega,2658
+35417,2659
+May Creek,2660
+McCarthy,2661
+30916,2662
+34682,2663
+Kapalua,2664
+32207,2665
+31531,2666
+Manteo,2667
+Brownwood,2668
+Chico,2669
+Alamosa,2670
+Koror,2671
+854,2672
+33348,2673
+32018,2674
+Ukiah,2675
+32455,2676
+32016,2677
+34582,2678
+Ironwood,2679
+Clovis,2680
+Massena,2681
+Petaluma,2682
+30744,2683
+33282,2684
+30557,2685
+Cortez,2686
+Alliance,2687
+Nanwalek,2688
+34955,2689
+35215,2690
+Havre,2691
+31441,2692
+Pendleton,2693
+Mayaguez,2694
+33344,2695
