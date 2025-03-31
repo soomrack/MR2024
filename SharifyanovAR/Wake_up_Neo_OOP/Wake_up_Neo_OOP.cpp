@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <cmath>
-#include <cstring>   //memcpy
+#include <cstring>  
 #include <sstream>
 
 
@@ -14,11 +14,14 @@ public:
     virtual const char* what() const noexcept override;
 };
 
+
 MatrixException::MatrixException(const std::string& msg) : message(msg) {}
+
 
 const char* MatrixException::what() const noexcept {
     return message.c_str();
 }
+
 
 class Matrix {
 private:
@@ -37,20 +40,20 @@ public:
     // kill matrix
     ~Matrix();
 
-    // assigment operator overloding
-    Matrix& operator=(const Matrix& other);
 
-    // main funcs from C
+    Matrix& operator=(const Matrix& other);
+    Matrix& operator=(Matrix&& other) noexcept;
+
     void matrix_set(const double* values);
     void matrix_identity();
     double matrix_determinant() const;
 
-    // add operator overloding
     Matrix operator+(const Matrix& other) const;
+    Matrix operator+=(const Matrix& other) const;
 
-    // multiplier operator overloding
     Matrix operator*(const Matrix& other) const;
     Matrix operator*(double scalar) const;
+    Matrix operator*=(double scalar) const;
 
     Matrix matrix_transpose() const;
     Matrix matrix_exponent() const;
@@ -70,15 +73,17 @@ void Matrix::allocateMemory() {
 
     data = new double[rows * cols];
 
-    for (size_t i = 0; i < rows * cols; ++i)
-        data[i] = 0.0;
+    memset(data, 0, cols * rows * sizeof(double));
 }
 
-Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
+
+//Matrix::Matrix() : rows(0), cols(0), data(nullptr) {}
+
 
 Matrix::Matrix(size_t r, size_t c) : rows(r), cols(c), data(nullptr) {
     allocateMemory();
 }
+
 
 Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), data(nullptr) {
     if (other.data == nullptr || rows * cols == 0) return; //check if matrix nan
@@ -87,6 +92,7 @@ Matrix::Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), data(n
     std::memcpy(data, other.data, rows * cols * sizeof(double));
 }
 
+
 Matrix::Matrix(Matrix&& other) noexcept: rows(other.rows), cols(other.cols), data(other.data) {
     // Just move poiner with no copying data
     other.rows = 0;
@@ -94,22 +100,32 @@ Matrix::Matrix(Matrix&& other) noexcept: rows(other.rows), cols(other.cols), dat
     other.data = nullptr;
 }
 
+
 Matrix::~Matrix() {
     delete[] data;
 }
+
 
 Matrix& Matrix::operator=(const Matrix& other) {
     if (this == &other)
         return *this;
     if (rows != other.rows || cols != other.cols)
         throw MatrixException("Assignment failed: matrix sizes do not match");
-    if (data == nullptr) {
-        allocateMemory();
-    }
     std::memcpy(data, other.data, rows * cols * sizeof(double));
     return *this;
 }
 
+
+Matrix& Matrix::operator=(Matrix&& other) noexcept {
+    delete[] data;
+    rows = other.rows;
+    cols = other.cols;
+    data = other.data;
+    other.rows = 0;
+    other.cols = 0;
+    other.data = nullptr;
+    return *this;
+}
 
 
 void Matrix::matrix_set(const double* values) {
@@ -123,12 +139,17 @@ void Matrix::matrix_identity() {
     if (rows != cols)
         throw MatrixException("Matrix must be square for identity operation");
 
-    for (size_t i = 0; i < rows * cols; ++i)
-        data[i] = 0.0;
+   //for (size_t i = 0; i < rows * cols; ++i)
+   //    data[i] = 0.0;
+
+   //Matrix::matrix_set(0);
+
+    memset(data, 0, cols * rows * sizeof(double)); //тут не совсем понял как сделать этот блок полностью через memset
 
     for (size_t i = 0; i < rows; ++i)
         data[i * cols + i] = 1.0;
 }
+
 
 double Matrix::matrix_determinant() const {
     if (rows != cols)
@@ -153,6 +174,7 @@ double Matrix::matrix_determinant() const {
     else throw MatrixException("Determinant is not implemented for matrices larger than 3x3");
 }
 
+
 // overloaded add operator (same to matrix_add)
 Matrix Matrix::operator+(const Matrix& other) const {
     if (rows != other.rows || cols != other.cols)
@@ -165,21 +187,35 @@ Matrix Matrix::operator+(const Matrix& other) const {
     return result;
 }
 
+Matrix Matrix::operator+=(const Matrix& other) const {
+    if (rows != other.rows || cols != other.cols)
+        throw MatrixException("Matrix dimensions must match for addition");
+
+    Matrix result(rows, cols);
+
+    for (size_t i = 0; i < rows * cols; ++i)
+        result.data[i] = data[i] + other.data[i];
+    return result;
+}
+
+
+
 // overloaded multiplier operator (same to matrix_multiply).
 Matrix Matrix::operator*(const Matrix& other) const {
     if (cols != other.rows)
         throw MatrixException("Matrix dimensions are invalid for multiplication");
     Matrix result(rows, other.cols);
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < other.cols; ++j) {
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < other.cols; ++col) {
             double sum = 0.0;
             for (size_t k = 0; k < cols; ++k)
-                sum += data[i * cols + k] * other.data[k * other.cols + j];
-            result.data[i * other.cols + j] = sum;
+                sum += data[row * cols + k] * other.data[k * other.cols + col];
+            result.data[row * other.cols + col] = sum;
         }
     }
     return result;
 }
+
 
 // overloaded multiplier on scalar operator (same to matrix_scalar_multiply).
 Matrix Matrix::operator*(double scalar) const {
@@ -189,15 +225,22 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
-// transpose function from 5th semester (procedure C matrix code)
-Matrix Matrix::matrix_transpose() const {
-    Matrix result(cols, rows);
-    for (size_t i = 0; i < rows; ++i)
-        for (size_t j = 0; j < cols; ++j)
-            result.data[j * rows + i] = data[i * cols + j];
+Matrix Matrix::operator*=(double scalar) const {
+    Matrix result(rows, cols);
+    for (size_t i = 0; i < rows * cols; ++i)
+        result.data[i] = data[i] * scalar;
     return result;
 }
 
+
+// transpose function from 5th semester (procedure C matrix code)
+Matrix Matrix::matrix_transpose() const {
+    Matrix result(cols, rows);
+    for (size_t row = 0; row < rows; ++row)
+        for (size_t col = 0; col < cols; ++col)
+            result.data[col * rows + row] = data[row * cols + col];
+    return result;
+}
 
 // e ^ A
 Matrix Matrix::matrix_exponent() const {
@@ -222,12 +265,40 @@ Matrix Matrix::matrix_exponent() const {
     return result;
 }
 
+
+/*// e ^ A
+Matrix Matrix::matrix_exponent() const {
+    if (rows != cols)
+        throw MatrixException("Matrix must be square for exponentiation");
+
+    Matrix result(rows, cols);
+    result.matrix_identity();
+
+    Matrix tmp(result);
+    Matrix buf_mult(rows, cols);
+
+    for (size_t num = 1; num <= 10; ++num) {
+        buf_mult = tmp * (*this);
+
+        buf_mult *= (1.0 / num);
+
+        result += buf_mult;
+
+        tmp = buf_mult;
+    }
+    return result;
+}*/
+
+
+
+
+
 void Matrix::matrix_print(const std::string& title, double scalar_result) const {
     std::cout << "\n" << title << ":\n";
     if (data != nullptr) {
-        for (size_t i = 0; i < rows; ++i) {
-            for (size_t j = 0; j < cols; ++j)
-                std::cout << std::setw(6) << data[i * cols + j] << " ";
+        for (size_t row = 0; row < rows; ++row) {
+            for (size_t col = 0; col < cols; ++col)
+                std::cout << std::setw(6) << data[row * cols + col] << " ";
             std::cout << "\n";
         }
     }
@@ -236,13 +307,16 @@ void Matrix::matrix_print(const std::string& title, double scalar_result) const 
     }
 }
 
+
 size_t Matrix::getRows() const { 
     return rows; 
 }
 
+
 size_t Matrix::getCols() const { 
     return cols; 
 }
+
 
 int main() {
 
