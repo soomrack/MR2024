@@ -312,8 +312,7 @@ double Matrix::determinant() const {
              - data[1] * data[3] * data[8] 
              - data[0] * data[5] * data[7];
     }
-
-    print_message(ERROR, "Определитель для матриц больше 3x3 не реализован\n");
+    
     return NAN;
 }
 
