@@ -25,8 +25,6 @@ public:
 
     int lighting_min;
     int lighting_max;
-    
-    int watering_interval;
 };
 
 
@@ -198,8 +196,6 @@ void set_climate_tomato(Climate &climate) {
     
     climate.lighting_min = 100;
     climate.lighting_max = 400;
-    
-    climate.watering_interval = 5000;
 }
 
 
@@ -395,33 +391,33 @@ void setup() {
 
 
 void loop() {
-    datatime.update_time();
+    static datatime.update_time();
     
-    Climate climate_tomato;
+    static Climate climate_tomato;
 
-    Thermometer thermometer_first(DHT_PIN);
-    Thermometer thermometer_second(DHT_PIN);
+    static Thermometer thermometer_first(DHT_PIN);
+    static Thermometer thermometer_second(DHT_PIN);
 
-    Heater heater_first(HEATER_PIN);
-    Heater heater_second(HEATER_PIN);
+    static Heater heater_first(HEATER_PIN);
+    static Heater heater_second(HEATER_PIN);
 
-    Ventilator ventilator_first(FAN_PIN);
-    Ventilator ventilator_second(FAN_PIN);
+    static Ventilator ventilator_first(FAN_PIN);
+    static Ventilator ventilator_second(FAN_PIN);
 
-    Soil_Humidifier soil_humidifier_first(HUM_SOIL_PIN);
-    Soil_Humidifier soil_humidifier_second(HUM_SOIL_PIN);
+    static Soil_Humidifier soil_humidifier_first(HUM_SOIL_PIN);
+    static Soil_Humidifier soil_humidifier_second(HUM_SOIL_PIN);
 
-    Air_Humidifier air_humidifier_first(DHT_PIN);
-    Air_Humidifier air_humidifier_second(DHT_PIN);
+    static Air_Humidifier air_humidifier_first(DHT_PIN);
+    static Air_Humidifier air_humidifier_second(DHT_PIN);
 
-    Pump pump_first(PUMP_PIN, 5000);
-    Pump pump_second(PUMP_PIN, 7000);
+    static Pump pump_first(PUMP_PIN, 5000);
+    static Pump pump_second(PUMP_PIN, 7000);
 
-    Light light_first(LAMP_PIN);
-    Light light_second(LAMP_PIN);
+    static Light light_first(LAMP_PIN);
+    static Light light_second(LAMP_PIN);
 
-    Photoresistor photoresistor_first(LIGHTING_PIN);
-    Photoresistor photoresistor_second(LIGHTING_PIN);
+    static Photoresistor photoresistor_first(LIGHTING_PIN);
+    static Photoresistor photoresistor_second(LIGHTING_PIN);
 
     control_ventilation(datatime, ventilator_first, heater_first);
     control_temperature(climate_tomato, thermometer_first, heater_first, ventilator_first);
