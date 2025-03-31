@@ -303,6 +303,17 @@ void do_heat(Heater heater)
 }
 
 
+void do_pump(Pump pump)
+{
+    if(pump.is_active) {
+        pump.start();
+    }
+    else{
+        pump.stop();
+    }
+}
+
+
 void Photoresistor::get_lighting_level()
 {
     lighting_level = analogRead(LIGHTING_PIN);
@@ -415,5 +426,8 @@ void loop() {
     control_temperature(climate_tomato, thermometer_first, heater_first, ventilator_first);
     control_soil_humidity(climate_tomato, pump_first, soil_humidifier_first, heater_first);
     
-    
+    do_ventilation(ventilator_first);
+    do_light(light_first);
+    do_heat(heater_first);
+    do_pump(pump_first);
 }
