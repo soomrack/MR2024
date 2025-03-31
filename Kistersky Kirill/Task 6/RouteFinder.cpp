@@ -14,22 +14,33 @@
 
 using namespace std;
 
+
+typedef string airport_code;
+typedef int airport_id;
+typedef int distance_t;
+
+
 struct airport_info {
-    string code;
+    airport_code code;
     string name;
     string city;
 };
 
+typedef pair<airport_id, distance_t> edge;
+typedef vector<vector<edge>> adjacency_list;
+typedef unordered_map<airport_id, airport_info> id_to_airport_map;
+typedef unordered_map<airport_code, airport_id> airport_to_id_map;
+
 struct vertex {
-    int prev = -1;
-    int dist = numeric_limits<int>::max();
+    airport_id prev = -1;
+    distance_t dist = numeric_limits<distance_t>::max();
 };
 
 class flight_graph {
 private:
-    vector<vector<pair<int, int>>> adjacency_list;
-    unordered_map<int, airport_info> id_to_airport;
-    unordered_map<string, int> airport_to_id;
+    adjacency_list adjacency_list_;
+    id_to_airport_map id_to_airport_;
+    airport_to_id_map airport_to_id_;
 
 public:
     void load_mappings(const string& filename) {
@@ -50,15 +61,15 @@ public:
             getline(ss, name, ',');
             getline(ss, city);
 
-            int id = stoi(id_str);
-            id_to_airport[id] = { code, name, city };
-            airport_to_id[code] = id;
+            airport_id id = stoi(id_str);
+            id_to_airport_[id] = { code, name, city };
+            airport_to_id_[code] = id;
         }
     }
 
     void load_graph(const string& filename) {
-        int max_id = find_max_id();
-        adjacency_list.resize(max_id + 1);
+        airport_id max_id = find_max_id();
+        adjacency_list_.resize(max_id + 1);
 
         ifstream file(filename);
         if (!file.is_open()) {
@@ -75,22 +86,24 @@ public:
             getline(ss, to_str, ',');
             getline(ss, dist_str);
 
-            int from = stoi(from_str);
-            int to = stoi(to_str);
-            int dist = stoi(dist_str);
+            airport_id from = stoi(from_str);
+            airport_id to = stoi(to_str);
+            distance_t dist = stoi(dist_str);
 
-            adjacency_list[from].emplace_back(to, dist);
+            adjacency_list_[from].emplace_back(to, dist);
         }
     }
 
-    vector<int> find_shortest_path(int start, int end) {
+    vector<airport_id> find_shortest_path(airport_id start, airport_id end) {
         if (start == end) {
             return { start };
         }
 
-        int n = adjacency_list.size();
+        size_t n = adjacency_list_.size();
         vector<vertex> vertices(n);
-        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        priority_queue<pair<distance_t, airport_id>,
+            vector<pair<distance_t, airport_id>>,
+            greater<pair<distance_t, airport_id>>> pq;
 
         vertices[start].dist = 0;
         pq.push({ 0, start });
@@ -98,16 +111,16 @@ public:
         while (!pq.empty()) {
             auto current = pq.top();
             pq.pop();
-            int current_dist = current.first;
-            int u = current.second;
+            distance_t current_dist = current.first;
+            airport_id u = current.second;
 
             if (current_dist > vertices[u].dist) continue;
             if (u == end) break;
 
-            for (const auto& edge : adjacency_list[u]) {
-                int v = edge.first;
-                int weight = edge.second;
-                int new_dist = vertices[u].dist + weight;
+            for (const auto& edge : adjacency_list_[u]) {
+                airport_id v = edge.first;
+                distance_t weight = edge.second;
+                distance_t new_dist = vertices[u].dist + weight;
                 if (new_dist < vertices[v].dist) {
                     vertices[v].dist = new_dist;
                     vertices[v].prev = u;
@@ -116,12 +129,12 @@ public:
             }
         }
 
-        if (vertices[end].dist == numeric_limits<int>::max()) {
+        if (vertices[end].dist == numeric_limits<distance_t>::max()) {
             throw runtime_error("No path exists between " + to_string(start) + " and " + to_string(end));
         }
 
-        vector<int> path;
-        for (int v = end; v != -1; v = vertices[v].prev) {
+        vector<airport_id> path;
+        for (airport_id v = end; v != -1; v = vertices[v].prev) {
             path.push_back(v);
         }
         reverse(path.begin(), path.end());
@@ -129,24 +142,24 @@ public:
         return path;
     }
 
-    void print_path(const vector<int>& path) {
+    void print_path(const vector<airport_id>& path) {
         cout << "\nShortest flight path:\nRoute: ";
         for (size_t i = 0; i < path.size(); ++i) {
-            const auto& airport = id_to_airport.at(path[i]);
+            const auto& airport = id_to_airport_.at(path[i]);
             cout << airport.code << " (" << airport.name << ")";
             if (i != path.size() - 1) cout << " -> ";
         }
         cout << "\nTotal distance: " << get_path_distance(path) << " miles\n";
     }
 
-    int get_path_distance(const vector<int>& path) {
+    distance_t get_path_distance(const vector<airport_id>& path) {
         if (path.size() < 2) return 0;
 
-        int distance = 0;
+        distance_t distance = 0;
         for (size_t i = 0; i < path.size() - 1; ++i) {
-            int from = path[i];
-            int to = path[i + 1];
-            for (const auto& edge : adjacency_list[from]) {
+            airport_id from = path[i];
+            airport_id to = path[i + 1];
+            for (const auto& edge : adjacency_list_[from]) {
                 if (edge.first == to) {
                     distance += edge.second;
                     break;
@@ -157,12 +170,12 @@ public:
     }
 
     void print_airport_list() {
-        cout << "\nAvailable airports (" << id_to_airport.size() << "):\n";
+        cout << "\nAvailable airports (" << id_to_airport_.size() << "):\n";
         cout << "----------------------------------------------------------------------\n";
         cout << left << setw(10) << "ID" << setw(10) << "Code" << setw(30) << "Airport Name" << setw(20) << "City" << "\n";
         cout << "----------------------------------------------------------------------\n";
 
-        map<int, airport_info> sorted_airports(id_to_airport.begin(), id_to_airport.end());
+        map<airport_id, airport_info> sorted_airports(id_to_airport_.begin(), id_to_airport_.end());
 
         for (const auto& pair : sorted_airports) {
             cout << setw(10) << pair.first
@@ -175,17 +188,17 @@ public:
         cout << "Example: For New York (JFK) -> Los Angeles (LAX), enter 'JFK' then 'LAX'\n";
     }
 
-    int get_airport_id(const string& code) const {
-        if (airport_to_id.count(code) == 0) {
+    airport_id get_airport_id(const airport_code& code) const {
+        if (airport_to_id_.count(code) == 0) {
             throw runtime_error("Invalid airport code: " + code);
         }
-        return airport_to_id.at(code);
+        return airport_to_id_.at(code);
     }
 
 private:
-    int find_max_id() const {
-        int max_id = 0;
-        for (const auto& pair : id_to_airport) {
+    airport_id find_max_id() const {
+        airport_id max_id = 0;
+        for (const auto& pair : id_to_airport_) {
             if (pair.first > max_id) {
                 max_id = pair.first;
             }
@@ -206,21 +219,21 @@ int main() {
 
         while (true) {
             cout << "\nEnter departure airport code (3 letters, e.g. LAX): ";
-            string start_code;
+            airport_code start_code;
             cin >> start_code;
 
             cout << "Enter arrival airport code (3 letters, e.g. JFK): ";
-            string end_code;
+            airport_code end_code;
             cin >> end_code;
 
             transform(start_code.begin(), start_code.end(), start_code.begin(), ::toupper);
             transform(end_code.begin(), end_code.end(), end_code.begin(), ::toupper);
 
             try {
-                int start = graph.get_airport_id(start_code);
-                int end = graph.get_airport_id(end_code);
+                airport_id start = graph.get_airport_id(start_code);
+                airport_id end = graph.get_airport_id(end_code);
 
-                vector<int> path = graph.find_shortest_path(start, end);
+                vector<airport_id> path = graph.find_shortest_path(start, end);
                 graph.print_path(path);
             }
             catch (const exception& e) {
