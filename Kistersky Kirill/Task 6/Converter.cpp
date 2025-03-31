@@ -70,42 +70,79 @@ void convertAirlineData(const string& inputFile, const string& outputFile, const
 
     // Заголовки выходных файлов
     outFile << "from,to,distance\n";
-    mapFile << "original_code,normalized_id\n";
+    mapFile << "original_code,normalized_id,city_state\n";  // Добавили city_state
 
-    unordered_map<string, int> airportCodes;
+    unordered_map<string, pair<int, string>> airportCodes;  // code -> (id, city_state)
     int currentId = 1;
     string line;
     int processedCount = 0;
     int errorCount = 0;
 
-    // Пропускаем заголовок входного файла
+    // Читаем заголовок входного файла
     getline(inFile, line);
+    vector<string> headers;
+    stringstream headerStream(line);
+    string header;
+
+    while (getline(headerStream, header, ',')) {
+        headers.push_back(header);
+    }
+
+    // Находим индексы нужных столбцов
+    int originIdx = -1, destIdx = -1, distIdx = -1, originCityIdx = -1;
+    for (size_t i = 0; i < headers.size(); ++i) {
+        if (headers[i] == "ORIGIN") originIdx = i;
+        else if (headers[i] == "DEST") destIdx = i;
+        else if (headers[i] == "DISTANCE") distIdx = i;
+        else if (headers[i] == "ORIGIN_CITY_NAME") originCityIdx = i;
+    }
+
+    if (originIdx == -1 || destIdx == -1 || distIdx == -1) {
+        cerr << "Error: Required columns not found in input file" << endl;
+        return;
+    }
 
     while (getline(inFile, line)) {
         try {
-            stringstream ss(line);
             vector<string> row;
-            string cell;
+            bool inQuotes = false;
+            string currentCell;
 
-            // Читаем всю строку разделенную запятыми
-            while (getline(ss, cell, ',')) {
-                row.push_back(cell);
+            // Парсим строку с учетом кавычек
+            for (char c : line) {
+                if (c == '"') {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes) {
+                    row.push_back(currentCell);
+                    currentCell.clear();
+                }
+                else {
+                    currentCell += c;
+                }
             }
+            row.push_back(currentCell);
 
             // Проверяем что строка содержит достаточно данных
-            if (row.size() < 31) {
+            if (row.size() <= max(originIdx, max(destIdx, distIdx))) {
                 errorCount++;
                 continue;
             }
 
-            string origin = row[23]; // ORIGIN
-            string dest = row[30];   // DEST
-            string distStr = row[7]; // DISTANCE
+            string origin = row[originIdx];
+            string dest = row[destIdx];
+            string distStr = row[distIdx];
+            string cityState = originCityIdx != -1 ? row[originCityIdx] : "Unknown";
 
-            // Удаляем кавычки если есть
-            origin.erase(remove(origin.begin(), origin.end(), '"'), origin.end());
-            dest.erase(remove(dest.begin(), dest.end(), '"'), dest.end());
-            distStr.erase(remove(distStr.begin(), distStr.end(), '"'), distStr.end());
+            // Удаляем кавычки если они есть
+            auto removeQuotes = [](string& s) {
+                s.erase(remove(s.begin(), s.end(), '"'), s.end());
+                };
+
+            removeQuotes(origin);
+            removeQuotes(dest);
+            removeQuotes(distStr);
+            removeQuotes(cityState);
 
             // Пропускаем пустые значения
             if (origin.empty() || dest.empty() || distStr.empty()) {
@@ -117,17 +154,20 @@ void convertAirlineData(const string& inputFile, const string& outputFile, const
 
             // Добавляем аэропорты в маппинг если их еще нет
             if (airportCodes.find(origin) == airportCodes.end()) {
-                airportCodes[origin] = currentId++;
-                mapFile << origin << "," << airportCodes[origin] << "\n";
+                airportCodes[origin] = { currentId, cityState };
+                mapFile << origin << "," << currentId << "," << cityState << "\n";
+                currentId++;
             }
             if (airportCodes.find(dest) == airportCodes.end()) {
-                airportCodes[dest] = currentId++;
-                mapFile << dest << "," << airportCodes[dest] << "\n";
+                // Для аэропорта назначения используем ту же cityState (или можно добавить отдельную колонку)
+                airportCodes[dest] = { currentId, cityState };
+                mapFile << dest << "," << currentId << "," << cityState << "\n";
+                currentId++;
             }
 
             // Записываем ребро графа
-            outFile << airportCodes[origin] << ","
-                << airportCodes[dest] << ","
+            outFile << airportCodes[origin].first << ","
+                << airportCodes[dest].first << ","
                 << distance << "\n";
 
             processedCount++;
@@ -149,6 +189,7 @@ void convertAirlineData(const string& inputFile, const string& outputFile, const
         << "- Total routes processed: " << processedCount << "\n"
         << "- Errors encountered: " << errorCount << endl;
 }
+
 
 int main() {
     cout << "=== Airline Data Converter ===" << endl;
