@@ -49,14 +49,15 @@ public:
     double matrix_determinant() const;
 
     Matrix operator+(const Matrix& other) const;
-    Matrix operator+=(const Matrix& other) const;
+    //Matrix& operator+=(const Matrix&& other) const;
 
     Matrix operator*(const Matrix& other) const;
+    //Matrix& operator*=(const Matrix&& other) const;
     Matrix operator*(double scalar) const;
-    Matrix operator*=(double scalar) const;
+    //Matrix& operator*=(double scalar) const;
 
     Matrix matrix_transpose() const;
-    Matrix matrix_exponent() const;
+    Matrix matrix_exponent(unsigned long k = 10) const;
     void matrix_print(const std::string& title, double scalar_result = NAN) const;
 
     size_t getRows() const;
@@ -187,7 +188,9 @@ Matrix Matrix::operator+(const Matrix& other) const {
     return result;
 }
 
-Matrix Matrix::operator+=(const Matrix& other) const {
+
+/*
+Matrix& Matrix::operator+=(const Matrix&& other) const {
     if (rows != other.rows || cols != other.cols)
         throw MatrixException("Matrix dimensions must match for addition");
 
@@ -197,6 +200,8 @@ Matrix Matrix::operator+=(const Matrix& other) const {
         result.data[i] = data[i] + other.data[i];
     return result;
 }
+*/
+
 
 
 
@@ -217,6 +222,24 @@ Matrix Matrix::operator*(const Matrix& other) const {
 }
 
 
+/*
+Matrix& Matrix::operator*=(const Matrix&& other) const {
+    if (cols != other.rows)
+        throw MatrixException("Matrix dimensions are invalid for multiplication");
+    Matrix result(rows, other.cols);
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < other.cols; ++col) {
+            double sum = 0.0;
+            for (size_t k = 0; k < cols; ++k)
+                sum += data[row * cols + k] * other.data[k * other.cols + col];
+            result.data[row * other.cols + col] = sum;
+        }
+    }
+    return result;
+}
+*/
+
+
 // overloaded multiplier on scalar operator (same to matrix_scalar_multiply).
 Matrix Matrix::operator*(double scalar) const {
     Matrix result(rows, cols);
@@ -225,12 +248,16 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
-Matrix Matrix::operator*=(double scalar) const {
+
+/*
+Matrix& Matrix::operator*=(double scalar) const {
     Matrix result(rows, cols);
     for (size_t i = 0; i < rows * cols; ++i)
         result.data[i] = data[i] * scalar;
     return result;
 }
+*/
+
 
 
 // transpose function from 5th semester (procedure C matrix code)
@@ -242,28 +269,24 @@ Matrix Matrix::matrix_transpose() const {
     return result;
 }
 
-// e ^ A
-Matrix Matrix::matrix_exponent() const {
+
+//e^A
+Matrix Matrix::matrix_exponent(unsigned long k) const {
     if (rows != cols)
         throw MatrixException("Matrix must be square for exponentiation");
 
-    Matrix result(rows, cols);    
-    result.matrix_identity();   
+    Matrix result(rows, cols);
+    result.matrix_identity();
 
     Matrix term(result);
 
-    for (size_t k = 1; k <= 10; ++k) {
-        Matrix temp = term * (*this); 
-        term = std::move(temp);
-
-        Matrix scaled = term * (1.0 / k);
-        term = std::move(scaled);
-
-        Matrix newResult = result + term; 
-        result = newResult;
+    for (unsigned long i = 1; i <= k; ++i) {
+        term = (*this * term) * (1.0 / i);
+        result = result + term;
     }
     return result;
 }
+
 
 
 /*// e ^ A
@@ -343,7 +366,7 @@ int main() {
     Matrix productAB = A_scaled * B;
     productAB.matrix_print("Product of A_scaled and B");
 
-    Matrix expA = A_scaled.matrix_exponent();
+    Matrix expA = A_scaled.matrix_exponent(50);
     expA.matrix_print("Exponent of A_scaled (e^A)");
 
     Matrix transposeA = A_scaled.matrix_transpose();
