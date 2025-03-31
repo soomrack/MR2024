@@ -45,7 +45,6 @@ public:
     Matrix& operator*= (const Matrix& M);
     Matrix& operator*= (const double k);
     
-    // Операторы как методы класса
     Matrix operator+(const Matrix& M) const {
         Matrix result = *this;
         result += M;
