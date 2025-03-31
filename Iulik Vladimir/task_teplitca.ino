@@ -263,7 +263,9 @@ void control_lighting(Datatime datatime, Climate &climate, Light &light, Photore
       light.is_need_to_light = false;
   }
   else{
-      if (photoresistor.lighting_level < lighting_min)
+      if (photoresistor.lighting_level < climate.lighting_min){
+        light.is_need_to_light = true;
+      }
   }
 }
 
