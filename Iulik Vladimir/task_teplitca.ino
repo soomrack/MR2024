@@ -134,7 +134,7 @@ public:
     int hours = 0;
     int minutes = 0;
     int seconds = 0;
-    unsigned long lastUpdate = 0;
+    unsigned long long lastUpdate = 0;
 public:
     void update_time();
     void set_time(int h, int m, int s);
