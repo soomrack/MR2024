@@ -336,112 +336,109 @@ double Matrix::determinant() const {
 
 void matrix_operation(size_t number, const Matrix A, const Matrix B)
 {
-    try {
-        if (number == 2 || number == 1) {
-            Matrix C = A + B;
-            printf("Результат сложения матриц A и B:\n");
-            C.print();
-        } 
-        
-        if (number == 3 || number == 1) {
-            Matrix D = A - B;
-            printf("Результат разности матриц A и B:\n");
-            D.print();
-        } 
-        
-        if (number == 4 || number == 1) {
-            Matrix E = A * B;
-            printf("Результат умножения матриц A и B:\n");
-            E.print();
-        } 
-        
-        if (number == 6 || number == 1) {
-            Matrix G = A;
-            G.transp();
-            printf("Транспонированная матрица A:\n");
-            G.print();
-        } 
-        
-        if (number == 7 || number == 1) {
-            size_t power;
-            printf("Введите целое неотрицательное число p: ");
-            scanf("%zu", &power);
-            Matrix H = A;
-            for (size_t i = 0; i < power; i++) {
-                H *= A;
-            }
-            printf("Результат возведения матрицы A в степень %zu:\n", power);
-            H.print();
+    if (number == 2 || number == 1) {
+        Matrix C = A + B;
+        printf("Результат сложения матриц A и B:\n");
+        C.print();
+    } 
+    
+    if (number == 3 || number == 1) {
+        Matrix D = A - B;
+        printf("Результат разности матриц A и B:\n");
+        D.print();
+    } 
+    
+    if (number == 4 || number == 1) {
+        Matrix E = A * B;
+        printf("Результат умножения матриц A и B:\n");
+        E.print();
+    } 
+    
+    if (number == 6 || number == 1) {
+        Matrix G = A;
+        G.transp();
+        printf("Транспонированная матрица A:\n");
+        G.print();
+    } 
+    
+    if (number == 7 || number == 1) {
+        size_t power;
+        printf("Введите целое неотрицательное число p: ");
+        scanf("%zu", &power);
+        Matrix H = A;
+        for (size_t i = 0; i < power; i++) {
+            H *= A;
         }
-        
-        if (number == 8 || number == 1) {
-            double ratio;
-            printf("Введите число r: ");
-            scanf("%lf", &ratio);
-            Matrix I = A * ratio;
-            printf("Результат умножения матрицы A на число %.2f:\n", ratio);
-            I.print();
-        } 
-        
-        if (number == 9 || number == 1) {
-            size_t order;
-            printf("Введите целое неотрицательное число o: ");
-            scanf("%zu", &order);
-            Matrix J = A;
-            J.exponent(order);
-            printf("Экспонента матрицы A порядка %zu:\n", order);
-            J.print();
-        } 
-        
-        if (number == 5 || number == 1) {
-            printf("Определитель матрицы A: %.2f\n", A.determinant());
-        }
+        printf("Результат возведения матрицы A в степень %zu:\n", power);
+        H.print();
+    }
+    
+    if (number == 8 || number == 1) {
+        double ratio;
+        printf("Введите число r: ");
+        scanf("%lf", &ratio);
+        Matrix I = A * ratio;
+        printf("Результат умножения матрицы A на число %.2f:\n", ratio);
+        I.print();
+    } 
+    
+    if (number == 9 || number == 1) {
+        size_t order;
+        printf("Введите целое неотрицательное число o: ");
+        scanf("%zu", &order);
+        Matrix J = A;
+        J.exponent(order);
+        printf("Экспонента матрицы A порядка %zu:\n", order);
+        J.print();
+    } 
+    
+    if (number == 5 || number == 1) {
+        printf("Определитель матрицы A: %.2f\n", A.determinant());
     }
 }
 
 
 int main() {
-    try {
-        printf("Укажите номер операции, которую вы хотите выполнить:\n");
-        printf("1. Выполнить все доступные операции\n");
-        printf("2. Сложение матриц A и B\n");
-        printf("3. Разность матриц A и B\n");
-        printf("4. Умножение матриц A и B\n");
-        printf("5. Вычисление определителя матрицы A\n");
-        printf("6. Транспонирование матрицы A\n");
-        printf("7. Возведение матрицы A в степень p\n");
-        printf("8. Умножение матрицы A на число r\n");
-        printf("9. Экспонента матрицы A порядка o\n");
 
-        size_t number;
-        scanf("%zu", &number);
+    printf("Укажите номер операции, которую вы хотите выполнить:\n");
+    printf("1. Выполнить все доступные операции\n");
+    printf("2. Сложение матриц A и B\n");
+    printf("3. Разность матриц A и B\n");
+    printf("4. Умножение матриц A и B\n");
+    printf("5. Вычисление определителя матрицы A\n");
+    printf("6. Транспонирование матрицы A\n");
+    printf("7. Возведение матрицы A в степень p\n");
+    printf("8. Умножение матрицы A на число r\n");
+    printf("9. Экспонента матрицы A порядка o\n");
 
-        if (number < 1 || number > 9) {
-            throw MatrixException("Такой операции нет");
-        }
+    size_t number;
+    scanf("%zu", &number);
 
-        printf("Ввод матрицы A\n");
-        size_t rows, cols;
+    if (number < 1 || number > 9) {
+        throw MatrixException("Такой операции нет");
+    }
+
+    printf("Ввод матрицы A\n");
+    size_t rows, cols;
+    printf("Введите количество строк: ");
+    scanf("%zu", &rows);
+    printf("Введите количество столбцов: ");
+    scanf("%zu", &cols);
+    Matrix A(rows, cols);
+    A.enter();
+
+    Matrix B;
+    if (number < 5) {
+        printf("Ввод матрицы B\n");
         printf("Введите количество строк: ");
         scanf("%zu", &rows);
         printf("Введите количество столбцов: ");
         scanf("%zu", &cols);
-        Matrix A(rows, cols);
-        A.enter();
-
-        Matrix B;
-        if (number < 5) {
-            printf("Ввод матрицы B\n");
-            printf("Введите количество строк: ");
-            scanf("%zu", &rows);
-            printf("Введите количество столбцов: ");
-            scanf("%zu", &cols);
-            B = Matrix(rows, cols);
-            B.enter();
-        }
-
-        matrix_operation(number, A, B);
+        B = Matrix(rows, cols);
+        B.enter();
     }
+
+    matrix_operation(number, A, B);
 
     return 0;
 }
