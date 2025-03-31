@@ -49,7 +49,7 @@ public:
     double matrix_determinant() const;
 
     Matrix operator+(const Matrix& other) const;
-    //Matrix& operator+=(const Matrix&& other) const;
+    Matrix& operator+=(Matrix& other);
 
     Matrix operator*(const Matrix& other) const;
     //Matrix& operator*=(const Matrix&& other) const;
@@ -189,18 +189,18 @@ Matrix Matrix::operator+(const Matrix& other) const {
 }
 
 
-/*
-Matrix& Matrix::operator+=(const Matrix&& other) const {
+
+Matrix& Matrix::operator+=(Matrix& other) {
     if (rows != other.rows || cols != other.cols)
         throw MatrixException("Matrix dimensions must match for addition");
 
-    Matrix result(rows, cols);
+    //Matrix result(rows, cols);
 
     for (size_t i = 0; i < rows * cols; ++i)
-        result.data[i] = data[i] + other.data[i];
-    return result;
+        this->data[i] = data[i] + other.data[i];
+    return *this;
 }
-*/
+
 
 
 
@@ -282,7 +282,7 @@ Matrix Matrix::matrix_exponent(unsigned long k) const {
 
     for (unsigned long i = 1; i <= k; ++i) {
         term = (*this * term) * (1.0 / i);
-        result = result + term;
+        result += term;
     }
     return result;
 }
