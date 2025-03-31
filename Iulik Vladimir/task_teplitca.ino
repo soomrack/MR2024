@@ -425,6 +425,7 @@ void loop() {
     control_ventilation(datatime, ventilator_first, heater_first);
     control_temperature(climate_tomato, thermometer_first, heater_first, ventilator_first);
     control_soil_humidity(climate_tomato, pump_first, soil_humidifier_first, heater_first);
+    control_lighting(datatime, climate_tomato, light_first, photoresistor_first);
     
     do_ventilation(ventilator_first);
     do_light(light_first);
