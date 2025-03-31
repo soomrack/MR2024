@@ -75,7 +75,7 @@ public:
     void set(enum MatrixType);
     void transp();
     void multiplication_transp(const Matrix& A, const Matrix& B);
-    void exponent(const Matrix& A, const size_t order);
+    void exponent(const size_t order);
     double determinant() const;
 
     size_t getRows() const { return rows; }
@@ -289,16 +289,16 @@ void Matrix::transp() {
 }
 
 
-void Matrix::exponent(const Matrix& A, const size_t order) {
-    A.check_non_empty();
-    if (A.rows != A.cols) throw SQR_ERROR;
+void Matrix::exponent(const size_t order) {
+    check_non_empty();
+    if (rows != cols) throw SQR_ERROR;
     
-    Matrix result(A.getRows(), A.getCols());
+    Matrix result(rows, cols);
     result.set(UNIT);
 
     Matrix term = result;
     for (size_t i = 1; i <= order; i++) {
-        term *= A * (1.0 / tgamma(i + 1));
+        term *= (*this) * (1.0 / tgamma(i + 1));
         result += term;
     }
 
@@ -330,7 +330,7 @@ double Matrix::determinant() const {
              - data[0] * data[5] * data[7];
     }
 
-    throw MatrixException("Determinant calculation not implemented for matrices larger than 3x3");
+    throw MatrixException("Определитель больще 3х3 не вычисляется");
 }
 
 
@@ -388,7 +388,7 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
             printf("Введите целое неотрицательное число o: ");
             scanf("%zu", &order);
             Matrix J = A;
-            J.exponent(A, order);
+            J.exponent(order);
             printf("Экспонента матрицы A порядка %zu:\n", order);
             J.print();
         } 
@@ -396,12 +396,6 @@ void matrix_operation(size_t number, const Matrix A, const Matrix B)
         if (number == 5 || number == 1) {
             printf("Определитель матрицы A: %.2f\n", A.determinant());
         }
-    }
-    catch (const MatrixException& e) {
-        std::cerr << "Ошибка: " << e.what() << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Неизвестная ошибка: " << e.what() << std::endl;
     }
 }
 
@@ -447,14 +441,6 @@ int main() {
         }
 
         matrix_operation(number, A, B);
-    }
-    catch (const MatrixException& e) {
-        std::cerr << "Ошибка: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Неизвестная ошибка: " << e.what() << std::endl;
-        return EXIT_FAILURE;
     }
 
     return 0;
