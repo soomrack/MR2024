@@ -1,17 +1,13 @@
 #include <DHT.h>
 #define DHTTYPE DHT11
 
-#define DHT_PIN 8  // Датчик температуры и влажности
+#define DHT_PIN 12  // Датчик температуры и влажности
 #define LAMP_PIN 6  // Лампа
 #define FAN_PIN 7  // Вентилятор
 #define HEATER_PIN 4  // Нагреватель
 #define PUMP_PIN 5  // Помпа
 #define HUM_SOIL_PIN A1  // Влажность почвы
-#define LIGHTING_PIN A3
-
-
-
-// Датчик освещенности
+#define LIGHTING_PIN A9  // Датчик освещенности
 
 DHT dht(DHT_PIN, DHTTYPE);
 
@@ -395,7 +391,7 @@ void setup() {
 
 
 void loop() {
-    datatime.update_time();
+    static datatime.update_time();
     
     static Climate climate_tomato;
 
