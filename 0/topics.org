@@ -70,7 +70,7 @@
    разумно применять этот алгоритм, в каких задачах.
    
 
-   1. Сортировки: Bubble Sort, Heap Sort, Insertion Sort, Merge Sort, Quick Sort. (Дубинин)
+   1. Сортировки: Bubble Sort, Heap Sort, Insertion Sort, Merge Sort, Quick Sort. (Орлов)
 
    2. Max heap, Fibonacci heap, binomial heap
 
