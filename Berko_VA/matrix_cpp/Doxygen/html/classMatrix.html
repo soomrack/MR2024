@@ -1,0 +1,973 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.9.1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Matrix calc: Класс Matrix</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">Matrix calc
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.9.1 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="classMatrix-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Класс Matrix</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Класс для работы с матрицами вещественных чисел  
+ <a href="classMatrix.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="matrix_8hpp_source.html">matrix.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a2dba13c45127354c9f75ef576f49269b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a2dba13c45127354c9f75ef576f49269b">Matrix</a> ()</td></tr>
+<tr class="memdesc:a2dba13c45127354c9f75ef576f49269b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Конструктор по умолчанию  <a href="classMatrix.html#a2dba13c45127354c9f75ef576f49269b">Подробнее...</a><br /></td></tr>
+<tr class="separator:a2dba13c45127354c9f75ef576f49269b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d87630bb5a1c350c701ab16506c9964"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a8d87630bb5a1c350c701ab16506c9964">Matrix</a> (std::size_t <a class="el" href="classMatrix.html#a98a2066e26bc061ecc95d11a50e1fa6d">rows</a>, std::size_t <a class="el" href="classMatrix.html#ae9271e63056f41d343e0e18fc4302319">cols</a>)</td></tr>
+<tr class="memdesc:a8d87630bb5a1c350c701ab16506c9964"><td class="mdescLeft">&#160;</td><td class="mdescRight">Конструктор с заданными размерами  <a href="classMatrix.html#a8d87630bb5a1c350c701ab16506c9964">Подробнее...</a><br /></td></tr>
+<tr class="separator:a8d87630bb5a1c350c701ab16506c9964"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcf708e864ed3d9db2c3b317c5e529ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#abcf708e864ed3d9db2c3b317c5e529ab">Matrix</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other)</td></tr>
+<tr class="memdesc:abcf708e864ed3d9db2c3b317c5e529ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Конструктор копирования  <a href="classMatrix.html#abcf708e864ed3d9db2c3b317c5e529ab">Подробнее...</a><br /></td></tr>
+<tr class="separator:abcf708e864ed3d9db2c3b317c5e529ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75f3885769e293b3f3e236ef60a71c21"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a75f3885769e293b3f3e236ef60a71c21">Matrix</a> (<a class="el" href="classMatrix.html">Matrix</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a75f3885769e293b3f3e236ef60a71c21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Конструктор перемещения  <a href="classMatrix.html#a75f3885769e293b3f3e236ef60a71c21">Подробнее...</a><br /></td></tr>
+<tr class="separator:a75f3885769e293b3f3e236ef60a71c21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae55dd75e64afeef9a48ddfa3b333b60b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#ae55dd75e64afeef9a48ddfa3b333b60b">~Matrix</a> ()=default</td></tr>
+<tr class="memdesc:ae55dd75e64afeef9a48ddfa3b333b60b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Деструктор  <a href="classMatrix.html#ae55dd75e64afeef9a48ddfa3b333b60b">Подробнее...</a><br /></td></tr>
+<tr class="separator:ae55dd75e64afeef9a48ddfa3b333b60b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e40db12ae78b7616ee3f099bb15f13d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a3e40db12ae78b7616ee3f099bb15f13d">operator=</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other)</td></tr>
+<tr class="memdesc:a3e40db12ae78b7616ee3f099bb15f13d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор присваивания копированием  <a href="classMatrix.html#a3e40db12ae78b7616ee3f099bb15f13d">Подробнее...</a><br /></td></tr>
+<tr class="separator:a3e40db12ae78b7616ee3f099bb15f13d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74eca41e5a29b6efd57b009730d3fe60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a74eca41e5a29b6efd57b009730d3fe60">operator=</a> (<a class="el" href="classMatrix.html">Matrix</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a74eca41e5a29b6efd57b009730d3fe60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор присваивания перемещением  <a href="classMatrix.html#a74eca41e5a29b6efd57b009730d3fe60">Подробнее...</a><br /></td></tr>
+<tr class="separator:a74eca41e5a29b6efd57b009730d3fe60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc7858a535ebcebf445e91bccd75d197"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#afc7858a535ebcebf445e91bccd75d197">operator+</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other) const</td></tr>
+<tr class="memdesc:afc7858a535ebcebf445e91bccd75d197"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор сложения матриц  <a href="classMatrix.html#afc7858a535ebcebf445e91bccd75d197">Подробнее...</a><br /></td></tr>
+<tr class="separator:afc7858a535ebcebf445e91bccd75d197"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb44986f4d7b2ac6465fed5b5db019e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#abb44986f4d7b2ac6465fed5b5db019e8">operator-</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other) const</td></tr>
+<tr class="memdesc:abb44986f4d7b2ac6465fed5b5db019e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор вычитания матриц  <a href="classMatrix.html#abb44986f4d7b2ac6465fed5b5db019e8">Подробнее...</a><br /></td></tr>
+<tr class="separator:abb44986f4d7b2ac6465fed5b5db019e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4f8e22e8db0983d75e090542f4d1f7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#ab4f8e22e8db0983d75e090542f4d1f7a">operator*</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other) const</td></tr>
+<tr class="memdesc:ab4f8e22e8db0983d75e090542f4d1f7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор умножения матриц  <a href="classMatrix.html#ab4f8e22e8db0983d75e090542f4d1f7a">Подробнее...</a><br /></td></tr>
+<tr class="separator:ab4f8e22e8db0983d75e090542f4d1f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbf606cb48a831b07430c382b3d91fa0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classMatrix.html">Matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#adbf606cb48a831b07430c382b3d91fa0">operator*</a> (double number) const</td></tr>
+<tr class="memdesc:adbf606cb48a831b07430c382b3d91fa0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор умножения матрицы на число  <a href="classMatrix.html#adbf606cb48a831b07430c382b3d91fa0">Подробнее...</a><br /></td></tr>
+<tr class="separator:adbf606cb48a831b07430c382b3d91fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f7c080fa668e781f6a3f4982545635c"><td class="memItemLeft" align="right" valign="top">double &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a8f7c080fa668e781f6a3f4982545635c">operator()</a> (std::size_t row, std::size_t col)</td></tr>
+<tr class="memdesc:a8f7c080fa668e781f6a3f4982545635c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор доступа к элементу матрицы  <a href="classMatrix.html#a8f7c080fa668e781f6a3f4982545635c">Подробнее...</a><br /></td></tr>
+<tr class="separator:a8f7c080fa668e781f6a3f4982545635c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af76b0cde675db7b6c0d8a0356175e34b"><td class="memItemLeft" align="right" valign="top">const double &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#af76b0cde675db7b6c0d8a0356175e34b">operator()</a> (std::size_t row, std::size_t col) const</td></tr>
+<tr class="memdesc:af76b0cde675db7b6c0d8a0356175e34b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор доступа к элементу матрицы (константный)  <a href="classMatrix.html#af76b0cde675db7b6c0d8a0356175e34b">Подробнее...</a><br /></td></tr>
+<tr class="separator:af76b0cde675db7b6c0d8a0356175e34b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a797d03df703f77cccb25ab9a0770e760"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a797d03df703f77cccb25ab9a0770e760">operator==</a> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other) const</td></tr>
+<tr class="memdesc:a797d03df703f77cccb25ab9a0770e760"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор сравнения матриц  <a href="classMatrix.html#a797d03df703f77cccb25ab9a0770e760">Подробнее...</a><br /></td></tr>
+<tr class="separator:a797d03df703f77cccb25ab9a0770e760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0371c4255a565f69b95512f120524080"><td class="memItemLeft" align="right" valign="top"><a id="a0371c4255a565f69b95512f120524080"></a>
+<a class="el" href="classMatrix.html">Matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><b>multiply</b> (const <a class="el" href="classMatrix.html">Matrix</a> &amp;other, MultiplyMode mode) const</td></tr>
+<tr class="separator:a0371c4255a565f69b95512f120524080"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98a2066e26bc061ecc95d11a50e1fa6d"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a98a2066e26bc061ecc95d11a50e1fa6d">rows</a> () const</td></tr>
+<tr class="memdesc:a98a2066e26bc061ecc95d11a50e1fa6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Получить количество строк  <a href="classMatrix.html#a98a2066e26bc061ecc95d11a50e1fa6d">Подробнее...</a><br /></td></tr>
+<tr class="separator:a98a2066e26bc061ecc95d11a50e1fa6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9271e63056f41d343e0e18fc4302319"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#ae9271e63056f41d343e0e18fc4302319">cols</a> () const</td></tr>
+<tr class="memdesc:ae9271e63056f41d343e0e18fc4302319"><td class="mdescLeft">&#160;</td><td class="mdescRight">Получить количество столбцов  <a href="classMatrix.html#ae9271e63056f41d343e0e18fc4302319">Подробнее...</a><br /></td></tr>
+<tr class="separator:ae9271e63056f41d343e0e18fc4302319"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59c68730d1d94f759391179b99d62584"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a59c68730d1d94f759391179b99d62584">is_empty</a> () const</td></tr>
+<tr class="memdesc:a59c68730d1d94f759391179b99d62584"><td class="mdescLeft">&#160;</td><td class="mdescRight">Проверка, является ли матрица пустой  <a href="classMatrix.html#a59c68730d1d94f759391179b99d62584">Подробнее...</a><br /></td></tr>
+<tr class="separator:a59c68730d1d94f759391179b99d62584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e909f004fd51f7615a590553165d6a3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a4e909f004fd51f7615a590553165d6a3">is_square</a> () const</td></tr>
+<tr class="memdesc:a4e909f004fd51f7615a590553165d6a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Проверка, является ли матрица квадратной  <a href="classMatrix.html#a4e909f004fd51f7615a590553165d6a3">Подробнее...</a><br /></td></tr>
+<tr class="separator:a4e909f004fd51f7615a590553165d6a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0eebd9abaf96724a208d9ac241e86e3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a0eebd9abaf96724a208d9ac241e86e3f">set_log_level</a> (LogLevel level)</td></tr>
+<tr class="memdesc:a0eebd9abaf96724a208d9ac241e86e3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Установить уровень логирования  <a href="classMatrix.html#a0eebd9abaf96724a208d9ac241e86e3f">Подробнее...</a><br /></td></tr>
+<tr class="separator:a0eebd9abaf96724a208d9ac241e86e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9dab72ab7be7e876dd5a0e934ea31da"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#ae9dab72ab7be7e876dd5a0e934ea31da">set_zeros</a> ()</td></tr>
+<tr class="memdesc:ae9dab72ab7be7e876dd5a0e934ea31da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Заполнить матрицу нулями  <a href="classMatrix.html#ae9dab72ab7be7e876dd5a0e934ea31da">Подробнее...</a><br /></td></tr>
+<tr class="separator:ae9dab72ab7be7e876dd5a0e934ea31da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adce9a6d641ca0eba70216fa08dff69c1"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#adce9a6d641ca0eba70216fa08dff69c1">fill_random</a> (double min=0.0, double max=1.0)</td></tr>
+<tr class="memdesc:adce9a6d641ca0eba70216fa08dff69c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Заполнить матрицу случайными вещественными значениями  <a href="classMatrix.html#adce9a6d641ca0eba70216fa08dff69c1">Подробнее...</a><br /></td></tr>
+<tr class="separator:adce9a6d641ca0eba70216fa08dff69c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a862f79fd92bf3598a5170110bf891774"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a862f79fd92bf3598a5170110bf891774">set_identity</a> ()</td></tr>
+<tr class="memdesc:a862f79fd92bf3598a5170110bf891774"><td class="mdescLeft">&#160;</td><td class="mdescRight">Сделать матрицу единичной  <a href="classMatrix.html#a862f79fd92bf3598a5170110bf891774">Подробнее...</a><br /></td></tr>
+<tr class="separator:a862f79fd92bf3598a5170110bf891774"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b36fdf35031eb8fcee191c09a548b55"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a4b36fdf35031eb8fcee191c09a548b55">transpose</a> ()</td></tr>
+<tr class="memdesc:a4b36fdf35031eb8fcee191c09a548b55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Транспонировать матрицу  <a href="classMatrix.html#a4b36fdf35031eb8fcee191c09a548b55">Подробнее...</a><br /></td></tr>
+<tr class="separator:a4b36fdf35031eb8fcee191c09a548b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a715114b8fcc289ad07249514321ef1f6"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a715114b8fcc289ad07249514321ef1f6">pow</a> (unsigned int power)</td></tr>
+<tr class="memdesc:a715114b8fcc289ad07249514321ef1f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Возвести матрицу в степень  <a href="classMatrix.html#a715114b8fcc289ad07249514321ef1f6">Подробнее...</a><br /></td></tr>
+<tr class="separator:a715114b8fcc289ad07249514321ef1f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39677f201c8346c8193433735f4d55f7"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a39677f201c8346c8193433735f4d55f7">exp</a> ()</td></tr>
+<tr class="memdesc:a39677f201c8346c8193433735f4d55f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Вычислить экспоненту матрицы  <a href="classMatrix.html#a39677f201c8346c8193433735f4d55f7">Подробнее...</a><br /></td></tr>
+<tr class="separator:a39677f201c8346c8193433735f4d55f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dbbbe624eaf5be8586d323f78bf41ae"><td class="memItemLeft" align="right" valign="top">MatrixStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#a9dbbbe624eaf5be8586d323f78bf41ae">det</a> (double &amp;result) const</td></tr>
+<tr class="memdesc:a9dbbbe624eaf5be8586d323f78bf41ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Вычислить определитель матрицы  <a href="classMatrix.html#a9dbbbe624eaf5be8586d323f78bf41ae">Подробнее...</a><br /></td></tr>
+<tr class="separator:a9dbbbe624eaf5be8586d323f78bf41ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abad4f764e17de0076ecdd89ffd1dbf50"><td class="memItemLeft" align="right" valign="top"><a id="abad4f764e17de0076ecdd89ffd1dbf50"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatrix.html#abad4f764e17de0076ecdd89ffd1dbf50">print</a> () const</td></tr>
+<tr class="memdesc:abad4f764e17de0076ecdd89ffd1dbf50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Вывести матрицу в консоль <br /></td></tr>
+<tr class="separator:abad4f764e17de0076ecdd89ffd1dbf50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>Класс для работы с матрицами вещественных чисел </p>
+<p>Реализует операции над матрицами, включая сложение, вычитание, умножение, транспонирование, возведение в степень, вычисление определителя и другие. </p>
+</div><h2 class="groupheader">Конструктор(ы)</h2>
+<a id="a2dba13c45127354c9f75ef576f49269b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dba13c45127354c9f75ef576f49269b">&#9670;&nbsp;</a></span>Matrix() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Matrix::Matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Конструктор по умолчанию </p>
+<p>Создает пустую матрицу с нулевыми размерами. </p>
+
+</div>
+</div>
+<a id="a8d87630bb5a1c350c701ab16506c9964"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d87630bb5a1c350c701ab16506c9964">&#9670;&nbsp;</a></span>Matrix() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Matrix::Matrix </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>cols</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Конструктор с заданными размерами </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rows</td><td>Количество строк </td></tr>
+    <tr><td class="paramname">cols</td><td>Количество столбцов</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Создает матрицу с указанными размерами, заполненную нулями. Если rows или cols равны 0, создается пустая матрица. </p>
+
+</div>
+</div>
+<a id="abcf708e864ed3d9db2c3b317c5e529ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcf708e864ed3d9db2c3b317c5e529ab">&#9670;&nbsp;</a></span>Matrix() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Matrix::Matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Конструктор копирования </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для копирования</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Создает копию переданной матрицы. </p>
+
+</div>
+</div>
+<a id="a75f3885769e293b3f3e236ef60a71c21"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75f3885769e293b3f3e236ef60a71c21">&#9670;&nbsp;</a></span>Matrix() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Matrix::Matrix </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classMatrix.html">Matrix</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Конструктор перемещения </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для перемещения</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Перемещает данные из переданной матрицы, оставляя её пустой. </p>
+
+</div>
+</div>
+<a id="ae55dd75e64afeef9a48ddfa3b333b60b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae55dd75e64afeef9a48ddfa3b333b60b">&#9670;&nbsp;</a></span>~Matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Matrix::~Matrix </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Деструктор </p>
+<p>Автоматически освобождает ресурсы, управляемые std::vector. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Методы</h2>
+<a id="ae9271e63056f41d343e0e18fc4302319"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9271e63056f41d343e0e18fc4302319">&#9670;&nbsp;</a></span>cols()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t Matrix::cols </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Получить количество столбцов </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Количество столбцов матрицы </dd></dl>
+
+</div>
+</div>
+<a id="a9dbbbe624eaf5be8586d323f78bf41ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dbbbe624eaf5be8586d323f78bf41ae">&#9670;&nbsp;</a></span>det()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::det </td>
+          <td>(</td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>result</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Вычислить определитель матрицы </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">result</td><td>Переменная для результата </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">MatrixStatus::SIZE_ERR</td><td>Если матрица не квадратная </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a39677f201c8346c8193433735f4d55f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39677f201c8346c8193433735f4d55f7">&#9670;&nbsp;</a></span>exp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::exp </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Вычислить экспоненту матрицы </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">MatrixStatus::SIZE_ERR</td><td>Если матрица не квадратная </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="adce9a6d641ca0eba70216fa08dff69c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adce9a6d641ca0eba70216fa08dff69c1">&#9670;&nbsp;</a></span>fill_random()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::fill_random </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>min</em> = <code>0.0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>max</em> = <code>1.0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Заполнить матрицу случайными вещественными значениями </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">min</td><td>Минимальное значение диапазона </td></tr>
+    <tr><td class="paramname">max</td><td>Максимальное значение диапазона </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a59c68730d1d94f759391179b99d62584"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59c68730d1d94f759391179b99d62584">&#9670;&nbsp;</a></span>is_empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Matrix::is_empty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Проверка, является ли матрица пустой </p>
+<dl class="section return"><dt>Возвращает</dt><dd>true, если матрица пуста, иначе false </dd></dl>
+
+</div>
+</div>
+<a id="a4e909f004fd51f7615a590553165d6a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e909f004fd51f7615a590553165d6a3">&#9670;&nbsp;</a></span>is_square()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Matrix::is_square </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Проверка, является ли матрица квадратной </p>
+<dl class="section return"><dt>Возвращает</dt><dd>true, если матрица квадратная, иначе false </dd></dl>
+
+</div>
+</div>
+<a id="a8f7c080fa668e781f6a3f4982545635c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f7c080fa668e781f6a3f4982545635c">&#9670;&nbsp;</a></span>operator()() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double &amp; Matrix::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>col</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор доступа к элементу матрицы </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>Индекс строки </td></tr>
+    <tr><td class="paramname">col</td><td>Индекс столбца </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Ссылка на элемент матрицы </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::out_of_range</td><td>Если индексы вне допустимого диапазона </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af76b0cde675db7b6c0d8a0356175e34b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af76b0cde675db7b6c0d8a0356175e34b">&#9670;&nbsp;</a></span>operator()() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const double &amp; Matrix::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::size_t&#160;</td>
+          <td class="paramname"><em>col</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор доступа к элементу матрицы (константный) </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">row</td><td>Индекс строки </td></tr>
+    <tr><td class="paramname">col</td><td>Индекс столбца </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Константная ссылка на элемент матрицы </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::out_of_range</td><td>Если индексы вне допустимого диапазона </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab4f8e22e8db0983d75e090542f4d1f7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4f8e22e8db0983d75e090542f4d1f7a">&#9670;&nbsp;</a></span>operator*() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> Matrix::operator* </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор умножения матриц </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для умножения </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Новая матрица - результат умножения </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>Если размеры не подходят для умножения </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="adbf606cb48a831b07430c382b3d91fa0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbf606cb48a831b07430c382b3d91fa0">&#9670;&nbsp;</a></span>operator*() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> Matrix::operator* </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>number</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор умножения матрицы на число </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">number</td><td>Множитель </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Новая матрица - результат умножения </dd></dl>
+
+</div>
+</div>
+<a id="afc7858a535ebcebf445e91bccd75d197"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc7858a535ebcebf445e91bccd75d197">&#9670;&nbsp;</a></span>operator+()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> Matrix::operator+ </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор сложения матриц </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для сложения </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Новая матрица - результат сложения </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>Если размеры матриц не совпадают </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="abb44986f4d7b2ac6465fed5b5db019e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb44986f4d7b2ac6465fed5b5db019e8">&#9670;&nbsp;</a></span>operator-()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> Matrix::operator- </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор вычитания матриц </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для вычитания </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Новая матрица - результат вычитания </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>Если размеры матриц не совпадают </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3e40db12ae78b7616ee3f099bb15f13d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e40db12ae78b7616ee3f099bb15f13d">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> &amp; Matrix::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор присваивания копированием </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для копирования </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Ссылка на текущую матрицу</dd></dl>
+<p>Копирует данные из переданной матрицы. </p>
+
+</div>
+</div>
+<a id="a74eca41e5a29b6efd57b009730d3fe60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74eca41e5a29b6efd57b009730d3fe60">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMatrix.html">Matrix</a> &amp; Matrix::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classMatrix.html">Matrix</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Оператор присваивания перемещением </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для перемещения </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Ссылка на текущую матрицу</dd></dl>
+<p>Перемещает данные из переданной матрицы, оставляя её пустой. </p>
+
+</div>
+</div>
+<a id="a797d03df703f77cccb25ab9a0770e760"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a797d03df703f77cccb25ab9a0770e760">&#9670;&nbsp;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Matrix::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMatrix.html">Matrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Оператор сравнения матриц </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>Матрица для сравнения </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>true, если матрицы равны, иначе false </dd></dl>
+
+</div>
+</div>
+<a id="a715114b8fcc289ad07249514321ef1f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a715114b8fcc289ad07249514321ef1f6">&#9670;&nbsp;</a></span>pow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::pow </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>power</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Возвести матрицу в степень </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">power</td><td>Степень </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">MatrixStatus::SIZE_ERR</td><td>Если матрица не квадратная </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a98a2066e26bc061ecc95d11a50e1fa6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98a2066e26bc061ecc95d11a50e1fa6d">&#9670;&nbsp;</a></span>rows()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t Matrix::rows </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Получить количество строк </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Количество строк матрицы </dd></dl>
+
+</div>
+</div>
+<a id="a862f79fd92bf3598a5170110bf891774"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a862f79fd92bf3598a5170110bf891774">&#9670;&nbsp;</a></span>set_identity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::set_identity </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Сделать матрицу единичной </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">MatrixStatus::SIZE_ERR</td><td>Если матрица не квадратная </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0eebd9abaf96724a208d9ac241e86e3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0eebd9abaf96724a208d9ac241e86e3f">&#9670;&nbsp;</a></span>set_log_level()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Matrix::set_log_level </td>
+          <td>(</td>
+          <td class="paramtype">LogLevel&#160;</td>
+          <td class="paramname"><em>level</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Установить уровень логирования </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">level</td><td>Уровень логирования </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae9dab72ab7be7e876dd5a0e934ea31da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9dab72ab7be7e876dd5a0e934ea31da">&#9670;&nbsp;</a></span>set_zeros()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::set_zeros </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Заполнить матрицу нулями </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+
+</div>
+</div>
+<a id="a4b36fdf35031eb8fcee191c09a548b55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b36fdf35031eb8fcee191c09a548b55">&#9670;&nbsp;</a></span>transpose()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MatrixStatus Matrix::transpose </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Транспонировать матрицу </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Статус выполнения операции </dd></dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">MatrixStatus::SIZE_ERR</td><td>Если матрица не квадратная </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li>include/<a class="el" href="matrix_8hpp_source.html">matrix.hpp</a></li>
+<li>src/matrix.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+</small></address>
+</body>
+</html>
