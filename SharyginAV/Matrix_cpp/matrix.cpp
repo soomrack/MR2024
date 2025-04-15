@@ -7,6 +7,25 @@
 
 Matrix::LogLevel Matrix::s_current_level = Matrix::LOG_INFO;
 
+MatrixException::MatrixException(const enum Exceptions code) : m_code(code) {}
+
+const char* MatrixException::what() const noexcept
+{
+    switch(m_code)
+    {
+        case PARAMS_ERR:
+            return "Input parametrs error";
+        case SIZE_ERR:
+            return "Matrix wrong size";
+        default:
+            return nullptr;
+    }
+}
+
+enum MatrixException::Exceptions MatrixException::get_code() const noexcept
+{
+    return m_code;
+}
 
 void Matrix::set_log_level(LogLevel level) noexcept
 {
@@ -54,6 +73,14 @@ Matrix::Matrix(const Matrix &M) : rows(M.rows), cols(M.cols), data(M.data)
 {
     print_log(LOG_INFO, "copy matrix\n");
 }
+
+
+Matrix::Matrix(Matrix&& other) noexcept
+    : rows(other.rows), cols(other.cols), data(std::move(other.data)) {
+        other.rows = 0;
+        other.cols = 0;
+        print_log(LOG_INFO, "move matrix\n");
+    }
 
 
 Matrix::~Matrix()
@@ -138,6 +165,21 @@ Matrix& Matrix::operator-=(const Matrix &A)
         data[idx] -= A.data[idx];
     }
 
+    return *this;
+}
+
+
+Matrix& Matrix::operator=(Matrix&& other) noexcept {
+    if(this == &other) {
+        print_log(LOG_INFO, "move matrix\n");
+        return *this; 
+    }
+    rows = other.rows;
+    cols = other.cols;
+    data = std::move(other.data);
+    other.rows = 0;
+    other.cols = 0;
+    print_log(LOG_INFO, "move matrix\n");
     return *this;
 }
 
@@ -283,7 +325,7 @@ Matrix Matrix::pow(const unsigned int pow) const
 
 Matrix Matrix::exp(const unsigned int iterations) const
 {
-    if(!(*this).is_square()) {
+    if(!this->is_square()) {
         print_log(LOG_ERR, "matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }
@@ -306,7 +348,7 @@ Matrix Matrix::exp(const unsigned int iterations) const
 
 void Matrix::get_size()
 {
-    cout << "Количество строк: " << rows << "\tКоличество столбцов: " << cols << '\n';
+    std::cout << "Количество строк: " << rows << "\tКоличество столбцов: " << cols << '\n';
 }
 
 
@@ -358,7 +400,7 @@ void Matrix::sub_row(const size_t row, const size_t row_base, const double ratio
 
 double Matrix::det() const
 {
-    if(!(*this).is_square()) {
+    if(!this->is_square()) {
         print_log(LOG_ERR, "Matrix is not square\n");
         throw MatrixException(MatrixException::SIZE_ERR);
     }

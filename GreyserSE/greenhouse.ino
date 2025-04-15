@@ -8,186 +8,221 @@
 #define PIN_FAN 7              
 #define PIN_HEATER 4
 
-const int MIN_TEMP = 19;
-const int NORMAL_TEMP = 26;
-const int MAX_HUMIDITY = 90;
-const int NORMAL_HUMIDITY = 60;
-const int MIN_MOISTURE = 40;
-const int NORMAL_MOISTURE = 60;
-const int MIN_LIGHT = 30;
+struct Climate
+{
+    const int MIN_TEMP = 19;
+    const int NORMAL_TEMP = 26;
+    const int MAX_HUMIDITY = 90;
+    const int NORMAL_HUMIDITY = 60;
+    const int MIN_MOISTURE = 40;
+    const int NORMAL_MOISTURE = 60;
+    const int MIN_LIGHT = 30;
+};
+
 
 DHT dht(PIN_DHT, DHT11);
-unsigned long start_time = 0;
-const unsigned long DAY_TIME = 86400;
-const unsigned long WEEK_TIME = DAY_TIME * 7;
 
-float temperature = 0;
-float humidity = 0;
-int moisture = 0;
-int light = 0;
 
-bool is_dark = false;
-bool is_cold = false;
-bool is_hot = false;
-bool is_soil_dry = false;
-bool is_soil_wet = false;
-bool is_air_wet = false;
+struct Data
+{
+    float temperature;
+    float humidity;
+    int moisture;
+    int light; 
+    unsigned long current_hour;
+};
+typedef struct Data Data;
 
-unsigned long light_activation_time = 0;
-unsigned long heater_activation_time = 0;
-unsigned long pump_activation_time = 0;
-unsigned long fan_activation_time = 0;
+
+struct Fan
+{
+    bool humidity_state = 0;
+    bool temperature_state = 0;
+    unsigned long activation_time = 0;
+};
+typedef struct Fan Fan;
+
+
+struct Pump
+{
+    bool moisture_state = 0;
+    unsigned long activation_time = 0;
+};
+typedef struct Pump Pump;
+
+
+struct Heater
+{
+    bool heater_state = 0;
+};
+typedef struct Heater Heater;
+
+
+struct Light
+{
+    bool light_state = 0;
+    unsigned long activation_time = 0;
+};
+typedef struct Light Light;
+
+
+Climate tomatoes_climate;
+Data data;
+Fan fan;
+Pump pump;
+Heater heater;
+Light light;
 
 
 void print_status()
 {
-  int current_day = millis() / DAY_TIME;
-  Serial.print("==Состояние теплицы==\n");
-  Serial.print("Текущий день с начала работы: ");
-  Serial.print(current_day);
-  Serial.print("\nВлажность воздуха: ");
-  Serial.print(humidity);
-  Serial.print("\nТемпература воздуха: ");
-  Serial.print(temperature);
-  Serial.print("\nВлажность почвы: ");
-  Serial.print(moisture);
+    Serial.print("==Состояние теплицы==\n");
+    Serial.print("Текущий час: ");
+    Serial.println(data.current_hour);
+    Serial.print("Влажность воздуха: ");
+    Serial.println(data.humidity);
+    Serial.print("Температура воздуха: ");
+    Serial.println(data.temperature);
+    Serial.print("Влажность почвы: ");
+    Serial.println(data.moisture);
 }
 
 
 void read_humidity()
 {
-  humidity = dht.readHumidity();
+    data.humidity = dht.readHumidity();
 
-  if (humidity > MAX_HUMIDITY) {
-    is_air_wet = true;
-  } else if (humidity <= NORMAL_HUMIDITY) {
-    is_air_wet = false;
-  }
+    if (data.humidity > tomatoes_climate.MAX_HUMIDITY) {
+        fan.humidity_state = true;
+    } else if (data.humidity <= tomatoes_climate.NORMAL_HUMIDITY) {
+        fan.humidity_state = false;
+    }
 }
 
 
 void read_temperature()
 {
-  temperature = dht.readTemperature();
-  
-  if (temperature <= MIN_TEMP) {
-    is_cold = true;
-  } else if (temperature >= NORMAL_TEMP) {
-    is_cold = false;
-  }
+    data.temperature = dht.readTemperature();
+
+    if (data.temperature <= tomatoes_climate.MIN_TEMP) {
+        heater.heater_state = true;
+    } else if (data.temperature >= tomatoes_climate.NORMAL_TEMP) {
+        heater.heater_state = false;
+    }
 }
 
 
 void read_moisture()
 {
-  moisture = map(analogRead(PIN_MOISTURE_SENSOR), 1023, 0, 0, 100);
+    data.moisture = map(analogRead(PIN_MOISTURE_SENSOR), 1023, 0, 0, 100);
 
-  if (moisture < MIN_MOISTURE) {
-    is_soil_dry = true;
-  } else if (moisture >= NORMAL_MOISTURE) {
-    is_soil_dry = false;
-  }
+    if (data.moisture <= tomatoes_climate.MIN_MOISTURE) {
+        pump.moisture_state = true;
+    } else if (data.moisture >= tomatoes_climate.NORMAL_MOISTURE) {
+        pump.moisture_state = false;
+    }
 }
 
 
 void read_light()
 {
-  light = map(analogRead(PIN_LIGHT_SENSOR), 1023, 0, 0, 100);
+    data.light = map(analogRead(PIN_LIGHT_SENSOR), 1023, 0, 0, 100);
 
-  if (light < MIN_LIGHT) {
-    is_dark = true;
-  } else {
-    is_dark = false;
-  }
+    if (data.light < tomatoes_climate.MIN_LIGHT) {
+        light.light_state = true;
+    } else {
+        light.light_state = false;
+    }
 }
 
 
 void read_sensors()
 {
-  read_light();
-  read_moisture();
-  read_temperature();
-  read_humidity();
+    read_light();
+    read_moisture();
+    read_temperature();
+    read_humidity();
+}
+
+
+void read_time()
+{
+    data.current_hour = (millis() / (1000)) % 24;
 }
 
 
 void manage_light()
 {
-  if (millis() - light_activation_time > 1000) {
-    if (is_dark) {
-      digitalWrite(PIN_LIGHT, HIGH);
-      light_activation_time = millis();
-    } else {
-      digitalWrite(PIN_LIGHT, LOW);
+    if (millis() - light.activation_time > 1000) {
+        if (light.light_state) {
+            digitalWrite(PIN_LIGHT, HIGH);
+            light.activation_time = millis();
+        } else {
+            digitalWrite(PIN_LIGHT, LOW);
+        }
     }
-  }
 }
 
 
 void manage_pump()
 {
-  if (millis() - pump_activation_time > 3000) {
-    if (is_soil_dry && millis() - pump_activation_time > 8000) {
-      digitalWrite(PIN_PUMP, HIGH);
-      pump_activation_time = millis();
-    } else {
-      digitalWrite(PIN_PUMP, LOW);
+    if (millis() - pump.activation_time > 3000) {
+        if (pump.moisture_state && millis() - pump.activation_time > 8000) {
+            digitalWrite(PIN_PUMP, HIGH);
+            pump.activation_time = millis();
+        } else {
+            digitalWrite(PIN_PUMP, LOW);
+        }
     }
-  }
 }
 
 
 void manage_fan()
 {
-  if (is_cold || is_air_wet) {
-    digitalWrite(PIN_FAN, HIGH);
-  } else {
-    digitalWrite(PIN_FAN, LOW);
-  }
+    if (heater.heater_state || fan.humidity_state) {
+        digitalWrite(PIN_FAN, HIGH);
+    } else {
+        digitalWrite(PIN_FAN, LOW);
+    }
 }
 
 
 void manage_heater()
 {
-  if (is_cold) {
-    digitalWrite(PIN_HEATER, HIGH);
-  } else {
-    digitalWrite(PIN_HEATER, LOW);
-  }
-}
-
-
-void control_greenhouse()
-{
-  read_sensors();
-  
-  manage_light();
-  manage_fan();
-  manage_heater();
-  manage_pump();
-
-  print_status(); 
+    if (heater.heater_state) {
+        digitalWrite(PIN_HEATER, HIGH);
+    } else {
+        digitalWrite(PIN_HEATER, LOW);
+    }
 }
 
 
 void setup() {
-  Serial.begin(9600);
+    Serial.begin(9600);
 
-  pinMode(PIN_MOISTURE_SENSOR, INPUT);
-  pinMode(PIN_LIGHT_SENSOR, INPUT);
-  pinMode(PIN_DHT, INPUT);
-  pinMode(PIN_PUMP, OUTPUT);
-  pinMode(PIN_LIGHT, OUTPUT);
-  pinMode(PIN_FAN, OUTPUT);
-  pinMode(PIN_FAN, OUTPUT);
-  pinMode(PIN_HEATER, OUTPUT);
+    pinMode(PIN_MOISTURE_SENSOR, INPUT);
+    pinMode(PIN_LIGHT_SENSOR, INPUT);
+    pinMode(PIN_DHT, INPUT);
+    pinMode(PIN_PUMP, OUTPUT);
+    pinMode(PIN_LIGHT, OUTPUT);
+    pinMode(PIN_FAN, OUTPUT);
+    pinMode(PIN_FAN, OUTPUT);
+    pinMode(PIN_HEATER, OUTPUT);
 
-  digitalWrite(PIN_PUMP, LOW);
-  digitalWrite(PIN_LIGHT, LOW);
-  digitalWrite(PIN_FAN, LOW);
-  digitalWrite(PIN_HEATER, LOW);
+    digitalWrite(PIN_PUMP, LOW);
+    digitalWrite(PIN_LIGHT, LOW);
+    digitalWrite(PIN_FAN, LOW);
+    digitalWrite(PIN_HEATER, LOW);
 }
 
 void loop() {
-  control_greenhouse();
+    read_sensors();
+    read_time();
+    
+    manage_light();
+    manage_fan();
+    manage_heater();
+    manage_pump();
+
+    print_status();
 }

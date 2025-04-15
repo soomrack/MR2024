@@ -1,109 +1,132 @@
-#include <DHT11.h>
+#include "config.h"
+#include "sensors.h"
+#include "actuators.h"
 
 
-#define PIN_LIGHT_SENS 11
-#define PIN_SOIL_SENS A1
-#define PIN_HEAT_CTRL 4
-#define PIN_PUMP_CTRL 5
-#define PIN_LIGHT_CTRL 6
-#define PIN_VENT_CTRL 7
-#define PIN_DHT11_SENS 12
+DHT11 g_dht(PIN_DHT11_SENS);
+
+Termometer g_air_temp(g_dht);
+Hygrometer g_air_hum(g_dht);
+SoilHygrometer g_soil_hum(PIN_SOIL_SENS);
+LightSensor g_light_sens(PIN_LIGHT_SENS);
+
+DayTime g_day_time;
+WorkTime g_work_time(g_day_time, CONTROL_WORK_TIME, CONTROL_TIMEOUT);
 
 
-#define SET_TEMP 26 // °C
-#define LIGHT_START 8 // hour
-#define LIGHT_END 21 // hour
-#define SET_AIR_HUM 50 // %
+Heater g_heater(PIN_HEAT_CTRL);
+Vent g_vent(PIN_VENT_CTRL);
+Pump g_pump(PIN_PUMP_CTRL);
+Light g_light(PIN_LIGHT_CTRL);
 
 
-DHT11 dht(PIN_DHT11_SENS);
-
-
-void pins_init()
-{
-    pinMode(PIN_LIGHT_SENS, INPUT);
-    pinMode(PIN_SOIL_SENS, INPUT);
-
-    pinMode(PIN_HEAT_CTRL, OUTPUT);
-    pinMode(PIN_PUMP_CTRL, OUTPUT);
-    pinMode(PIN_LIGHT_CTRL, OUTPUT);
-    pinMode(PIN_VENT_CTRL, OUTPUT);
-}
+Climate climate_1 = {
+    .air_temp = 35,  // °C
+    .air_hum = 50,  // %
+    .soil_hum = 50,  // parrots
+    .light_day_start = 8,  // hours
+    .light_day_end = 21,  // hours
+    .plan_vent_start = 12,  // hours
+    .plan_vent_end = 13,  // hours
+};
 
 
 void setup()
 {
-    pins_init();
-
     Serial.begin(9600);
 }
 
 
-void control_heat()
+void control_air_temp(Climate& config, Termometer& sensor, WorkTime& work_time, Heater& heater, Vent& vent)
 {
-    int temp = dht.readTemperature();
+    if(work_time.is_work_time()) {
+        if(sensor.get_temp() < config.air_temp - TEMP_HYST) {
+            heater.request_enable();
+            vent.request_enable();
+        }
 
-    if(temp < SET_TEMP) {
-        digitalWrite(PIN_HEAT_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_HEAT_CTRL, LOW);
+        if(sensor.get_temp() > config.air_temp + TEMP_HYST) {
+            vent.request_enable();
+        }
     }
 }
 
 
-void control_pump()
+void control_air_hum(Climate& config, Hygrometer& sensor, WorkTime& work_time, Vent& vent)
 {
-  if(digitalRead(PIN_SOIL_SENS)) {
-        digitalWrite(PIN_PUMP_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_PUMP_CTRL, LOW);
+    if(work_time.is_work_time()) {
+        if(sensor.get_hum() > config.air_hum) {
+            vent.request_enable();
+        }
     }
 }
 
 
-int get_time_of_day() //minutes
+void control_soil_hum(Climate& config, SoilHygrometer& sensor, WorkTime& work_time, Pump& pump)
 {
-    unsigned long ms = millis();
-
-    unsigned long min = ms / 1000 / 60;
-    return min % (60 * 24);
-}
-
-
-void control_light()
-{
-    int tim = get_time_of_day();
-
-    if(tim > (LIGHT_START * 60) && tim < (LIGHT_END * 60) && digitalRead(PIN_LIGHT_SENS)) {
-        digitalWrite(PIN_LIGHT_CTRL, HIGH);
-    }
-    else {
-        digitalWrite(PIN_LIGHT_CTRL, LOW);
+    if(work_time.is_work_time()) {
+        if(sensor.get_hum() < config.soil_hum) {
+            pump.request_enable();
+        }
     }
 }
 
 
-void control_vent()
+void plan_vent(Climate& config, DayTime& day_time, Vent& ctrl)
 {
-    int hum = dht.readHumidity();
+    if(day_time.is_in_interval(config.plan_vent_start * 60, config.plan_vent_end * 60)) {
+        ctrl.request_enable();
+    }
+}
 
-    if(hum > SET_AIR_HUM) {
-        digitalWrite(PIN_VENT_CTRL, HIGH);
+
+void control_light(Climate& config, LightSensor& sensor, DayTime& day_time, Light& ctrl)
+{
+    if(day_time.is_in_interval(config.light_day_start * 60, config.light_day_end * 60)) {
+        if(!sensor.get_light()) {
+            ctrl.request_enable();
+        }
     }
-    else {
-        digitalWrite(PIN_VENT_CTRL, LOW);
-    }
+}
+
+
+void print_data()
+{
+    Serial.println("Sensors data:");
+    Serial.print("air temp: ");
+    Serial.print(g_air_temp.get_temp());
+    Serial.print(", air hum: ");
+    Serial.print(g_air_hum.get_hum());
+    Serial.print(", soil hum: ");
+    Serial.print(g_soil_hum.get_hum());
+    Serial.print(", low light: ");
+    Serial.println(g_light_sens.get_light());
+    Serial.print("time, hour: ");
+    Serial.println(g_day_time.get_day_minute() / 60.0f);
 }
 
 
 void loop()
 {
-    control_heat();
-    control_light();
-    control_pump();
-    control_vent();
+    g_air_temp.update();
+    g_air_hum.update();
+    g_soil_hum.update();
+    g_light_sens.update();
+    g_day_time.update();
+    g_work_time.update();
+
+    control_air_temp(climate_1, g_air_temp, g_work_time, g_heater, g_vent);
+    control_air_hum(climate_1, g_air_hum, g_work_time, g_vent);
+    control_soil_hum(climate_1, g_soil_hum, g_work_time, g_pump);
+    plan_vent(climate_1, g_day_time, g_vent);
+    control_light(climate_1, g_light_sens, g_day_time, g_light);
+
+    g_heater.apply();
+    g_vent.apply();
+    g_pump.apply();
+    g_light.apply();
+
+    print_data();
 
     delay(100);
 }
