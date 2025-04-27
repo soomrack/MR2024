@@ -7,18 +7,19 @@
 #define NAGREV_PIN 4 
 #define PUMP_PIN_1 5  
 #define PUMP_PIN_2 8      
-#define HUM_SOIL_PIN A1
-#define HUM_SOIL_PIN A2   
-#define HUM_SOIL_PIN A3    
+#define HUM_SOIL_PIN_1 A1
+#define HUM_SOIL_PIN_2 A2   
+#define HUM_SOIL_PIN_3 A3    
 #define ILLUMINATION_PIN A5       
 
 class Lamp;
+class Light_sensor;
 class Humidity_soil_sensor;
-class Humidity_soil_sensors;
 class Pump;
-class Pumps;
 class Thermometer;
+class Heater;
 class Humidity_sensor;
+class Ventilator;
 class Time;
 
 
@@ -29,7 +30,7 @@ typedef struct {
   int temperature_min;
   int temperature_max;
   int humidity_soil_min;
-  int humidity_soil_max;
+  int humidity_max;
   unsigned int watering_interval;
   int illumination_min;
 }Climate;
@@ -39,7 +40,7 @@ void set_climate_tomato(Climate *climate)
 {
     climate->temperature_max = 30;
     climate->temperature_min = 20;
-    climate->humidity_soil_max = 10;
+    climate->humidity_max = 10;
     climate->humidity_soil_min = 500; 
     climate->watering_interval = 5000;
     climate->illumination_min = 30;
@@ -55,8 +56,8 @@ class Thermometer {
   public:
       Thermometer(int mypin):pin(mypin){};
   public:
-      void get_temperature(){temperature = dht.readTemperature();} 
-  };
+      void get_temperature(){temperature = dht.readTemperature();}
+};
 
 
  class Light_sensor{
@@ -67,7 +68,7 @@ class Thermometer {
     public:
       Light_sensor(int mypin):pin(mypin){};
       void check_lighting(){illumination = analogRead(pin);} 
-  };
+};
 
 
 class Lamp {
@@ -76,18 +77,14 @@ class Lamp {
   public:
       bool on;
   public:
-      Lamp(const int pin);
+      Lamp(const int mypin){
+        pin = mypin;
+        on = false; 
+        }
   public:
       void start() {digitalWrite(pin, true);}  
       void stop() { digitalWrite(pin, false);} 
 };
-
-
-Lamp::Lamp(const int mypin)
-{
-   pin = mypin;
-   on = false;   
-}
 
 
 class Humidity_sensor {
@@ -106,37 +103,12 @@ class Humidity_soil_sensor {
       private:
         int pin;
       public:
-          float humidity_soil;
+        float humidity_soil;
       public:
-        Humidity_soil_sensor()= delete;
         Humidity_soil_sensor(int mypin):pin(mypin){};
+      public:
         void check_humidity_soil(){humidity_soil = analogRead(pin);}    
 };
-
-
-class Humidity_soil_sensors{
-  public:
-    int count;
-    Humidity_sensor humidity_soil_sensors[];
-    
-    Humidity_soil_sensors(int mycount, Humidity_sensor myhumidity_soil_sensors[]): count(mycount){   
-      for(int i = 0; i < mycount; i++) {
-        humidity_soil_sensors[i] = myhumidity_soil_sensors[i];
-      }
-    }
-    float Get_average_analog_value();     
-};
-
-
-float Humidity_soil_sensors::Get_average_analog_value()
-{
-  float sum = 0;
-  for (int i=0; i < count;i++){
-      humidity_soil_sensors[i].check_humidity_soil();
-      sum += humidity_soil_sensors[i].humidity;
-  }
-  return (sum) / 3;
-}
 
 
  class Heater {
@@ -145,18 +117,14 @@ float Humidity_soil_sensors::Get_average_analog_value()
     public:
         bool on;
     public:
-        Heater(const int pin);
+      Heater(const int mypin){
+        pin = mypin;
+        on = false;
+      }
     public:
         void start(){digitalWrite(pin, true);}  
         void stop(){digitalWrite(pin, false);} 
 };
-
-
- Heater::Heater( const int mypin)
-  {
-     pin = mypin;
-     on = false;
-  }
 
  
 class Ventilator{
@@ -165,17 +133,14 @@ class Ventilator{
     public:
         bool on;
     public:
-        Ventilator(const int pin);
+        Ventilator(const int mypin){
+          pin = mypin;
+          on = false;    
+        }
     public:
         void start() {digitalWrite(pin, true);}  
-        void stop() { digitalWrite(pin, false);}  
+        void stop() {digitalWrite(pin, false);}  
 };
-
-
- Ventilator::Ventilator(const int mypin){
-      pin = mypin;
-      on = false;    
-}
 
 
 class Pump {
@@ -184,47 +149,14 @@ class Pump {
     public:
         bool on;
     public:
-        Pump(const int pin);
+        Pump(const int mypin){
+          pin = mypin;
+          on = false;    
+        }
     public:
         void start() {digitalWrite(pin, true);}  
-        void stop() { digitalWrite(pin, false);} 
+        void stop() {digitalWrite(pin, false);} 
 };
-
-
-Pump::Pump(const int mypin)
- {
-    pin = mypin;
-    on = false;    
- }
-
-
-class Pumps{
-  public:
-    int count;
-    Pump pumps[];
-    
-    Heaters(int mycount, Pump mypumps[]): count(mycount){
-      for(int i = 0; i < mycount; i++) {
-        pumps[i] = mypumps[i];
-      }
-    }
-    void start();
-    void stop();     
-}; 
-
-
-void Pumps::start(){
-  for(int i = 0; i < count; i++) {
-        pumps[i].start();
-    }
-}
-
-
-void Pumps::stop(){
-  for(int i = 0; i < count; i++) {
-        pumps[i].stop();
-    }
-}
 
 
 class Time {
@@ -245,142 +177,149 @@ class Time {
 
 
 void Time::update_time() {
-            const unsigned long interval = 1000; // Интервал в миллисекундах (1 секунда)
-            unsigned long currentMillis = millis();
-            if (currentMillis - previousMillis >= interval) {
-                seconds += (currentMillis - previousMillis)/interval;
-                previousMillis = currentMillis;
-                if (seconds >= 60) {
-                    seconds = 0;
-                    minutes++;
-                    if (minutes >= 60) {
-                        minutes = 0;
-                        hours++;
-                        if (hours >= 24) {
-                            hours = 0;
-                        }
-                    }
-                }
-                update_time_of_day(); // Обновляем время суток после изменения времени
-            }
+  const unsigned long interval = 1000; // Интервал в миллисекундах (1 секунда)
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    seconds += (currentMillis - previousMillis)/interval;
+    previousMillis = currentMillis;
+    if (seconds >= 60) {
+      seconds = 0;
+      minutes++;
+      if (minutes >= 60) {
+        minutes = 0;
+        hours++;
+        if (hours >= 24) {
+           hours = 0;
         }
+      }
+    }
+    update_time_of_day(); // Обновляем время суток после изменения времени
+  }
+}
 
         
 Time::Time(int h, int m, int s) : minutes(m),seconds(s),previousMillis(0),hours(h),
-      time_of_day(0){
-            if (hours < 0 || hours > 23) hours = 0;
-            if (minutes < 0 || minutes > 59) minutes = 0;
-            if (seconds < 0 || seconds > 59) seconds = 0;
-            update_time_of_day(); 
-        };
+  time_of_day(0){
+    if (hours < 0 || hours > 23) hours = 0;
+    if (minutes < 0 || minutes > 59) minutes = 0;
+    if (seconds < 0 || seconds > 59) seconds = 0;
+    update_time_of_day(); 
+};
 
         
-void Time::update_time_of_day() {
-              if (hours >= 6 && hours < 18) {
-                 time_of_day = 1;
-              } else {
-                time_of_day = 0;
-            }
-        }   
+void Time::update_time_of_day() 
+{
+  if (hours >= 6 && hours < 18) {
+    time_of_day = 1;
+  } else {
+    time_of_day = 0;
+  }
+}   
 
 
-void Illumination_control(char time_of_day, Climate myclimate, Light_sensor mylight_sensor Lamp mylamp){
-    if (time_of_day && (mylight_sensor.check_lighting()< myclimate.illumination_min)){
+float Get_average_analog_value(Humidity_soil_sensor sensors[]) {
+    float sum = 0;
+    for (int i = 0; i < 3; i++) {
+        sensors[i].check_humidity_soil();
+        sum += sensors[i].humidity_soil;
+    }
+    return sum / 3.0;
+}
+
+void Illumination_control(char time_of_day, Climate myclimate, Light_sensor mylight_sensor, Lamp mylamp){
+    if (time_of_day && (mylight_sensor.illumination< myclimate.illumination_min)){
       mylamp.on = true;
     } else mylamp.on = false;
 }
 
-
-void humidity_soil_control(Humidity_soil_sensors myhumidity_soil_sensors,Climate myclimate,Pumps mypumps){
+// исправить получаемые  данные!!!
+void humidity_soil_control(Humidity_soil_sensor myhumidity_soil_sensors[], Climate myclimate, Pump mypumps[]){
   static unsigned long int Hum_Time = 0;
-  if (myhumidity_soil_sensors.Get_average_analog_value() > myclimate.humidity_soil_min && mypumps.on == false && millis() - Hum_Time > 3 * myclimate.watering_interval) 
+  if (Get_average_analog_value(myhumidity_soil_sensors) < myclimate.humidity_soil_min && mypumps[0].on == false && millis() - Hum_Time > 3 * myclimate.watering_interval) 
   {
-    for (int i=0; i < mypumps.count;i++){
-        mypumps.pumps[i].on = true;
+    for (int i=0; i < 2;i++){
+        mypumps[i].on = true;
     }
   }
   else if (millis() - Hum_Time > myclimate.watering_interval){
-    mypumps.on = false; 
+    for (int i=0; i < 2;i++){
+        mypumps[i].on = false;
+    }
   }
 }
 
-
-void temperature_control(Thermometer mythermometer, Climate myclimate,Pump mypump,Heater myheater,Ventilator myventilator){ 
-  if ((mythermometer.temperature < myclimate.temperature_min) && (mypump.on == false)){ 
-    myheater.heater.on = true;
-    myventilator.ventilator.on = true;
+// Fix some getting data!!!
+void temperature_control(Thermometer mythermometer, Climate myclimate, Pump mypumps[], Heater myheater, Ventilator myventilator){ 
+  if ((mythermometer.temperature < myclimate.temperature_min) && (mypumps[0].on == false)){ 
+    myheater.on = true;
+    myventilator.on = true;
   }
   else {
-    myheater.heater.on = false;
-    myventilator.ventilator.on = false;
-    }
+    myheater.on = false;
+    myventilator.on = false;
   }
 }
   
 
-void humidity_control(Humidity_sensor myhumidity_sensor,Climate myclimate,Ventilator myventilator,Heater myheater){ 
-    if (myhumidity_sensor.humidity > myclimate.humidity_soil_min) {
-      myventilator.ventilator.on = true;
+void humidity_control(Humidity_sensor myhumidity_sensor, Climate myclimate, Ventilator myventilator, Heater myheater){ 
+    if (myhumidity_sensor.humidity > myclimate.humidity_max) {
+      myventilator.on = true;
     }
     else { 
-      if(myheaters.heaters.on == false){
-        myventilator.ventilator.on = false;
-            }
+      if(myheater.on == false){
+        myventilator.on = false;
       }
     }
 }
  
 
-void ventilation_at_time(int hours,Ventilator myventilator, Heater myheater) { 
+void ventilation_at_time(int hours, Ventilator myventilator, Heater myheater) { 
    static int last_hour = 0;
     if (hours != last_hour) {
-      myventilator.ventilator.on = true;
+      myventilator.on = true;
       }
-    }
     else {
-      if(myheater.heater.on == false){
-        myventilator.ventilator.on = false;
+      if(myheater.on == false){
+        myventilator.on = false;
         }
       }  
-    }
     last_hour = hours;
 }
 
 
 void do_heat(Heater myheater)
 {
-    if(myheater.heater.on) {
-      myheater.heater[i].start();
-      }
+    if(myheater.on) {
+      myheater.start();
     }
     else{
-        myheater.heater[i].stop();
-      }
+        myheater.stop();
     }
 }
 
 
 void do_ventilation(Ventilator myventilator)
 {
-    if( myventilator.ventilator.on) {
-      myventilators.ventilator.start();
+    if( myventilator.on) {
+      myventilator.start();
     }
     else {
-      myventilator.ventilator.stop();
+      myventilator.stop();
     }
 }
 
 
-void do_pump(Pumps pumps)
+//Change getting data!!!
+void do_pump(Pump mypumps[])
 {
-    if(pumps[0].on) {
-      for (int i=0; i < mypumps.count;i++){
-        pumps[i].start();
+    if(mypumps[0].on) {
+      for (int i=0; i < 2;i++){
+        mypumps[i].start();
       }
     }
     else{
-      for (int i=0; i < mypumps.count;i++){
-        pumps[i].stop();
+      for (int i=0; i < 2;i++){
+        mypumps[i].stop();
       }
     }
 }
@@ -400,18 +339,22 @@ void do_lamp(Lamp lamp)
   Climate climate_tomato;
   Thermometer mythermometer(DHT_PIN);
   Humidity_sensor myhumidity_sensor(DHT_PIN);
-  Humidity_soil_sensor myhumidity_soil_sensor(HUM_SOIL_PIN);
   Lamp mylamp(LAMP_PIN);
-  Pump mypump(PUMP_PIN);
   Heater myheater(NAGREV_PIN);
   Ventilator myventilator(FAN_PIN);
   Light_sensor mylight_sensor(ILLUMINATION_PIN);
 
-  Humidity_soil_sensor myhumidity_soil_sensors[]= {Humidity_soil_sensor(HUM_SOIL_PIN_1), Humidity_soil_sensor(HUM_SOIL_PIN_2), Humidity_soil_sensor(HUM_SOIL_PIN_3)};
-  Pumps mypumps[]= {Pump(PUMP_PIN_1), Pump(PUMP_PIN_2)};
-  
-  Pumps mypumps(2, mypumps);
-  Humidity_soil_sensors myhumidity_soil_sensors(3, myhumidity_soil_sensors);
+  Humidity_soil_sensor mysoil_sensors[3] = {
+    Humidity_soil_sensor(HUM_SOIL_PIN_1),
+    Humidity_soil_sensor(HUM_SOIL_PIN_2),
+    Humidity_soil_sensor(HUM_SOIL_PIN_3)
+  };
+
+  Pump mypumps[2] = {
+    Pump(PUMP_PIN_1),
+    Pump(PUMP_PIN_2),
+  };
+
   Time Mytime(14, 30, 0);
 
   
@@ -433,7 +376,7 @@ void loop() {
   Mytime.update_time();
 
   Illumination_control(Mytime.time_of_day,climate_tomato,mylight_sensor,mylamp);
-  humidity_soil_control(myhumidity_soil_sensors,climate_tomato,mypumps);
+  humidity_soil_control(mysoil_sensors,climate_tomato,mypumps);
   temperature_control(mythermometer,climate_tomato,mypumps,myheater,myventilator);
   humidity_control(myhumidity_sensor,climate_tomato,myventilator,myheater);
   ventilation_at_time(Mytime.hours,myventilator,myheater); 
