@@ -45,6 +45,10 @@ std::vector<std::string> split(std::string str)
 }
 
 
+using airportCode = std::string;
+using airportId = int;
+
+
 int main(int argc, char* argv[])
 {
     if(argc != 2) {
@@ -67,8 +71,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::map<int, std::map<int, float>> flights;
-    std::map<std::string, int> airports;
+    std::map<airportId, std::map<airportId, float>> flights;
+    std::map<std::string, airportId> airports;
 
     std::string csv_str;
     std::getline(input_csv, csv_str);  // Read description line
@@ -76,13 +80,13 @@ int main(int argc, char* argv[])
     while(std::getline(input_csv, csv_str)) {
         std::vector<std::string> elements = split(csv_str);
 
-        float passangers = std::stof(elements[CSV_PASSENGERS]);
+        int passangers = (int)std::stof(elements[CSV_PASSENGERS]);
         float distance = std::stof(elements[CSV_DISTANCE]);
         float air_time = std::stof(elements[CSV_AIR_TIME]);
-        int origin_id = std::stoi(elements[CSV_ORIGIN_ID]);
-        int dest_id = std::stoi(elements[CSV_DEST_ID]);
+        airportId origin_id = std::stoi(elements[CSV_ORIGIN_ID]);
+        airportId dest_id = std::stoi(elements[CSV_DEST_ID]);
 
-        if(passangers < 0.001 || distance < 0.001 || air_time < 0.001) {
+        if(passangers == 0 || distance < 0.001 || air_time < 0.001) {
             continue;
         }
 
@@ -100,22 +104,20 @@ int main(int argc, char* argv[])
         }
     }
 
-    std::ofstream database_out("database.h");
+    std::ofstream database_out("database.csv");
 
     for(const auto& origin_list : flights) {
-        database_out << "{" << origin_list.first << "," << std::endl << "{";
         for(const auto& dest : origin_list.second) {
-            database_out << "{" << dest.first << ", " << dest.second << "}," << std::endl;
+            database_out << origin_list.first << "," << dest.first << "," << dest.second << std::endl;
         }
-        database_out << "}" << "}," << std::endl;
     }
 
     database_out.close();
 
-    std::ofstream airports_out("airports.h");
+    std::ofstream airports_out("airports.csv");
 
     for(const auto& airport : airports) {
-        airports_out << "{\"" << airport.first << "\", " << airport.second << "}," << std::endl;
+        airports_out << airport.first << "," << airport.second << std::endl;
     }
 
     airports_out.close();
