@@ -1,0 +1,269 @@
+#include <DHT11.h>
+
+// Sensors:
+#define LIGHT_PIN A0
+#define SOIL_HUMIDITY_PIN A1
+#define AIR_PIN 12
+
+DHT11 dht11_1(AIR_PIN);
+
+// Actuators:
+#define PUMP_PIN 5
+#define LIGHT_PIN 6
+#define VENTILATION_PIN 7
+#define HEATER_PIN 4
+
+
+unsigned long int time;
+unsigned int current_hour, current_min, current_sec;
+unsigned int light, soil_humidity, air_humidity, temperature;
+bool is_light, is_watering, is_airing, is_heating; 
+bool allow_heating = 1;
+
+
+struct Climate 
+{
+  int temperature_min;
+  int temperature_max;
+
+  int soil_humidity_min;
+  int soil_humidity_max;
+  
+  int air_humidity_min;
+  int air_humidity_max;
+  
+  int light_min;
+  int light_max;
+  
+  int pump_on;
+  int pump_off;
+  
+  int light_duration;
+
+  int start_ventilation;
+  int end_ventilation;
+  int ventilation_duration;
+
+  int heat_duration;
+
+  int day_start;
+  int day_end;
+};
+
+
+Climate Default = // Default climate
+{
+  240, // TEMP_MIN
+  260, // TEMP_MAX
+  
+  550, // SOIL_HUMI_MIN
+  540, // SOIL_HUMI_MAX
+  
+  20, // AIR_HUMI_MIN
+  30, // AIR_HUMI_MAX
+  
+  600,   // LIGHT_MIN
+  700, // LIGHT_MAX
+  
+  1/3 * 60 * 1000, // Pump work min 20 sec
+  1/3 * 60 * 1000, // Pump dead 20 sec
+  
+  1/60 * 60 * 1000, // Light min 1 sec
+
+  16, // Start ventilation
+  17, // End ventilation
+  1/60 * 60 * 1000,  // Vent min 1 minute
+
+  1/60 * 60 * 1000, // Heat min 1 minute
+
+  20, // Sleep in (hours)
+  8 // Wake up in (hours)
+};
+
+
+void pin_init() 
+{
+  pinMode(LIGHT_PIN, INPUT);
+  pinMode(SOIL_HUMIDITY_PIN, INPUT);
+
+  pinMode(PUMP_PIN, OUTPUT);
+  pinMode(LIGHT_PIN, OUTPUT);
+  pinMode(VENTILATION_PIN, OUTPUT);
+  pinMode(HEATER_PIN, OUTPUT);
+}
+
+
+void set_time(unsigned int hour, unsigned int min, unsigned int sec) {
+    current_hour = hour;
+    current_min = min;
+    current_sec = sec;
+}
+
+
+void illumination_read() {
+    light = analogRead(LIGHT_PIN);
+}
+
+
+void soil_humidity_read() {
+    soil_humidity = analogRead(SOIL_HUMIDITY_PIN);
+}
+
+
+void air_humidity_read() {
+    air_humidity = dht11_1.readHumidity();
+}
+
+
+void temperature_read() {
+    temperature = dht11_1.readTemperature();
+}
+
+
+void illumination_control() {
+    static unsigned long int light_time;
+
+    if ((current_hour < Default.day_start) || (current_hour >= Default.day_end)) {
+      is_light = 0;
+      return;
+    }
+
+    if ((light <= Default.light_min) && (digitalRead(LIGHT_PIN) == 0)) {
+      is_light = 1;
+      light_time = time;
+    }
+
+    if ((time - light_time >= Default.light_duration) || (light <= Default.light_max)) {is_light = 0;}
+}
+
+
+void water_control()
+{
+  static unsigned long int pump_time;
+  static unsigned long int pump_off_start;
+
+  if (((soil_humidity <= Default.soil_humidity_min) || (time - pump_off_start > Default.pump_off)) && (digitalRead(PUMP_PIN) == 0)) {
+    allow_heating = 0;
+    is_watering = 1;
+    pump_time = time;
+  }
+
+  if (((time - pump_time >= Default.pump_on) || (soil_humidity >= Default.soil_humidity_max)) && (digitalRead(PUMP_PIN) == 1)) {
+    allow_heating = 1;    
+    is_watering = 0;
+    pump_off_start = time;
+  }
+}
+
+
+void air_control()
+{
+  static unsigned long int air_time = time;
+
+  if((current_hour >= Default.start_ventilation) && (current_hour < Default.end_ventilation)) {
+    is_airing = 1;
+    return;
+  }
+
+  if ((air_humidity >= Default.air_humidity_max) && (digitalRead(VENTILATION_PIN) == 0)) {
+    is_airing = 1;
+    air_time = time;
+    return;
+  }
+
+  if (((time - air_time >= Default.ventilation_duration) || (air_humidity <= Default.air_humidity_min)) && (digitalRead(VENTILATION_PIN) == 1)) {
+    is_airing = 0;
+    return;
+  }
+}
+
+
+void temperature_control()
+{
+  static unsigned long int heat_time;
+
+  if (!allow_heating) {
+    is_heating = 0;
+    return;
+  }
+
+  if ((temperature <= Default.temperature_min) && (digitalRead(HEATER_PIN) == 0)) {
+    is_heating = 1;
+    heat_time = time;
+  }
+
+  if (((time - heat_time >= Default.heat_duration) || (temperature >= Default.temperature_max)) && (digitalRead(HEATER_PIN == 1))) {
+    is_heating = 0;
+  }
+}
+
+
+void illumination_activate()
+{
+  if (is_light) {
+      digitalWrite(LIGHT_PIN, 1);
+  } else {
+      digitalWrite(LIGHT_PIN, 0);
+  }
+}
+
+
+void pump_activate()
+{
+  if (is_watering) {
+      digitalWrite(PUMP_PIN, 1);
+  } else {
+      digitalWrite(PUMP_PIN, 0);
+  }
+}
+
+
+void ventilation_activate()
+{
+  if (is_airing) {
+      digitalWrite(VENTILATION_PIN, 1);
+  } else {
+      digitalWrite(VENTILATION_PIN, 0);
+  }
+}
+
+
+void heater_activate()
+{
+  if (is_heating) {
+      digitalWrite(HEATER_PIN, 1);
+  } else {
+      digitalWrite(HEATER_PIN, 0);
+  }
+}
+
+
+void setup() 
+{
+  pin_init();
+
+  Serial.begin(9600); 
+}
+
+
+void loop() 
+{
+  time = millis();
+
+  illumination_read();
+  soil_humidity_read();
+  air_humidity_read();
+  temperature_read();
+
+  illumination_control();
+  water_control();
+  air_control();
+  temperature_control();
+
+  illumination_activate();
+  pump_activate();
+  ventilation_activate();
+  heater_activate();
+
+  delay(1000);
+}
