@@ -10,16 +10,13 @@
 
 using namespace std;
 
-// Объявляем структуры данных и функции заранее
 map<string, int> cityIndex;
 vector<vector<pair<int, int>>> graph;
 
-// Прототипы функций
 void addFlight(const string &from, const string &to, int cost);
 int dijkstra(int start, int end);
 void loadFlightsFromCSV(const string& filename);
 
-// Основная реализация функций
 void addFlight(const string &from, const string &to, int cost) {
     if (cityIndex.find(from) == cityIndex.end()) {
         cityIndex[from] = cityIndex.size();
@@ -40,7 +37,7 @@ void loadFlightsFromCSV(const string& filename) {
     }
 
     string line;
-    getline(file, line); // Пропускаем заголовок
+    getline(file, line);
 
     while (getline(file, line)) {
         stringstream ss(line);
