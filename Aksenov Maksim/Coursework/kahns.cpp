@@ -1,0 +1,118 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <random>
+#include <chrono>
+#include <stdexcept>
+
+using namespace std;
+
+void validate_input(int num_nodes, int max_edges_per_node) {
+    if (num_nodes <= 0) {
+        throw invalid_argument("Количество вершин должно быть положительным.");
+    }
+    if (max_edges_per_node <= 0) {
+        throw invalid_argument("Максимальное число рёбер на вершину должно быть положительным.");
+    }
+}
+
+vector<vector<int>> generate_dag(int num_nodes, int max_edges_per_node) {
+    validate_input(num_nodes, max_edges_per_node);
+
+    vector<vector<int>> graph(num_nodes);
+    mt19937 random_generator(1234);
+    uniform_int_distribution<int> node_distribution(0, num_nodes - 1);
+
+    try {
+        for (int current_node = 0; current_node < num_nodes; ++current_node) {
+            int max_possible_edges = min(max_edges_per_node, num_nodes - current_node - 1);
+            if (max_possible_edges <= 0) continue;
+
+            uniform_int_distribution<int> edge_count_distribution(0, max_possible_edges);
+            int edge_count = edge_count_distribution(random_generator);
+
+            for (int edge_index = 0; edge_index < edge_count; ++edge_index) {
+                int target_node = current_node + 1 + (node_distribution(random_generator) % (num_nodes - current_node - 1));
+                if (target_node >= num_nodes) {
+                    throw out_of_range("Некорректная генерация целевой вершины.");
+                }
+                graph[current_node].push_back(target_node);
+            }
+        }
+    } catch (const exception& e) {
+        cerr << "Ошибка генерации графа: " << e.what() << endl;
+        throw;
+    }
+
+    return graph;
+}
+
+vector<int> kahns(const vector<vector<int>>& graph) {
+    if (graph.empty()) {
+        throw invalid_argument("Граф пуст.");
+    }
+
+    int total_nodes = graph.size();
+    vector<int> in_degree_count(total_nodes, 0);
+
+    // Проверка корректности списка смежности
+    for (const auto& neighbors : graph) {
+        for (int target_node : neighbors) {
+            if (target_node < 0 || target_node >= total_nodes) {
+                throw out_of_range("Некорректная вершина в списке смежности.");
+            }
+            in_degree_count[target_node]++;
+        }
+    }
+
+    queue<int> processing_queue;
+    for (int node = 0; node < total_nodes; ++node) {
+        if (in_degree_count[node] == 0) {
+            processing_queue.push(node);
+        }
+    }
+
+    vector<int> topological_order;
+    while (!processing_queue.empty()) {
+        int current_node = processing_queue.front();
+        processing_queue.pop();
+        topological_order.push_back(current_node);
+
+        for (int neighbor : graph[current_node]) {
+            if (--in_degree_count[neighbor] == 0) {
+                processing_queue.push(neighbor);
+            }
+        }
+    }
+
+    if (topological_order.size() != total_nodes) {
+        throw runtime_error("Граф содержит цикл.");
+    }
+
+    return topological_order;
+}
+
+int main() {
+    try {
+        int num_nodes = 100000;
+        int max_edges_per_node = 5;
+
+        vector<vector<int>> graph = generate_dag(num_nodes, max_edges_per_node);
+
+        int runs = 10;
+        double total_time = 0;
+
+        for (int run_index = 0; run_index < runs; ++run_index) {
+            auto start_time = chrono::high_resolution_clock::now();
+            auto order = kahns(graph);
+            auto end_time = chrono::high_resolution_clock::now();
+            total_time += chrono::duration<double>(end_time - start_time).count();
+        }
+
+        cout << "Среднее время алгоритма Кана: " << (total_time / runs) << " сек\n";
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
+        return 1;
+    }
+    return 0;
+}
