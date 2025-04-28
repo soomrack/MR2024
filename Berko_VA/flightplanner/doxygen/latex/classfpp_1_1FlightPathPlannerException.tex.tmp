@@ -1,0 +1,70 @@
+\hypertarget{classfpp_1_1FlightPathPlannerException}{}\doxysection{Класс fpp\+::Flight\+Path\+Planner\+Exception}
+\label{classfpp_1_1FlightPathPlannerException}\index{fpp::FlightPathPlannerException@{fpp::FlightPathPlannerException}}
+
+
+Класс исключений для обработки ошибок в \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}}.  
+
+
+
+
+{\ttfamily \#include $<$flightpathplanner.\+hpp$>$}
+
+
+
+Граф наследования\+:fpp\+::Flight\+Path\+Planner\+Exception\+:
+% FIG 0
+
+
+Граф связей класса fpp\+::Flight\+Path\+Planner\+Exception\+:
+% FIG 1
+\doxysubsection*{Открытые члены}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classfpp_1_1FlightPathPlannerException_abb72db0decd5a0857001704305cd89c6}{Flight\+Path\+Planner\+Exception}} (const std\+::string \&message)
+\begin{DoxyCompactList}\small\item\em Конструктор исключения \end{DoxyCompactList}\item 
+const char $\ast$ \mbox{\hyperlink{classfpp_1_1FlightPathPlannerException_a57ffea8fd3bea8569075b4264b22e35f}{what}} () const noexcept override
+\begin{DoxyCompactList}\small\item\em Получить сообщение об ошибке \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Подробное описание}
+Класс исключений для обработки ошибок в \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}}. 
+
+Используется для уведомления о проблемах при загрузке данных, парсинге CSV или других операциях с графом рейсов. 
+
+\doxysubsection{Конструктор(ы)}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlannerException_abb72db0decd5a0857001704305cd89c6}\label{classfpp_1_1FlightPathPlannerException_abb72db0decd5a0857001704305cd89c6}} 
+\index{fpp::FlightPathPlannerException@{fpp::FlightPathPlannerException}!FlightPathPlannerException@{FlightPathPlannerException}}
+\index{FlightPathPlannerException@{FlightPathPlannerException}!fpp::FlightPathPlannerException@{fpp::FlightPathPlannerException}}
+\doxysubsubsection{\texorpdfstring{FlightPathPlannerException()}{FlightPathPlannerException()}}
+{\footnotesize\ttfamily fpp\+::\+Flight\+Path\+Planner\+Exception\+::\+Flight\+Path\+Planner\+Exception (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{message }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+
+
+Конструктор исключения 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em message} & Сообщение об ошибке \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Методы}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlannerException_a57ffea8fd3bea8569075b4264b22e35f}\label{classfpp_1_1FlightPathPlannerException_a57ffea8fd3bea8569075b4264b22e35f}} 
+\index{fpp::FlightPathPlannerException@{fpp::FlightPathPlannerException}!what@{what}}
+\index{what@{what}!fpp::FlightPathPlannerException@{fpp::FlightPathPlannerException}}
+\doxysubsubsection{\texorpdfstring{what()}{what()}}
+{\footnotesize\ttfamily const char$\ast$ fpp\+::\+Flight\+Path\+Planner\+Exception\+::what (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [noexcept]}}
+
+
+
+Получить сообщение об ошибке 
+
+\begin{DoxyReturn}{Возвращает}
+Указатель на строку с сообщением об ошибке 
+\end{DoxyReturn}
+
+
+Объявления и описания членов класса находятся в файле\+:\begin{DoxyCompactItemize}
+\item 
+include/flightpathplanner.\+hpp\end{DoxyCompactItemize}
