@@ -258,7 +258,7 @@ Matrix Matrix::exp(size_t iterations = 20) const
 int main()
 {
     double arr1[] = {1, 2, 3, 4, 5, 6, 73, 8, 9};
-    Matrix m1(arr1, 2, 2);
+    Matrix m1(arr1, 3, 3);
     double det = m1.determinant();
     m1.print();
     printf("Определитель матрицы: %lf\n", det);
