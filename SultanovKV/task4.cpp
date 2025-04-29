@@ -58,15 +58,14 @@ bool isSquare()const {return rows == cols;}
 
 double& operator() (size_t row, size_t col){
     if(row>= rows || col>= cols){
-        throw std::out_of_range("Matrix indeces out of range"); /////////////////////поч оф ренж именно
+        throw std::out_of_range("Matrix indeces out of range");
     }
 return data[row][col];
     }
 
 const double& operator()(size_t row, size_t col) const{
     if(row>=rows || col>= cols){
-    throw std::out_of_range("Matrix indeces out of range");///////////////////поч тоже оф ренж именно
-    }
+    throw std::out_of_range("Matrix indeces out of range");
     return data[row][col];
 }
 
@@ -82,7 +81,7 @@ static Matrix identity(size_t size){
 
 
 void print() const{
-    for (size_t i = 0; i < rows; ++i){         //////////////////////////////
+    for (size_t i = 0; i < rows; ++i){        
          for (size_t j = 0; j < cols; ++j) {
                 std::cout << std::fixed << std::setprecision(2) << data[i][j] << " ";
             }
@@ -220,7 +219,7 @@ int main() {
     try {
         // Создаем матрицы
         Matrix A({
-            {7, 3, 6},
+            {7, 9, 6},
             {3, 6, 7},
             {2, 1, 1}
         });
@@ -271,11 +270,3 @@ int main() {
 }
         
    
-
-
-
-
-
-
-
-
