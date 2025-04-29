@@ -259,8 +259,8 @@ int main()
 {
     double arr1[] = {1, 2, 3, 4, 5, 6, 73, 8, 9};
     Matrix m1(arr1, 3, 3);
-    double det = m1.determinant();
     m1.print();
+    double det = m1.determinant();
     printf("Определитель матрицы: %lf\n", det);
     Matrix expon = m1.exp();
     expon.print();
