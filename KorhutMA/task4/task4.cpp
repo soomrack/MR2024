@@ -255,15 +255,46 @@ Matrix Matrix::exp(size_t iterations = 20) const
     return result;
 }
 
-int main()
-{
-    double arr1[] = {1, 2, 3, 4, 5, 6, 73, 8, 9};
-    Matrix m1(arr1, 3, 3);
+
+int main() {
+    Matrix m1(3, 3);
+    m1.fillRandom();
+    std::cout << "Random matrix m1:" << std::endl;
     m1.print();
-    double det = m1.determinant();
-    printf("Определитель матрицы: %lf\n", det);
-    Matrix expon = m1.exp();
-    expon.print();
+
+    double arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Matrix m2(arr, 3, 3);
+    std::cout << "\nMatrix m2:" << std::endl;
+    m2.print();
+
+    std::cout << "\nm1 + m2:" << std::endl;
+    (m1 + m2).print();
+
+    std::cout << "\nm1 - m2:" << std::endl;
+    (m1 - m2).print();
+
+    std::cout << "\nm1 * m2:" << std::endl;
+    (m1 * m2).print();
+
+    std::cout << "\nm2 * 2.5:" << std::endl;
+    (m2 * 2.5).print();
+
+    std::cout << "\nm2^3:" << std::endl;
+    m2.pow(3).print();
+
+    std::cout << "\nm2 transposed:" << std::endl;
+    m2.transpose().print();
+
+    std::cout << "\nDeterminant of m2: " << m2.determinant() << std::endl;
+
+    std::cout << "\nMinor of m2 (1,1):" << std::endl;
+    m2.getMinorMatrix(1, 1).print();
+
+    std::cout << "\nexp(m2):" << std::endl;
+    m2.exp(10).print();
+
+    std::cout << "\nIdentity matrix 4x4:" << std::endl;
+    m2.identity(4).print();
 
     return 0;
 }
