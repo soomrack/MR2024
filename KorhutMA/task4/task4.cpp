@@ -262,10 +262,6 @@ int main()
     double det = m1.determinant();
     m1.print();
     printf("Определитель матрицы: %lf\n", det);
-
-    // double arr2[] = {7, 8, 9, 0, 1, 2};
-    // Matrix m2(arr2, 2, 3);
-    m1.print();
     Matrix expon = m1.exp();
     expon.print();
 
