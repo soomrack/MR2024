@@ -1,35 +1,19 @@
-/// @author Вадим Берко
-/// @date 2025-03-09
-/// @version 1.0.0
-
+#pragma once
 #include <cstddef>
-#include <stdexcept>
-#include <iostream>
 #include <vector>
 #include <thread>
 #include <random>
-
-
-/**
- * @enum MatrixStatus
- * @brief Перечисление для статусов операций с матрицей
- */
-enum class MatrixStatus {
-    OK = 0,       /**< Успешное выполнение */
-    ALLOC_ERR,    /**< Ошибка выделения памяти */
-    EMPTY_ERR,    /**< Ошибка: матрица пуста */
-    SIZE_ERR      /**< Ошибка: неверный размер матрицы */
-};
+#include "matrixexception.hpp"
 
 /**
  * @enum LogLevel
  * @brief Перечисление уровней логирования
  */
 enum class LogLevel {
-    NONE, /**< Логирование отключено */
-    ERR,  /**< Логировать только ошибки */
-    WARN, /**< Логировать предупреждения и ошибки */
-    INFO  /**< Логировать информацию, предупреждения и ошибки */
+    None, /**< Логирование отключено */
+    Error,  /**< Логировать только ошибки */
+    Warning, /**< Логировать предупреждения и ошибки */
+    Info  /**< Логировать информацию, предупреждения и ошибки */
 };
 
 /**
@@ -37,9 +21,31 @@ enum class LogLevel {
  * @brief Режим умножения матриц
  */
 enum class MultiplyMode {
-    AUTO,       /**< Автоматический выбор (стандартное для n < 100, блочное для n >= 100) */
-    STANDARD,   /**< Стандартное умножение */
-    BLOCK       /**< Блочное умножение */
+    Auto,       /**< Автоматический выбор (оптимизированное для n < 100, блочное для n >= 100) */
+    Standard,   /**< Стандартное умножение */
+    Block,      /**< Блочное умножение */
+    Transpose,  /**< Умножение с транспонированием второй матрицы */
+    BlockTranspose, /**< Блочное умножение с транспонированием второй матрицы */
+    Optimized,  /**< Оптимизированное умножение с прямым доступом, разворачиванием и ikj */
+    Recursive,  /**< Рекурсивное умножение */
+    ParallelOptimized, /**< Параллельное оптимизированное умножение */
+    OptimizedTranspose /**< Оптимизированное умножение с транспонированием */
+};
+
+/**
+ * @struct MatrixView
+ * @brief Представление подматрицы без копирования данных
+ */
+struct MatrixView {
+    const double* data; /**< Указатель на данные матрицы */
+    std::size_t rows;  /**< Количество строк подматрицы */
+    std::size_t cols;  /**< Количество столбцов подматрицы */
+    std::size_t row_offset; /**< Смещение по строкам */
+    std::size_t col_offset; /**< Смещение по столбцам */
+    std::size_t stride;     /**< Шаг для строк (ширина исходной матрицы) */
+
+    MatrixView(const double* d, std::size_t r, std::size_t c, std::size_t ro, std::size_t co, std::size_t s)
+        : data(d), rows(r), cols(c), row_offset(ro), col_offset(co), stride(s) {}
 };
 
 /**
@@ -62,25 +68,19 @@ public:
      * @brief Конструктор с заданными размерами
      * @param rows Количество строк
      * @param cols Количество столбцов
-     *
-     * Создает матрицу с указанными размерами, заполненную нулями.
-     * Если rows или cols равны 0, создается пустая матрица.
+     * @throws MatrixException Если размеры вызывают переполнение или превышают максимальный размер
      */
     Matrix(std::size_t rows, std::size_t cols);
 
     /**
      * @brief Конструктор копирования
      * @param other Матрица для копирования
-     *
-     * Создает копию переданной матрицы.
      */
     Matrix(const Matrix& other);
 
     /**
      * @brief Конструктор перемещения
      * @param other Матрица для перемещения
-     *
-     * Перемещает данные из переданной матрицы, оставляя её пустой.
      */
     Matrix(Matrix&& other) noexcept;
 
@@ -95,8 +95,6 @@ public:
      * @brief Оператор присваивания копированием
      * @param other Матрица для копирования
      * @return Ссылка на текущую матрицу
-     *
-     * Копирует данные из переданной матрицы.
      */
     Matrix& operator=(const Matrix& other);
 
@@ -104,8 +102,6 @@ public:
      * @brief Оператор присваивания перемещением
      * @param other Матрица для перемещения
      * @return Ссылка на текущую матрицу
-     *
-     * Перемещает данные из переданной матрицы, оставляя её пустой.
      */
     Matrix& operator=(Matrix&& other) noexcept;
 
@@ -113,39 +109,40 @@ public:
      * @brief Оператор сложения матриц
      * @param other Матрица для сложения
      * @return Новая матрица - результат сложения
-     * @throws std::runtime_error Если размеры матриц не совпадают
+     * @throws MatrixException Если размеры матриц не совпадают или содержат невалидные элементы
      */
-    Matrix operator+(const Matrix& other) const;
+    [[nodiscard]] Matrix operator+(const Matrix& other) const;
 
     /**
      * @brief Оператор вычитания матриц
      * @param other Матрица для вычитания
      * @return Новая матрица - результат вычитания
-     * @throws std::runtime_error Если размеры матриц не совпадают
+     * @throws MatrixException Если размеры матриц не совпадают или содержат невалидные элементы
      */
-    Matrix operator-(const Matrix& other) const;
+    [[nodiscard]] Matrix operator-(const Matrix& other) const;
 
     /**
      * @brief Оператор умножения матриц
      * @param other Матрица для умножения
      * @return Новая матрица - результат умножения
-     * @throws std::runtime_error Если размеры не подходят для умножения
+     * @throws MatrixException Если размеры не подходят для умножения
      */
-    Matrix operator*(const Matrix& other) const;
+    [[nodiscard]] Matrix operator*(const Matrix& other) const;
 
     /**
      * @brief Оператор умножения матрицы на число
      * @param number Множитель
      * @return Новая матрица - результат умножения
+     * @throws MatrixException Если множитель или элементы матрицы невалидны
      */
-    Matrix operator*(double number) const;
+    [[nodiscard]] Matrix operator*(double number) const;
 
     /**
      * @brief Оператор доступа к элементу матрицы
      * @param row Индекс строки
      * @param col Индекс столбца
      * @return Ссылка на элемент матрицы
-     * @throws std::out_of_range Если индексы вне допустимого диапазона
+     * @throws MatrixException Если индексы вне допустимого диапазона
      */
     double& operator()(std::size_t row, std::size_t col);
 
@@ -154,7 +151,7 @@ public:
      * @param row Индекс строки
      * @param col Индекс столбца
      * @return Константная ссылка на элемент матрицы
-     * @throws std::out_of_range Если индексы вне допустимого диапазона
+     * @throws MatrixException Если индексы вне допустимого диапазона
      */
     const double& operator()(std::size_t row, std::size_t col) const;
 
@@ -163,90 +160,92 @@ public:
      * @param other Матрица для сравнения
      * @return true, если матрицы равны, иначе false
      */
-    bool operator==(const Matrix& other) const;
+    [[nodiscard]] bool operator==(const Matrix& other) const;
 
-	Matrix multiply(const Matrix& other, MultiplyMode mode) const;
+    /**
+     * @brief Умножение матриц с указанным режимом
+     * @param other Матрица для умножения
+     * @param mode Режим умножения
+     * @return Новая матрица - результат умножения
+     * @throws MatrixException Если размеры не подходят для умножения
+     */
+    [[nodiscard]] Matrix multiply(const Matrix& other, MultiplyMode mode) const;
 
     /**
      * @brief Получить количество строк
      * @return Количество строк матрицы
      */
-    std::size_t rows() const { return m_rows; }
+    [[nodiscard]] std::size_t rows() const noexcept { return m_rows; }
 
     /**
      * @brief Получить количество столбцов
      * @return Количество столбцов матрицы
      */
-    std::size_t cols() const { return m_cols; }
+    [[nodiscard]] std::size_t cols() const noexcept { return m_cols; }
 
     /**
      * @brief Проверка, является ли матрица пустой
      * @return true, если матрица пуста, иначе false
      */
-    bool is_empty() const { return m_data.empty(); }
+    [[nodiscard]] bool isEmpty() const noexcept { return m_data.empty(); }
 
     /**
      * @brief Проверка, является ли матрица квадратной
      * @return true, если матрица квадратная, иначе false
      */
-    bool is_square() const { return m_rows == m_cols; }
+    [[nodiscard]] bool isSquare() const noexcept { return m_rows == m_cols; }
 
     /**
      * @brief Установить уровень логирования
      * @param level Уровень логирования
      */
-    void set_log_level(LogLevel level);
+    void setLogLevel(LogLevel level);
 
     /**
      * @brief Заполнить матрицу нулями
-     * @return Статус выполнения операции
+     * @throws MatrixException Если матрица пуста
      */
-    MatrixStatus set_zeros();
+    void setZeros();
 
-	/**
+    /**
      * @brief Заполнить матрицу случайными вещественными значениями
-     * @return Статус выполнения операции
-	 * @param min Минимальное значение диапазона 
+     * @param min Минимальное значение диапазона
      * @param max Максимальное значение диапазона
+     * @throws MatrixException Если матрица пуста или min > max
      */
-	MatrixStatus fill_random(double min = 0.0, double max = 1.0);
+    void fillRandom(double min = 0.0, double max = 1.0);
 
     /**
      * @brief Сделать матрицу единичной
-     * @return Статус выполнения операции
-     * @throws MatrixStatus::SIZE_ERR Если матрица не квадратная
+     * @throws MatrixException Если матрица не квадратная
      */
-    MatrixStatus set_identity();
+    void setIdentity();
 
     /**
      * @brief Транспонировать матрицу
-     * @return Статус выполнения операции
-     * @throws MatrixStatus::SIZE_ERR Если матрица не квадратная
+     * @throws MatrixException Если элементы матрицы невалидны
      */
-    MatrixStatus transpose();
+    void transpose();
 
     /**
      * @brief Возвести матрицу в степень
      * @param power Степень
-     * @return Статус выполнения операции
-     * @throws MatrixStatus::SIZE_ERR Если матрица не квадратная
+     * @throws MatrixException Если матрица не квадратная или содержит невалидные элементы
      */
-    MatrixStatus pow(unsigned int power);
+    void pow(unsigned int power);
 
     /**
      * @brief Вычислить экспоненту матрицы
-     * @return Статус выполнения операции
-     * @throws MatrixStatus::SIZE_ERR Если матрица не квадратная
+     * @throws MatrixException Если матрица не квадратная или содержит невалидные элементы
      */
-    MatrixStatus exp();
+    void exp();
 
     /**
      * @brief Вычислить определитель матрицы
-     * @param result Переменная для результата
-     * @return Статус выполнения операции
-     * @throws MatrixStatus::SIZE_ERR Если матрица не квадратная
+     * @return Значение определителя
+     * @throws MatrixException Если матрица не квадратная или содержит невалидные элементы
      */
-    MatrixStatus det(double& result) const;
+    [[nodiscard]] double det() const;
 
     /**
      * @brief Вывести матрицу в консоль
@@ -264,38 +263,86 @@ private:
      * @param b Второе число
      * @return true, если числа равны, иначе false
      */
-    static bool is_equal(double a, double b) {
+    static bool isEqual(double a, double b) noexcept {
         return std::abs(a - b) < 0.00001;
     }
 
-	/**
-     * @brief Последовательное циклическое умножение матриц
-     * @param other Матрица, на которую умножается исходная
-	 * @return Матрица, являющаяся результатом умножения
+    /**
+     * @brief Стандартное умножение матриц
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
      */
-	Matrix standard_multiply(const Matrix& other) const;
+    [[nodiscard]] Matrix standardMultiply(const Matrix& other) const;
 
-	/**
-     * @brief Блочное умножение для больших матриц
-     * @param other Матрица, на которую умножается исходная
-	 * @return Матрица, являющаяся результатом умножения
+    /**
+     * @brief Умножение матриц с транспонированием второй матрицы
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
      */
-    Matrix block_multiply(const Matrix& other) const;
+    [[nodiscard]] Matrix transposeMultiply(const Matrix& other) const;
 
-	/**
-     * @brief Вспомогательная функция для вычисления одного блока
-     * @param A Блок исходной матрицы
-     * @param B Блок для умножения
-     * @param result Блок, являющийся результатом умножения
-     * @param i_start Начало диапазона строк
-     * @param i_end Конец диапазона строк
-     * @param j_start Начало диапазона столбцов
-     * @param j_end Конец диапазона столбцов
-	 * @return Матрица, являющаяся результатом умножения
+    /**
+     * @brief Блочное умножение матриц
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
      */
-    static void multiply_block(const Matrix& A, const Matrix& B, Matrix& result,
-                              int i_start, int i_end, int j_start, int j_end);
+    [[nodiscard]] Matrix blockMultiply(const Matrix& other) const;
 
+    /**
+     * @brief Блочное умножение с транспонированием второй матрицы
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
+     */
+    [[nodiscard]] Matrix blockTransposeMultiply(const Matrix& other) const;
+
+    /**
+     * @brief Оптимизированное умножение с прямым доступом, разворачиванием и ikj
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
+     */
+    [[nodiscard]] Matrix optimizedMultiply(const Matrix& other) const;
+
+    /**
+     * @brief Оптимизированное умножение с транспонированием второй матрицы
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
+     */
+    [[nodiscard]] Matrix optimizedTransposeMultiply(const Matrix& other) const;
+
+    /**
+     * @brief Параллельное оптимизированное умножение
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
+     */
+    [[nodiscard]] Matrix parallelOptimizedMultiply(const Matrix& other) const;
+
+    /**
+     * @brief Рекурсивное умножение матриц
+     * @param other Матрица для умножения
+     * @return Новая матрица - результат умножения
+     */
+    [[nodiscard]] Matrix recursiveMultiply(const Matrix& other) const;
+
+    /**
+     * @brief Умножение блока матриц
+     * @param a Первая матрица
+     * @param b Вторая матрица
+     * @param result Результирующая матрица
+     * @param iStart Начало диапазона строк
+     * @param iEnd Конец диапазона строк
+     * @param jStart Начало диапазона столбцов
+     * @param jEnd Конец диапазона столбцов
+     */
+    static void multiplyBlock(const Matrix& a, const Matrix& b, Matrix& result,
+                             std::size_t iStart, std::size_t iEnd, std::size_t jStart, std::size_t jEnd);
+
+    /**
+     * @brief Вспомогательная функция для рекурсивного умножения через MatrixView
+     * @param a Первая подматрица
+     * @param b Вторая подматрица
+     * @param result Результирующая подматрица
+     */
+    static void recursiveMultiplyView(const MatrixView& a, const MatrixView& b, Matrix& result);
 };
 
 /**
@@ -303,5 +350,6 @@ private:
  * @param number Множитель
  * @param matrix Матрица
  * @return Новая матрица - результат умножения
+ * @throws MatrixException Если множитель или элементы матрицы невалидны
  */
-Matrix operator*(double number, const Matrix& matrix);
+[[nodiscard]] Matrix operator*(double number, const Matrix& matrix);

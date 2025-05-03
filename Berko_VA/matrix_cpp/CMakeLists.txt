@@ -6,6 +6,7 @@ project(Matrix LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS "-O3 -march=native")
 
 find_package(Threads REQUIRED)
 
@@ -24,6 +25,7 @@ set(SOURCES
 
 set(HEADERS
     include/matrix.hpp
+	include/matrixexception.hpp
 )
 
 add_executable(matrix ${SOURCES} ${HEADERS})
@@ -34,5 +36,3 @@ target_link_libraries(matrix Threads::Threads)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|MSVC")
     target_compile_options(matrix PRIVATE -Wall -Wextra -Wpedantic)
 endif()
-
-
