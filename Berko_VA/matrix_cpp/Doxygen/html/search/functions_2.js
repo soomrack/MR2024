@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['exp_24',['exp',['../classMatrix.html#a39677f201c8346c8193433735f4d55f7',1,'Matrix']]]
+  ['exp_33',['exp',['../classMatrix.html#aa0d6a29f67caf4b792b1958d728e3a17',1,'Matrix']]]
 ];

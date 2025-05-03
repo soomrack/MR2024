@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['is_5fempty_4',['is_empty',['../classMatrix.html#a59c68730d1d94f759391179b99d62584',1,'Matrix']]],
-  ['is_5fsquare_5',['is_square',['../classMatrix.html#a4e909f004fd51f7615a590553165d6a3',1,'Matrix']]]
+  ['isempty_6',['isEmpty',['../classMatrix.html#a6d55862834a0b44e1e37f2f8a2bb208f',1,'Matrix']]],
+  ['issquare_7',['isSquare',['../classMatrix.html#a67dc0e6e0a31399def3af33b2fc9ca9c',1,'Matrix']]]
 ];

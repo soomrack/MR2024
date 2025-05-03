@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['transpose_41',['transpose',['../classMatrix.html#a4b36fdf35031eb8fcee191c09a548b55',1,'Matrix']]]
+  ['transpose_51',['transpose',['../classMatrix.html#aa753de1a2ed37c8eb934e06823fee179',1,'Matrix']]]
 ];

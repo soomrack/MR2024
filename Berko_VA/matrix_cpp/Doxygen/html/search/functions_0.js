@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['cols_22',['cols',['../classMatrix.html#ae9271e63056f41d343e0e18fc4302319',1,'Matrix']]]
+  ['cols_31',['cols',['../classMatrix.html#a399a8db0838ca2961c903d153e0601af',1,'Matrix']]]
 ];
