@@ -1,0 +1,56 @@
+\hypertarget{classMatrixException}{}\doxysection{Класс Matrix\+Exception}
+\label{classMatrixException}\index{MatrixException@{MatrixException}}
+
+
+Граф наследования\+:Matrix\+Exception\+:
+% FIG 0
+
+
+Граф связей класса Matrix\+Exception\+:
+% FIG 1
+\doxysubsection*{Открытые типы}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classMatrixException_aed6ebf5b8c1604fa866e4eac49e90680}\label{classMatrixException_aed6ebf5b8c1604fa866e4eac49e90680}} 
+enum class {\bfseries Error\+Type} \{ \newline
+{\bfseries Allocation\+Error}
+, {\bfseries Empty\+Matrix}
+, {\bfseries Size\+Mismatch}
+, {\bfseries Invalid\+Data}
+, \newline
+{\bfseries Out\+Of\+Bounds}
+, {\bfseries Invalid\+Argument}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsection*{Открытые члены}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classMatrixException_a7e2ff429f315701fc09b9c6c82e3bb14}\label{classMatrixException_a7e2ff429f315701fc09b9c6c82e3bb14}} 
+{\bfseries Matrix\+Exception} (std\+::string\+\_\+view message, Error\+Type type)
+\item 
+\mbox{\Hypertarget{classMatrixException_a65c4a5172b4ca7a8662802b423d34d3d}\label{classMatrixException_a65c4a5172b4ca7a8662802b423d34d3d}} 
+{\bfseries Matrix\+Exception} (std\+::string\+\_\+view message, Error\+Type type, std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ dimensions)
+\item 
+\mbox{\Hypertarget{classMatrixException_abdb98bc64357678a2e7b641f969136b6}\label{classMatrixException_abdb98bc64357678a2e7b641f969136b6}} 
+{\bfseries Matrix\+Exception} (std\+::string\+\_\+view message, Error\+Type type, std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ dimensions1, std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ dimensions2)
+\item 
+\mbox{\Hypertarget{classMatrixException_a671cd0a2f0b0cface5c5c98dbe9c5d77}\label{classMatrixException_a671cd0a2f0b0cface5c5c98dbe9c5d77}} 
+{\bfseries Matrix\+Exception} (std\+::string\+\_\+view message, Error\+Type type, std\+::size\+\_\+t row, std\+::size\+\_\+t col)
+\item 
+\mbox{\Hypertarget{classMatrixException_af724eabfea2503341aec4faa3fef65d5}\label{classMatrixException_af724eabfea2503341aec4faa3fef65d5}} 
+Error\+Type {\bfseries type} () const noexcept
+\item 
+\mbox{\Hypertarget{classMatrixException_aefd24d08817c896907badd929a2a4dd5}\label{classMatrixException_aefd24d08817c896907badd929a2a4dd5}} 
+std\+::optional$<$ std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ $>$ {\bfseries dimensions} () const noexcept
+\item 
+\mbox{\Hypertarget{classMatrixException_aeb49f6672d0ef3ae89ca8a6c30ea7c3b}\label{classMatrixException_aeb49f6672d0ef3ae89ca8a6c30ea7c3b}} 
+std\+::optional$<$ std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ $>$ {\bfseries other\+\_\+dimensions} () const noexcept
+\item 
+\mbox{\Hypertarget{classMatrixException_a8c57c1adb418b90370134329265c04b0}\label{classMatrixException_a8c57c1adb418b90370134329265c04b0}} 
+std\+::optional$<$ std\+::pair$<$ std\+::size\+\_\+t, std\+::size\+\_\+t $>$ $>$ {\bfseries index} () const noexcept
+\end{DoxyCompactItemize}
+
+
+Объявления и описания членов класса находятся в файле\+:\begin{DoxyCompactItemize}
+\item 
+include/matrixexception.\+hpp\end{DoxyCompactItemize}

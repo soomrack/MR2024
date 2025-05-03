@@ -1,0 +1,79 @@
+\hypertarget{structMatrixView}{}\doxysection{Структура Matrix\+View}
+\label{structMatrixView}\index{MatrixView@{MatrixView}}
+
+
+Представление подматрицы без копирования данных  
+
+
+
+
+{\ttfamily \#include $<$matrix.\+hpp$>$}
+
+\doxysubsection*{Открытые члены}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structMatrixView_aec9e9a574c43314bbc83504b7275b273}\label{structMatrixView_aec9e9a574c43314bbc83504b7275b273}} 
+{\bfseries Matrix\+View} (const double $\ast$d, std\+::size\+\_\+t r, std\+::size\+\_\+t c, std\+::size\+\_\+t ro, std\+::size\+\_\+t co, std\+::size\+\_\+t s)
+\end{DoxyCompactItemize}
+\doxysubsection*{Открытые атрибуты}
+\begin{DoxyCompactItemize}
+\item 
+const double $\ast$ \mbox{\hyperlink{structMatrixView_af232e92e4818c85d440c3778d9343090}{data}}
+\item 
+std\+::size\+\_\+t \mbox{\hyperlink{structMatrixView_a5e74a0ab063eecec51d26b9fa32ce756}{rows}}
+\item 
+std\+::size\+\_\+t \mbox{\hyperlink{structMatrixView_a8ca34032a89c90d1cffce2d9eee2506a}{cols}}
+\item 
+std\+::size\+\_\+t \mbox{\hyperlink{structMatrixView_ab05af0a4f896060f37a91ec49f33970e}{row\+\_\+offset}}
+\item 
+std\+::size\+\_\+t \mbox{\hyperlink{structMatrixView_a720e768a13798da5f6547146678cc8d0}{col\+\_\+offset}}
+\item 
+std\+::size\+\_\+t \mbox{\hyperlink{structMatrixView_acf8a24959af86f3226faf2b8f77a2b0d}{stride}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Подробное описание}
+Представление подматрицы без копирования данных 
+
+\doxysubsection{Данные класса}
+\mbox{\Hypertarget{structMatrixView_a720e768a13798da5f6547146678cc8d0}\label{structMatrixView_a720e768a13798da5f6547146678cc8d0}} 
+\index{MatrixView@{MatrixView}!col\_offset@{col\_offset}}
+\index{col\_offset@{col\_offset}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{col\_offset}{col\_offset}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+View\+::col\+\_\+offset}
+
+Смещение по столбцам \mbox{\Hypertarget{structMatrixView_a8ca34032a89c90d1cffce2d9eee2506a}\label{structMatrixView_a8ca34032a89c90d1cffce2d9eee2506a}} 
+\index{MatrixView@{MatrixView}!cols@{cols}}
+\index{cols@{cols}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{cols}{cols}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+View\+::cols}
+
+Количество столбцов подматрицы \mbox{\Hypertarget{structMatrixView_af232e92e4818c85d440c3778d9343090}\label{structMatrixView_af232e92e4818c85d440c3778d9343090}} 
+\index{MatrixView@{MatrixView}!data@{data}}
+\index{data@{data}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily const double$\ast$ Matrix\+View\+::data}
+
+Указатель на данные матрицы \mbox{\Hypertarget{structMatrixView_ab05af0a4f896060f37a91ec49f33970e}\label{structMatrixView_ab05af0a4f896060f37a91ec49f33970e}} 
+\index{MatrixView@{MatrixView}!row\_offset@{row\_offset}}
+\index{row\_offset@{row\_offset}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{row\_offset}{row\_offset}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+View\+::row\+\_\+offset}
+
+Смещение по строкам \mbox{\Hypertarget{structMatrixView_a5e74a0ab063eecec51d26b9fa32ce756}\label{structMatrixView_a5e74a0ab063eecec51d26b9fa32ce756}} 
+\index{MatrixView@{MatrixView}!rows@{rows}}
+\index{rows@{rows}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{rows}{rows}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+View\+::rows}
+
+Количество строк подматрицы \mbox{\Hypertarget{structMatrixView_acf8a24959af86f3226faf2b8f77a2b0d}\label{structMatrixView_acf8a24959af86f3226faf2b8f77a2b0d}} 
+\index{MatrixView@{MatrixView}!stride@{stride}}
+\index{stride@{stride}!MatrixView@{MatrixView}}
+\doxysubsubsection{\texorpdfstring{stride}{stride}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+View\+::stride}
+
+Шаг для строк (ширина исходной матрицы) 
+
+Объявления и описания членов структуры находятся в файле\+:\begin{DoxyCompactItemize}
+\item 
+include/matrix.\+hpp\end{DoxyCompactItemize}
