@@ -113,7 +113,7 @@ void Graph::loadFromCSV(const std::string& fileName)
 	for (const auto& [origin, dest, air_time] : edges) {
 		int i = airportToIndex[origin];
 		int j = airportToIndex[dest];
-		airTimeMatrix[i][j] = air_time;
+		airTimeMatrix[i][j] = std::min(airTimeMatrix[i][j], air_time);
 	}
 }
 
