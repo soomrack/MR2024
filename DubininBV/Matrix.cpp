@@ -70,7 +70,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, const MatrixItem* src_data)
         return;
     };
     
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+    if (__SIZE_MAX__ / rows / cols / sizeof(MatrixItem) == 0) {
         throw MEMORY_ERROR;
     };
 
@@ -88,7 +88,7 @@ Matrix::Matrix(const size_t rows, const size_t cols) :
 	return;
     };
 
-    if (sizeof(MatrixItem) * rows * cols >= SIZE_MAX) {
+    if (__SIZE_MAX__ / rows / cols / sizeof(MatrixItem) == 0) {
         throw MEMORY_ERROR;
     };
 
@@ -169,6 +169,7 @@ Matrix& Matrix::operator*=(const Matrix& A)
     }
 
     Matrix multy(rows, A.cols);
+    multy.set_zeros();
     for (size_t row = 0; row < multy.rows; row++) {
 		for (size_t col = 0; col < multy.cols; col++) {
 			for (size_t idx = 0; idx < cols; ++idx) {
@@ -176,7 +177,6 @@ Matrix& Matrix::operator*=(const Matrix& A)
 			}
 		}
 	}
-
     *this = multy;
     return *this;
 }
@@ -347,9 +347,9 @@ void Matrix::transp()
 {
     Matrix B(cols, rows);
 
-	for (size_t row = 0; row < B.rows; row++) {
-		for (size_t col = 0; col < B.cols; col++) {
-			B.data[rows * col + row] = data[col + row * cols];
+	for (size_t row_this = 0; row_this < B.rows; row_this++) {
+		for (size_t col_this = 0; col_this < B.cols; col_this++) {
+			B.data[rows * col_this + row_this] = data[col_this + row_this * cols];
 		}
 	}
 	*this = B;
@@ -375,11 +375,8 @@ Matrix Matrix::exp(int n)
 
     for (size_t idx = 1; idx <= n; idx++) {
         factorial *= idx;
-        to_calc_pow = matrix_exp_temp * *this;
-        matrix_exp_temp = to_calc_pow;
 
-        matrix_exp_temp *= 1 / factorial;
-
+        matrix_exp_temp = (matrix_exp_temp * *this) * (1. / factorial);
         matrix_exp_res += matrix_exp_temp;
     }
 
