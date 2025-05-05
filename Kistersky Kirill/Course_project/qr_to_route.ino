@@ -1,14 +1,14 @@
 // --- Конфигурация оборудования ---
-#define ENA 5
+#define ENA 2
 #define IN1 6
 #define IN2 7
-#define IN3 8
-#define IN4 9
+#define IN3 5
+#define IN4 4
 #define ENB 10
 #define IR_LEFT A0
 #define IR_RIGHT A1
-#define CALIB_BTN 2
-#define BUZZER 3
+#define CALIB_BTN A2
+#define BUZZER 11
 
 // Карта перекрестков
 const int INTERSECTIONS[][4] = {
