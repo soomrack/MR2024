@@ -166,8 +166,6 @@ int main()
 
     auto graph = buildGraph(data);
 
-    // printGraph(graph, "ATu"); // sdf atl
-
     std::cout << "Введите начальный аэропорт: ";
     std::cin >> start;
     std::cout << "Введите конечный аэропорт: ";
@@ -184,10 +182,10 @@ int main()
     {
         std::vector<std::string> path = getPath(predecessors, start, end);
         std::cout << "Кратчайший путь из " << start << " в " << end << ": ";
-        for (size_t i = 0; i < path.size(); ++i)
+        for (size_t idx = 0; idx < path.size(); ++idx)
         {
-            std::cout << path[i];
-            if (i < path.size() - 1)
+            std::cout << path[idx];
+            if (idx < path.size() - 1)
                 std::cout << " -> ";
         }
         std::cout << "\nРасстояние: " << distances[end] << std::endl;
