@@ -16,18 +16,6 @@ struct Edge
     double distance;
 };
 
-bool isNumber(const std::string &str)
-{
-    for (char const &c : str)
-    {
-        if (!isdigit(c) && c != '.')
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 std::unordered_map<std::string, std::vector<Edge>> buildGraph(const std::vector<std::vector<std::string>> &data)
 {
     std::unordered_map<std::string, std::vector<Edge>> graph;
@@ -40,8 +28,8 @@ std::unordered_map<std::string, std::vector<Edge>> buildGraph(const std::vector<
         std::string distanceStr = columns[9];
         std::string passengersStr = columns[4];
 
-        // Проверяем, что passengersStr не пустая и содержит только числа
-        if (passengersStr.empty() || !isNumber(passengersStr))
+        // Проверяем, что passengersStr не пустая
+        if (passengersStr.empty())
         {
             continue;
         }
