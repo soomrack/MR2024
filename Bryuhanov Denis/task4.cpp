@@ -63,15 +63,14 @@ public:
 Matrix::Matrix(): rows(0), cols(0), data(nullptr) {}
 
 
-Matrix::Matrix(const Matrix& M): rows(M.rows), cols(M.cols)
+Matrix::Matrix(const Matrix& M): rows(M.rows), cols(M.cols), data(nullptr)
 {
-    if (rows > 0 && cols > 0) {
-        data = new (std::nothrow) double[rows * cols];
-        if (!data) throw MEMORY_ERROR;
-        memcpy(data, M.data, rows * cols * sizeof(double));
-    } else {
-        data = nullptr;
-    } 
+     
+    if (rows == 0 || cols == 0) return;
+
+    data = new double[rows * cols];
+    memcpy(data, M.data, rows * cols * sizeof(double));
+
 }
 
 
@@ -83,25 +82,17 @@ Matrix::Matrix(Matrix&& M): rows(M.rows), cols(M.cols), data(M.data)
 }
 
 
-Matrix::Matrix(const size_t n): rows(n), cols(n)
+Matrix::Matrix(const size_t n): rows(n), cols(n), data(nullptr)
 {
-    if(n > 0) {
-        data = new (std::nothrow) double[n * n];
-        if(!data) throw MEMORY_ERROR;
-    } else {
-        data = nullptr;
-    }
+    if(n == 0) return;
+    data = new double[n * n]; 
 }
 
 
-Matrix::Matrix(const size_t row, const size_t col): rows(row), cols(col)
+Matrix::Matrix(const size_t row, const size_t col): rows(row), cols(col), data(nullptr)
 {
-    if (row > 0 && col > 0) {
-        data = new (std::nothrow) double[row * col];
-        if (!data) throw MEMORY_ERROR;
-    } else {
-        data = nullptr;
-    }
+    if (rows == 0 || cols == 0) return;
+    data = new  double[row * col];
 }
 
 
@@ -119,14 +110,9 @@ Matrix& Matrix::operator=(const Matrix& M)
     delete[] data;
     rows = M.rows;
     cols = M.cols;
-
-    if (rows > 0 && cols > 0) {
-        data = new (std::nothrow) double[rows * cols];
-        if (!data) throw MEMORY_ERROR;
-        memcpy(data, M.data, cols * rows * sizeof(double));
-    } else {
-        data = nullptr;
-    }
+    if (rows == 0 || cols == 0) return;
+    data = new double[rows * cols];
+    memcpy(data, M.data, cols * rows * sizeof(double));
 
     return *this;
 }
