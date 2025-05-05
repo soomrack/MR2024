@@ -24,7 +24,7 @@ std::unordered_map<std::string, std::vector<Edge>> buildGraph(const std::vector<
     {
         const auto &columns = data[i];
         std::string origin = columns[22];
-        std::string dest = columns[34];
+        std::string dest = columns[33];
         std::string distanceStr = columns[9];
         std::string passengersStr = columns[4];
 
@@ -74,10 +74,28 @@ std::vector<std::vector<std::string>> ReadCSV(const std::string &file_name)
         std::vector<std::string> row;
         std::stringstream ss(line);
         std::string cell;
+        bool in_qq = false;
 
         while (std::getline(ss, cell, ','))
         {
-            row.push_back(cell);
+            if (in_qq) // внутри кавычек
+            {
+                row.back() += "," + cell;
+                if (cell.back() == '"')
+                {
+                    row.back().pop_back(); // Убираем вторую кавычку
+                    in_qq = false;
+                }
+            }
+            else
+            {
+                if (cell.front() == '"')
+                {
+                    cell.erase(0, 1); // Убираем первую кавычку
+                    in_qq = true;
+                }
+                row.push_back(cell);
+            }
         }
 
         data.push_back(row);
@@ -181,3 +199,5 @@ int main()
 
     return 0;
 }
+
+// В дланных есть ковычки
