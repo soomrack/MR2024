@@ -7,10 +7,16 @@
 
 using namespace std;
 
+typedef string city_name;
+typedef string neighbour_name;
+typedef string previous_city_name;
+typedef int distance;
+typedef int distance_from_origin;
 
 
-unordered_map<string, unordered_map<string, int>> PathFinder::create_graph(const vector<Flight>& data) {
-    unordered_map<string, unordered_map<string, int>> graph;
+
+unordered_map<city_name, unordered_map<neighbour_name, distance>> PathFinder::create_graph(const vector<Flight>& data) {
+    unordered_map<city_name, unordered_map<neighbour_name, distance>> graph;
 
     for (Flight flight : data) {
         graph[flight.origin_city][flight.dest_city] = flight.air_time;
@@ -27,10 +33,10 @@ string PathFinder::find_path(
     const string& destination, 
     const vector<Flight>& data) {
 
-    const unordered_map<string, unordered_map<string, int>>& graph = create_graph(data);
+    const unordered_map<city_name, unordered_map<neighbour_name, distance>>& graph = create_graph(data);
 
 
-    unordered_map<string, int> distances;
+    unordered_map<city_name, distance_from_origin> distances;
     for (const auto& node : graph) {
         distances[node.first] = INT_MAX;
     }
@@ -41,7 +47,7 @@ string PathFinder::find_path(
     pq.push({origin, 0});
 
 
-    unordered_map<string, string> prev;
+    unordered_map<city_name, previous_city_name prev;
 
 
     while (!pq.empty()) {
