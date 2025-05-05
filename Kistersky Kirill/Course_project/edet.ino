@@ -308,7 +308,7 @@ void setup() {
   
   // Калибровка датчиков
   Serial.println("Calibration started");
-  Serial.println("1. Place on BLACK line and press button");
+  Serial.println("1. Place on WHITE line and press button");
   while(digitalRead(BTN_PIN) == LOW);
   
   light color_black;
@@ -316,7 +316,7 @@ void setup() {
   beep(1);
   
   delay(1000);
-  Serial.println("2. Place on WHITE surface and press button");
+  Serial.println("2. Place on BLACK surface and press button");
   while(digitalRead(BTN_PIN) == LOW);
   
   light color_white;
