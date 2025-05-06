@@ -17,10 +17,8 @@ struct Route {
     int airtime;        
 };
 
-
 unordered_map<string, vector<Route>> flight_graph;
 
-// загрузка
 void load_graph(const string& file_path) {
     flight_graph.clear();
     
@@ -94,7 +92,7 @@ void find_shortest_path(const string& start_airport, const string& end_airport) 
         throw runtime_error("Не существует пути между " + start_airport + " и " + end_airport);
     }
 
-    // Восстанавление пкти
+    // Восстанавление пути
     vector<string> path;
     for (string airport = end_airport; !airport.empty(); airport = previous[airport]) {
         path.push_back(airport);
