@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 // Конфигурация оборудования
 #define DIR_R_PIN 4
 #define DIR_L_PIN 7
@@ -54,7 +52,7 @@ const int ROUTE_MAP[12][4] = {
 
 // Системные переменные
 int current_node = CROSS_4;
-int target_node = -1;
+int target_node = CROSS_10;
 bool calibrated = false;
 bool arrived = false;
 
@@ -97,8 +95,8 @@ void lineFollowing() {
     search_time = 0;
     digitalWrite(DIR_R_PIN, 1);
     digitalWrite(DIR_L_PIN, 1);
-    analogWrite(PWR_R_PIN, 150);
-    analogWrite(PWR_L_PIN, 150);
+    analogWrite(PWR_R_PIN, 100);
+    analogWrite(PWR_L_PIN, 100);
   }
   // Поворот налево (левый на черном, правый на белом)
   else if (cur_color_L > color_gray && cur_color_R < color_gray) {
@@ -154,27 +152,27 @@ void end_music() {
 void turnLeft() {
   digitalWrite(DIR_R_PIN, 1);
   digitalWrite(DIR_L_PIN, 0);
-  analogWrite(PWR_R_PIN, 150);
-  analogWrite(PWR_L_PIN, 150);
-  delay(500);
+  analogWrite(PWR_R_PIN, 100);
+  analogWrite(PWR_L_PIN, 100);
+  delay(300);
   arrived = false;
 }
 
 void turnRight() {
   digitalWrite(DIR_R_PIN, 0);
   digitalWrite(DIR_L_PIN, 1);
-  analogWrite(PWR_R_PIN, 150);
-  analogWrite(PWR_L_PIN, 150);
-  delay(500);
+  analogWrite(PWR_R_PIN, 100);
+  analogWrite(PWR_L_PIN, 100);
+  delay(300);
   arrived = false;
 }
 
 void turnAround() {
   digitalWrite(DIR_R_PIN, 0);
   digitalWrite(DIR_L_PIN, 1);
-  analogWrite(PWR_R_PIN, 150);
-  analogWrite(PWR_L_PIN, 150);
-  delay(1000);
+  analogWrite(PWR_R_PIN, 100);
+  analogWrite(PWR_L_PIN, 100);
+  delay(500);
   arrived = false;
 }
 
