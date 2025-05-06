@@ -95,8 +95,8 @@ void lineFollowing() {
     search_time = 0;
     digitalWrite(DIR_R_PIN, 1);
     digitalWrite(DIR_L_PIN, 1);
-    analogWrite(PWR_R_PIN, 100);
-    analogWrite(PWR_L_PIN, 100);
+    analogWrite(PWR_R_PIN, 80);
+    analogWrite(PWR_L_PIN, 80);
   }
   // Поворот налево (левый на черном, правый на белом)
   else if (cur_color_L > color_gray && cur_color_R < color_gray) {
@@ -179,8 +179,8 @@ void turnAround() {
 void moveForward() {
   digitalWrite(DIR_R_PIN, 1);
   digitalWrite(DIR_L_PIN, 1);
-  analogWrite(PWR_R_PIN, 150);
-  analogWrite(PWR_L_PIN, 150);
+  analogWrite(PWR_R_PIN, 80);
+  analogWrite(PWR_L_PIN, 80);
   arrived = false;
 }
 
