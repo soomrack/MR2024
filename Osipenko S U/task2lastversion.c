@@ -1,402 +1,385 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
-#include <math.h>
 #include <string.h>
+#include <math.h>
 
-enum MatrixExceptionLevel {ERROR, DEBUG};//создание массива
 
 struct Matrix
 {
     size_t cols;
     size_t rows;
     double *data;//первая ячейка памяти
-}
+};
+const double scalar = 7;
+enum MatrixExceptionLevel
+{
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG
+};//создание массива
 
+const struct Matrix MATRIX_NULL = {0, 0, NULL};
 
-void matrix_error(const enum MatrixExceptionLevel level, const char* location, const char* msg)//определние ошибки
+//вывод информации
+void matrix_exception(const enum MatrixExceptionLevel level, char *msg)
 {
     if (level == ERROR) {
-        printf("\nERROR in: %s Text: (%s)\n", location, msg);
+        printf("ERROR: %s", msg);
     }
 
-    if (level == DEBUG) {
-        printf("\nDEBUG\nLoc: %s\nText: %s\n", location, msg);
+    if (level == WARNING) {
+        printf("WARNING: %s", msg);
     }
 
+    if (level == INFO) {
+        printf("INFO: %s", msg);
+    }
 }
 
 // Выделение памяти для матрицы
 struct Matrix matrix_allocate(const size_t cols, const size_t rows)
 {
-    struct Matrix A = {cols, rows, NULL};
+    struct Matrix M;
 
-    if (cols == 0 || rows == 0)
-        return A;
+    if (rows == 0 || cols == 0) {
+        matrix_exception(INFO, "Матрица содержит 0 столбцов или строк");
+        return (struct Matrix){M.cols, M.rows, NULL};
+    }
 
-    // Проверка переполнения перед выделением памяти
-    if (SIZE_MAX / cols / rows < sizeof(double))
-        return (struct Matrix){0, 0, NULL};
+    size_t size_in_bytes = rows * cols * sizeof(double);
+    if (rows >= SIZE_MAX / sizeof(double) / cols) {
+        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти \n");
+        return MATRIX_NULL;
+    } // проверить перемполнение rows * cols
 
-    A.data = (double *)malloc(cols * rows * sizeof(double));
+    if (size_in_bytes / sizeof(double) != rows * cols) {
+        matrix_exception(ERROR, "OVERFLOW: Переполнение выделенной памяти");
+        return MATRIX_NULL;
+    }
+    M.data = malloc(cols * rows * sizeof(double));
 
-    if (A.data == NULL)
-        return (struct Matrix){0, 0, NULL};
+    if (M.data == NULL) {
+        matrix_exception(ERROR, "Сбой выделения памяти");
+        return MATRIX_NULL;
+    }
 
-    return A;
+    M.rows = rows;
+    M.cols = cols;
+    return M;
 }
 
 // Освобождение памяти для матрицы
-void matrix_free(struct Matrix *A)
+void matrix_free(const struct Matrix *M)
 {
-    if (A->data != NULL)
-    {
-        free(A->data);//если 0 то и так ноль
-        A->data = NULL;
+    if (M == NULL) {
+        matrix_exception(ERROR, "Обращение к недопутимой области памяти");
+        return;
     }
-    A->cols = 0;
-    A->rows = 0;
+
+    free(M->data);
+    M = NULL;
+    return;
+}
+
+
+void matrix_zero(const struct Matrix M)
+{
+    memset(M.data, 0, M.cols * M.rows * sizeof(double));
 }
 
 // Заполнение матрицы случайными числами
-void matrix_fill_random(struct Matrix A)
+void matrix_random(const struct Matrix A)
 {
-    int sight;
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
-    {
-        sight = (rand() % 2) * 2 - 1;
-        A.data[idx] = (double)((rand() % 100) * sight);
-    }
+    for (size_t elem = 0; elem < A.rows * A.cols; ++elem)
+        A.data[elem] = (double)(rand() % 10);
 }
 
 //принтим матрицу
-void matrix_print(const struct Matrix A)
+int matrix_print(const struct Matrix M)
 {
-    for (size_t row = 0; row < A.rows; ++row)
-    {
-        for (size_t col= 0; col < A.cols; ++col)
-        {
-            printf("%lf \t", A.data[row * A.cols + col]);
+    for (size_t row = 0; row < M.rows; ++row) {
+        for (size_t col = 0; col < M.cols; ++col) {
+            printf("%lf ", M.data[row * M.cols + col]);
         }
         printf("\n");
     }
+
+    return 0;
 }
+
 
 // Сложение матриц A и B
-int matrix_add(struct Matrix A, struct Matrix B, struct Matrix result)
+struct Matrix matrix_add(const struct Matrix A, const struct Matrix B)
 {
-    if (A.cols != B.cols || A.rows != B.rows)
-    {
-        matrix_error(ERROR, "C = A + B", "размеры матриц не совпадают для сложения");
-        return NAN;
+    if (A.rows != B.rows || A.cols != B.cols) {
+        matrix_exception(WARNING, "Размеры матриц не подходят для сложения.\n");
+        return MATRIX_NULL;
     }
 
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
-    {
-        result.data[idx] = A.data[idx] + B.data[idx];
-    }
-
-    return 0;
-}
-
-// Вычитание матриц A и B
-int matrix_subtract(struct Matrix A, struct Matrix B, struct Matrix result)
-{
-    if (A.cols != B.cols || A.rows != B.rows)
-    {
-        matrix_error(ERROR, "C = A - B", "размеры матриц не совпадают для вычитания");
-        return NAN;
-    }
-
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
-    {
-        result.data[idx] = A.data[idx] - B.data[idx];
-    }
-
-    return 0;
-}
-
-//умножение матрицы на число
-struct Matrix matrix_multipliy_const(struct Matrix A, double constant)
-{
     struct Matrix result = matrix_allocate(A.rows, A.cols);
-    for (size_t idx = 0; idx < A.rows * A.cols; ++idx)
-    {
-        result.data[idx] = A.data[idx] * constant;
+
+    for (size_t elem = 0; elem < result.rows * result.cols; ++elem) {
+        result.data[elem] = A.data[elem] + B.data[elem];
     }
 
     return result;
 }
 
-// Умножение матриц A и B, результат в новой матрице C
-struct Matrix matrix_multiply(struct Matrix A, struct Matrix B)
+// Вычитание матриц A и B
+struct Matrix matrix_substruct(const struct Matrix A, const struct Matrix B)
 {
-    if (A.cols != B.rows)
-    {
-        matrix_error(ERROR, "C = A * B", "Умножение двух матриц не удалось (неверные размеры матриц)");
-        return (struct Matrix){0, 0, NULL};
+    if (A.rows != B.rows || A.cols != B.cols) {
+        matrix_exception(WARNING, "Размеры матриц не подходят для сложения.\n");
+        return MATRIX_NULL;
     }
 
-    struct Matrix C = matrix_allocate(B.cols, A.rows);
+    struct Matrix result = matrix_allocate(A.rows, A.cols);
 
-    if (C.data == NULL)
-    {
-        return C;
+    for (size_t elem = 0; elem < result.rows * result.cols; ++elem) {
+        result.data[elem] = A.data[elem] - B.data[elem];
     }
 
-    for (size_t row = 0; row < A.rows; ++row)
-    {
-        for (size_t col = 0; col < B.cols; ++col)
-        {
-            C.data[row * C.cols + col] = 0;
-            for (size_t k_col = 0; k_col < A.cols; ++k_col)
-            {
-                C.data[row * C.cols + col] += A.data[row * A.cols + k_col] * B.data[k_col * B.cols + col];
+    return result;
+}
+
+// Умножение матриц A и B
+struct Matrix matrix_multiply(const struct Matrix A,const struct Matrix B)
+{
+    if (A.cols != B.rows) {
+        matrix_exception(WARNING, "Число столбцов первой матрицы не равно числу строк второй матрицы.\n");
+        return MATRIX_NULL;
+    }
+
+    struct Matrix result = matrix_allocate(A.rows, B.cols);
+    matrix_zero(result);
+
+    for (size_t row = 0; row < result.rows; ++row) {
+        for (size_t col = 0; col < result.cols; ++col) {
+            for (size_t k = 0; k < result.cols; ++k) {
+                result.data[row * result.cols + col] += A.data[row * result.cols + k] * B.data[k * result.cols + col];
             }
         }
     }
 
-    return C;
+    return result;
 }
 
-struct Matrix matrix_transpon(struct Matrix A)
+//умножение матрицы на число
+struct Matrix matrix_scalar(const struct Matrix A, double scalar)
 {
     struct Matrix result = matrix_allocate(A.rows, A.cols);
 
-    for (size_t row = 0; row < A.rows; ++row)
-    {
-        for (size_t col = 0; col < A.cols; ++col)
-        {
-            result.data[col * A.rows + row] = A.data[row * A.cols + col];
+    for (size_t elem = 0; elem < result.rows * result.cols; ++elem) {
+        result.data[elem] = A.data[elem] * scalar;
+    }
+
+    return result;
+}
+
+//транспонирование
+struct Matrix matrix_transposition(const struct Matrix A)
+{
+    struct Matrix result = matrix_allocate(A.cols, A.rows);
+
+    for (size_t row = 0; row < result.rows; ++row) {
+        for (size_t col = 0; col < result.cols; ++col) {
+            result.data[col * result.rows + row] = A.data[row * A.cols + col];
         }
     }
+
     return result;
 }
 
 //вычисляем определитель
-double determinant(struct Matrix A)
+double matrix_determinate(const struct Matrix A)
 {
-    if (A.rows != A.cols)
-    {
-        matrix_error(ERROR, "|A|", "Определитель невозможно вычислить (неверные размеры матриц)");
-        return 0;
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "Матрица должна быть квадратной для нахождения определителя.\n");
+        return NAN;
     }
 
+    if (A.rows == 0 && A.cols == 0) {
+        matrix_exception(ERROR, "Количесвто строк и столбцов не может быть меньше 1.\n");
+        return NAN;
+    }
     // Базовый случай для матрицы 1x1
-    if (A.rows == 1)
-    {
+    if (A.rows == 1 && A.cols == 1) {
         return A.data[0];
     }
-
     // Базовый случай для матрицы 2x2
-    if (A.rows == 2)
-    {
+    if (A.rows == 2 && A.cols == 2) {
         return A.data[0] * A.data[3] - A.data[1] * A.data[2];
     }
 
-    double det = 0;
-
-    // Разложение по первой строке
-    for (size_t col = 0; col < A.cols; col++)
-    {
-        struct Matrix minor = matrix_allocate(A.cols - 1, A.rows - 1);//создаём миноры
-
-        int minor_row = 0;
-        for (size_t row = 1; row < A.rows; row++)
-        {
-            int minor_col = 0;
-            for (size_t k_col = 0; k_col < A.cols; k_col++)
-            {
-                if (k_col != col)
-                {
-                    minor.data[minor_row * (A.cols - 1) + minor_col] = A.data[row * A.cols + k_col];
-                    minor_col++;
-                }
-            }
-            minor_row++;
-        }
-
-        double minor_det = determinant(minor);
-
-        det += (col % 2 == 0 ? 1 : -1) * A.data[col] * minor_det;
-
-        free(minor.data);
+    if (A.rows == 3 && A.cols == 3) {
+        return A.data[0] * (A.data[4] * A.data[8] - A.data[5] * A.data[7]) -
+               A.data[1] * (A.data[3] * A.data[8] - A.data[5] * A.data[6]) +
+               A.data[2] * (A.data[3] * A.data[7] - A.data[4] * A.data[6]);
     }
-    
-    return det;
+
+    matrix_exception(WARNING, "Определитель нельзя посчитать для матриц размером большим чем 3х3.\n");
+    return NAN;
 }
-//копия матрицы
-struct Matrix matrix_copy(struct Matrix A, const struct Matrix B){
-    for (size_t i = 0; i < A.rows * A.cols; i++)
-    {
-        A.data[i]=B.data[i]
-    }
-}
-//возведение в степень
-struct Matrix matrix_power(struct Matrix, int power){
-    if (A.rows != A.cols)
-    {
-        matrix_error(ERROR, "|A|", "Определитель невозможно вычислить (неверные размеры матриц)");
-        return 0;
-    }
-    struct Matrix result = matrix_allocate(A.cols, A.rows);
 
-    matrix_copy(result, A);
 
-    for (int p = 1; p < power; p++)
-    {
-        result = matrix_multiply(A, result);
-    }
-
-    return result;
-}
-//единичная матрица
-struct Matrix matrix_identity(struct Matrix M)
+struct Matrix matrix_identity(const struct Matrix M)
 {
-    for (size_t i = 0; i < M.rows; ++i)
-    {
-        for (size_t j = 0; j < M.cols; ++j)
-        {
-            M.data[i * M.cols + j] = (i == j) ? 1 : 0;
-        }
+    struct Matrix I = matrix_allocate(M.cols, M.rows);
+    matrix_zero(I);
+
+    for (size_t row = 0; row < I.rows; ++row) {
+        I.data[row * I.cols + row] = 1.0;
     }
-    return M;
+
+    return I;
 }
 
 //факториал
-double factorial(const int n)
+double factorial(const unsigned int n)
 {
     double fact = 1.0;
-    for (size_t i = 1; i <= n; ++i)
-    {
-        fact *= i;
+
+    if (n == 0) {
+        return fact;
+    }
+
+    for (unsigned int pow = 1; pow <= n; ++pow) {
+        fact *= pow;
     }
 
     return fact;
 }
 
+//копия матрицы
+struct Matrix matrix_copy(const struct Matrix src)
+{
+    if (src.data == NULL) {
+        matrix_exception(ERROR, "Сбой выделения памяти");
+        return MATRIX_NULL;
+    }
+
+    struct Matrix dest = matrix_allocate(src.cols, src.rows);
+    
+    memcpy(dest.data, src.data, src.cols * src.rows * sizeof(double));
+    return dest;
+}
+
+
+void matrix_copy_void(const struct Matrix src, const struct Matrix dest)
+{
+    memcpy(src.data, dest.data, dest.cols * dest.rows * sizeof(double));
+    return;
+}
+
+//возведение в степень
+struct Matrix matrix_power(const struct Matrix A, unsigned int power) // Возведение матрицы в степень
+{
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "Матрица должна быть квадратной для возведения в степень.\n");
+        return MATRIX_NULL;
+    }
+
+    if (power == 0) {
+        struct Matrix result = matrix_identity(A);
+        return result;
+    }
+
+    struct Matrix temp = matrix_copy(A);
+
+    if (power == 1) {
+        return temp;
+    }
+
+    for (unsigned int k = 2; k < power; ++k) {
+        struct Matrix result = matrix_multiply(temp, A);
+        matrix_free(&temp);
+        temp = result;
+    }
+
+    return temp;
+}
+
 //экспонента
 struct Matrix matrix_exponent(const struct Matrix A, int terms)
 {
-
-    if (A.rows != A.cols)
-    {
-        matrix_error(ERROR, "|A|", "Определитель невозможно вычислить (неверные размеры матриц)");
-        return 0;
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "Матрица должна быть квадратной для вычисления экспоненты");
+        return MATRIX_NULL;
     }
 
     struct Matrix result = matrix_allocate(A.rows, A.cols);
-    matrix_identity(result);
-    struct Matrix temp = matrix_allocate(A.rows, A.cols);
 
-    for (int n = 1; n < terms; ++n)
-    {
-        // Вычисляем temp = A^n
-        temp = matrix_power(A, n);
-        double fact = factorial(n);
+    for (int n = 0; n < terms; ++n) {
+        struct Matrix temp = matrix_power(A, n);
+        double fact = 1 / factorial(n);
 
-        // Делим temp на факториал и сохраняем результат в term
-        for (size_t i = 0; i < result.rows * result.cols; ++i)
-        {
-            result.data[i] += temp.data[i] / fact;
-        }8
+        struct Matrix result_new = matrix_scalar(temp, fact);
+        matrix_copy_void(result, result_new);
+
+        matrix_free(&temp);
+        matrix_free(&result_new);
     }
-
-    matrix_free(&temp);
-    // Освобождаем память, выделенную для вспомогательных матриц
 
     return result;
 }
 
+
 int main()
 {
-    srand(time(NULL)); // Инициализация рандома
+    srand(time(NULL));// Инициализация рандома
 
     struct Matrix A = matrix_allocate(3, 3);
     struct Matrix B = matrix_allocate(3, 3);
 
-    struct Matrix result_add = matrix_allocate(A.cols, A.rows);
-    struct Matrix result_subtract = matrix_allocate(A.cols, A.rows);
-
-    if (A.data == NULL || B.data == NULL)
-    {
-        printf("Ошибка выделения памяти\n");
-        return 1;
-    }
-
-    // Заполняем матрицы случайными числами
-    matrix_fill_random(A);
-    matrix_fill_random(B);
-
+    matrix_random(A);
     printf("Матрица A:\n");
     matrix_print(A);
 
+    matrix_random(B);
     printf("Матрица B:\n");
     matrix_print(B);
 
-    // Складываем матрицы с проверкой на ошибку
-    if (matrix_add(A, B, result_add) != NAN)
-    {
-        printf("Результат A + B:\n");
-        matrix_print(result_add);
-    }
+    struct Matrix result_add = matrix_add(A, B);
+    printf("Результат сложения:\n");
+    matrix_print(result_add);
+    matrix_free(&result_add);
 
-    // Вычитаем матрицы с проверкой на ошибку
-    if (matrix_subtract(A, B, result_subtract) != NAN)
-    {
-        printf("Результат A - B:\n");
-        matrix_print(result_subtract);
-    }
-    
-    //Умножаем матрицу на число
-    struct Matrix matrix_const = matrix_multipliy_const(A, 2);
-    printf("\nРезультат умножения на константу\n");
-    matrix_print(matrix_const);
-    
+    struct Matrix result_substruct = matrix_substruct(A, B);
+    printf("Результат вычитания:\n");
+    matrix_print(result_substruct);
+    matrix_free(&result_substruct);
 
+    struct Matrix result_multiply = matrix_multiply(A, B);
+    printf("Результат умножения:\n");
+    matrix_print(result_multiply);
+    matrix_free(&result_multiply);
 
-    // Умножаем матрицы
-    struct Matrix C = matrix_multiply(A, B);
-    if (C.data != NULL)
-    {
-        printf("Результат A * B:\n");
-        matrix_print(C);;
-    }
+    struct Matrix result_transposition = matrix_transposition(A);
+    printf("Транспонированная матрица A:\n");
+    matrix_print(result_transposition);
+    matrix_free(&result_transposition);
 
-    //Транспонируем матрицу
-    struct Matrix transpon = matrix_transpon(A);
-    printf("Результат транспонирования\n");
-    matrix_print(transpon);
-    
-    //Расчитываем определитель
-    double det = determinant(A);
-    if (det != NAN)
-    {
-        printf("Результат определителя:\n");
-        printf("%lf", det);
-    }
+    struct Matrix result_scalar = matrix_scalar(A, scalar);
+    printf("Матрица A умноженная на %lf:\n", scalar);
+    matrix_print(result_scalar);
+    matrix_free(&result_scalar);
 
-    //Возведение в степень
-    struct Matrix P = matrix_power(A, 3);
-    printf("Результат возведения в степень\n");
-    matrix_print(P);
+    double determinate = matrix_determinate(A);
+    printf("Определитель матрицы A:\n");
+    printf("%f\n", determinate);
 
-    //Находим экспоненту
-    struct Matrix exp(A, 2)
-    printf("Результат нахождения экспоненты\n");
-    matrix_print(exp);
+    int terms = 16;
+    struct Matrix result_exponent = matrix_exponent(A, terms);
+    printf("Экспонента матрицы A:\n");
+    matrix_print(result_exponent);
+    matrix_free(&result_exponent);
 
-    // Освобождаем память
     matrix_free(&A);
     matrix_free(&B);
-    matrix_free(&result_add);
-    matrix_free(&result_subtract);
-    matrix_free(&matrix_const);
-    matrix_free(&C);
-    matrix_free(&transpon);
-    matrix_free(&P);
-    matrix_free(&exp);
 
     return 0;
 }

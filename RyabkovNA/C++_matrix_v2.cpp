@@ -1,0 +1,494 @@
+﻿#include <iostream>
+#include <stdio.h>
+#include <cstdlib>
+#include <stdlib.h>
+#include <math.h>
+#include <stdint.h>
+#include <cstring>
+
+class Matrix
+{
+private:              
+
+    size_t cols;
+    size_t rows;
+    double* data;
+
+public:                                 
+
+    Matrix();                                                      
+    Matrix(const size_t rows, const size_t cols);                   
+    Matrix(const size_t rows, const size_t cols, double* data2);     
+    Matrix(const Matrix& A);                                         
+    Matrix(Matrix&& A);                                              
+    ~Matrix();
+                                 
+    Matrix& operator=(const Matrix& A);      
+    Matrix& operator=(Matrix&& A);           
+    Matrix operator+(const Matrix& A);       
+    Matrix& operator+=(const Matrix& A);     
+    Matrix operator-(const Matrix& A);       
+    Matrix& operator-=(const Matrix& A);     
+    Matrix operator*(const Matrix& A);      
+    Matrix operator*(const double x);        
+    Matrix& operator*=(const Matrix& A);   
+    Matrix& operator*=(const double x);     
+     
+    bool is_zero() const;
+    void print();
+    void matrix_random();
+    Matrix exp(const int x);
+    Matrix transp();
+    void matrix_identity();
+    void matrix_zero();
+    double det();
+    Matrix power(int ex) const;
+};
+
+
+class MatrixException : public std::domain_error 
+{
+public:
+    MatrixException(const std::string message) : domain_error{ message } { };
+};
+
+
+MatrixException MEMORY_ERROR("Memory allocation failed\n");
+MatrixException DATA_ERROR("Matrix.data is nullptr\n");
+MatrixException SIZE_ERROR("Matrixes of different sizes\n");
+
+
+Matrix::Matrix() {
+
+    printf("\nConstructor\n");
+
+    rows = 0;
+    cols = 0;
+    data = nullptr;
+}
+
+
+Matrix::Matrix(const size_t rows, const size_t cols) :
+    rows(rows), cols(cols), data(nullptr)
+{
+
+    if (cols == 0 || rows == 0) {
+        printf("ERROR cols=0 or rows=0");
+        return;
+    };
+
+    if (cols > SIZE_MAX / rows) {
+        throw MEMORY_ERROR;
+    }
+
+    if (rows * cols > SIZE_MAX / sizeof(double)) {
+        throw MEMORY_ERROR;
+    }
+
+    data = new double[rows * cols];
+}
+
+
+Matrix::Matrix(const size_t rows, const size_t cols, double* data2) :
+    rows(rows), cols(cols)
+{
+    printf("\nCreate constructor\n");
+
+    if (cols == 0 || rows == 0) {
+        printf("ERROR cols=0 or rows=0");
+        return;
+    };
+
+    if (cols > SIZE_MAX / rows) {
+        throw MEMORY_ERROR;
+    }
+
+    if (rows * cols > SIZE_MAX / sizeof(double)) {
+        throw MEMORY_ERROR;
+    }
+
+    data = new double[rows * cols];
+    memcpy(data, data2, sizeof(double) * rows * cols);
+}
+
+
+Matrix::Matrix(const Matrix& A)
+{
+    printf("\nCopy constructor\n");
+
+    rows = A.rows;
+    cols = A.cols;
+    data = new double[rows * cols];
+    memcpy(data, A.data, sizeof(double) * rows * cols);
+}
+
+
+Matrix::Matrix(Matrix&& A) :
+    rows(A.rows), cols(A.cols), data(A.data)
+{
+
+    printf("\nMove constructor\n");
+
+    A.data = nullptr;
+    A.cols = 0;
+    A.rows = 0;
+}
+
+
+Matrix::~Matrix()
+{
+    printf("\nDestructor\n");
+
+    delete[] data;
+    cols = 0;
+    rows = 0;
+}
+
+Matrix& Matrix::operator=(const Matrix& A)
+{
+    printf("\nCopy assignment\n");
+
+    if (this == &A) { return *this; };
+
+    if (cols == A.cols && rows == A.rows) {
+        memcpy(data, A.data, sizeof(double) * rows * cols);
+        return *this;
+    }
+
+    delete[] data;
+    rows = A.rows;
+    cols = A.cols;
+    data = new double[rows * cols];
+    memcpy(data, A.data, sizeof(double) * rows * cols);
+    return *this;
+}
+
+
+Matrix& Matrix::operator=(Matrix&& A)
+{
+    printf("\nMove assignment\n");
+
+    rows = A.rows;
+    cols = A.cols;
+    data = A.data;
+    A.data = nullptr;
+    A.rows = 0;
+    A.cols = 0;
+    return *this;
+}
+
+
+Matrix Matrix::operator+(const Matrix& A) 
+{
+    printf("\n+\n");
+
+    if (this->is_zero()) {
+        return A;  // 0 + A = A
+    }
+    if (A.is_zero()) {
+        return *this;  // A + 0 = A
+    }
+
+    Matrix sum(*this);
+    sum += A;
+    return sum;
+}
+
+
+Matrix& Matrix::operator+=(const Matrix& A)
+{
+    printf("\n+=\n");
+
+    if (rows != A.rows || cols != A.cols) {
+        throw SIZE_ERROR;
+    }
+
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] += A.data[idx];
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::operator-(const Matrix& A) 
+{
+    printf("\n-\n");
+
+    if (A.is_zero()) {
+        return *this;  // A - 0 = A
+    }
+    if (this->is_zero()) {
+        Matrix result(A); 
+        for (size_t i = 0; i < rows * cols; ++i) {
+            result.data[i] = -result.data[i];  
+        }
+        return result;  // 0 - A = -A
+    }
+
+    Matrix sub(*this);
+    sub -= A;
+    return sub;
+}
+
+
+Matrix& Matrix::operator-=(const Matrix& A)
+{
+    printf("\n-=\n");
+
+    if (this->is_zero()) {
+        *this = A;
+        for (size_t i = 0; i < rows * cols; ++i) {
+            data[i] = -data[i]; 
+        }
+        return *this;
+    }
+
+    if (rows != A.rows || cols != A.cols) {
+        throw SIZE_ERROR;
+    }
+
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] -= A.data[idx];
+    }
+
+    return *this;
+}
+
+
+Matrix Matrix::operator*(const Matrix& A) 
+{
+    printf("\n*\n");
+
+    if (this->is_zero() || A.is_zero()) {
+        Matrix zero(rows, A.cols);
+        zero.matrix_zero();
+        return zero;  // A * 0 = 0 или 0 * B = 0
+    }
+
+    if (cols != A.rows) {
+        throw SIZE_ERROR;
+    }
+
+    Matrix multi(*this);
+    multi *= A;
+    return multi;
+}
+
+
+Matrix Matrix::operator*(const double x) 
+{
+    printf("\n*x\n");
+
+    if (this->is_zero() || x == 0.0) {
+        Matrix zero(rows, cols);
+        zero.matrix_zero();
+        return zero;  // 0 * x = 0 или A * 0 = 0
+    }
+
+    Matrix multi(*this);
+    multi *= x;
+    return multi;
+}
+
+
+Matrix& Matrix::operator*=(const Matrix& A) 
+{
+    printf("\n*=\n");
+
+    if (this->is_zero() || A.is_zero()) {
+        matrix_zero();  // Обнуляем текущую матрицу
+        return *this;
+    }
+
+    if (cols != A.rows) {
+        throw SIZE_ERROR;
+    }
+
+    Matrix multi(rows, A.cols);
+    multi.matrix_zero(); 
+
+    for (size_t row = 0; row < multi.rows; row++) {
+        for (size_t col = 0; col < multi.cols; col++) {
+            for (size_t idx = 0; idx < A.cols; idx++) {
+                multi.data[row * multi.cols + col] += data[row * cols + idx] * A.data[idx * A.cols + col];
+            }
+        }
+    }   
+    *this = multi;
+    return *this;
+}
+
+
+Matrix& Matrix::operator*=(const double x) 
+{
+    printf("\n*=x\n");
+    for (size_t idx = 0; idx < rows * cols; idx++) {
+        data[idx] *= x;
+    }
+
+    return *this;
+}
+
+bool Matrix::is_zero() const {
+    if (data == nullptr) {
+        throw DATA_ERROR;
+    }
+    for (size_t i = 0; i < rows * cols; ++i) {
+        if (data[i] != 0.0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void Matrix::print()
+{
+    for (size_t col = 0; col < cols; ++col) {
+        printf("| ");
+        for (size_t row = 0; row < rows; ++row) {
+            printf("%lf ", data[row * cols + col]);
+        }
+        printf("|\n");
+    }
+}
+
+
+void Matrix::matrix_random()
+{
+    for (size_t idx = 0; idx < cols * rows; idx++) {
+        data[idx] = rand() % 10;
+    }
+}
+
+
+Matrix Matrix::exp(int x)                  
+{
+    if (cols != rows) {
+        throw SIZE_ERROR;
+    }
+
+    Matrix matrix_term(*this);                   
+    Matrix matrix_exponent_result(rows, cols);  
+    matrix_exponent_result.matrix_identity();
+
+    if (x == 0) {
+        return matrix_exponent_result;
+    }
+
+    for (size_t n = 1; n <= x; n++) {
+        matrix_term = matrix_term * (*this) * (1.0 / n);
+        matrix_exponent_result += matrix_term;
+    }
+    return matrix_exponent_result;
+}
+
+
+Matrix Matrix::transp()
+{
+    Matrix transp(cols, rows);
+    for (size_t row = 0; row < rows; ++row)
+        for (size_t col = 0; col < cols; ++col)
+            transp.data[col * rows + row] = data[row * cols + col];
+    return transp;
+}
+
+
+void Matrix::matrix_identity()  
+{
+    if (rows != cols) {
+        throw SIZE_ERROR;
+    }
+
+    matrix_zero();
+
+    for (size_t idx = 0; idx < rows * cols; idx += rows + 1) {
+        data[idx] = 1.0;
+    }
+}
+
+
+void Matrix::matrix_zero()
+{
+    if (data == nullptr) {
+        throw DATA_ERROR;
+    }
+
+    memset(data, 0, cols * rows * sizeof(double));
+}
+
+
+double Matrix::det()
+{
+    if (cols != rows) {
+        throw SIZE_ERROR;
+    }
+
+    //проверка, что матрица ненулевая
+    if (this->is_zero()) {
+        return 0.0;
+    }
+
+    if (rows == 1) {
+        return data[0];
+    }
+    if (rows == 2) {
+        return data[0] * data[3] - data[1] * data[2];
+    }
+    if (rows == 3) {
+        return data[0] * (data[4] * data[8] - data[5] * data[7]) -
+            data[1] * (data[3] * data[8] - data[5] * data[6]) +
+            data[2] * (data[3] * data[7] - data[4] * data[6]);
+    }
+    
+    //ошибка, если матрица больше 3х3
+    throw MatrixException("Ошибка: матрица больше 3x3");
+}
+
+
+Matrix Matrix::power(int ex) const {
+    if (cols != rows) {
+        throw SIZE_ERROR; 
+    }
+
+    if (ex < 0) {
+        throw MatrixException("Ошибка: отрицательная степень");
+    }
+
+    if (ex == 0) {
+        Matrix result(rows, cols);
+        result.matrix_identity();
+        return result;
+    }
+
+    if (ex == 1) {
+        return *this;
+    }
+
+    Matrix result(rows, cols);
+    result.matrix_identity(); 
+
+    Matrix base = *this; 
+
+    while (ex > 0) {
+        if (ex % 2 == 1) {
+            result *= base; 
+        }
+        base *= base; 
+        ex /= 2; 
+    }
+
+    return result;
+}
+
+
+int main() {
+
+    double data[9] = { 0., 1., 2., 3., 4., 5., 6., 7., 8. };
+    Matrix A(3, 3, data);
+    Matrix С(3, 3, data);
+
+    A.print();
+    Matrix B = A.power(3);
+    B.print();
+}

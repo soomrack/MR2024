@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.9.1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Flight path planner: Исходный файл include/flightpathplanner.hpp</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">Flight path planner
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.9.1 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="headertitle">
+<div class="title">flightpathplanner.hpp</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;unordered_set&gt;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;queue&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
+<div class="line"><a name="l00014"></a><span class="lineno"><a class="line" href="namespacefpp.html">   14</a></span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacefpp.html">fpp</a> {</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
+<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">   16</a></span>&#160;<span class="keyword">using</span> <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> = int; </div>
+<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">   17</a></span>&#160;<span class="keyword">using</span> <a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a> = double; </div>
+<div class="line"><a name="l00018"></a><span class="lineno"><a class="line" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">   18</a></span>&#160;<span class="keyword">using</span> <a class="code" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">flightPath</a> = std::pair&lt;std::vector&lt;airportId&gt;, std::vector&lt;airTime&gt;&gt;; </div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlanner.html">   27</a></span>&#160;<span class="keyword">class </span><a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> {</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    <span class="keyword">class </span>FlightInfo {</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        <a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a> m_flightAirTime;        </div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;        <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> m_originAirportId;    </div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> m_destAirportId;      </div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <span class="keywordtype">int</span> m_year;                     </div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        <span class="keywordtype">int</span> m_quarter;                  </div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        <span class="keywordtype">int</span> m_month;                    </div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        FlightInfo(<a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a> <a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a>, <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> origin, <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> dest, <span class="keywordtype">int</span> yr, <span class="keywordtype">int</span> qtr, <span class="keywordtype">int</span> mth)</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;            : m_flightAirTime(<a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a>), m_originAirportId(origin), m_destAirportId(dest),</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;              m_year(yr), m_quarter(qtr), m_month(mth) {}</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        <a class="code" href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">airTime</a> getFlightAirTime()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_flightAirTime; }</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> getOriginAirportId()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_originAirportId; }</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> getDestAirportId()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_destAirportId; }</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keywordtype">int</span> getYear()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_year; }</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <span class="keywordtype">int</span> getQuarter()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_quarter; }</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <span class="keywordtype">int</span> getMonth()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_month; }</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    };</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="keyword">using</span> FlightGraph = std::map&lt;airportId, std::vector&lt;std::pair&lt;airportId, FlightInfo&gt;&gt;&gt;; </div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">using</span> AirportsSet = std::unordered_set&lt;airportId&gt;; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keyword">using</span> DistanceMap = std::unordered_map&lt;airportId, airTime&gt;; </div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="keyword">using</span> PathInfo = std::pair&lt;airportId, airTime&gt;; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    <span class="keyword">using</span> PathMap = std::unordered_map&lt;airportId, PathInfo&gt;; </div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    FlightGraph flightGraph;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    AirportsSet airports;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    std::vector&lt;std::string&gt; parseCsvLine(<span class="keyword">const</span> std::string&amp; line);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    std::pair&lt;DistanceMap, PathMap&gt; dijkstra(<a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> originIndex);</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    <a class="code" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">flightPath</a> reconstructPath(<span class="keyword">const</span> PathMap&amp; pathInfo, <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> destIndex);</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    <span class="keyword">static</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>&amp; <a class="code" href="classfpp_1_1FlightPathPlanner.html#a3d2c82a70b564d48ac55e7bdee4afe52">getInstance</a>();</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html#a661ad6eeb0fada9f23174daae1a3b315">loadData</a>(<span class="keyword">const</span> std::string&amp; filePath);</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160; </div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html#a07e35ab3d787219444fd0611444692bf">clear</a>();</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html#ad6c763bb23c0e6ba8c830ba69c5fe769">containsAirport</a>(<a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> index) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    <a class="code" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">flightPath</a> <a class="code" href="classfpp_1_1FlightPathPlanner.html#a6aa5c73ce7e486590de11410ca800dc9">findFlightPathBetween</a>(<a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> originIndex, <a class="code" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> destIndex);</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlanner.html#a89f904a7712fea999c26186900f99893">  172</a></span>&#160;    <a class="code" href="classfpp_1_1FlightPathPlanner.html#a89f904a7712fea999c26186900f99893">FlightPathPlanner</a>(<span class="keyword">const</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
+<div class="line"><a name="l00179"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlanner.html#a2aa18756287abcf4845e3a20f2fb98a6">  179</a></span>&#160;    <a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>&amp; <a class="code" href="classfpp_1_1FlightPathPlanner.html#a2aa18756287abcf4845e3a20f2fb98a6">operator=</a>(<span class="keyword">const</span> <a class="code" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;};</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
+<div class="line"><a name="l00188"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlannerException.html">  188</a></span>&#160;<span class="keyword">class </span><a class="code" href="classfpp_1_1FlightPathPlannerException.html">FlightPathPlannerException</a> : <span class="keyword">public</span> std::exception {</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    std::string m_errorMessage; </div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00197"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlannerException.html#abb72db0decd5a0857001704305cd89c6">  197</a></span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classfpp_1_1FlightPathPlannerException.html#abb72db0decd5a0857001704305cd89c6">FlightPathPlannerException</a>(<span class="keyword">const</span> std::string&amp; message) : m_errorMessage(message) {}</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
+<div class="line"><a name="l00203"></a><span class="lineno"><a class="line" href="classfpp_1_1FlightPathPlannerException.html#a57ffea8fd3bea8569075b4264b22e35f">  203</a></span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code" href="classfpp_1_1FlightPathPlannerException.html#a57ffea8fd3bea8569075b4264b22e35f">what</a>() const noexcept<span class="keyword"> override </span>{ <span class="keywordflow">return</span> m_errorMessage.c_str(); }</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;};</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;} <span class="comment">// namespace fpp</span></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlannerException_html"><div class="ttname"><a href="classfpp_1_1FlightPathPlannerException.html">fpp::FlightPathPlannerException</a></div><div class="ttdoc">Класс исключений для обработки ошибок в FlightPathPlanner.</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:188</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlannerException_html_a57ffea8fd3bea8569075b4264b22e35f"><div class="ttname"><a href="classfpp_1_1FlightPathPlannerException.html#a57ffea8fd3bea8569075b4264b22e35f">fpp::FlightPathPlannerException::what</a></div><div class="ttdeci">const char * what() const noexcept override</div><div class="ttdoc">Получить сообщение об ошибке</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:203</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlannerException_html_abb72db0decd5a0857001704305cd89c6"><div class="ttname"><a href="classfpp_1_1FlightPathPlannerException.html#abb72db0decd5a0857001704305cd89c6">fpp::FlightPathPlannerException::FlightPathPlannerException</a></div><div class="ttdeci">FlightPathPlannerException(const std::string &amp;message)</div><div class="ttdoc">Конструктор исключения</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:197</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html">fpp::FlightPathPlanner</a></div><div class="ttdoc">Синглтон-класс для управления графом рейсов и поиском кратчайших путей</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:27</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a07e35ab3d787219444fd0611444692bf"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a07e35ab3d787219444fd0611444692bf">fpp::FlightPathPlanner::clear</a></div><div class="ttdeci">void clear()</div><div class="ttdoc">Очищает граф рейсов и множество аэропортов</div><div class="ttdef"><b>Definition:</b> flightpathplanner.cpp:98</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a2aa18756287abcf4845e3a20f2fb98a6"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a2aa18756287abcf4845e3a20f2fb98a6">fpp::FlightPathPlanner::operator=</a></div><div class="ttdeci">FlightPathPlanner &amp; operator=(const FlightPathPlanner &amp;)=delete</div><div class="ttdoc">Оператор присваивания (удален)</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a3d2c82a70b564d48ac55e7bdee4afe52"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a3d2c82a70b564d48ac55e7bdee4afe52">fpp::FlightPathPlanner::getInstance</a></div><div class="ttdeci">static FlightPathPlanner &amp; getInstance()</div><div class="ttdoc">Получить единственный экземпляр класса</div><div class="ttdef"><b>Definition:</b> flightpathplanner.cpp:10</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a661ad6eeb0fada9f23174daae1a3b315"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a661ad6eeb0fada9f23174daae1a3b315">fpp::FlightPathPlanner::loadData</a></div><div class="ttdeci">void loadData(const std::string &amp;filePath)</div><div class="ttdoc">Загружает данные о рейсах из CSV-файла</div><div class="ttdef"><b>Definition:</b> flightpathplanner.cpp:43</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a6aa5c73ce7e486590de11410ca800dc9"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a6aa5c73ce7e486590de11410ca800dc9">fpp::FlightPathPlanner::findFlightPathBetween</a></div><div class="ttdeci">flightPath findFlightPathBetween(airportId originIndex, airportId destIndex)</div><div class="ttdoc">Находит кратчайший путь между двумя аэропортами</div><div class="ttdef"><b>Definition:</b> flightpathplanner.cpp:157</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_a89f904a7712fea999c26186900f99893"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#a89f904a7712fea999c26186900f99893">fpp::FlightPathPlanner::FlightPathPlanner</a></div><div class="ttdeci">FlightPathPlanner(const FlightPathPlanner &amp;)=delete</div><div class="ttdoc">Конструктор копирования (удален)</div></div>
+<div class="ttc" id="aclassfpp_1_1FlightPathPlanner_html_ad6c763bb23c0e6ba8c830ba69c5fe769"><div class="ttname"><a href="classfpp_1_1FlightPathPlanner.html#ad6c763bb23c0e6ba8c830ba69c5fe769">fpp::FlightPathPlanner::containsAirport</a></div><div class="ttdeci">bool containsAirport(airportId index) const</div><div class="ttdoc">Проверяет, существует ли аэропорт в графе</div><div class="ttdef"><b>Definition:</b> flightpathplanner.cpp:103</div></div>
+<div class="ttc" id="anamespacefpp_html"><div class="ttname"><a href="namespacefpp.html">fpp</a></div><div class="ttdoc">Пространство имен для планировщика маршрутов авиаперелетов</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:14</div></div>
+<div class="ttc" id="anamespacefpp_html_a0412934340b5f5cc8c97fb14a7dfd170"><div class="ttname"><a href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">fpp::flightPath</a></div><div class="ttdeci">std::pair&lt; std::vector&lt; airportId &gt;, std::vector&lt; airTime &gt; &gt; flightPath</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:18</div></div>
+<div class="ttc" id="anamespacefpp_html_a3333a7794f9e7585d88211207fa1aea0"><div class="ttname"><a href="namespacefpp.html#a3333a7794f9e7585d88211207fa1aea0">fpp::airTime</a></div><div class="ttdeci">double airTime</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:17</div></div>
+<div class="ttc" id="anamespacefpp_html_a8cfe2f580853efd92ddd985232003069"><div class="ttname"><a href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">fpp::airportId</a></div><div class="ttdeci">int airportId</div><div class="ttdef"><b>Definition:</b> flightpathplanner.hpp:16</div></div>
+</div><!-- fragment --></div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+</small></address>
+</body>
+</html>

@@ -167,7 +167,7 @@ Matrix matrix_transpose(Matrix mat) {
 Matrix matrix_exponent(Matrix mat) {
     if (mat.rows != mat.cols) {
         matrix_handle_exception(MATRIX_ERROR, "Matrix must be square for exponentiation");
-        return (Matrix) { 0, 0, NULL };
+        return (Matrix) {0, 0, NULL};
     }
 
     Matrix result = matrix_create(mat.rows, mat.cols);
@@ -176,24 +176,35 @@ Matrix matrix_exponent(Matrix mat) {
     Matrix term = matrix_create(mat.rows, mat.cols);
     memcpy(term.data, result.data, mat.rows * mat.cols * sizeof(double));
 
+    Matrix mult = matrix_create(mat.rows, mat.cols);
+    Matrix scal = matrix_create(mat.rows, mat.cols);
+    Matrix new_result = matrix_create(mat.rows, mat.cols);
+
     for (size_t k = 1; k <= 10; ++k) {
-        Matrix temp = matrix_multiply(term, mat);
+        matrix_free(&mult);
+        mult = matrix_multiply(term, mat);
+
         matrix_free(&term);
-        term = temp;
+        term = mult;
 
-        if (!term.data) {
-            matrix_free(&result);
-            matrix_free(&temp);
-            matrix_free(&term);
-            matrix_handle_exception(MATRIX_ERROR, "Failed during term calculation");
-            return (Matrix) { 0, 0, NULL };
-        }
+        matrix_free(&scal);
+        scal = matrix_scalar_multiply(term, 1.0 / k);
 
-        term = matrix_scalar_multiply(term, 1.0 / k);
-        result = matrix_add(result, term);
-        matrix_free(&temp);
+        matrix_free(&term);
+        term = scal;
+
+        matrix_free(&new_result);
+        new_result = matrix_add(result, term);
+
+        matrix_free(&result);
+        result = new_result;
     }
+
+    matrix_free(&mult);
+    matrix_free(&scal);
+    matrix_free(&new_result);
     matrix_free(&term);
+
     return result;
 }
 

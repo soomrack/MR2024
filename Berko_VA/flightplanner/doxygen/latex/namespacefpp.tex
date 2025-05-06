@@ -1,0 +1,48 @@
+\hypertarget{namespacefpp}{}\doxysection{Пространство имен fpp}
+\label{namespacefpp}\index{fpp@{fpp}}
+
+
+Пространство имен для планировщика маршрутов авиаперелетов  
+
+
+\doxysubsection*{Классы}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}}
+\begin{DoxyCompactList}\small\item\em Синглтон-\/класс для управления графом рейсов и поиском кратчайших путей \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classfpp_1_1FlightPathPlannerException}{Flight\+Path\+Planner\+Exception}}
+\begin{DoxyCompactList}\small\item\em Класс исключений для обработки ошибок в \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Определения типов}
+\begin{DoxyCompactItemize}
+\item 
+using \mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}} = int
+\item 
+using \mbox{\hyperlink{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}{air\+Time}} = double
+\item 
+using \mbox{\hyperlink{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}{flight\+Path}} = std\+::pair$<$ std\+::vector$<$ \mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}} $>$, std\+::vector$<$ \mbox{\hyperlink{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}{air\+Time}} $>$ $>$
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Подробное описание}
+Пространство имен для планировщика маршрутов авиаперелетов 
+
+\doxysubsection{Типы}
+\mbox{\Hypertarget{namespacefpp_a8cfe2f580853efd92ddd985232003069}\label{namespacefpp_a8cfe2f580853efd92ddd985232003069}} 
+\index{fpp@{fpp}!airportId@{airportId}}
+\index{airportId@{airportId}!fpp@{fpp}}
+\doxysubsubsection{\texorpdfstring{airportId}{airportId}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{fpp\+::airport\+Id}} = typedef int}
+
+Псевдоним для идентификатора аэропорта \mbox{\Hypertarget{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}\label{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}} 
+\index{fpp@{fpp}!airTime@{airTime}}
+\index{airTime@{airTime}!fpp@{fpp}}
+\doxysubsubsection{\texorpdfstring{airTime}{airTime}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}{fpp\+::air\+Time}} = typedef double}
+
+Псевдоним для времени в воздухе (в часах) \mbox{\Hypertarget{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}\label{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}} 
+\index{fpp@{fpp}!flightPath@{flightPath}}
+\index{flightPath@{flightPath}!fpp@{fpp}}
+\doxysubsubsection{\texorpdfstring{flightPath}{flightPath}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}{fpp\+::flight\+Path}} = typedef std\+::pair$<$std\+::vector$<$\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}}$>$, std\+::vector$<$\mbox{\hyperlink{namespacefpp_a3333a7794f9e7585d88211207fa1aea0}{air\+Time}}$>$ $>$}
+
+Псевдоним для пути\+: пара векторов аэропортов и времен перелетов 

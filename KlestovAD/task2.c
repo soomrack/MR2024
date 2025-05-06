@@ -15,7 +15,7 @@ typedef struct Matrix Matrix;
 enum MatrixExceptionLevel {ERROR, WARNING, INFO, DEBUG};
 
 
-void matrix_exception(const enum MatrixExceptionLrvel level, char* msg)
+int matrix_exception(const enum MatrixExceptionLevel level, char* msg)
 {
     if (level == ERROR) {
         printf("ERROR: %s", msg);
@@ -29,6 +29,7 @@ void matrix_exception(const enum MatrixExceptionLrvel level, char* msg)
     if (level == DEBUG) {
         printf("DEBUG: %s", msg);
     }
+    return 0;
 }
 
 
@@ -57,18 +58,20 @@ Matrix matrix_allocate(const size_t rows, const size_t cols)
     return A;
 }
 
-void matrix_free(Matrix* A)
+int matrix_free(Matrix* A)
 {
     free(A->data);
     *A = (Matrix){0, 0, NULL};
+    return 0;
 }
 
-void matrix_set(const Matrix A, const double *values)
+int matrix_set(const Matrix A, const double *values)
 {
     memcpy(A.data, values, A.rows * A.cols * sizeof(double));
+    return 0;
 }
 
-void matrix_print(const Matrix A)
+int matrix_print(const Matrix A)
 {
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
@@ -77,92 +80,114 @@ void matrix_print(const Matrix A)
         printf("\n");
     }
     printf("\n");
+    return 0;
 }
 
 
+// E
+int matrix_identity(const Matrix A) {
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "not square");
+        return 1;
+    }
+    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
+        A.data[idx] = 0.0;
+    }
+    for (size_t idx = 0; idx < A.cols * A.rows; idx += A.cols + 1) {
+        A.data[idx] = 1.0;
+    }
+    return 0;
+}
+
 // B := A
-void matrix_copy(const Matrix B, const Matrix A)
+int matrix_copy(const Matrix B, const Matrix A)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
     if (B.data == NULL) {
-        matrix_exception(ERROR, "memory is  not allocated");
-        return;
+        matrix_exception(ERROR, "memory is not allocated");
+        return 1;
     }
 
     memcpy(B.data, A.data, A.cols * A.rows * sizeof(double));
+    return 0;
 }
 
 // A += B
-void matrix_add(const Matrix A, const Matrix B)
+int matrix_add(const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] += B.data[idx];
     }
+    return 0;
 }
 
 // A -= B
-void matrix_negative_add(const Matrix A, const Matrix B)
+int matrix_negative_add(const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] -= B.data[idx];
     }
+    return 0;
 }
 
 // C = A + B
-void matrix_sum(const Matrix C, const Matrix A, const Matrix B)
+int matrix_sum(const Matrix C, const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows) || (A.cols != C.cols) || (A.rows != C.rows) ||
         (C.cols != B.cols) || (C.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         C.data[idx] = A.data[idx] + B.data[idx];
     }
+    return 0;
 }
 
 // C = A - B
-void matrix_sub(const Matrix C, const Matrix A, const Matrix B)
+int matrix_sub(const Matrix C, const Matrix A, const Matrix B)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows) || (A.cols != C.cols) || (A.rows != C.rows) ||
         (C.cols != B.cols) || (C.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
 
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         C.data[idx] = A.data[idx] - B.data[idx];
     }
+    return 0;
 }
 
 // A *= k
-void matrix_multiplication_k(const Matrix A, const double k)
+int matrix_multiplication_k(const Matrix A, const double k)
 {
     for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
         A.data[idx] *= k;
     }
+    return 0;
 }
 
 // C = A * B
-void matrix_multiplication(const Matrix C, const Matrix A, const Matrix B)
+int matrix_multiplication(const Matrix C, const Matrix A, const Matrix B)
 {
     if ((A.cols != B.rows) || (C.cols != B.cols) || (C.rows != A.rows)) {
         matrix_exception(ERROR, "incorrect sizes");
-        return;
+        return 1;
     }
 
     for (size_t row = 0; row < C.rows; row++) {
@@ -173,14 +198,15 @@ void matrix_multiplication(const Matrix C, const Matrix A, const Matrix B)
             }
         }
     }
+    return 0;
 }
 
 // B = A ^ T
-void matrix_transp(const Matrix B, const Matrix A)
+int matrix_transp(const Matrix B, const Matrix A)
 {
     if ((A.cols != B.cols) || (A.rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
-        return;
+        return 1;
     }
 
     for (size_t row = 0; row < B.rows; row++) {
@@ -188,6 +214,7 @@ void matrix_transp(const Matrix B, const Matrix A)
             B.data[row + A.rows * col] = A.data[col + A.cols * row];
         }
     }
+    return 0;
 }
 
 double matrix_determinant(const Matrix A)
@@ -195,9 +222,19 @@ double matrix_determinant(const Matrix A)
     double det;
     if (A.cols != A.rows) {
         matrix_exception(ERROR, "not square");
-        return;
+        return 1;
     }
     
+    if (A.rows == 0) {
+        matrix_exception(ERROR, "no matrix");
+        return 1;
+    }
+
+    if (A.rows == 1) {
+        det = A.data[0];
+        return det;
+    }
+
     if (A.rows == 2) {
         det = A.data[0] * A.data[3] - A.data[1] * A.data[2];
         return det;
@@ -225,10 +262,14 @@ int matrix_pow(const Matrix B, const Matrix A, const unsigned int n)
         matrix_exception(ERROR, "different sizes");
         return 1;
     }
-
+    
     if (n == 0) {
+        matrix_identity(A);
+    }
+
+    if (n == 1) {
         matrix_copy(B, A);
-        return 1;
+        return 0;
     }
 
     Matrix tmp = matrix_allocate(A.rows, A.cols);
@@ -245,54 +286,103 @@ int matrix_pow(const Matrix B, const Matrix A, const unsigned int n)
     }
 
     matrix_free(&tmp);
+    return 0;
 }
 
 
+//e ^ A
+int matrix_exp(const Matrix A,const unsigned int target) 
+{
+    if (A.rows != A.cols) {
+        matrix_exception(WARNING, "not square");
+        return 1;
+    }
+    
+    Matrix temp = matrix_allocate(A.rows, A.cols);
+    matrix_identity(temp);
+
+    double factorial = 1.0;
+
+    for (size_t idx = 1; idx < target + 1; idx++) {
+        Matrix tmp = matrix_allocate(A.rows, A.cols);
+        matrix_pow(tmp, A, idx);
+        factorial *= idx;
+        matrix_multiplication_k(tmp, 1/factorial);
+        matrix_add(temp, tmp);
+        matrix_free(&tmp);
+    }
+    matrix_copy(A, temp);
+    
+
+    matrix_free(&temp);
+
+    return 0;
+}
+
 int main()
 {
-    Matrix A, B, C;
+    Matrix A, B, C, Y;
     A = matrix_allocate(2, 2);
     B = matrix_allocate(2, 2);
     C = matrix_allocate(2, 2);
+    Y = matrix_allocate(2, 2);
     
     matrix_set(A, (double[]) {
-        1., 2.,
-        3., 4
+        2., 3.,
+        1., -1.
     });
     matrix_set(B, (double[]) {
         1., 2.,
         2., 1.
     });
+    matrix_set(Y, (double[]) {
+        2., 0.,
+        0., -1.
+    });
     matrix_print(A);
     matrix_print(B);
+    matrix_print(Y);
 
 
+    printf("    A+=B\n");
     matrix_add(A, B);
     matrix_print(A);
 
+    printf("    A-=B\n");
     matrix_negative_add(A, B);
     matrix_print(A);
 
+    printf("    C = A + B\n");
     matrix_sum(C, A, B);
     matrix_print(C);
 
+    printf("    C = A - B\n");
     matrix_sub(C, A, B);
     matrix_print(C);
 
+    printf("    A *= k\n");
     matrix_multiplication_k(A, 5.78);
     matrix_print(A);
 
+    printf("    C = A * B\n");
     matrix_multiplication(C, A, B);
     matrix_print(C);
 
+    printf("    B = A ^ T\n");
     matrix_transp(C, A);
     matrix_print(C);
     
+    printf("    det\n");
     double det = matrix_determinant(A);
     printf("%f\n\n", det);
 
-    matrix_pow(C, A, 5);
+    printf("    B = A ^ n\n");
+    matrix_pow(C, A, 1);
     matrix_print(C);
+
+    printf("    e ^ A\n");
+    matrix_exp(Y, 4);
+    matrix_print(Y);
 
     matrix_free(&A);
     matrix_free(&B);

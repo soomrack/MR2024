@@ -1,0 +1,2083 @@
+original_code,normalized_id,city_state
+PHL,1,Philadelphia, PA
+BED,2,Bedford, MA
+BOS,3,Bedford, MA
+LGB,4,Long Beach, CA
+LAX,5,Long Beach, CA
+BID,6,Block Island, RI
+WST,7,Block Island, RI
+SNA,8,Santa Ana, CA
+STT,9,Charlotte Amalie, VI
+VIJ,10,Charlotte Amalie, VI
+GDV,11,Glendive, MT
+SDY,12,Glendive, MT
+GGW,13,Glasgow, MT
+OLF,14,Glasgow, MT
+MTJ,15,Montrose/Delta, CO
+GUC,16,Montrose/Delta, CO
+STX,17,Christiansted, VI
+VQS,18,Christiansted, VI
+STL,19,St. Louis, MO
+UIN,20,St. Louis, MO
+SJU,21,San Juan, PR
+PWM,22,Boston, MA
+CLE,23,Cleveland, OH
+PIT,24,Cleveland, OH
+SAN,25,San Diego, CA
+CMH,26,Columbus, OH
+SBN,27,South Bend, IN
+LAN,28,South Bend, IN
+COS,29,Colorado Springs, CO
+AXA,30,The Valley, Anguilla
+RDU,31,Raleigh/Durham, NC
+CLT,32,Raleigh/Durham, NC
+TYS,33,Knoxville, TN
+ATL,34,Knoxville, TN
+PHX,35,Phoenix, AZ
+YUM,36,Phoenix, AZ
+HPN,37,White Plains, NY
+MVY,38,White Plains, NY
+JFK,39,New York, NY
+OKC,40,Oklahoma City, OK
+DAL,41,Oklahoma City, OK
+BWI,42,Baltimore, MD
+ACK,43,Nantucket, MA
+SHV,44,Shreveport, LA
+IAH,45,Shreveport, LA
+NGU,46,Norfolk, VA
+SAV,47,Atlanta, GA
+ORD,48,Chicago, IL
+IAD,49,Washington, DC
+MSP,50,Minneapolis, MN
+MSN,51,Minneapolis, MN
+HAV,52,Havana, Cuba
+MIA,53,Havana, Cuba
+LAS,54,Las Vegas, NV
+NEV,55,Nevis, Saint Kitts and Nevis
+BUF,56,Buffalo, NY
+GRB,57,Green Bay, WI
+DTW,58,Green Bay, WI
+STI,59,San Juan, PR
+SLC,60,Salt Lake City, UT
+BZN,61,Salt Lake City, UT
+ADW,62,Camp Springs, MD
+PVD,63,Camp Springs, MD
+GPT,64,Gulfport/Biloxi, MS
+CVG,65,Cincinnati, OH
+SMF,66,Los Angeles, CA
+EWR,67,Cleveland, OH
+OAK,68,Las Vegas, NV
+YYZ,69,Cincinnati, OH
+NBG,70,Atlanta, GA
+IND,71,Indianapolis, IN
+TUS,72,Long Beach, CA
+MKE,73,Milwaukee, WI
+MKC,74,Milwaukee, WI
+MCI,75,Kansas City, MO
+MSY,76,New Orleans, LA
+TPA,77,New Orleans, LA
+YUL,78,Montreal, Canada
+AEX,79,Alexandria, LA
+LIT,80,Little Rock, AR
+SAT,81,Little Rock, AR
+BTR,82,Baton Rouge, LA
+GNV,83,Baton Rouge, LA
+YYC,84,Calgary, Canada
+PDX,85,Calgary, Canada
+BIF,86,Oklahoma City, OK
+LGA,87,New York, NY
+MEM,88,Memphis, TN
+BNA,89,Nashville, TN
+MDW,90,Newark, NJ
+FOE,91,Atlanta, GA
+SCE,92,State College, PA
+ELP,93,El Paso, TX
+DEN,94,Denver, CO
+MCO,95,Dallas, TX
+PIE,96,St. Petersburg, FL
+PTK,97,St. Petersburg, FL
+AZA,98,Phoenix, AZ
+AUS,99,Austin, TX
+PVU,100,Austin, TX
+SFB,101,Sanford, FL
+HRL,102,Cincinnati, OH
+CUR,103,Willemstad, Curacao
+FLL,104,Boston, MA
+MEX,105,Mexico City, Mexico
+QRO,106,Kansas City, MO
+PTP,107,Miami, FL
+HOU,108,Los Angeles, CA
+BFI,109,Oklahoma City, OK
+CPS,110,San Diego, CA
+HIF,111,Ogden, UT
+POS,112,Port of Spain, Trinidad and Tobago
+MUO,113,Detroit, MI
+RIV,114,Atlanta, GA
+SEA,115,Atlanta, GA
+GYE,116,Guayaquil, Ecuador
+EDI,117,Edinburgh, United Kingdom
+GRK,118,Killeen, TX
+NGF,119,Killeen, TX
+BRU,120,Philadelphia, PA
+NKT,121,New York, NY
+PSM,122,Portsmouth, NH
+GTB,123,Portsmouth, NH
+HOP,124,Genting, Malaysia
+TEB,125,Teterboro, NJ
+BCT,126,Boca Raton, FL
+PBI,127,Boca Raton, FL
+ASE,128,Aspen, CO
+EGE,129,Aspen, CO
+FRG,130,Teterboro, NJ
+SRQ,131,St. Petersburg, FL
+OPF,132,Miami, FL
+TTN,133,Teterboro, NJ
+FOK,134,Westhampton, NY
+APF,135,Naples, FL
+COU,136,St. Louis, MO
+RSW,137,West Palm Beach/Palm Beach, FL
+VNY,138,Van Nuys, CA
+PSP,139,Van Nuys, CA
+SUA,140,Naples, FL
+ORL,141,Orlando, FL
+NAS,142,Nassau, The Bahamas
+FXE,143,Nassau, The Bahamas
+DET,144,Toronto, Canada
+SYR,145,New York, NY
+JAX,146,Jacksonville, FL
+ROC,147,Teterboro, NJ
+BGR,148,Bangor, ME
+GSP,149,Nashville, TN
+BQK,150,Sarasota/Bradenton, FL
+MLB,151,Savannah, GA
+YHU,152,Providence, RI
+MSV,153,Monticello, NY
+BRO,154,Houston, TX
+SWF,155,Newburgh/Poughkeepsie, NY
+RNO,156,Reno, NV
+BKL,157,New York, NY
+AGS,158,Boca Raton, FL
+LUK,159,Newark, NJ
+LEX,160,Lexington, KY
+GRR,161,Newark, NJ
+GSO,162,Milwaukee, WI
+RIC,163,Richmond, VA
+PGV,164,Fort Lauderdale, FL
+PWK,165,Chicago, IL
+DPA,166,Chicago, IL
+RST,167,Rochester, MN
+MMU,168,Morristown, NJ
+SUS,169,Morristown, NJ
+DAB,170,Teterboro, NJ
+FTW,171,Dallas/Fort Worth, TX
+BDA,172,Hamilton, Bermuda
+YKF,173,Fort Lauderdale, FL
+YOW,174,Melbourne, FL
+GFL,175,Miami, FL
+XNA,176,Fayetteville, AR
+LBB,177,Lubbock, TX
+LNK,178,Fort Lauderdale, FL
+SJC,179,San Jose, CA
+STC,180,St. Cloud, MN
+JAC,181,Jackson, WY
+APA,182,Denver, CO
+GJT,183,Grand Junction, CO
+HDN,184,Naples, FL
+COE,185,Coeur d'Alene, ID
+MZJ,186,Miami, FL
+FCA,187,Newark, NJ
+SCF,188,Phoenix, AZ
+BUR,189,Burbank, CA
+MDT,190,Burbank, CA
+SBP,191,Newark, NJ
+SFO,192,San Francisco, CA
+HNL,193,Honolulu, HI
+VCV,194,Honolulu, HI
+SJO,195,Victorville, CA
+ANC,196,Anchorage, AK
+ICN,197,Anchorage, AK
+GUM,198,Guam, TT
+CNF,199,Belo Horizonte, Brazil
+HKG,200,Hong Kong, Hong Kong
+HKB,201,Healy, AK
+FAI,202,Healy, AK
+PLN,203,Pellston, MI
+OSC,204,Oscoda, MI
+YIP,205,Oscoda, MI
+CUU,206,Chihuahua, Mexico
+AUZ,207,Aurora, IL
+FHB,208,West Palm Beach/Palm Beach, FL
+MQY,209,Smyrna, TN
+NY3,210,Brockport, NY
+SLW,211,San Antonio, TX
+STP,212,Minneapolis/St. Paul, MN
+LRD,213,Laredo, TX
+SLP,214,Laredo, TX
+AGU,215,Aguascalientes, Mexico
+FSM,216,Aurora, IL
+CSL,217,Cabo San Lucas, Mexico
+DHN,218,Detroit, MI
+ICT,219,Detroit, MI
+AFW,220,Detroit, MI
+TPE,221,Taipei, Taiwan
+NRT,222,Tokyo, Japan
+DFW,223,Dallas/Fort Worth, TX
+CPX,224,Culebra, PR
+EIS,225,Road Town, British Virgin Islands
+CTS,226,Chicago, IL
+SXM,227,Philipsburg, Sint Maarten
+YYJ,228,Victoria, Canada
+SSI,229,Victoria, Canada
+YBG,230,Boston, MA
+KEF,231,Keflavik/Reykjavik, Iceland
+MRI,232,Anchorage, AK
+TYE,233,Anchorage, AK
+BVU,234,Anchorage, AK
+OME,235,Nome, AK
+PUS,236,Busan, South Korea
+SPN,237,Saipan, TT
+SNN,238,Shannon, Ireland
+NUP,239,Nunapitchuk, AK
+KUK,240,Nunapitchuk, AK
+ATT,241,Atmautluak, AK
+WNA,242,Napakiak, AK
+BET,243,Napakiak, AK
+AKI,244,Akiak, AK
+KWT,245,Akiak, AK
+KKI,246,Bethel, AK
+KWN,247,Quinhagak, AK
+EEK,248,Quinhagak, AK
+TLT,249,Bethel, AK
+WTL,250,Tuntutuliak, AK
+KLG,251,Kalskag, AK
+CYF,252,Chefornak, AK
+OOK,253,Bethel, AK
+KOT,254,Bethel, AK
+GNU,255,Goodnews Bay, AK
+KKH,256,Kongiganak, AK
+LBG,257,Teterboro, NJ
+BTT,258,Bettles, AK
+GAL,259,Galena, AK
+PPC,260,Prospect Creek, AK
+KYU,261,Koyukuk, AK
+A01,262,Fairbanks/Ft. Wainwright, AK
+CXF,263,Bettles, AK
+RBY,264,Ruby, AK
+RMP,265,Fairbanks, AK
+WBQ,266,Fairbanks, AK
+IRC,267,Fairbanks, AK
+FYU,268,Fort Yukon, AK
+TAL,269,Galena, AK
+BTI,270,Barter Island, AK
+ARC,271,Barter Island, AK
+LMA,272,Lake Minchumina, AK
+BKC,273,Buckland, AK
+A26,274,Ivotuk, AK
+AKP,275,Anaktuvuk Pass, AK
+VIK,276,Kavik River, AK
+STG,277,St. George Island, AK
+JNU,278,Juneau, AK
+EXI,279,Juneau, AK
+HNH,280,Juneau, AK
+GST,281,Juneau, AK
+AGN,282,Hoonah, AK
+OQG,283,Juneau, AK
+HNS,284,Haines, AK
+PEC,285,Pelican, AK
+SGY,286,Skagway, AK
+SIT,287,Sitka, AK
+BNF,288,Sitka, AK
+PSG,289,Petersburg, AK
+WRG,290,Petersburg, AK
+KAE,291,Juneau, AK
+PBK,292,Pack Creek, AK
+A43,293,Kodiak Island, AK
+KOZ,294,Ouzinkie, AK
+06A,295,Kodiak Island, AK
+ORI,296,Port Lions, AK
+KPY,297,Port Bailey, AK
+EHR,298,Eagle Harbor, AK
+A30,299,Kodiak Island, AK
+KKB,300,Kitoi Bay, AK
+ONN,301,Kodiak Island, AK
+A29,302,Kodiak Island, AK
+A70,303,Kodiak Island, AK
+A48,304,Kodiak Island, AK
+KZB,305,Kodiak Island, AK
+A50,306,Big Bay, AK
+AOS,307,Amook Bay, AK
+KLN,308,Larsen Bay, AK
+WQX,309,Kodiak Island, AK
+A03,310,Kodiak Island, AK
+A04,311,Red Lake, AK
+JLA,312,Kodiak Island, AK
+A17,313,Kodiak Island, AK
+BFB,314,Blue Fox Bay, AK
+ALZ,315,Lazy Bay, AK
+DGB,316,Danger Bay, AK
+01A,317,Afognak Lake, AK
+A75,318,Malina Bay, AK
+OLH,319,Old Harbor, AK
+KMY,320,Old Harbor, AK
+LPS,321,Lopez Island, WA
+FBS,322,Lopez Island, WA
+KEH,323,Kenmore, WA
+LKE,324,Kenmore, WA
+YWH,325,Friday Harbor, WA
+TIW,326,Kenmore, WA
+SQV,327,Sequim, WA
+OLM,328,Olympia, WA
+RSJ,329,Kenmore, WA
+WSX,330,Westsound, WA
+BLI,331,Bellingham, WA
+YVR,332,Kenmore, WA
+PUL,333,Kenmore, WA
+YAZ,334,Tofino, Canada
+ZRH,335,Teterboro, NJ
+AET,336,Allakaket, AK
+NUL,337,Nulato, AK
+INL,338,International Falls, MN
+YFB,339,Iqaluit, Canada
+YZV,340,West Palm Beach/Palm Beach, FL
+YQB,341,San Antonio, TX
+YYR,342,Boston, MA
+MOT,343,Minot, ND
+MFR,344,Minot, ND
+YHZ,345,Orlando, FL
+DUT,346,Unalaska, AK
+ENA,347,Unalaska, AK
+OBU,348,Kobuk, AK
+RLU,349,Kobuk, AK
+MLY,350,Manley Hot Springs, AK
+MNT,351,Manley Hot Springs, AK
+ENN,352,Nenana, AK
+SVS,353,Fairbanks, AK
+A18,354,Kantishna, AK
+EAA,355,Circle, AK
+DCK,356,Dahl Creek, AK
+CKX,357,Chicken, AK
+HUS,358,Hughes, AK
+JZM,359,Hog River, AK
+TLJ,360,Tatalina, AK
+KAL,361,Kaltag, AK
+CIK,362,Fort Yukon, AK
+HSL,363,Hughes, AK
+KBC,364,Fairbanks, AK
+TKJ,365,Tok, AK
+SHX,366,Fairbanks, AK
+SKW,367,Anchorage, AK
+KYK,368,Karluk, AK
+SKJ,369,Sitkinak, AK
+AKK,370,Sitkinak, AK
+KFP,371,False Pass, AK
+CDB,372,False Pass, AK
+ADQ,373,Karluk, AK
+AA8,374,Barter Island, AK
+09A,375,Danger Bay, AK
+AKN,376,Karluk, AK
+EGX,377,Karluk, AK
+NNK,378,Karluk, AK
+SCC,379,Deadhorse, AK
+KCQ,380,Larsen Bay, AK
+BRW,381,Barrow, AK
+HVN,382,New Haven, CT
+NPT,383,New Haven, CT
+UMT,384,Umiat, AK
+PGM,385,Port Graham, AK
+GGT,386,Fort Lauderdale, FL
+SML,387,Miami, FL
+SAQ,388,San Andros, The Bahamas
+LGI,389,Deadman's Cay, The Bahamas
+PMP,390,Fort Lauderdale, FL
+GOA,391,Teterboro, NJ
+NCE,392,Nice, France
+CZN,393,Chisana, AK
+DLG,394,Dillingham, AK
+CLP,395,Dillingham, AK
+KGK,396,Koliganek, AK
+KLL,397,Koliganek, AK
+IGG,398,Igiugig, AK
+SMK,399,Kotlik, AK
+KWK,400,Kwigillingok, AK
+WBB,401,Stebbins, AK
+EMK,402,Stebbins, AK
+KNK,403,Kokhanok, AK
+UNK,404,Unalakleet, AK
+PTH,405,King Salmon, AK
+KSM,406,St. Mary's, AK
+MOU,407,St. Mary's, AK
+SXP,408,Sheldon Point, AK
+KGX,409,Kotlik, AK
+TOG,410,Togiak, AK
+NME,411,Bethel, AK
+LTN,412,London, United Kingdom
+BFS,413,Belfast, United Kingdom
+CHS,414,Belfast, United Kingdom
+FAB,415,Teterboro, NJ
+BRI,416,Los Angeles, CA
+FAR,417,Fargo, ND
+BQH,418,Teterboro, NJ
+SYD,419,Sydney, Australia
+CRP,420,Vancouver, Canada
+NGD,421,San Juan, PR
+ANI,422,Aniak, AK
+SLQ,423,Sleetmute, AK
+RDV,424,Sleetmute, AK
+CHU,425,Aniak, AK
+SRV,426,Stony River, AK
+CKD,427,Chuathbaluk, AK
+ANV,428,Anvik, AK
+KPN,429,Kipnuk, AK
+HPB,430,Hooper Bay, AK
+PTU,431,Platinum, AK
+RSH,432,Russian Mission, AK
+SKK,433,Unalakleet, AK
+HCR,434,Holy Cross, AK
+FVQ,435,Donlin Creek Mine, AK
+ROP,436,Rota, TT
+TIQ,437,Rota, TT
+AUK,438,Alakanuk, AK
+KTN,439,Ketchikan, AK
+WFB,440,Ketchikan, AK
+TNK,441,Toksook, AK
+PKA,442,Napaskiak, AK
+WWT,443,Newtok, AK
+1AK,444,Newtok, AK
+PQS,445,Pilot Station, AK
+CZF,446,Cape Romanzof, AK
+SCM,447,Cape Romanzof, AK
+MTM,448,Metlakatla, AK
+VAK,449,Hooper Bay, AK
+KMO,450,Dillingham, AK
+VZF,451,Kodiak Island, AK
+MLL,452,Russian Mission, AK
+EHM,453,Cape Newenham, AK
+HYL,454,Hollis, AK
+KWP,455,West Point, AK
+FLT,456,Shageluk, AK
+CGA,457,Ketchikan, AK
+ZNC,458,Bethel, AK
+KKL,459,Karluk Lake, AK
+A65,460,Karluk Portage, AK
+KEK,461,Ekwok, AK
+MCG,462,McGrath, AK
+HSH,463,Las Vegas, NV
+TCT,464,Bethel, AK
+MRY,465,Monterey, CA
+FAT,466,Fresno, CA
+MCC,467,Fresno, CA
+C01,468,Camarillo, CA
+SBA,469,San Francisco, CA
+NUQ,470,Van Nuys, CA
+LVK,471,Livermore, CA
+UT1,472,San Jose, CA
+ABQ,473,Albuquerque, NM
+SUN,474,Van Nuys, CA
+SAF,475,Van Nuys, CA
+COD,476,Cody, WY
+GEG,477,Spokane, WA
+CLD,478,Carlsbad, CA
+ZXH,479,Ketchikan, AK
+TRM,480,Thermal, CA
+MEV,481,Los Angeles, CA
+STS,482,Santa Rosa, CA
+PGA,483,Page, AZ
+BIH,484,Bishop, CA
+RIL,485,Rifle, CO
+XWW,486,Driggs, ID
+YBL,487,Campbell River, Canada
+SGU,488,St. George, UT
+A76,489,Red Fox Bay, AK
+NKI,490,Naukiti, AK
+LVD,491,Lime Village, AK
+YCD,492,Nanaimo, Canada
+BFL,493,Bakersfield, CA
+TEX,494,Van Nuys, CA
+SYB,495,Kodiak Island, AK
+FLG,496,Flagstaff, AZ
+HWD,497,Hayward, CA
+RDM,498,Hayward, CA
+OMA,499,Denver, CO
+SLN,500,Baltimore, MD
+ADS,501,Dallas, TX
+GCN,502,Page, AZ
+ESE,503,Ensenada, Mexico
+LAP,504,Tucson, AZ
+ZLO,505,Los Angeles, CA
+TER,506,Lajes, Portugal
+OTZ,507,Fairbanks, AK
+VEE,508,Fairbanks, AK
+FNR,509,Juneau, AK
+MAN,510,Manchester, United Kingdom
+OLB,511,Washington, DC
+EMA,512,Los Angeles, CA
+TLV,513,Tel Aviv, Israel
+GLA,514,Teterboro, NJ
+PLS,515,Providenciales, Turks and Caicos Islands
+BPI,516,Tampa, FL
+MXP,517,Milan, Italy
+CFR,518,West Palm Beach/Palm Beach, FL
+A72,519,Chinitna Bay, AK
+HOM,520,Chinitna Bay, AK
+SOV,521,Seldovia, AK
+NNL,522,Nondalton, AK
+ILI,523,Nondalton, AK
+PTA,524,Nondalton, AK
+PDB,525,Pedro Bay, AK
+QQB,526,Keyes Point, AK
+KNW,527,New Stuyahok, AK
+AZO,528,Kalamazoo, MI
+UGN,529,Waukegan, IL
+CAK,530,Akron, OH
+VA4,531,Pellston, MI
+YWG,532,Honolulu, HI
+AGP,533,Malaga, Spain
+DOM,534,San Juan, PR
+PTD,535,Port Alexander, AK
+PTL,536,Port Alexander, AK
+LPW,537,Little Port Walter, AK
+2AK,538,Port Alexander, AK
+NUI,539,Nuiqsut, AK
+AIN,540,Deadhorse, AK
+PIZ,541,Nuiqsut, AK
+SMX,542,Camarillo, CA
+PRB,543,Paso Robles, CA
+TVL,544,San Francisco, CA
+VGT,545,Van Nuys, CA
+ONT,546,Ontario, CA
+APC,547,Napa, CA
+BLD,548,Boulder City, NV
+FVO,549,Aurora, OR
+SGR,550,Sugar Land, TX
+LOT,551,Sugar Land, TX
+SOW,552,Phoenix, AZ
+SEE,553,San Diego, CA
+TKF,554,Montrose/Delta, CO
+LGU,555,Santa Barbara, CA
+TUL,556,Tulsa, OK
+SJD,557,Phoenix, AZ
+VTN,558,Van Nuys, CA
+IGM,559,Kingman, AZ
+CCR,560,Van Nuys, CA
+TWF,561,Denver, CO
+BJC,562,Broomfield, CO
+MSO,563,Kalispell, MT
+OR4,564,Bend, OR
+DGW,565,San Diego, CA
+BWD,566,Van Nuys, CA
+CNO,567,Chino, CA
+OSL,568,Lansing, MI
+YQX,569,Gander, Canada
+CGN,570,Philadelphia, PA
+NUE,571,Teterboro, NJ
+STN,572,Cincinnati, OH
+SMA,573,Santa Maria, Portugal
+XRY,574,Newark, NJ
+SXQ,575,Soldotna, AK
+JZE,576,Anchorage, AK
+SWD,577,Kenai, AK
+A1K,578,Deadhorse1, AK
+A35,579,Kaktovik, AK
+UUK,580,Kuparuk, AK
+PIP,581,Pilot Point, AK
+UGS,582,Dillingham, AK
+WSN,583,South Naknek, AK
+DIO,584,Nome, AK
+RNT,585,Kenmore, WA
+ODW,586,Kenmore, WA
+CWS,587,Center Island, WA
+XXV,588,Decatur, WA
+BYW,589,Blakely Island, WA
+ESD,590,Eastsound, WA
+CXH,591,Vancouver, Canada
+YPW,592,Powell River, Canada
+FRD,593,Rosario, WA
+SHN,594,Shelton, WA
+DTR,595,Kenmore, WA
+YZT,596,Port Hardy, Canada
+TWD,597,Sequim, WA
+LKK,598,Kulik Lake, AK
+ZBM,599,Boca Raton, FL
+DSM,600,Des Moines, IA
+YQA,601,Muskoka, Canada
+HYA,602,Toronto, Canada
+HHR,603,Hawthorne, CA
+BVY,604,Beverly, MA
+NYS,605,New York, NY
+NV6,606,Hawthorne, CA
+CGI,607,Cape Girardeau, MO
+SMO,608,Santa Monica, CA
+DRO,609,Durango, CO
+FCM,610,Minneapolis, MN
+PDK,611,Washington, DC
+SQA,612,Salt Lake City, UT
+ECP,613,Panama City, FL
+ILM,614,Wilmington, NC
+PSC,615,Pasco/Kennewick/Richland, WA
+JZT,616,Arlington, TX
+T4X,617,Santa Ana, CA
+PVR,618,Puerto Vallarta, Mexico
+SDX,619,Sedona, AZ
+CHO,620,Sedona, AZ
+MZZ,621,Oakland, CA
+CIB,622,Hawthorne, CA
+SIG,623,San Juan, PR
+MYF,624,Avalon, CA
+MTP,625,New York, NY
+VWD,626,Burbank, CA
+MHH,627,Fort Lauderdale, FL
+ELH,628,Fort Lauderdale, FL
+MMH,629,Mammoth Lakes, CA
+HMO,630,Van Nuys, CA
+AVW,631,Tucson, AZ
+WQC,632,Hamilton, MT
+JCI,633,Hamilton, MT
+FMY,634,Fort Myers, FL
+CWI,635,Fort Myers, FL
+OGG,636,Kahului, HI
+CXI,637,Kahului, HI
+MOD,638,Modesto, CA
+IN2,639,Modesto, CA
+TIJ,640,Tijuana, Mexico
+SDM,641,Tijuana, Mexico
+LPC,642,Lompoc, CA
+ALB,643,Albany, NY
+DBQ,644,Milwaukee, WI
+WVI,645,Santa Maria, CA
+UDD,646,Santa Barbara, CA
+PWA,647,Oklahoma City, OK
+GUF,648,Gulf Shores, AL
+HIO,649,Phoenix, AZ
+MTY,650,Monterrey, Mexico
+ABY,651,Albany, GA
+VRB,652,Missoula, MT
+AVP,653,Scranton/Wilkes-Barre, PA
+KOA,654,Kona, HI
+ZXU,655,North Kingstown, RI
+MLC,656,McAlester, OK
+FNL,657,Eagle, CO
+MPB,658,Miami, FL
+MHR,659,Sacramento, CA
+SAC,660,Sacramento, CA
+TOL,661,Toledo, OH
+LAA,662,Lamar, CO
+BKG,663,Branson, MO
+AL6,664,Dallas, TX
+MAF,665,Las Vegas, NV
+CYS,666,Van Nuys, CA
+GFK,667,Grand Forks, ND
+CAE,668,Charlotte, NC
+VIS,669,Santa Monica, CA
+PYM,670,Teterboro, NJ
+YLW,671,Kelowna, Canada
+HII,672,Lake Havasu City, AZ
+BCE,673,Bryce Canyon, UT
+EUG,674,Eugene, OR
+ACV,675,Arcata/Eureka, CA
+DCA,676,Washington, DC
+TLH,677,Tallahassee, FL
+LBF,678,Jackson, WY
+BFF,679,Mammoth Lakes, CA
+MGM,680,Montgomery, AL
+BDL,681,Hartford, CT
+TCB,682,Treasure Cay, The Bahamas
+CLL,683,College Station/Bryan, TX
+BMC,684,Kahului, HI
+JRV,685,Road Town, British Virgin Islands
+MRK,686,Marco Island, FL
+SBD,687,Bakersfield, CA
+CXL,688,Santa Ana, CA
+CID,689,Pellston, MI
+MCW,690,Mason City, IA
+BOI,691,Tucson, AZ
+ARV,692,Oakland, CA
+VWS,693,Wichita, KS
+TN8,694,Nashville, TN
+NOT,695,Novato, CA
+EYW,696,Key West, FL
+SDF,697,Key West, FL
+DEH,698,Tallahassee, FL
+CEN,699,Oakland, CA
+TAR,700,Taranto, Italy
+ABE,701,Taranto, Italy
+MPL,702,Montpellier, France
+YMX,703,Montreal, Canada
+YQR,704,Regina, Canada
+SDL,705,Cleveland, OH
+GBH,706,Fairbanks, AK
+ORT,707,Fairbanks, AK
+VWE,708,Kenmore, WA
+MYR,709,Myrtle Beach, SC
+TEH,710,Fairbanks, AK
+BRY,711,Smyrna, TN
+OSU,712,Pontiac, MI
+MWA,713,Marion/Herrin, IL
+DSI,714,Tampa, FL
+GA7,715,Greensboro, GA
+PHO,716,Point Hope, AK
+ATK,717,Barter Island, AK
+BIS,718,Denver, CO
+ALO,719,Smyrna, TN
+DVT,720,Phoenix, AZ
+DQS,721,Grand Canyon, AZ
+SVC,722,Silver City/Hurley, NM
+CFT,723,Silver City/Hurley, NM
+SAD,724,Safford, AZ
+L41,725,Marble Canyon, AZ
+DTO,726,Denton, TX
+JLN,727,Quincy, IL
+OR5,728,Hawthorne, CA
+RWI,729,Dallas, TX
+FPO,730,Freeport, The Bahamas
+WJF,731,Carlsbad, CA
+TX6,732,Horseshoe Bay, TX
+TX1,733,Horseshoe Bay, TX
+LVM,734,Livingston, MT
+MOB,735,Nashville, TN
+WWD,736,Cape May, NJ
+CGF,737,Cape May, NJ
+AVL,738,Destin, FL
+MRF,739,Dallas, TX
+MVW,740,Napa, CA
+SAA,741,Hawthorne, CA
+DLH,742,Duluth, MN
+SBM,743,Sheboygan, WI
+TLC,744,Charleston, SC
+1G4,745,Whitmore, AZ
+QAJ,746,Globe, AZ
+VWN,747,Burbank, CA
+GYR,748,Goodyear, AZ
+CHA,749,Tallahassee, FL
+EKO,750,Elko, NV
+OGD,751,Hawthorne, CA
+SLE,752,Salem, OR
+SJT,753,Eagle, CO
+BLM,754,Tampa, FL
+NEW,755,New Orleans, LA
+BGT,756,Phoenix, AZ
+AZ8,757,Phoenix, AZ
+SCK,758,Stockton, CA
+GCM,759,Dallas/Fort Worth, TX
+YDN,760,Dauphin, Canada
+JAN,761,Santa Ana, CA
+TKI,762,Tokeen, AK
+YHM,763,Van Nuys, CA
+UXR,764,Monument Valley, UT
+PGS,765,Peach Springs, AZ
+MCE,766,Merced, CA
+PAE,767,Oakland, CA
+IDA,768,Idaho Falls, ID
+RIW,769,Riverton/Lander, WY
+SLK,770,Saranac Lake/Lake Placid, NY
+ACT,771,Van Nuys, CA
+ERV,772,Kerrville, TX
+TVC,773,Kerrville, TX
+TCL,774,Santa Ana, CA
+NMC,775,Miami, FL
+CO7,776,Meeker, CO
+AR1,777,Rifle, CO
+OXR,778,Seattle, WA
+RSD,779,Rock Sound, The Bahamas
+SPS,780,Wichita Falls, TX
+OTH,781,Hawthorne, CA
+MWH,782,Moses Lake, WA
+MHV,783,Mojave, CA
+TLA,784,Teller, AK
+WMO,785,Teller, AK
+OCF,786,Ocala, FL
+ABL,787,Fairbanks, AK
+CFV,788,Coffeyville, KS
+BGI,789,West Palm Beach/Palm Beach, FL
+MAD,790,Bedford, MA
+TMB,791,Miami, FL
+PWN,792,Pitts Town, The Bahamas
+GHC,793,Great Harbour Cay, The Bahamas
+GHB,794,Governors Harbour, The Bahamas
+FPR,795,Nassau, The Bahamas
+CCZ,796,Chub Cay, The Bahamas
+CAT,797,Fort Lauderdale, FL
+CBA,798,Juneau, AK
+TKE,799,Tenakee, AK
+FAK,800,False Island, AK
+ELV,801,Juneau, AK
+DUB,802,Dublin, Ireland
+LUG,803,Teterboro, NJ
+MER,804,Moses Lake, WA
+YVQ,805,Norman Wells, Canada
+KPC,806,Teller, AK
+KTS,807,Brevig Mission, AK
+ELI,808,Elim, AK
+WAA,809,Nome, AK
+SHH,810,Shishmaref, AK
+SVA,811,Nome, AK
+GLV,812,Elim, AK
+KKA,813,Koyuk, AK
+GAM,814,Nome, AK
+MHM,815,Fairbanks, AK
+KVC,816,King Cove, AK
+7AK,817,Akun, AK
+NLG,818,Nelson Lagoon, AK
+SDP,819,Sandpoint, AK
+IKO,820,Nikolski, AK
+BIM,821,Bimini, The Bahamas
+LAL,822,Miami, FL
+MYU,823,Mekoryuk, AK
+HHH,824,Charlotte, NC
+BIL,825,Billings, MT
+LRU,826,El Paso, TX
+AMW,827,Ames, IA
+T6X,828,Houston, TX
+MFE,829,Houston, TX
+PMI,830,Buffalo, NY
+FAO,831,Faro, Portugal
+TRF,832,Rochester, MN
+CEQ,833,Detroit, MI
+YYT,834,Houston, TX
+AMS,835,Amsterdam, Netherlands
+LPL,836,Boston, MA
+CTG,837,Cartagena, Colombia
+MTH,838,Chub Cay, The Bahamas
+TBU,839,Tonga Tapu, Tonga
+PPG,840,Tonga Tapu, Tonga
+CEM,841,Circle, AK
+BHX,842,Las Vegas, NV
+YKA,843,Salt Lake City, UT
+FSD,844,Vancouver, Canada
+LIS,845,Lisbon, Portugal
+LYS,846,Lyon, France
+KLW,847,Klawock, AK
+PML,848,Port Moller, AK
+MDO,849,Middleton Island, AK
+KCG,850,Anchorage, AK
+HGZ,851,Anchorage, AK
+LIN,852,Milan, Italy
+PSA,853,West Palm Beach/Palm Beach, FL
+TSF,854,Venice, Italy
+YXE,855,Saskatoon, Canada
+YZF,856,Bozeman, MT
+YCM,857,Teterboro, NJ
+MA3,858,Taunton, MA
+JFN,859,Jefferson, OH
+ILG,860,Wilmington, DE
+HFD,861,Wilmington, DE
+MD2,862,Indian Head, MD
+LDM,863,Nantucket, MA
+HTO,864,East Hampton, NY
+BTV,865,Burlington, VT
+MPV,866,Montpelier/Barre, VT
+PNN,867,Princeton, ME
+NC7,868,Portsmouth, NH
+ITH,869,Ithaca/Cortland, NY
+TVI,870,Thomasville, GA
+PVC,871,Provincetown, MA
+OXC,872,Provincetown, MA
+CGS,873,East Farmingdale, NY
+JZU,874,Bennington, VT
+ISP,875,Bennington, VT
+RCE,876,Roche Harbor, WA
+SQL,877,San Carlos, CA
+VUO,878,Hillsboro, OR
+CLM,879,Eastsound, WA
+EAT,880,Everett, WA
+YKM,881,Everett, WA
+AST,882,Everett, WA
+CVO,883,Pasco/Kennewick/Richland, WA
+QBC,884,Bella Coola, Canada
+BDY,885,Everett, WA
+WA5,886,Sun Valley/Hailey/Ketchum, ID
+SMN,887,Salmon, ID
+WYS,888,West Yellowstone, MT
+AUN,889,Auburn, CA
+MYL,890,Seattle, WA
+YYD,891,Smithers, Canada
+SFF,892,Sequim, WA
+PUW,893,Seattle, WA
+SKB,894,St. Kitts, Saint Kitts and Nevis
+WCR,895,Chandalar, AK
+LNI,896,Lonely, AK
+TKA,897,Talkeetna, AK
+WWA,898,Wasilla, AK
+SHG,899,Shungnak, AK
+LUR,900,Bettles, AK
+OQB,901,Bible Camp, AK
+FBK,902,Fairbanks, AK
+WLK,903,Fairbanks, AK
+OTS,904,Friday Harbor, WA
+PUJ,905,Miami, FL
+ANU,906,Boston, MA
+ONP,907,Newport, OR
+PNS,908,Hamilton, Canada
+YXU,909,London, Canada
+SID,910,Sal Island, Cape Verde
+KVL,911,Kivalina, AK
+PAQ,912,Palmer, AK
+KTB,913,Thorne Bay, AK
+BMA,914,Miami, FL
+ZAZ,915,Zaragoza, Spain
+GVA,916,Teterboro, NJ
+BRN,917,San Francisco, CA
+BUD,918,Budapest, Hungary
+OXF,919,San Diego, CA
+BZE,920,Belize City, Belize
+CTA,921,Catania, Italy
+KRK,922,Washington, DC
+TRN,923,Turin, Italy
+NHT,924,Cleveland, OH
+SC6,925,Charleston, SC
+6GA,926,Cornelia, GA
+AHN,927,Cornelia, GA
+M91,928,Smyrna, TN
+RNM,929,Ramona, CA
+UES,930,Chicago, IL
+CEU,931,Atlanta, GA
+MQJ,932,Columbus, OH
+DEC,933,Chicago, IL
+SVH,934,Statesville, NC
+MTN,935,Baltimore, MD
+ACY,936,Atlantic City, NJ
+JHW,937,Jamestown, NY
+USA,938,Smyrna, TN
+HLM,939,Holland, MI
+HYR,940,Holland, MI
+FWA,941,Smyrna, TN
+GWO,942,Greenwood, MS
+AMA,943,Las Vegas, NV
+EKI,944,Brunswick, GA
+LRM,945,La Romana, Dominican Republic
+OLS,946,Nashville, TN
+VWC,947,Smyrna, TN
+LCI,948,Laconia, NH
+LEB,949,Laconia, NH
+LBE,950,Latrobe, PA
+BWG,951,Nashville, TN
+TEK,952,Tatitlek, AK
+NCN,953,Tatitlek, AK
+NCO,954,North Kingstown, RI
+GLW,955,Glasgow, KY
+LWM,956,Hyannis, MA
+PNE,957,White Plains, NY
+GON,958,Teterboro, NJ
+IN6,959,Smyrna, TN
+BHM,960,Smyrna, TN
+NIB,961,Nikolai, AK
+GVT,962,Oklahoma City, OK
+BJI,963,Bemidji, MN
+TRI,964,Bristol/Johnson City/Kingsport, TN
+CTH,965,Coatesville, PA
+RBW,966,Knoxville, TN
+HAO,967,Hamilton, OH
+SRC,968,Searcy, AR
+VNC,969,Destin, FL
+ISM,970,Orlando, FL
+ERI,971,Saranac Lake/Lake Placid, NY
+N3C,972,Franklin, NC
+SNY,973,Wichita, KS
+EWB,974,New Bedford/Fall River, MA
+LNS,975,Lancaster, PA
+AIK,976,Aiken, SC
+CUN,977,Fort Lauderdale, FL
+OUN,978,Norman, OK
+CDN,979,Boston, MA
+QMA,980,Kennesaw, GA
+RHI,981,Rhinelander, WI
+TX4,982,Ballinger, TX
+CXO,983,Conroe, TX
+MSL,984,Phoenix, AZ
+HSV,985,Smyrna, TN
+FYV,986,Nashville, TN
+DAY,987,Dayton, OH
+RQV,988,Salt Lake City, UT
+MHT,989,Destin, FL
+RUT,990,Beverly, MA
+ORF,991,Gallatin, TN
+INT,992,Destin, FL
+KCL,993,Chignik Bay, AK
+TWA,994,Twin Hills, AK
+BER,995,Teterboro, NJ
+ISL,996,Washington, DC
+BEY,997,Beirut, Lebanon
+ROG,998,Chicago, IL
+LIH,999,Lihue, HI
+ATH,1000,Athens, Greece
+MUC,1001,Munich, Germany
+GIG,1002,Rio de Janeiro, Brazil
+RTM,1003,Rotterdam, Netherlands
+JED,1004,Newark, NJ
+MLH,1005,Fort Lauderdale, FL
+TBS,1006,Miami, FL
+GRU,1007,Miami, FL
+MKL,1008,Jackson, TN
+ACH,1009,Altenrhein, Switzerland
+BLK,1010,Blackpool, United Kingdom
+VGO,1011,Seattle, WA
+SCQ,1012,Santiago de Compostela, Spain
+SMV,1013,St. Moritz, Switzerland
+LCG,1014,Scranton/Wilkes-Barre, PA
+PEG,1015,New York, NY
+EST,1016,Estherville, IA
+BCN,1017,Barcelona, Spain
+AUA,1018,Aruba, Aruba
+VIE,1019,Teterboro, NJ
+BRS,1020,Teterboro, NJ
+YTM,1021,Teterboro, NJ
+POP,1022,Puerto Plata, Dominican Republic
+MDE,1023,Miami, FL
+IBZ,1024,Orlando, FL
+BWE,1025,Miami, FL
+RAK,1026,White Plains, NY
+MME,1027,Darlington, United Kingdom
+FEZ,1028,Fez, Morocco
+ASU,1029,Asuncion, Paraguay
+GRS,1030,Pittsburgh, PA
+INV,1031,Austin, TX
+YXJ,1032,Fort St. John, Canada
+UNU,1033,Green Bay, WI
+YAM,1034,International Falls, MN
+YQM,1035,Teterboro, NJ
+OMS,1036,Omsk, Russia
+YEG,1037,Teterboro, NJ
+CKB,1038,Los Angeles, CA
+FLR,1039,Minot, ND
+HND,1040,Tokyo, Japan
+AZ3,1041,Van Nuys, CA
+LIR,1042,Dallas/Fort Worth, TX
+MRS,1043,Marseille, France
+NAP,1044,Boca Raton, FL
+TUF,1045,Detroit, MI
+YQT,1046,Thunder Bay, Canada
+GUA,1047,Van Nuys, CA
+BHD,1048,Belfast, United Kingdom
+AES,1049,Aalesund, Norway
+HUY,1050,White Plains, NY
+MOL,1051,Teterboro, NJ
+BDR,1052,Bridgeport, CT
+URO,1053,Bridgeport, CT
+KRS,1054,Kristiansand, Norway
+SNR,1055,Washington, DC
+DUS,1056,White Plains, NY
+LYN,1057,Lyon, France
+FRA,1058,Teterboro, NJ
+RME,1059,Rome, NY
+OBF,1060,Oberpfaffenhofen, Germany
+PRG,1061,New Haven, CT
+CPH,1062,Washington, DC
+DSS,1063,Miami, FL
+GRQ,1064,Charlotte, NC
+STR,1065,Stuttgart, Germany
+SPU,1066,Saranac Lake/Lake Placid, NY
+SHA,1067,Shanghai, China
+JER,1068,Miami, FL
+AKL,1069,Auckland, New Zealand
+MLA,1070,Malta, Malta
+DIJ,1071,Dijon, France
+CFU,1072,Corfu, Greece
+VCE,1073,Indianapolis, IN
+GMP,1074,Seoul, South Korea
+CKG,1075,Chongqing, China
+IST,1076,Istanbul, Turkey
+SXF,1077,Berlin, Germany
+AYT,1078,Islip, NY
+LOS,1079,Teterboro, NJ
+EZE,1080,New York, NY
+NGO,1081,San Francisco, CA
+ARN,1082,San Francisco, CA
+TLN,1083,Houston, TX
+MNL,1084,Kona, HI
+LCA,1085,Larnaca, Cyprus
+PVG,1086,Shanghai, China
+AVN,1087,Avignon, France
+VLC,1088,Los Angeles, CA
+CIA,1089,San Jose, CA
+TSA,1090,Taipei, Taiwan
+SIN,1091,Singapore, Singapore
+PVK,1092,San Jose, CA
+AZI,1093,Boston, MA
+KKJ,1094,Kitakyushu, Japan
+DWC,1095,Jebel Ali, United Arab Emirates
+HLA,1096,Lanseria, South Africa
+AZS,1097,Samana, Dominican Republic
+BOG,1098,Bogota, Colombia
+CIW,1099,Canouan, Saint Vincent and the Grenadines
+PBM,1100,Zanderij, Suriname
+PTY,1101,Panama City, Panama
+RKV,1102,Reykjavik, Iceland
+KIR,1103,Bedford, MA
+OPO,1104,Teterboro, NJ
+EXT,1105,Exeter, United Kingdom
+SOU,1106,Southampton, United Kingdom
+SEN,1107,White Plains, NY
+EVE,1108,Providence, RI
+ANE,1109,Teterboro, NJ
+BOD,1110,Bordeaux, France
+TNG,1111,Teterboro, NJ
+KIX,1112,Osaka, Japan
+EIN,1113,Eindhoven, Netherlands
+NAT,1114,Miami, FL
+RDG,1115,Reading, PA
+WAW,1116,Warsaw, Poland
+POA,1117,Miami, FL
+TPS,1118,Trapani/Marsala, Italy
+GTF,1119,London, United Kingdom
+MVD,1120,Montevideo, Uruguay
+RZE,1121,Washington, DC
+CMI,1122,Nice, France
+BNE,1123,Brisbane, Australia
+HAM,1124,Hamburg, Germany
+BRE,1125,Bremen, Germany
+FDH,1126,West Palm Beach/Palm Beach, FL
+FKB,1127,Karlsruhe/Baden-Baden, Germany
+ORY,1128,Houston, TX
+SZX,1129,Shenzhen, China
+JTR,1130,Teterboro, NJ
+BJV,1131,Westhampton, NY
+FCO,1132,Miami, FL
+MWL,1133,Mineral Wells, TX
+CEG,1134,Los Angeles, CA
+GOT,1135,San Jose, CA
+PEK,1136,Beijing, China
+NAN,1137,Nadi, Fiji
+KID,1138,Kristianstad, Sweden
+MEL,1139,Honolulu, HI
+HEL,1140,Los Angeles, CA
+BSL,1141,Mulhouse, France
+RMU,1142,Murcia, Spain
+KWI,1143,Kuwait, Kuwait
+FIH,1144,Kinshasa, Congo (Kinshasa)
+SCL,1145,Santiago, Chile
+RUH,1146,Riyadh, Saudi Arabia
+CNX,1147,Kahului, HI
+DXB,1148,Dubai, United Arab Emirates
+CHC,1149,San Jose, CA
+HKT,1150,Kona, HI
+DEL,1151,Newark, NJ
+DMK,1152,Bangkok, Thailand
+BAQ,1153,Barranquilla, Colombia
+MID,1154,Merida, Mexico
+BEL,1155,Belem, Brazil
+ORH,1156,Worcester, MA
+BYJ,1157,Bedford, MA
+BOH,1158,Bournemouth, United Kingdom
+ANR,1159,Antwerp, Belgium
+RKE,1160,Westhampton, NY
+DRS,1161,Bedford, MA
+INN,1162,Teterboro, NJ
+TFS,1163,Tenerife, Spain
+ITO,1164,Seoul, South Korea
+CEW,1165,Frankfurt, Germany
+BIO,1166,Bilbao, Spain
+TKU,1167,Miami, FL
+LBA,1168,Leeds/Bradford, United Kingdom
+VXO,1169,Las Vegas, NV
+HGH,1170,Hangzhou, China
+GIB,1171,San Jose, CA
+SGN,1172,Ho Chi Minh City, Vietnam
+OSR,1173,Los Angeles, CA
+CJU,1174,Jeju, South Korea
+CRK,1175,San Francisco, CA
+HAN,1176,Hanoi, Vietnam
+CZM,1177,Miami, FL
+DAV,1178,David, Panama
+GND,1179,Teterboro, NJ
+MAH,1180,Mahon, Spain
+FSC,1181,Figari, France
+BGO,1182,Seattle, WA
+BDS,1183,White Plains, NY
+BRC,1184,San Carlos de Bariloche, Argentina
+SKG,1185,Trenton, NJ
+PRC,1186,Prescott, AZ
+NOC,1187,Phoenix, AZ
+CTU,1188,Anchorage, AK
+DUD,1189,Dunedin, New Zealand
+BLQ,1190,Bologna, Italy
+KGS,1191,Kos, Greece
+ASR,1192,Albany, NY
+ADJ,1193,Teterboro, NJ
+TAO,1194,San Francisco, CA
+CMN,1195,Casablanca, Morocco
+CLJ,1196,Cluj-Napoca, Romania
+ADB,1197,Izmir, Turkey
+PMO,1198,San Jose, CA
+CGK,1199,Jakarta, Indonesia
+CAN,1200,San Jose, CA
+RTB,1201,Bedford, MA
+PDL,1202,Ponta Delgada, Portugal
+NCL,1203,Teterboro, NJ
+DTM,1204,Philadelphia, PA
+REC,1205,Newark, NJ
+RJK,1206,Rijeka, Croatia
+BBU,1207,Bucharest, Romania
+CPR,1208,Paris, France
+SXB,1209,Tampa, FL
+KTT,1210,San Jose, CA
+LPA,1211,Denver, CO
+ACC,1212,Accra, Ghana
+SGH,1213,Accra, Ghana
+PNH,1214,Phnom Penh, Cambodia
+ESB,1215,West Palm Beach/Palm Beach, FL
+NBO,1216,Boston, MA
+SVD,1217,Waukegan, IL
+LIM,1218,Lima, Peru
+RBA,1219,Rabat, Morocco
+NKC,1220,Nouakchott, Mauritania
+TRS,1221,Trieste, Italy
+UVF,1222,Oakland, CA
+PPT,1223,Papeete, French Polynesia
+GEO,1224,Los Angeles, CA
+LGG,1225,Orlando, FL
+SOF,1226,White Plains, NY
+CMF,1227,Miami, FL
+CAG,1228,Cagliari, Italy
+JMK,1229,Miami, FL
+KMI,1230,Miyazaki, Japan
+HAJ,1231,Hannover, Germany
+ORK,1232,Indianapolis, IN
+ZTH,1233,Zakinthos, Greece
+CHQ,1234,Chania, Greece
+MFM,1235,Macau, Macau
+CAI,1236,Los Angeles, CA
+CEF,1237,Moncton, Canada
+MBJ,1238,Montego Bay, Jamaica
+LYR,1239,Longyearbyen, Norway
+BDU,1240,Seattle, WA
+AJA,1241,Chicago, IL
+KLX,1242,Kalamata, Greece
+CDC,1243,Cedar City, UT
+SZB,1244,Anchorage, AK
+LHR,1245,London, United Kingdom
+COO,1246,White Plains, NY
+SMR,1247,San Antonio, TX
+ART,1248,Watertown, NY
+BOO,1249,Seattle, WA
+MNZ,1250,Manassas, VA
+AEP,1251,Buenos Aires, Argentina
+PUQ,1252,Miami, FL
+CPC,1253,Chapelco, Argentina
+KSF,1254,Milwaukee, WI
+FNA,1255,Teterboro, NJ
+OKA,1256,Lihue, HI
+CLY,1257,Calvi, France
+RNS,1258,Los Angeles, CA
+SLM,1259,Salamanca, Spain
+SHR,1260,Sheridan, WY
+MST,1261,Bedford, MA
+CRW,1262,Charleston/Dunbar, WV
+ODE,1263,Odense, Denmark
+GYY,1264,Gary, IN
+SVQ,1265,Seville, Spain
+CDG,1266,Paris, France
+DNR,1267,Los Angeles, CA
+VWK,1268,Saratoga Springs, NY
+BHB,1269,New York, NY
+BNH,1270,Boston, MA
+2NY,1271,Port Washington, NY
+OWD,1272,New York, NY
+PCA,1273,Portage Creek, AK
+KPV,1274,Perryville, AK
+WTK,1275,Kotzebue, AK
+AKB,1276,Atka, AK
+ADK,1277,Atka, AK
+VDZ,1278,Valdez, AK
+VA9,1279,Norfolk, VA
+ELM,1280,East Farmingdale, NY
+UST,1281,Miami, FL
+IDP,1282,Des Moines, IA
+EAR,1283,Jackson, WY
+FAY,1284,Miami, FL
+SPI,1285,East Farmingdale, NY
+VA5,1286,Madrid, Spain
+RIX,1287,Teterboro, NJ
+ZAG,1288,White Plains, NY
+PNA,1289,Grand Rapids, MI
+NJ7,1290,New Jersey, NJ
+CDW,1291,Caldwell, NJ
+PHK,1292,Pahokee, FL
+3NY,1293,Suffolk, NY
+WSH,1294,East Hampton, NY
+LNA,1295,Fort Lauderdale, FL
+NSB,1296,Bimini, The Bahamas
+HIE,1297,Whitefield, NH
+CXY,1298,Cat Cay, The Bahamas
+IMM,1299,Immokalee, FL
+WTD,1300,Fort Lauderdale, FL
+LDJ,1301,East Hampton, NY
+FID,1302,Fishers Island, NY
+TPF,1303,Tampa, FL
+OBE,1304,Tampa, FL
+SPG,1305,Okeechobee, FL
+PGD,1306,Punta Gorda, FL
+WKR,1307,Fort Lauderdale, FL
+BS3,1308,Baker Bay, The Bahamas
+TZN,1309,Miami, FL
+HBI,1310,Fort Lauderdale, FL
+PPM,1311,Pompano Beach, FL
+UBF,1312,New York, NY
+TYM,1313,Exuma, The Bahamas
+ASD,1314,West Palm Beach/Palm Beach, FL
+ESC,1315,Escanaba, MI
+CDV,1316,Cordova, AK
+YAK,1317,Klawock, AK
+BTS,1318,Bratislava, Slovakia
+FMO,1319,Greven, Germany
+VRN,1320,Verona, Italy
+TLS,1321,Toulouse, France
+SDR,1322,Santander, Spain
+CGZ,1323,Page, AZ
+PHF,1324,Teterboro, NJ
+MLJ,1325,Akron, OH
+ENW,1326,Kenosha, WI
+MCN,1327,Macon, GA
+BMG,1328,Bloomington, IN
+CNY,1329,Moab, UT
+DHT,1330,Dalhart, TX
+HEZ,1331,Crestview, FL
+GAD,1332,Cincinnati, OH
+EVV,1333,Eagle, CO
+BTM,1334,Teterboro, NJ
+CVN,1335,Clovis, NM
+YQG,1336,White Plains, NY
+ISO,1337,Kinston, NC
+ATW,1338,Appleton, WI
+PSF,1339,Pittsfield, MA
+LNY,1340,Hilo, HI
+ARA,1341,New Iberia, LA
+RFD,1342,Fort Wayne, IN
+FL8,1343,Miami, FL
+OAJ,1344,Jacksonville/Camp Lejeune, NC
+LOZ,1345,London/Corbin, KY
+BEH,1346,London/Corbin, KY
+ID1,1347,Driggs, ID
+EWN,1348,New Bern/Morehead/Beaufort, NC
+YYB,1349,Chicago, IL
+FTY,1350,Atlanta, GA
+MBS,1351,Saginaw/Bay City/Midland, MI
+GVL,1352,Fort Lauderdale, FL
+JZI,1353,White Plains, NY
+VDI,1354,Vidalia, GA
+ISW,1355,New York, NY
+MGR,1356,East Farmingdale, NY
+LTO,1357,Loreto, Mexico
+MZT,1358,Van Nuys, CA
+HOT,1359,Hot Springs, AR
+FLD,1360,Van Nuys, CA
+FDK,1361,Detroit, MI
+HLN,1362,Helena, MT
+FDF,1363,Miami, FL
+NTR,1364,Monterrey, Mexico
+BAF,1365,White Plains, NY
+MIV,1366,Millville, NJ
+YNG,1367,Youngstown/Warren, OH
+GMU,1368,Greenville, SC
+MRC,1369,Philadelphia, PA
+LZU,1370,Westhampton, NY
+RKD,1371,Rockland, ME
+ZCL,1372,Zacatecas, Mexico
+HLI,1373,White Plains, NY
+GA5,1374,Thomson, GA
+PIH,1375,Seattle, WA
+TIX,1376,Titusville, FL
+DWH,1377,Austin, TX
+LWB,1378,Lewisburg, WV
+MN7,1379,Minneapolis, MN
+IPL,1380,El Centro, CA
+VCT,1381,Milwaukee, WI
+MDH,1382,Smyrna, TN
+KIN,1383,Dallas/Fort Worth, TX
+YXT,1384,Terrace, Canada
+BSB,1385,Teterboro, NJ
+LLA,1386,Lulea, Sweden
+TIA,1387,Teterboro, NJ
+LYX,1388,Teterboro, NJ
+BEG,1389,Belgrade, Serbia
+LBC,1390,Las Vegas, NV
+KJK,1391,Cincinnati, OH
+BLL,1392,Billund, Denmark
+LUX,1393,Luxembourg, Luxembourg
+TIV,1394,Teterboro, NJ
+ABZ,1395,Reno, NV
+CKV,1396,Cincinnati, OH
+3NC,1397,Hendersonville, NC
+NY7,1398,Syracuse, NY
+DXR,1399,Danbury, CT
+BBX,1400,Blue Bell, PA
+QMN,1401,East Hampton, NY
+DYL,1402,Doylestown, PA
+POU,1403,East Hampton, NY
+NJ2,1404,West Creek, NJ
+NJ1,1405,Berlin, NJ
+PA5,1406,New York, NY
+NJ3,1407,Somerville, NJ
+AVO,1408,West Palm Beach/Palm Beach, FL
+CT1,1409,Beverly, MA
+SEF,1410,Miami, FL
+MA4,1411,Lebanon-Hanover, NH
+BOW,1412,St. Augustine, FL
+FL7,1413,Miami, FL
+SBH,1414,Saint Barthelemy, Saint Barthelemy
+AOO,1415,Altoona, PA
+SHD,1416,Altoona, PA
+GBR,1417,Allentown/Bethlehem/Easton, PA
+NY5,1418,Lebanon-Hanover, NH
+GED,1419,Georgetown, DE
+UXO,1420,Teterboro, NJ
+PCT,1421,Washington, DC
+SEG,1422,Selinsgrove, PA
+ISS,1423,Wiscasset, ME
+GTY,1424,Gettysburg, PA
+OIC,1425,Philadelphia, PA
+XXE,1426,Lakewood, NJ
+CON,1427,Teterboro, NJ
+6B0,1428,Martha's Vineyard, MA
+VGC,1429,Bedford, MA
+SFM,1430,Sanford, ME
+ESN,1431,Easton, MD
+NY8,1432,Harrisburg, PA
+AAF,1433,Orlando, FL
+LKP,1434,Newark, NJ
+1NY,1435,Penn Yan, NY
+ANP,1436,Penn Yan, NY
+NH4,1437,Moultonboro, NH
+BFD,1438,Bradford, PA
+JBQ,1439,San Juan, PR
+OGS,1440,Ogdensburg, NY
+GAI,1441,Westhampton, NY
+LOW,1442,Louisa, VA
+WVL,1443,East Hampton, NY
+1N7,1444,Staunton, VA
+NJ9,1445,Nantucket, MA
+VA8,1446,Richmond, VA
+YTZ,1447,Toronto, Canada
+YSC,1448,Teterboro, NJ
+YOO,1449,Manchester, NH
+MD1,1450,Michellville, MD
+ROA,1451,Roanoke, VA
+BQU,1452,Bequia, Saint Vincent and the Grenadines
+YLS,1453,Lebel-sur-Quevillon, Canada
+TRL,1454,Terrell, TX
+ASX,1455,Ashland, WI
+NHZ,1456,Bar Harbor, ME
+NAD,1457,North Adams, MA
+1B1,1458,East Hampton, NY
+BGM,1459,Saratoga Springs, NY
+MJX,1460,Waterbury, CT
+DE2,1461,Teterboro, NJ
+CT2,1462,Simsbury, CT
+QQG,1463,Westminster, MD
+EEN,1464,Keene, NH
+N1Y,1465,Canandaigua, NY
+B21,1466,Burlington, VT
+SCH,1467,Boston, MA
+DE3,1468,Dover-Cheswold, DE
+PA4,1469,Carlisle, PA
+ASH,1470,White Plains, NY
+ME3,1471,Boston, MA
+MVL,1472,Rockland, ME
+1NJ,1473,Newport, RI
+LLY,1474,Mount Holly, NJ
+VSF,1475,Nantucket, MA
+LEW,1476,Albany, NY
+1PA,1477,Connellsville, PA
+SBY,1478,White Plains, NY
+FRY,1479,East Hampton, NY
+SDQ,1480,San Juan, PR
+PA2,1481,Bedford, PA
+AUG,1482,East Hampton, NY
+EFK,1483,Teterboro, NJ
+YPQ,1484,Peterborough, Canada
+PSE,1485,Ponce, PR
+GDT,1486,San Juan, PR
+AGC,1487,Pittsburgh, PA
+PR1,1488,San Juan, PR
+NY1,1489,Kingston, NY
+MA6,1490,White Plains, NY
+JZQ,1491,Brooksville, FL
+FME,1492,White Plains, NY
+YKZ,1493,White Plains, NY
+RMN,1494,Stafford, VA
+IAG,1495,Bedford, MA
+MA1,1496,Washington, DC
+YGP,1497,Gaspe, Canada
+ZZV,1498,Zanesville, OH
+BQN,1499,Stuart, FL
+LCQ,1500,Orlando, FL
+ME2,1501,Boston, MA
+CGE,1502,East Farmingdale, NY
+NH1,1503,New York, NY
+HAR,1504,Harrisburg, PA
+ONH,1505,Oneonta, NY
+LYH,1506,Lynchburg, VA
+YPS,1507,Bedford, MA
+LOU,1508,Louisville, KY
+FRR,1509,Westminster, MD
+MPO,1510,Bedford, MA
+JGG,1511,New York, NY
+MD3,1512,Churchville, MD
+OCE,1513,Atlantic City, NJ
+2FL,1514,West Palm Beach, FL
+B19,1515,White Plains, NY
+OCW,1516,White Plains, NY
+CRE,1517,Morristown, NJ
+VJI,1518,White Plains, NY
+YRQ,1519,Trois Rivieres, Canada
+MA5,1520,Washington, DC
+MGW,1521,Morgantown, WV
+SLU,1522,San Juan, PR
+BTP,1523,Butler, PA
+SOP,1524,White Plains, NY
+RDB,1525,Red Dog, AK
+DRG,1526,Deering, AK
+ORV,1527,Noorvik, AK
+LUP,1528,Kalaupapa, HI
+MKK,1529,Kalaupapa, HI
+LSR,1530,Lost River, AK
+TNC,1531,Tin City, AK
+CDL,1532,Candle, AK
+IAN,1533,Kiana, AK
+MUE,1534,Kamuela, HI
+JHM,1535,Kapalua, HI
+HNM,1536,Kapalua, HI
+HDH,1537,Mokuleia, HI
+SRW,1538,Salisbury, NC
+GWT,1539,Teterboro, NJ
+MUN,1540,Van Nuys, CA
+BDN,1541,Seattle, WA
+YXX,1542,Abbotsford, Canada
+BMI,1543,Broomfield, CO
+MEJ,1544,Wilmington, NC
+MEI,1545,Washington, DC
+YQK,1546,Omaha, NE
+BOC,1547,Bocas del Toro, Panama
+YGK,1548,Kingston, Canada
+LEE,1549,Leesburg, FL
+GDL,1550,Guadalajara, Mexico
+CKY,1551,Conakry, Guinea
+XSP,1552,Honolulu, HI
+KNB,1553,Kanab, UT
+CH1,1554,Payerne, Switzerland
+SIR,1555,Teterboro, NJ
+HHN,1556,Hahn, Germany
+FMM,1557,Washington, DC
+YYF,1558,Santa Rosa, CA
+KQA,1559,Akutan, AK
+MTX,1560,Fairbanks, AK
+KEB,1561,Nanwalek, AK
+AQP,1562,Albuquerque, NM
+LFT,1563,Dallas, TX
+UTO,1564,Utopia, AK
+3AK,1565,Tintina, AK
+GTR,1566,Columbus, MS
+BIQ,1567,Teterboro, NJ
+ABV,1568,Cincinnati, OH
+TRD,1569,Las Vegas, NV
+PBC,1570,Puebla, Mexico
+MTO,1571,Gary, IN
+DJN,1572,Fairbanks, AK
+CKU,1573,Cordova, AK
+BFM,1574,Toronto, Canada
+ACA,1575,Acapulco, Mexico
+YLJ,1576,Meadow Lake, Canada
+KLU,1577,Los Angeles, CA
+CBG,1578,Cambridge, United Kingdom
+TLL,1579,Teterboro, NJ
+SZG,1580,Salzburg, Austria
+CFG,1581,Tampa, FL
+AEY,1582,Akureyri, Iceland
+PT1,1583,Newark, NJ
+LAF,1584,Aspen, CO
+ZNQ,1585,Columbia, SC
+HAD,1586,Halmstad, Sweden
+AGH,1587,Bedford, MA
+OSD,1588,Ostersund, Sweden
+SGD,1589,Syracuse, NY
+MKT,1590,Detroit, MI
+YPD,1591,White Plains, NY
+PFO,1592,Teterboro, NJ
+SZZ,1593,Szczecin, Poland
+IRK,1594,Kirksville, MO
+A06,1595,Brevig Mission, AK
+LIV,1596,Livengood, AK
+GKN,1597,Delta Junction, AK
+A5K,1598,Paxson, AK
+MHK,1599,Kansas City, MO
+MRB,1600,White Plains, NY
+MLI,1601,Baltimore, MD
+MVC,1602,Teterboro, NJ
+HLG,1603,Wheeling, WV
+MKG,1604,St. Louis, MO
+FQI,1605,Scott, KY
+AID,1606,Anderson, IN
+KS3,1607,Hiawatha, KS
+EAU,1608,Indianapolis, IN
+YFC,1609,White Plains, NY
+CEY,1610,Murray, KY
+N8C,1611,Oak Island, NC
+BYH,1612,Blytheville, AR
+SGF,1613,Springfield, MO
+2GA,1614,Camilla, GA
+FWL,1615,Farewell, AK
+VZY,1616,Katmai Lodge, AK
+SNP,1617,St. Paul, AK
+FNT,1618,Flint, MI
+GDC,1619,Greenville, SC
+HKY,1620,Greenville, SC
+BTL,1621,Detroit, MI
+LPR,1622,Lorain/Elyria, OH
+MFD,1623,Detroit, MI
+DRT,1624,Laredo, TX
+GLR,1625,Detroit, MI
+CLU,1626,Detroit, MI
+JVL,1627,Detroit, MI
+PIA,1628,Peoria, IL
+PSK,1629,Columbia, TN
+LSE,1630,Detroit, MI
+ANB,1631,Anniston, AL
+GRI,1632,St. Louis, MO
+BJX,1633,Leon/Guanajuato, Mexico
+RNH,1634,Detroit, MI
+DCU,1635,Decatur, AL
+PUB,1636,Pueblo, CO
+ARG,1637,Walnut Ridge, AR
+GGG,1638,Brownsville, TX
+SBZ,1639,Sibiu, Romania
+APW,1640,Apia, Samoa
+GRX,1641,Augusta, GA
+HGR,1642,Hagerstown, MD
+GLS,1643,Galveston, TX
+IPT,1644,Teterboro, NJ
+LYU,1645,Ely, MN
+TBR,1646,Knoxville, TN
+MIO,1647,Nashville, TN
+ILN,1648,Miami, FL
+PIR,1649,Pierre, SD
+TSM,1650,San Jose, CA
+UVA,1651,Austin, TX
+BES,1652,Teterboro, NJ
+TBN,1653,Philadelphia, PA
+PKB,1654,Parkersburg, WV
+PAH,1655,Paducah, KY
+NV4,1656,Reno, NV
+RDD,1657,Redding, CA
+LMT,1658,Klamath Falls, OR
+LJU,1659,Newark, NJ
+NSI,1660,Newark, NJ
+DBV,1661,Dubrovnik, Croatia
+BRD,1662,Brainerd, MN
+MRN,1663,Morganton, NC
+SLZ,1664,Sao Luiz, Brazil
+BRQ,1665,Brno, Czech Republic
+YSB,1666,Sudbury, Canada
+AIT,1667,San Diego, CA
+PGF,1668,Perpignan, France
+FUE,1669,Newburgh/Poughkeepsie, NY
+EAS,1670,San Sebastian, Spain
+FNI,1671,Nimes, France
+TUN,1672,Westhampton, NY
+OTP,1673,Bucharest, Romania
+UIO,1674,Oakland, CA
+LBV,1675,Teterboro, NJ
+CH2,1676,St Stephan, Switzerland
+ZAD,1677,White Plains, NY
+VNO,1678,Newburgh/Poughkeepsie, NY
+NTE,1679,Nantes, France
+5GA,1680,Calhoun, GA
+MHE,1681,Smyrna, TN
+OWB,1682,Evansville, IN
+NC8,1683,Burlington, NC
+BGE,1684,Bainbridge, GA
+YYG,1685,Monticello, NY
+MBL,1686,Laconia, NH
+TN6,1687,Fort Lauderdale, FL
+BLV,1688,Fort Lauderdale, FL
+RWL,1689,Nashville, TN
+DUA,1690,Durant, OK
+BKW,1691,Parkersburg, WV
+GCY,1692,Greeneville, TN
+SME,1693,Smyrna, TN
+PBG,1694,Plattsburgh, NY
+TUP,1695,Tupelo, MS
+CEC,1696,Medford, OR
+YQS,1697,St Thomas, Canada
+GLH,1698,Tupelo, MS
+YCE,1699,Centralia, Canada
+ATO,1700,Charlotte, NC
+1TX,1701,Dumas, TX
+RSN,1702,Ruston, LA
+RKS,1703,Rock Springs, WY
+2VA,1704,Manassas, VA
+LAR,1705,San Diego, CA
+CMX,1706,Hancock/Houghton, MI
+PXM,1707,Teterboro, NJ
+VBS,1708,Brescia, Italy
+DND,1709,Dundee, United Kingdom
+LEI,1710,Almeria, Spain
+CWA,1711,Mosinee, WI
+MLU,1712,Monroe, LA
+VPS,1713,Valparaiso, FL
+CSG,1714,Columbus, GA
+VLD,1715,Jacksonville, FL
+GEK,1716,Ganes Creek, AK
+TVF,1717,Grand Forks, ND
+FDY,1718,Pontiac, MI
+HUF,1719,Pontiac, MI
+FLO,1720,Pontiac, MI
+ASN,1721,Talladega, AL
+NLU,1722,Zumpango, Mexico
+BZV,1723,Brazzaville, Congo (Brazaville)
+DOH,1724,New York, NY
+DYU,1725,New York, NY
+PQI,1726,Presque Isle/Houlton, ME
+LCH,1727,Lake Charles, LA
+YDF,1728,Newark, NJ
+CYB,1729,Cayman Brac, Cayman Islands
+SAL,1730,San Salvador, El Salvador
+SAP,1731,Miami, FL
+LCK,1732,Niagara Falls, NY
+NYL,1733,Yuma, AZ
+MQT,1734,Mosinee, WI
+OH3,1735,Laredo, TX
+TRC,1736,Laredo, TX
+MGA,1737,Miami, FL
+YAP,1738,Guam, TT
+KTW,1739,Newark, NJ
+RAP,1740,Jackson, WY
+TKK,1741,Guam, TT
+PNI,1742,Pohnpei, Federated States of Micronesia
+RVN,1743,Rovaniemi, Finland
+MLE,1744,Male, Maldives
+HTS,1745,Gainesville, FL
+SWO,1746,Stillwater, OK
+BPT,1747,Beaumont/Port Arthur, TX
+ABI,1748,Abilene, TX
+ATY,1749,Watertown, SD
+ADM,1750,Van Nuys, CA
+PAP,1751,Port-au-Prince, Haiti
+SCU,1752,Santiago, Cuba
+SNU,1753,Miami, FL
+HOG,1754,Miami, FL
+MAO,1755,San Juan, PR
+ROW,1756,Lafayette, IN
+KSA,1757,Kosrae, Federated States of Micronesia
+PAM,1758,Panama City, FL
+NKX,1759,San Antonio, TX
+DQK,1760,Alexandria, LA
+CMW,1761,Camaguey, Cuba
+EDF,1762,Anchorage, AK
+SVW,1763,Sparrevohn, AK
+PEI,1764,Pereira, Colombia
+VER,1765,Houston, TX
+N1C,1766,Cherry Point, NC
+BFT,1767,Beaufort, SC
+MTC,1768,Beaufort, SC
+PIB,1769,Hattiesburg/Laurel, MS
+SUU,1770,Fairfield, CA
+TIK,1771,Fairfield, CA
+NHK,1772,Patuxent River, MD
+SKF,1773,Columbia, SC
+LAW,1774,Lawton/Fort Sill, OK
+BAD,1775,Shreveport, LA
+SSC,1776,Sumter, SC
+FFO,1777,Dayton, OH
+OFF,1778,Omaha, NE
+DMA,1779,Omaha, NE
+APN,1780,Alpena, MI
+SUX,1781,Beaumont/Port Arthur, TX
+DOV,1782,Raleigh/Durham, NC
+LWS,1783,Lewiston, ID
+MAJ,1784,Guam, TT
+MXL,1785,San Francisco, CA
+XPL,1786,Comayagua, Honduras
+LFI,1787,Greensboro/High Point, NC
+HST,1788,Homestead, FL
+LSF,1789,Camp Springs, MD
+SC1,1790,Beaufort, SC
+RQZ,1791,Mary Esther, FL
+NQX,1792,Miami, FL
+KWA,1793,Honolulu, HI
+CUL,1794,Houston, TX
+CTM,1795,Houston, TX
+VAD,1796,Charlotte, NC
+NBW,1797,Guantanamo, Cuba
+SVN,1798,Evansville, IN
+POB,1799,Miami, FL
+BFK,1800,Aurora, CO
+VRA,1801,Miami, FL
+CLO,1802,Miami, FL
+IFP,1803,Los Angeles, CA
+RAC,1804,Racine, WI
+MLM,1805,San Antonio, TX
+HOW,1806,Balboa, Panama
+RCA,1807,Rapid City, SD
+LSV,1808,Rapid City, SD
+WRI,1809,Fort Dix, NJ
+TCM,1810,Alexandria, LA
+MIB,1811,Rapid City, SD
+DYS,1812,Abilene, TX
+CWF,1813,Mattoon/Charleston, IL
+BGA,1814,Bucaramanga, Colombia
+AAL,1815,Newark, NJ
+BON,1816,Bonaire, Bonaire, Sint Eustatius, and Saba
+YQY,1817,Sydney, Canada
+PAD,1818,Chicago, IL
+RAR,1819,Kona, HI
+PIO,1820,Orlando, FL
+ZIH,1821,Ixtapa/Zihuatanejo, Mexico
+CJS,1822,Laredo, TX
+DGO,1823,Chicago, IL
+UPN,1824,Uruapan, Mexico
+OAX,1825,Oaxaca, Mexico
+HUX,1826,Chicago, IL
+CNS,1827,Dallas/Fort Worth, TX
+HIB,1828,Minneapolis, MN
+ABR,1829,Bullhead City, AZ
+NOU,1830,Los Angeles, CA
+SFJ,1831,Sondre Stromfjord, Greenland
+GCK,1832,Denver, CO
+FOD,1833,Fort Dodge, IA
+CBR,1834,Houston, TX
+NRN,1835,Fargo, ND
+TDF,1836,Charlotte, NC
+YOC,1837,Old Crow, Canada
+ZXF,1838,Illinois Creek, AK
+BKT,1839,Laredo, TX
+POM,1840,Guam, TT
+FOR,1841,Fortaleza, Brazil
+JRF,1842,Kapolei, HI
+ANX,1843,Andeness, Norway
+1FL,1844,Titusville, FL
+NPA,1845,Pensacola, FL
+LGW,1846,London, United Kingdom
+JNB,1847,Johannesburg, South Africa
+VCP,1848,Sao Paulo, Brazil
+ROR,1849,Guam, TT
+CWL,1850,Cardiff, United Kingdom
+VVI,1851,Dallas/Fort Worth, TX
+DNA,1852,Anchorage, AK
+TSV,1853,Townsville, Australia
+SDJ,1854,Sendai, Japan
+CPT,1855,Cape Town, South Africa
+EIL,1856,Fairbanks, AK
+ROZ,1857,Rota, Spain
+COR,1858,Houston, TX
+OOL,1859,Honolulu, HI
+IWK,1860,Iwakuni, Japan
+DOL,1861,Deauville, France
+ANF,1862,Miami, FL
+UBN,1863,Anchorage, AK
+EVX,1864,Evreux, France
+CHR,1865,Dallas/Fort Worth, TX
+MHZ,1866,Mildenhall, United Kingdom
+OKO,1867,Anchorage, AK
+KUH,1868,Seattle, WA
+RMS,1869,Dallas/Fort Worth, TX
+MDZ,1870,Atlanta, GA
+OSH,1871,Oshkosh, WI
+BOM,1872,Mumbai, India
+YTR,1873,Kansas City, MO
+GDN,1874,Gdansk, Poland
+EFD,1875,Indianapolis, IN
+YJT,1876,Stephenville, Canada
+VBG,1877,Lompoc, CA
+ADL,1878,Adelaide, Australia
+LEJ,1879,Cincinnati, OH
+AGT,1880,Miami, FL
+CWB,1881,Miami, FL
+VIX,1882,Miami, FL
+FLN,1883,Miami, FL
+CFB,1884,Miami, FL
+SJK,1885,Miami, FL
+SSA,1886,Miami, FL
+RES,1887,Miami, FL
+CND,1888,Constanta, Romania
+POZ,1889,Fort Drum, NY
+IKV,1890,Dallas/Fort Worth, TX
+YXS,1891,Prince George, Canada
+CCP,1892,Miami, FL
+GYD,1893,Baku, Azerbaijan
+XCR,1894,Newark, NJ
+UAM,1895,Anchorage, AK
+OST,1896,Ostend, Belgium
+SPM,1897,Fort Myers, FL
+NTD,1898,Port Hueneme, CA
+OSN,1899,Anchorage, AK
+MCF,1900,Tampa, FL
+XXT,1901,Polson, MT
+HIK,1902,Honolulu, HI
+FFD,1903,Fairford, United Kingdom
+XXX,1904,Newport News/Hampton, VA
+DRW,1905,Honolulu, HI
+NSY,1906,Bangor, ME
+PIK,1907,Chicago, IL
+KOJ,1908,Anchorage, AK
+QPG,1909,Anchorage, AK
+MAR,1910,Houston, TX
+NZY,1911,San Diego, CA
+NIP,1912,Jacksonville, FL
+EDW,1913,Chicago, IL
+CAY,1914,Cayenne, French Guiana
+AWK,1915,Wake Island, TT
+GSB,1916,Goldsboro, NC
+TSN,1917,Anchorage, AK
+CGO,1918,Anchorage, AK
+XIY,1919,Anchorage, AK
+XMN,1920,Anchorage, AK
+FVJ,1921,Los Angeles, CA
+MCT,1922,Muscat, Oman
+HES,1923,Muscat, Oman
+BKK,1924,Bangkok, Thailand
+ORB,1925,Orebro, Sweden
+NIM,1926,New York, NY
+PRN,1927,New York, NY
+GRZ,1928,Graz, Austria
+KWL,1929,Anchorage, AK
+WUH,1930,Anchorage, AK
+TUC,1931,Tucuman, Argentina
+CHI,1932,Chicago, IL
+DAC,1933,Guam, TT
+CSX,1934,Changsha, China
+ABJ,1935,Greer, SC
+NJK,1936,Bangor, ME
+WTN,1937,Bangor, ME
+INS,1938,Bangor, ME
+WRO,1939,Portsmouth, NH
+NUW,1940,Whidbey Island, WA
+IAB,1941,Wichita, KS
+HFE,1942,Anchorage, AK
+NGB,1943,Anchorage, AK
+ADA,1944,Washington, DC
+BAH,1945,Cincinnati, OH
+YXY,1946,Whitehorse, Canada
+NQY,1947,Newquay, United Kingdom
+A52,1948,Silver Salmon Creek, AK
+TOA,1949,Torrance, CA
+A27,1950,Fairbanks, AK
+VAV,1951,Pago Pago, TT
+ALW,1952,Walla Walla, WA
+FL4,1953,Bunnell, FL
+9TX,1954,Center, TX
+BOB,1955,Seattle, WA
+MI7,1956,Teterboro, NJ
+WSM,1957,Fairbanks, AK
+AUO,1958,Auburn, AL
+VOK,1959,Camp Douglas, WI
+YMM,1960,Fort McMurray, Canada
+SEM,1961,Selma, AL
+A20,1962,Alpine, AK
+TFU,1963,Chengdu, China
+HRB,1964,Los Angeles, CA
+UTP,1965,Utapao, Thailand
+FOC,1966,Fuzhou, China
+KOY,1967,Olga Bay, AK
+A34,1968,Kodiak Island, AK
+RBH,1969,Kulik Lake, AK
+MAY,1970,Mangrove Cay, The Bahamas
+FQQ,1971,Dry Bay, AK
+IWO,1972,Guam, TT
+CCS,1973,Caracas, Venezuela
+FNC,1974,Funchal, Portugal
+SHE,1975,Shenyang, China
+TYN,1976,Los Angeles, CA
+WUX,1977,Wuxi, China
+CDR,1978,Denver, CO
+TAB,1979,Tobago, Trinidad and Tobago
+INC,1980,Anchorage, AK
+SVG,1981,Houston, TX
+YCL,1982,Charlo, Canada
+NV5,1983,Gerlach, NV
+TNA,1984,Jinan, China
+AUH,1985,New York, NY
+AMM,1986,Amman, Jordan
+ADD,1987,New York, NY
+ADZ,1988,San Andres Island, Colombia
+NKG,1989,Anchorage, AK
+TAS,1990,New York, NY
+LFW,1991,Lome, Togo
+BLR,1992,San Francisco, CA
+RBN,1993,Fort Jefferson, FL
+UGI,1994,Uganik, AK
+KPR,1995,Port Williams, AK
+WWP,1996,Whale Pass, AK
+KCC,1997,Coffman Cove, AK
+KXA,1998,Thorne Bay, AK
+EDA,1999,Edna Bay, AK
+PPV,2000,Port Protection, AK
+HYG,2001,Hydaburg, AK
+DOF,2002,Hydaburg, AK
+WMK,2003,Meyers Chuck, AK
+KPB,2004,Point Baker, AK
+WHD,2005,Hyder, AK
+ZNA,2006,Nanaimo, Canada
+DHB,2007,Friday Harbor, WA
+YIG,2008,Big Bay Marina, Canada
+A38,2009,Molly Creek, AK
+BC7,2010,Molly Creek, AK
+CNM,2011,Carlsbad, NM
+DMN,2012,Deming, NM
+BC5,2013,Molly Creek, AK
+YDS,2014,Desolation Sound, Canada
+RBG,2015,Roseburg, OR
+OR3,2016,Florence, OR
+XXU,2017,Portland, OR
+2WK,2018,Spokane, WA
+CIU,2019,Sault Ste. Marie, MI
+XWA,2020,Williston, ND
+ZXC,2021,Gasquet, CA
+MCK,2022,North Platte, NE
+IMT,2023,Iron Mountain/Kingsfd, MI
+DIK,2024,Dickinson, ND
+FMN,2025,Durango, CO
+GUP,2026,Gallup, NM
+NM1,2027,Gallup, NM
+XXP,2028,Sacramento, CA
+EKA,2029,Redding, CA
+UKI,2030,Eureka, CA
+MLT,2031,Millinocket, ME
+DDC,2032,Dodge City, KS
+BOK,2033,Sacramento, CA
+IYK,2034,Inyokern, CA
+HUL,2035,Houlton, ME
+SNS,2036,Oakland, CA
+JST,2037,State College, PA
+MDD,2038,Midland/Odessa, TX
+UXK,2039,Sacramento, CA
+EGP,2040,Eagle Pass, TX
+TLR,2041,Tulare, CA
+MN8,2042,Walker, MN
+VEL,2043,Vernal, UT
+JMS,2044,Jamestown, ND
+LBL,2045,Liberal, KS
+HYS,2046,Hays, KS
+GCC,2047,Gillette, WY
+DVL,2048,Devils Lake, ND
+TYR,2049,Tyler, TX
+TXK,2050,Texarkana, AR
+RQI,2051,Nixon Fork Mine, AK
+HOB,2052,Harlingen/San Benito, TX
+TAM,2053,Tampico, Mexico
+AXM,2054,Armenia, Colombia
+CAP,2055,Fort Lauderdale, FL
+MEC,2056,Miami, FL
+FUK,2057,Fukuoka, Japan
+NQA,2058,Millington, TN
+YR1,2059,Molly Creek, AK
+YGE,2060,Molly Creek, AK
+XXY,2061,Sacramento, CA
+TOR,2062,Torrington, WY
+VWA,2063,Headland, AL
+MYK,2064,May Creek, AK
+MXY,2065,McCarthy, AK
+HRO,2066,Memphis, TN
+BRL,2067,Burlington, IA
+ELD,2068,El Dorado, AR
+MEO,2069,Manteo, NC
+CIC,2070,Chico, CA
+ALS,2071,Denver, CO
+JBR,2072,Jonesboro, AR
+IWD,2073,Chicago, IL
+MSS,2074,Baltimore, MD
+CEZ,2075,Phoenix, AZ
+AIA,2076,Alliance, NE
+HVR,2077,Billings, MT
+DUJ,2078,Washington, DC
+PDT,2079,Pendleton, OR
+MAZ,2080,San Juan, PR
+SPB,2081,Charlotte Amalie, VI
+SSB,2082,Charlotte Amalie, VI

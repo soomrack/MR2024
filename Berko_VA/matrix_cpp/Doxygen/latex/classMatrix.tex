@@ -1,0 +1,568 @@
+\hypertarget{classMatrix}{}\doxysection{Класс Matrix}
+\label{classMatrix}\index{Matrix@{Matrix}}
+
+
+Класс для работы с матрицами вещественных чисел  
+
+
+
+
+{\ttfamily \#include $<$matrix.\+hpp$>$}
+
+\doxysubsection*{Открытые члены}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classMatrix_a2dba13c45127354c9f75ef576f49269b}{Matrix}} ()
+\begin{DoxyCompactList}\small\item\em Конструктор по умолчанию \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix_a8d87630bb5a1c350c701ab16506c9964}{Matrix}} (std\+::size\+\_\+t \mbox{\hyperlink{classMatrix_a0659b44be84e7582ed5f9014f74161f5}{rows}}, std\+::size\+\_\+t \mbox{\hyperlink{classMatrix_a399a8db0838ca2961c903d153e0601af}{cols}})
+\begin{DoxyCompactList}\small\item\em Конструктор с заданными размерами \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix_abcf708e864ed3d9db2c3b317c5e529ab}{Matrix}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other)
+\begin{DoxyCompactList}\small\item\em Конструктор копирования \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix_a75f3885769e293b3f3e236ef60a71c21}{Matrix}} (\mbox{\hyperlink{classMatrix}{Matrix}} \&\&other) noexcept
+\begin{DoxyCompactList}\small\item\em Конструктор перемещения \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix_ae55dd75e64afeef9a48ddfa3b333b60b}{$\sim$\+Matrix}} ()=default
+\begin{DoxyCompactList}\small\item\em Деструктор \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \& \mbox{\hyperlink{classMatrix_a3e40db12ae78b7616ee3f099bb15f13d}{operator=}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other)
+\begin{DoxyCompactList}\small\item\em Оператор присваивания копированием \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \& \mbox{\hyperlink{classMatrix_a74eca41e5a29b6efd57b009730d3fe60}{operator=}} (\mbox{\hyperlink{classMatrix}{Matrix}} \&\&other) noexcept
+\begin{DoxyCompactList}\small\item\em Оператор присваивания перемещением \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \mbox{\hyperlink{classMatrix_afc7858a535ebcebf445e91bccd75d197}{operator+}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other) const
+\begin{DoxyCompactList}\small\item\em Оператор сложения матриц \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \mbox{\hyperlink{classMatrix_abb44986f4d7b2ac6465fed5b5db019e8}{operator-\/}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other) const
+\begin{DoxyCompactList}\small\item\em Оператор вычитания матриц \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \mbox{\hyperlink{classMatrix_ab4f8e22e8db0983d75e090542f4d1f7a}{operator$\ast$}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other) const
+\begin{DoxyCompactList}\small\item\em Оператор умножения матриц \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \mbox{\hyperlink{classMatrix_adbf606cb48a831b07430c382b3d91fa0}{operator$\ast$}} (double number) const
+\begin{DoxyCompactList}\small\item\em Оператор умножения матрицы на число \end{DoxyCompactList}\item 
+double \& \mbox{\hyperlink{classMatrix_a8f7c080fa668e781f6a3f4982545635c}{operator()}} (std\+::size\+\_\+t row, std\+::size\+\_\+t col)
+\begin{DoxyCompactList}\small\item\em Оператор доступа к элементу матрицы \end{DoxyCompactList}\item 
+const double \& \mbox{\hyperlink{classMatrix_af76b0cde675db7b6c0d8a0356175e34b}{operator()}} (std\+::size\+\_\+t row, std\+::size\+\_\+t col) const
+\begin{DoxyCompactList}\small\item\em Оператор доступа к элементу матрицы (константный) \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classMatrix_a797d03df703f77cccb25ab9a0770e760}{operator==}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other) const
+\begin{DoxyCompactList}\small\item\em Оператор сравнения матриц \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classMatrix}{Matrix}} \mbox{\hyperlink{classMatrix_a0371c4255a565f69b95512f120524080}{multiply}} (const \mbox{\hyperlink{classMatrix}{Matrix}} \&other, Multiply\+Mode mode) const
+\begin{DoxyCompactList}\small\item\em Умножение матриц с указанным режимом \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \mbox{\hyperlink{classMatrix_a0659b44be84e7582ed5f9014f74161f5}{rows}} () const noexcept
+\begin{DoxyCompactList}\small\item\em Получить количество строк \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \mbox{\hyperlink{classMatrix_a399a8db0838ca2961c903d153e0601af}{cols}} () const noexcept
+\begin{DoxyCompactList}\small\item\em Получить количество столбцов \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classMatrix_a6d55862834a0b44e1e37f2f8a2bb208f}{is\+Empty}} () const noexcept
+\begin{DoxyCompactList}\small\item\em Проверка, является ли матрица пустой \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classMatrix_a67dc0e6e0a31399def3af33b2fc9ca9c}{is\+Square}} () const noexcept
+\begin{DoxyCompactList}\small\item\em Проверка, является ли матрица квадратной \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_a70e1c7b94711ead8829d916acdf3dcec}{set\+Log\+Level}} (Log\+Level level)
+\begin{DoxyCompactList}\small\item\em Установить уровень логирования \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_ad757c8e0b2d4b6a820271249d7706680}{set\+Zeros}} ()
+\begin{DoxyCompactList}\small\item\em Заполнить матрицу нулями \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_a60248fd805cad1ada930ab20d0790e3a}{fill\+Random}} (double min=0.\+0, double max=1.\+0)
+\begin{DoxyCompactList}\small\item\em Заполнить матрицу случайными вещественными значениями \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_a7c56f28d03ac651fbb3c9af5c5fac653}{set\+Identity}} ()
+\begin{DoxyCompactList}\small\item\em Сделать матрицу единичной \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_aa753de1a2ed37c8eb934e06823fee179}{transpose}} ()
+\begin{DoxyCompactList}\small\item\em Транспонировать матрицу \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_ab97f5121dd6628799f179ff13c31e456}{pow}} (unsigned int power)
+\begin{DoxyCompactList}\small\item\em Возвести матрицу в степень \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classMatrix_aa0d6a29f67caf4b792b1958d728e3a17}{exp}} ()
+\begin{DoxyCompactList}\small\item\em Вычислить экспоненту матрицы \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classMatrix_a7969d6979d72bb9fc14f5ac6c136f48c}{det}} () const
+\begin{DoxyCompactList}\small\item\em Вычислить определитель матрицы \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classMatrix_abad4f764e17de0076ecdd89ffd1dbf50}\label{classMatrix_abad4f764e17de0076ecdd89ffd1dbf50}} 
+void \mbox{\hyperlink{classMatrix_abad4f764e17de0076ecdd89ffd1dbf50}{print}} () const
+\begin{DoxyCompactList}\small\item\em Вывести матрицу в консоль \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Подробное описание}
+Класс для работы с матрицами вещественных чисел 
+
+Реализует операции над матрицами, включая сложение, вычитание, умножение, транспонирование, возведение в степень, вычисление определителя и другие. 
+
+\doxysubsection{Конструктор(ы)}
+\mbox{\Hypertarget{classMatrix_a2dba13c45127354c9f75ef576f49269b}\label{classMatrix_a2dba13c45127354c9f75ef576f49269b}} 
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{Matrix()}{Matrix()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily Matrix\+::\+Matrix (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Конструктор по умолчанию 
+
+Создает пустую матрицу с нулевыми размерами. \mbox{\Hypertarget{classMatrix_a8d87630bb5a1c350c701ab16506c9964}\label{classMatrix_a8d87630bb5a1c350c701ab16506c9964}} 
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{Matrix()}{Matrix()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily Matrix\+::\+Matrix (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{rows,  }\item[{std\+::size\+\_\+t}]{cols }\end{DoxyParamCaption})}
+
+
+
+Конструктор с заданными размерами 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em rows} & Количество строк \\
+\hline
+{\em cols} & Количество столбцов \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если размеры вызывают переполнение или превышают максимальный размер \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_abcf708e864ed3d9db2c3b317c5e529ab}\label{classMatrix_abcf708e864ed3d9db2c3b317c5e529ab}} 
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{Matrix()}{Matrix()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily Matrix\+::\+Matrix (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption})}
+
+
+
+Конструктор копирования 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для копирования \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classMatrix_a75f3885769e293b3f3e236ef60a71c21}\label{classMatrix_a75f3885769e293b3f3e236ef60a71c21}} 
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\index{Matrix@{Matrix}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{Matrix()}{Matrix()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily Matrix\+::\+Matrix (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classMatrix}{Matrix}} \&\&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+Конструктор перемещения 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для перемещения \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classMatrix_ae55dd75e64afeef9a48ddfa3b333b60b}\label{classMatrix_ae55dd75e64afeef9a48ddfa3b333b60b}} 
+\index{Matrix@{Matrix}!````~Matrix@{$\sim$Matrix}}
+\index{````~Matrix@{$\sim$Matrix}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{$\sim$Matrix()}{~Matrix()}}
+{\footnotesize\ttfamily Matrix\+::$\sim$\+Matrix (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+
+
+Деструктор 
+
+Автоматически освобождает ресурсы, управляемые std\+::vector. 
+
+\doxysubsection{Методы}
+\mbox{\Hypertarget{classMatrix_a399a8db0838ca2961c903d153e0601af}\label{classMatrix_a399a8db0838ca2961c903d153e0601af}} 
+\index{Matrix@{Matrix}!cols@{cols}}
+\index{cols@{cols}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{cols()}{cols()}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+::cols (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+Получить количество столбцов 
+
+\begin{DoxyReturn}{Возвращает}
+Количество столбцов матрицы 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a7969d6979d72bb9fc14f5ac6c136f48c}\label{classMatrix_a7969d6979d72bb9fc14f5ac6c136f48c}} 
+\index{Matrix@{Matrix}!det@{det}}
+\index{det@{det}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{det()}{det()}}
+{\footnotesize\ttfamily double Matrix\+::det (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+Вычислить определитель матрицы 
+
+\begin{DoxyReturn}{Возвращает}
+Значение определителя 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица не квадратная или содержит невалидные элементы \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_aa0d6a29f67caf4b792b1958d728e3a17}\label{classMatrix_aa0d6a29f67caf4b792b1958d728e3a17}} 
+\index{Matrix@{Matrix}!exp@{exp}}
+\index{exp@{exp}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{exp()}{exp()}}
+{\footnotesize\ttfamily void Matrix\+::exp (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Вычислить экспоненту матрицы 
+
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица не квадратная или содержит невалидные элементы \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a60248fd805cad1ada930ab20d0790e3a}\label{classMatrix_a60248fd805cad1ada930ab20d0790e3a}} 
+\index{Matrix@{Matrix}!fillRandom@{fillRandom}}
+\index{fillRandom@{fillRandom}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{fillRandom()}{fillRandom()}}
+{\footnotesize\ttfamily void Matrix\+::fill\+Random (\begin{DoxyParamCaption}\item[{double}]{min = {\ttfamily 0.0},  }\item[{double}]{max = {\ttfamily 1.0} }\end{DoxyParamCaption})}
+
+
+
+Заполнить матрицу случайными вещественными значениями 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em min} & Минимальное значение диапазона \\
+\hline
+{\em max} & Максимальное значение диапазона \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица пуста или min $>$ max \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a6d55862834a0b44e1e37f2f8a2bb208f}\label{classMatrix_a6d55862834a0b44e1e37f2f8a2bb208f}} 
+\index{Matrix@{Matrix}!isEmpty@{isEmpty}}
+\index{isEmpty@{isEmpty}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{isEmpty()}{isEmpty()}}
+{\footnotesize\ttfamily bool Matrix\+::is\+Empty (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+Проверка, является ли матрица пустой 
+
+\begin{DoxyReturn}{Возвращает}
+true, если матрица пуста, иначе false 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a67dc0e6e0a31399def3af33b2fc9ca9c}\label{classMatrix_a67dc0e6e0a31399def3af33b2fc9ca9c}} 
+\index{Matrix@{Matrix}!isSquare@{isSquare}}
+\index{isSquare@{isSquare}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{isSquare()}{isSquare()}}
+{\footnotesize\ttfamily bool Matrix\+::is\+Square (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+Проверка, является ли матрица квадратной 
+
+\begin{DoxyReturn}{Возвращает}
+true, если матрица квадратная, иначе false 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a0371c4255a565f69b95512f120524080}\label{classMatrix_a0371c4255a565f69b95512f120524080}} 
+\index{Matrix@{Matrix}!multiply@{multiply}}
+\index{multiply@{multiply}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{multiply()}{multiply()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} Matrix\+::multiply (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other,  }\item[{Multiply\+Mode}]{mode }\end{DoxyParamCaption}) const}
+
+
+
+Умножение матриц с указанным режимом 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для умножения \\
+\hline
+{\em mode} & Режим умножения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Новая матрица -\/ результат умножения 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если размеры не подходят для умножения \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a8f7c080fa668e781f6a3f4982545635c}\label{classMatrix_a8f7c080fa668e781f6a3f4982545635c}} 
+\index{Matrix@{Matrix}!operator()@{operator()}}
+\index{operator()@{operator()}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator()()}{operator()()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily double \& Matrix\+::operator() (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{row,  }\item[{std\+::size\+\_\+t}]{col }\end{DoxyParamCaption})}
+
+
+
+Оператор доступа к элементу матрицы 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em row} & Индекс строки \\
+\hline
+{\em col} & Индекс столбца \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Ссылка на элемент матрицы 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если индексы вне допустимого диапазона \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_af76b0cde675db7b6c0d8a0356175e34b}\label{classMatrix_af76b0cde675db7b6c0d8a0356175e34b}} 
+\index{Matrix@{Matrix}!operator()@{operator()}}
+\index{operator()@{operator()}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator()()}{operator()()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily const double \& Matrix\+::operator() (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{row,  }\item[{std\+::size\+\_\+t}]{col }\end{DoxyParamCaption}) const}
+
+
+
+Оператор доступа к элементу матрицы (константный) 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em row} & Индекс строки \\
+\hline
+{\em col} & Индекс столбца \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Константная ссылка на элемент матрицы 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если индексы вне допустимого диапазона \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_ab4f8e22e8db0983d75e090542f4d1f7a}\label{classMatrix_ab4f8e22e8db0983d75e090542f4d1f7a}} 
+\index{Matrix@{Matrix}!operator$\ast$@{operator$\ast$}}
+\index{operator$\ast$@{operator$\ast$}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator$\ast$()}{operator*()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} Matrix\+::operator$\ast$ (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption}) const}
+
+
+
+Оператор умножения матриц 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для умножения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Новая матрица -\/ результат умножения 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если размеры не подходят для умножения \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_adbf606cb48a831b07430c382b3d91fa0}\label{classMatrix_adbf606cb48a831b07430c382b3d91fa0}} 
+\index{Matrix@{Matrix}!operator$\ast$@{operator$\ast$}}
+\index{operator$\ast$@{operator$\ast$}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator$\ast$()}{operator*()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} Matrix\+::operator$\ast$ (\begin{DoxyParamCaption}\item[{double}]{number }\end{DoxyParamCaption}) const}
+
+
+
+Оператор умножения матрицы на число 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em number} & Множитель \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Новая матрица -\/ результат умножения 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если множитель или элементы матрицы невалидны \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_afc7858a535ebcebf445e91bccd75d197}\label{classMatrix_afc7858a535ebcebf445e91bccd75d197}} 
+\index{Matrix@{Matrix}!operator+@{operator+}}
+\index{operator+@{operator+}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator+()}{operator+()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} Matrix\+::operator+ (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption}) const}
+
+
+
+Оператор сложения матриц 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для сложения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Новая матрица -\/ результат сложения 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если размеры матриц не совпадают или содержат невалидные элементы \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_abb44986f4d7b2ac6465fed5b5db019e8}\label{classMatrix_abb44986f4d7b2ac6465fed5b5db019e8}} 
+\index{Matrix@{Matrix}!operator-\/@{operator-\/}}
+\index{operator-\/@{operator-\/}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator-\/()}{operator-()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} Matrix\+::operator-\/ (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption}) const}
+
+
+
+Оператор вычитания матриц 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для вычитания \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Новая матрица -\/ результат вычитания 
+\end{DoxyReturn}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если размеры матриц не совпадают или содержат невалидные элементы \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a3e40db12ae78b7616ee3f099bb15f13d}\label{classMatrix_a3e40db12ae78b7616ee3f099bb15f13d}} 
+\index{Matrix@{Matrix}!operator=@{operator=}}
+\index{operator=@{operator=}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} \& Matrix\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption})}
+
+
+
+Оператор присваивания копированием 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для копирования \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Ссылка на текущую матрицу 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a74eca41e5a29b6efd57b009730d3fe60}\label{classMatrix_a74eca41e5a29b6efd57b009730d3fe60}} 
+\index{Matrix@{Matrix}!operator=@{operator=}}
+\index{operator=@{operator=}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classMatrix}{Matrix}} \& Matrix\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classMatrix}{Matrix}} \&\&}]{other }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [noexcept]}}
+
+
+
+Оператор присваивания перемещением 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для перемещения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Ссылка на текущую матрицу 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a797d03df703f77cccb25ab9a0770e760}\label{classMatrix_a797d03df703f77cccb25ab9a0770e760}} 
+\index{Matrix@{Matrix}!operator==@{operator==}}
+\index{operator==@{operator==}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{operator==()}{operator==()}}
+{\footnotesize\ttfamily bool Matrix\+::operator== (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classMatrix}{Matrix}} \&}]{other }\end{DoxyParamCaption}) const}
+
+
+
+Оператор сравнения матриц 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em other} & Матрица для сравнения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+true, если матрицы равны, иначе false 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_ab97f5121dd6628799f179ff13c31e456}\label{classMatrix_ab97f5121dd6628799f179ff13c31e456}} 
+\index{Matrix@{Matrix}!pow@{pow}}
+\index{pow@{pow}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{pow()}{pow()}}
+{\footnotesize\ttfamily void Matrix\+::pow (\begin{DoxyParamCaption}\item[{unsigned int}]{power }\end{DoxyParamCaption})}
+
+
+
+Возвести матрицу в степень 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em power} & Степень \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица не квадратная или содержит невалидные элементы \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a0659b44be84e7582ed5f9014f74161f5}\label{classMatrix_a0659b44be84e7582ed5f9014f74161f5}} 
+\index{Matrix@{Matrix}!rows@{rows}}
+\index{rows@{rows}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{rows()}{rows()}}
+{\footnotesize\ttfamily std\+::size\+\_\+t Matrix\+::rows (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [noexcept]}}
+
+
+
+Получить количество строк 
+
+\begin{DoxyReturn}{Возвращает}
+Количество строк матрицы 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classMatrix_a7c56f28d03ac651fbb3c9af5c5fac653}\label{classMatrix_a7c56f28d03ac651fbb3c9af5c5fac653}} 
+\index{Matrix@{Matrix}!setIdentity@{setIdentity}}
+\index{setIdentity@{setIdentity}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{setIdentity()}{setIdentity()}}
+{\footnotesize\ttfamily void Matrix\+::set\+Identity (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Сделать матрицу единичной 
+
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица не квадратная \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_a70e1c7b94711ead8829d916acdf3dcec}\label{classMatrix_a70e1c7b94711ead8829d916acdf3dcec}} 
+\index{Matrix@{Matrix}!setLogLevel@{setLogLevel}}
+\index{setLogLevel@{setLogLevel}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{setLogLevel()}{setLogLevel()}}
+{\footnotesize\ttfamily void Matrix\+::set\+Log\+Level (\begin{DoxyParamCaption}\item[{Log\+Level}]{level }\end{DoxyParamCaption})}
+
+
+
+Установить уровень логирования 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em level} & Уровень логирования \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classMatrix_ad757c8e0b2d4b6a820271249d7706680}\label{classMatrix_ad757c8e0b2d4b6a820271249d7706680}} 
+\index{Matrix@{Matrix}!setZeros@{setZeros}}
+\index{setZeros@{setZeros}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{setZeros()}{setZeros()}}
+{\footnotesize\ttfamily void Matrix\+::set\+Zeros (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Заполнить матрицу нулями 
+
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если матрица пуста \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classMatrix_aa753de1a2ed37c8eb934e06823fee179}\label{classMatrix_aa753de1a2ed37c8eb934e06823fee179}} 
+\index{Matrix@{Matrix}!transpose@{transpose}}
+\index{transpose@{transpose}!Matrix@{Matrix}}
+\doxysubsubsection{\texorpdfstring{transpose()}{transpose()}}
+{\footnotesize\ttfamily void Matrix\+::transpose (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Транспонировать матрицу 
+
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classMatrixException}{Matrix\+Exception}}} & Если элементы матрицы невалидны \\
+\hline
+\end{DoxyExceptions}
+
+
+Объявления и описания членов классов находятся в файлах\+:\begin{DoxyCompactItemize}
+\item 
+include/matrix.\+hpp\item 
+src/matrix.\+cpp\end{DoxyCompactItemize}

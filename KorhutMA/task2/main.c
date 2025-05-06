@@ -1,9 +1,10 @@
 #include "matrix.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 int main() {
-    srand(time(NULL));
+	srand(time(NULL));
 
     // A
     struct Matrix A = matrix_allocate(3, 3);
@@ -30,7 +31,7 @@ int main() {
     matrix_free(&C);
 
 	// A*k
-    C = matrix_multipliy_const(A, 2);
+    C = matrix_multiply_const(A, 2);
     printf("Результат A * k:\n");
     matrix_print(C);
     matrix_free(&C);

@@ -1,0 +1,4 @@
+﻿  task_6_3.cpp
+C:\Programming_on_C++\airport\task_6_3.cpp(149,27): warning C4267: return: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Programming_on_C++\airport\task_6_3.cpp(173,12): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+  airport.vcxproj -> C:\Programming_on_C++\airport\x64\Debug\airport.exe

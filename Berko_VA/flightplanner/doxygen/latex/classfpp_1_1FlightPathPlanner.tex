@@ -1,0 +1,140 @@
+\hypertarget{classfpp_1_1FlightPathPlanner}{}\doxysection{Класс fpp\+::Flight\+Path\+Planner}
+\label{classfpp_1_1FlightPathPlanner}\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+
+
+Синглтон-\/класс для управления графом рейсов и поиском кратчайших путей  
+
+
+
+
+{\ttfamily \#include $<$flightpathplanner.\+hpp$>$}
+
+\doxysubsection*{Открытые члены}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a661ad6eeb0fada9f23174daae1a3b315}{load\+Data}} (const std\+::string \&file\+Path)
+\begin{DoxyCompactList}\small\item\em Загружает данные о рейсах из CSV-\/файла \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a07e35ab3d787219444fd0611444692bf}\label{classfpp_1_1FlightPathPlanner_a07e35ab3d787219444fd0611444692bf}} 
+void \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a07e35ab3d787219444fd0611444692bf}{clear}} ()
+\begin{DoxyCompactList}\small\item\em Очищает граф рейсов и множество аэропортов \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_ad6c763bb23c0e6ba8c830ba69c5fe769}{contains\+Airport}} (\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}} index) const
+\begin{DoxyCompactList}\small\item\em Проверяет, существует ли аэропорт в графе \end{DoxyCompactList}\item 
+\mbox{\hyperlink{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}{flight\+Path}} \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a6aa5c73ce7e486590de11410ca800dc9}{find\+Flight\+Path\+Between}} (\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}} origin\+Index, \mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}} dest\+Index)
+\begin{DoxyCompactList}\small\item\em Находит кратчайший путь между двумя аэропортами \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a89f904a7712fea999c26186900f99893}{Flight\+Path\+Planner}} (const \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \&)=delete
+\begin{DoxyCompactList}\small\item\em Конструктор копирования (удален) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \& \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a2aa18756287abcf4845e3a20f2fb98a6}{operator=}} (const \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \&)=delete
+\begin{DoxyCompactList}\small\item\em Оператор присваивания (удален) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Открытые статические члены}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \& \mbox{\hyperlink{classfpp_1_1FlightPathPlanner_a3d2c82a70b564d48ac55e7bdee4afe52}{get\+Instance}} ()
+\begin{DoxyCompactList}\small\item\em Получить единственный экземпляр класса \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Подробное описание}
+Синглтон-\/класс для управления графом рейсов и поиском кратчайших путей 
+
+Реализует функционал загрузки данных о рейсах из CSV-\/файла, построения графа рейсов, поиска кратчайшего пути между аэропортами с использованием алгоритма Дейкстры и управления данными о рейсах и аэропортах. 
+
+\doxysubsection{Конструктор(ы)}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a89f904a7712fea999c26186900f99893}\label{classfpp_1_1FlightPathPlanner_a89f904a7712fea999c26186900f99893}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!FlightPathPlanner@{FlightPathPlanner}}
+\index{FlightPathPlanner@{FlightPathPlanner}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{FlightPathPlanner()}{FlightPathPlanner()}}
+{\footnotesize\ttfamily fpp\+::\+Flight\+Path\+Planner\+::\+Flight\+Path\+Planner (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+Конструктор копирования (удален) 
+
+Запрещает копирование экземпляра синглтона. 
+
+\doxysubsection{Методы}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_ad6c763bb23c0e6ba8c830ba69c5fe769}\label{classfpp_1_1FlightPathPlanner_ad6c763bb23c0e6ba8c830ba69c5fe769}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!containsAirport@{containsAirport}}
+\index{containsAirport@{containsAirport}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{containsAirport()}{containsAirport()}}
+{\footnotesize\ttfamily bool fpp\+::\+Flight\+Path\+Planner\+::contains\+Airport (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}}}]{index }\end{DoxyParamCaption}) const}
+
+
+
+Проверяет, существует ли аэропорт в графе 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em index} & Идентификатор аэропорта для проверки \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+true, если аэропорт существует, иначе false 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a6aa5c73ce7e486590de11410ca800dc9}\label{classfpp_1_1FlightPathPlanner_a6aa5c73ce7e486590de11410ca800dc9}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!findFlightPathBetween@{findFlightPathBetween}}
+\index{findFlightPathBetween@{findFlightPathBetween}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{findFlightPathBetween()}{findFlightPathBetween()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespacefpp_a0412934340b5f5cc8c97fb14a7dfd170}{flight\+Path}} fpp\+::\+Flight\+Path\+Planner\+::find\+Flight\+Path\+Between (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}}}]{origin\+Index,  }\item[{\mbox{\hyperlink{namespacefpp_a8cfe2f580853efd92ddd985232003069}{airport\+Id}}}]{dest\+Index }\end{DoxyParamCaption})}
+
+
+
+Находит кратчайший путь между двумя аэропортами 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em origin\+Index} & Идентификатор аэропорта отправления \\
+\hline
+{\em dest\+Index} & Идентификатор аэропорта назначения \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Возвращает}
+Пара векторов\+: список идентификаторов аэропортов и соответствующие времена перелетов. Пусто, если путь не существует 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a3d2c82a70b564d48ac55e7bdee4afe52}\label{classfpp_1_1FlightPathPlanner_a3d2c82a70b564d48ac55e7bdee4afe52}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!getInstance@{getInstance}}
+\index{getInstance@{getInstance}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{getInstance()}{getInstance()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \& fpp\+::\+Flight\+Path\+Planner\+::get\+Instance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Получить единственный экземпляр класса 
+
+\begin{DoxyReturn}{Возвращает}
+Ссылка на единственный экземпляр \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a661ad6eeb0fada9f23174daae1a3b315}\label{classfpp_1_1FlightPathPlanner_a661ad6eeb0fada9f23174daae1a3b315}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!loadData@{loadData}}
+\index{loadData@{loadData}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{loadData()}{loadData()}}
+{\footnotesize\ttfamily void fpp\+::\+Flight\+Path\+Planner\+::load\+Data (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{file\+Path }\end{DoxyParamCaption})}
+
+
+
+Загружает данные о рейсах из CSV-\/файла 
+
+
+\begin{DoxyParams}{Аргументы}
+{\em file\+Path} & Путь к CSV-\/файлу \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyExceptions}{Исключения}
+{\em \mbox{\hyperlink{classfpp_1_1FlightPathPlannerException}{Flight\+Path\+Planner\+Exception}}} & Если файл не может быть открыт, заголовок некорректен или данные недействительны \\
+\hline
+\end{DoxyExceptions}
+\mbox{\Hypertarget{classfpp_1_1FlightPathPlanner_a2aa18756287abcf4845e3a20f2fb98a6}\label{classfpp_1_1FlightPathPlanner_a2aa18756287abcf4845e3a20f2fb98a6}} 
+\index{fpp::FlightPathPlanner@{fpp::FlightPathPlanner}!operator=@{operator=}}
+\index{operator=@{operator=}!fpp::FlightPathPlanner@{fpp::FlightPathPlanner}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}}\& fpp\+::\+Flight\+Path\+Planner\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classfpp_1_1FlightPathPlanner}{Flight\+Path\+Planner}} \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+Оператор присваивания (удален) 
+
+Запрещает присваивание экземпляра синглтона. 
+
+Объявления и описания членов классов находятся в файлах\+:\begin{DoxyCompactItemize}
+\item 
+include/flightpathplanner.\+hpp\item 
+src/flightpathplanner.\+cpp\end{DoxyCompactItemize}

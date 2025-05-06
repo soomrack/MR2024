@@ -15,6 +15,12 @@ struct Mortgage
     double rate;
 };
 
+struct Deposite
+{
+    Money account;
+    double rate;
+};
+
 
 struct Cat
 {
@@ -33,7 +39,7 @@ struct Person
     Money monthly_rent;
     struct Mortgage mortgage;
     struct Cat cat;
-    double deposit_rate;
+    struct Deposite deposite;
     double inflation_rate;
 };
 
@@ -47,7 +53,7 @@ void alice_init()
     alice.salary = 280 * 1000;
     alice.monthly_cost = 30 * 1000;
 
-    alice.deposit_rate = 0.2;
+    alice.deposite.rate = 0.2;
     alice.inflation_rate = 0.08;
 
     alice.mortgage.sum = 17 * 1000 * 1000;
@@ -95,7 +101,7 @@ void alice_house_price(const int month)
 
 void alice_deposit()
 {
-    alice.capital += alice.capital * (alice.deposit_rate / 12);
+    alice.capital += alice.capital * (alice.deposite.rate/12);
 }
 
 
@@ -115,8 +121,9 @@ void bob_init()
     bob.cat.buy = 30 * 1000;
     bob.cat.cost = 12 * 1000;
     bob.cat.funeral = 45 * 1000;
+    bob.deposite.account = 0;
 
-    bob.deposit_rate = 0.2;
+    bob.deposite.rate = 0.2;
     bob.inflation_rate = 0.08;
 
     bob.monthly_rent = 40 * 1000;
@@ -127,6 +134,10 @@ void bob_salary(const int month)
 {
     if (month == 1) {
         bob.salary *= (1. + bob.inflation_rate);
+    }
+
+    if (month == 1) {
+        bob.capital += bob.salary;
     }
 
     bob.capital += bob.salary;
@@ -177,25 +188,32 @@ void bob_cat(const int month, const int year)
 }
 
 
-void bob_deposit()
+void bob_deposit(month, year)
 {
-    bob.capital += bob.capital * (bob.deposit_rate / 12);
+   if ((month == START_MONTH) && (year == START_YEAR)){
+       bob.deposite.account += bob.capital;
+       bob.capital = 0;
+   }
+    bob.deposite.account += bob.deposite.account * (bob.deposite.rate / 12);
+    bob.deposite.account += bob.capital;
+    bob.capital = 0;
+    
 }
 
 
 void bob_print()
 {
-    printf("Bob total capital: %lld \n", bob.capital);
+    printf("Bob total capital: %lld \n", bob.deposite.account);
 }
 
 
 void conclusion()
 {
     printf("----------------------------------\n");
-    if ((alice.capital + alice.house_price) > bob.capital) {
+    if ((alice.capital + alice.house_price) > bob.deposite.account) {
         printf("Alice's life is pofitapler\n");
     } else {
-        if ((alice.capital + alice.house_price) == bob.capital) {
+        if ((alice.capital + alice.house_price) == bob.deposite.account) {
             printf("Alice's and Bob's lifes are similar\n");
         } else {
             printf("Bob's life is profitable\n");
@@ -221,7 +239,7 @@ void simulation()
         bob_rent(month);
         bob_monthly_cost(month);
         bob_cat(month, year);
-        bob_deposit();
+        bob_deposit(month, year);
 
         month++;
         if (month == 13) {
@@ -249,16 +267,3 @@ int main()
     return 0;
 }
 
-
-
-/*
-Условия задачи:
-
-Alice и Bob, стартовый капитал - 1.000.000 Р 
-Alice эту сумму как первый взнос по ипотеке (17.000.000 Р) на 30 лет под 17% годовых (ставку рассчитать по онлайн-калькулятору)
-Bob копит на квартиру и живет в съемной - ~40.000 Р в месяц
-Зарплата обоих составляет ~280.000 Р в месяц
-Стоит учитывать базовые потребности типа еды, комуналки, 
-Все цены и зарплаты подвержены инфляции в 8% в год
-Bob покупает кота
-*/

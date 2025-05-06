@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <math.h>
+#include <limits.h>
+
 
 struct Matrix {
     size_t rows;
@@ -43,7 +46,7 @@ Matrix matrix_allocate(size_t rows, size_t cols) {
         return MATRIX_NULL;
     }
 
-    return (Matrix){ cols, rows, data };
+    return matrix;
 }
 
 
@@ -52,6 +55,8 @@ void matrix_free(Matrix* M)
     if (M == NULL )  return;
     free(M->data);
     M->data = NULL;
+    M->rows = 0;
+    M->cols = 0;
 }
 
 
@@ -161,6 +166,11 @@ Matrix matrix_by_scalar(const Matrix A, double scalar)
 
 double matrix_determinant(const Matrix A) 
 {
+    if (A.rows == 0 || A.cols == 0) {
+    matrix_exception(ERROR, "Matrix has no elements (0x0), determinant cannot be calculated.");
+    return NAN;
+    }
+    
     if (A.rows != A.cols) {
         matrix_exception(ERROR, "Matrix is not square, determinant cannot be calculated.");
         return NAN;
@@ -205,7 +215,7 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
         term = matrix_by_scalar(temp, 1.0 / n);
         matrix_free(&temp);
 
-        Matrix new_result = matrix_subtract(result, term);  
+        Matrix new_result = matrix_sum(result, term);  
         matrix_free(&result);
         result = new_result;
     }
@@ -213,10 +223,101 @@ Matrix matrix_exponent(const Matrix A, const unsigned int x)
     return result;
 }
 
+// функция на вход получает матрицу и число, а затем ставит это число на главную диагональ матрицы через struct Matrix
+
+void matrix_set_diagonal(Matrix* A, double num) {
+    if (A == NULL || A->data == NULL) {
+        matrix_exception(ERROR, "Matrix is NULL");
+        return;
+    }
+    if (A->rows != A->cols) {
+        matrix_exception(ERROR, "Matrix is not square");
+        return;
+    }
+    for (size_t i = 0; i < A->rows; ++i) {
+        A->data[i * A->cols + i] = num;
+    }
+} 
+
+// функция которая получает три матрицы A B и C. и возвращает A * B + C
+
+Matrix matrix_multiply(const Matrix A, const Matrix B, const Matrix C) {
+    for (size_t row = 0; row < A.rows; ++row) {
+        for (size_t col = 0; col < B.cols; ++col) {
+            double sum = 0;
+            for (size_t k = 0; k < A.cols; ++k) {
+                sum += A.data[row * A.cols + k] * B.data[k * B.cols + col];
+            }
+            result.data[row * result.cols + col] = sum + C.data[row * C.cols + col];
+
+// функция 
+
+
+
+
+
+
+
+// функция на вход получает матрицу и число n формирует из него матрицу n*n, возвела матрицу в квадрат
+
+void matrix_n(Matrix* A, double n) {
+    for (size_t row = 0; row < A->rows; ++row) {
+        for (size_t col = 0; col < A->cols; ++col){
+            A->data[row * A->cols + col] = n
+                Matrix B = matrix.multiplay(A, A);
+        }
+    }
+    return B;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Matrix matrix_multiply(const Matrix A, const Matrix B, const Matrix C) {
+    Matrix D = matrix_multiply(A, B);
+        
+        Matrix result = matrix_sum(product, C);
+        matrix_free(&D);
+        return result;
+}
+
+
 
 int main() {
     Matrix A = matrix_allocate(3, 3);
+    if (!A.data) {
+    matrix_exception(ERROR, "Matrix allocation failed for A.");
+    // Завершаем программу, освободив ресурсы
+    return 1;
+    }
     Matrix B = matrix_allocate(3, 3);
+    if (!B.data) {
+    matrix_exception(ERROR, "Matrix allocation failed for B.");
+    matrix_free(&A);
+    return 1;
+    }
 
     double data_A[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     double data_B[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -266,6 +367,8 @@ int main() {
     matrix_free(&D);
     matrix_free(&E);
     matrix_free(&T);
-    matrix_free(&F);
     matrix_free(&G);
     matrix_free(&exponent_A);
+
+    return 0;
+}

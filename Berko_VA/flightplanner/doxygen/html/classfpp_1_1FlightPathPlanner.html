@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.9.1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Flight path planner: Класс fpp::FlightPathPlanner</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">Flight path planner
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.9.1 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacefpp.html">fpp</a></li><li class="navelem"><a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Классы</a> &#124;
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="#pub-static-methods">Открытые статические члены</a> &#124;
+<a href="classfpp_1_1FlightPathPlanner-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Класс fpp::FlightPathPlanner</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Синглтон-класс для управления графом рейсов и поиском кратчайших путей  
+ <a href="classfpp_1_1FlightPathPlanner.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="flightpathplanner_8hpp_source.html">flightpathplanner.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a661ad6eeb0fada9f23174daae1a3b315"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a661ad6eeb0fada9f23174daae1a3b315">loadData</a> (const std::string &amp;filePath)</td></tr>
+<tr class="memdesc:a661ad6eeb0fada9f23174daae1a3b315"><td class="mdescLeft">&#160;</td><td class="mdescRight">Загружает данные о рейсах из CSV-файла  <a href="classfpp_1_1FlightPathPlanner.html#a661ad6eeb0fada9f23174daae1a3b315">Подробнее...</a><br /></td></tr>
+<tr class="separator:a661ad6eeb0fada9f23174daae1a3b315"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07e35ab3d787219444fd0611444692bf"><td class="memItemLeft" align="right" valign="top"><a id="a07e35ab3d787219444fd0611444692bf"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a07e35ab3d787219444fd0611444692bf">clear</a> ()</td></tr>
+<tr class="memdesc:a07e35ab3d787219444fd0611444692bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Очищает граф рейсов и множество аэропортов <br /></td></tr>
+<tr class="separator:a07e35ab3d787219444fd0611444692bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6c763bb23c0e6ba8c830ba69c5fe769"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#ad6c763bb23c0e6ba8c830ba69c5fe769">containsAirport</a> (<a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> index) const</td></tr>
+<tr class="memdesc:ad6c763bb23c0e6ba8c830ba69c5fe769"><td class="mdescLeft">&#160;</td><td class="mdescRight">Проверяет, существует ли аэропорт в графе  <a href="classfpp_1_1FlightPathPlanner.html#ad6c763bb23c0e6ba8c830ba69c5fe769">Подробнее...</a><br /></td></tr>
+<tr class="separator:ad6c763bb23c0e6ba8c830ba69c5fe769"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6aa5c73ce7e486590de11410ca800dc9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">flightPath</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a6aa5c73ce7e486590de11410ca800dc9">findFlightPathBetween</a> (<a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> originIndex, <a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a> destIndex)</td></tr>
+<tr class="memdesc:a6aa5c73ce7e486590de11410ca800dc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Находит кратчайший путь между двумя аэропортами  <a href="classfpp_1_1FlightPathPlanner.html#a6aa5c73ce7e486590de11410ca800dc9">Подробнее...</a><br /></td></tr>
+<tr class="separator:a6aa5c73ce7e486590de11410ca800dc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89f904a7712fea999c26186900f99893"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a89f904a7712fea999c26186900f99893">FlightPathPlanner</a> (const <a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a89f904a7712fea999c26186900f99893"><td class="mdescLeft">&#160;</td><td class="mdescRight">Конструктор копирования (удален)  <a href="classfpp_1_1FlightPathPlanner.html#a89f904a7712fea999c26186900f99893">Подробнее...</a><br /></td></tr>
+<tr class="separator:a89f904a7712fea999c26186900f99893"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2aa18756287abcf4845e3a20f2fb98a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a2aa18756287abcf4845e3a20f2fb98a6">operator=</a> (const <a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;)=delete</td></tr>
+<tr class="memdesc:a2aa18756287abcf4845e3a20f2fb98a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Оператор присваивания (удален)  <a href="classfpp_1_1FlightPathPlanner.html#a2aa18756287abcf4845e3a20f2fb98a6">Подробнее...</a><br /></td></tr>
+<tr class="separator:a2aa18756287abcf4845e3a20f2fb98a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Открытые статические члены</h2></td></tr>
+<tr class="memitem:a3d2c82a70b564d48ac55e7bdee4afe52"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfpp_1_1FlightPathPlanner.html#a3d2c82a70b564d48ac55e7bdee4afe52">getInstance</a> ()</td></tr>
+<tr class="memdesc:a3d2c82a70b564d48ac55e7bdee4afe52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Получить единственный экземпляр класса  <a href="classfpp_1_1FlightPathPlanner.html#a3d2c82a70b564d48ac55e7bdee4afe52">Подробнее...</a><br /></td></tr>
+<tr class="separator:a3d2c82a70b564d48ac55e7bdee4afe52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>Синглтон-класс для управления графом рейсов и поиском кратчайших путей </p>
+<p>Реализует функционал загрузки данных о рейсах из CSV-файла, построения графа рейсов, поиска кратчайшего пути между аэропортами с использованием алгоритма Дейкстры и управления данными о рейсах и аэропортах. </p>
+</div><h2 class="groupheader">Конструктор(ы)</h2>
+<a id="a89f904a7712fea999c26186900f99893"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89f904a7712fea999c26186900f99893">&#9670;&nbsp;</a></span>FlightPathPlanner()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">fpp::FlightPathPlanner::FlightPathPlanner </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Конструктор копирования (удален) </p>
+<p>Запрещает копирование экземпляра синглтона. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Методы</h2>
+<a id="ad6c763bb23c0e6ba8c830ba69c5fe769"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6c763bb23c0e6ba8c830ba69c5fe769">&#9670;&nbsp;</a></span>containsAirport()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool fpp::FlightPathPlanner::containsAirport </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a>&#160;</td>
+          <td class="paramname"><em>index</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Проверяет, существует ли аэропорт в графе </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">index</td><td>Идентификатор аэропорта для проверки </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>true, если аэропорт существует, иначе false </dd></dl>
+
+</div>
+</div>
+<a id="a6aa5c73ce7e486590de11410ca800dc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6aa5c73ce7e486590de11410ca800dc9">&#9670;&nbsp;</a></span>findFlightPathBetween()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacefpp.html#a0412934340b5f5cc8c97fb14a7dfd170">flightPath</a> fpp::FlightPathPlanner::findFlightPathBetween </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a>&#160;</td>
+          <td class="paramname"><em>originIndex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacefpp.html#a8cfe2f580853efd92ddd985232003069">airportId</a>&#160;</td>
+          <td class="paramname"><em>destIndex</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Находит кратчайший путь между двумя аэропортами </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">originIndex</td><td>Идентификатор аэропорта отправления </td></tr>
+    <tr><td class="paramname">destIndex</td><td>Идентификатор аэропорта назначения </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>Пара векторов: список идентификаторов аэропортов и соответствующие времена перелетов. Пусто, если путь не существует </dd></dl>
+
+</div>
+</div>
+<a id="a3d2c82a70b564d48ac55e7bdee4afe52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d2c82a70b564d48ac55e7bdee4afe52">&#9670;&nbsp;</a></span>getInstance()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp; fpp::FlightPathPlanner::getInstance </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Получить единственный экземпляр класса </p>
+<dl class="section return"><dt>Возвращает</dt><dd>Ссылка на единственный экземпляр <a class="el" href="classfpp_1_1FlightPathPlanner.html" title="Синглтон-класс для управления графом рейсов и поиском кратчайших путей">FlightPathPlanner</a> </dd></dl>
+
+</div>
+</div>
+<a id="a661ad6eeb0fada9f23174daae1a3b315"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a661ad6eeb0fada9f23174daae1a3b315">&#9670;&nbsp;</a></span>loadData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fpp::FlightPathPlanner::loadData </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>filePath</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Загружает данные о рейсах из CSV-файла </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filePath</td><td>Путь к CSV-файлу </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Исключения</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classfpp_1_1FlightPathPlannerException.html" title="Класс исключений для обработки ошибок в FlightPathPlanner.">FlightPathPlannerException</a></td><td>Если файл не может быть открыт, заголовок некорректен или данные недействительны </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2aa18756287abcf4845e3a20f2fb98a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2aa18756287abcf4845e3a20f2fb98a6">&#9670;&nbsp;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a>&amp; fpp::FlightPathPlanner::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classfpp_1_1FlightPathPlanner.html">FlightPathPlanner</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Оператор присваивания (удален) </p>
+<p>Запрещает присваивание экземпляра синглтона. </p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li>include/<a class="el" href="flightpathplanner_8hpp_source.html">flightpathplanner.hpp</a></li>
+<li>src/flightpathplanner.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+</small></address>
+</body>
+</html>

@@ -1,9 +1,9 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <stddef.h> // Для size_t
-#include <stdint.h> // Для uint32_t
-#include <math.h>   // Для NAN
+#include <stddef.h>
+#include <stdint.h>
+#include <math.h>
 
 // Структура для матрицы
 struct Matrix {
@@ -25,7 +25,7 @@ void matrix_print(const struct Matrix A);
 struct Matrix matrix_add(struct Matrix A, struct Matrix B);
 struct Matrix matrix_subtract(struct Matrix A, struct Matrix B);
 struct Matrix matrix_copy(struct Matrix A);
-struct Matrix matrix_multipliy_const(struct Matrix A, double constant);
+struct Matrix matrix_multiply_const(struct Matrix A, double constant);
 struct Matrix matrix_multiply(struct Matrix A, struct Matrix B);
 struct Matrix matrix_pow(struct Matrix A, const size_t degree);
 struct Matrix matrix_transpon(struct Matrix A);

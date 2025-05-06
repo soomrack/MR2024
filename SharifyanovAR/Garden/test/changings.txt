@@ -1,0 +1,9 @@
+   Изменения для кода:
+
+   1. возможно сделать delay;  
+   2. разести actuate в отдельные функции  
+   3. read_time с т.з. названия  
+   4. regular_ventilation  
+   5. watering -> earth watering || dirt_watering  
+   6. + control_air_humidity если высокая влажность   
+   7. добавить пару датчиков освещенности чтобы они работали в каскаде  

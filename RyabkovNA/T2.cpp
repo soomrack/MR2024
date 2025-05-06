@@ -1,41 +1,46 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-typedef struct {
+
+struct Matrix {
     size_t rows;
     size_t cols;
     double* data;
-} Matrix;
+};
+
+typedef struct Matrix Matrix;
 
 Matrix MATRIX_ZERO = { 0, 0, NULL };
 
-static void handle_error(const char* message)
+
+static void matrix_error(const char* message)
 {
     printf("Ошибка: %s\n", message);
 }
 
-static void handle_warning(const char* message)
-{
-    printf("Предупреждение: %s\n", message);
-}
 
 static int matrix_allocate(Matrix* matrix)
 {
     matrix->data = (double*)malloc(matrix->rows * matrix->cols * sizeof(double));
     if (matrix->data == NULL) {
-        handle_error("Не удалось выделить память для матрицы.");
+        matrix_error("Не удалось выделить память для матрицы.");
         return 0;
     }
-    return 1; 
+    return 1;
 }
+
 
 static void memory_free(Matrix* matrix)
 {
-    free(matrix->data);
-    matrix->data = NULL;
+    if (matrix->data != NULL) {
+        free(matrix->data);
+        matrix->data = NULL;
+    }
     matrix->rows = 0;
     matrix->cols = 0;
 }
+
 
 static void matrix_trans_array(Matrix* matrix, double array[])
 {
@@ -47,7 +52,8 @@ static void matrix_trans_array(Matrix* matrix, double array[])
     }
 }
 
-static void matrix_print(Matrix* matrix)
+
+static void matrix_print(const Matrix* matrix)
 {
     for (size_t row = 0; row < matrix->rows; row++) {
         for (size_t col = 0; col < matrix->cols; col++) {
@@ -56,6 +62,7 @@ static void matrix_print(Matrix* matrix)
         printf("\n");
     }
 }
+
 
 static Matrix matrix_single(size_t size)
 {
@@ -71,10 +78,11 @@ static Matrix matrix_single(size_t size)
     return single;
 }
 
+
 static Matrix matrix_add(Matrix A, Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        handle_error("Размеры матриц должны совпадать для сложения.");
+        matrix_error("Размеры матриц должны совпадать для сложения.");
         return MATRIX_ZERO;
     }
 
@@ -88,10 +96,11 @@ static Matrix matrix_add(Matrix A, Matrix B)
     return result;
 }
 
+
 static Matrix matrix_subtract(Matrix A, Matrix B)
 {
     if (A.rows != B.rows || A.cols != B.cols) {
-        handle_error("Размеры матриц должны совпадать для вычитания.");
+        matrix_error("Размеры матриц должны совпадать для вычитания.");
         return MATRIX_ZERO;
     }
 
@@ -105,10 +114,11 @@ static Matrix matrix_subtract(Matrix A, Matrix B)
     return result;
 }
 
+
 static Matrix matrix_multiply(Matrix A, Matrix B)
 {
     if (A.cols != B.rows) {
-        handle_error("Количество столбцов первой матрицы должно совпадать с количеством строк второй матрицы.");
+        matrix_error("Количество столбцов первой матрицы должно совпадать с количеством строк второй матрицы.");
         return MATRIX_ZERO;
     }
 
@@ -127,6 +137,7 @@ static Matrix matrix_multiply(Matrix A, Matrix B)
     return result;
 }
 
+
 static Matrix matrix_multiply_number(Matrix A, double number)
 {
     Matrix result = { A.rows, A.cols, NULL };
@@ -139,7 +150,8 @@ static Matrix matrix_multiply_number(Matrix A, double number)
     return result;
 }
 
-static Matrix matrix_transpose(Matrix A) 
+
+static Matrix matrix_transpose(Matrix A)
 {
     Matrix result = { A.cols, A.rows, NULL };
     if (!matrix_allocate(&result)) {
@@ -153,13 +165,15 @@ static Matrix matrix_transpose(Matrix A)
     return result;
 }
 
-static double matrix_determinant(Matrix A) 
+
+static double matrix_determinant(Matrix A)
 {
     if (A.rows != A.cols) {
-        handle_error("Определитель может быть вычислен только для квадратных матриц.");
-        return 0;
+        matrix_error("Определитель может быть вычислен только для квадратных матриц.");
+        return NAN;
     }
-    // Рекурсивное вычисление определителя
+
+
     if (A.rows == 1) {
         return A.data[0];
     }
@@ -167,12 +181,15 @@ static double matrix_determinant(Matrix A)
         return A.data[0] * A.data[3] - A.data[1] * A.data[2];
     }
 
+
     double det = 0.0;
     for (size_t row = 0; row < A.rows; row++) {
         Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };
         if (!matrix_allocate(&submatrix)) {
-            return 0; // Возвращаем 0 в случае ошибки
+            return NAN;
         }
+
+
         for (size_t sub_row = 1; sub_row < A.rows; sub_row++) {
             for (size_t col = 0; col < A.cols; col++) {
                 if (col < row) {
@@ -183,17 +200,25 @@ static double matrix_determinant(Matrix A)
                 }
             }
         }
-        det += (row % 2 == 0 ? 1 : -1) * A.data[row * A.cols + row] * matrix_determinant(submatrix);
+
+        double sub_det = matrix_determinant(submatrix);
         memory_free(&submatrix);
+
+        if (isnan(sub_det)) {
+            return NAN;
+        }
+
+        det += (row % 2 == 0 ? 1 : -1) * A.data[row] * sub_det;
     }
     return det;
 }
 
-static Matrix matrix_inverse(Matrix A) 
+
+static Matrix matrix_inverse(Matrix A)
 {
     double det = matrix_determinant(A);
     if (det == 0) {
-        handle_error("Матрица не имеет обратной.");
+        matrix_error("Матрица не имеет обратной.");
         return MATRIX_ZERO;
     }
 
@@ -201,20 +226,25 @@ static Matrix matrix_inverse(Matrix A)
     if (!matrix_allocate(&result)) {
         return MATRIX_ZERO;
     }
+
     // Создание матрицы кофакторов
     for (size_t row = 0; row < A.rows; row++) {
         for (size_t col = 0; col < A.cols; col++) {
             Matrix submatrix = { A.rows - 1, A.cols - 1, NULL };
             if (!matrix_allocate(&submatrix)) {
+                memory_free(&result);
                 return MATRIX_ZERO;
             }
+
             for (size_t sub_row = 0; sub_row < A.rows; sub_row++) {
                 for (size_t sub_col = 0; sub_col < A.cols; sub_col++) {
                     if (sub_row != row && sub_col != col) {
-                        submatrix.data[(sub_row < row ? sub_row : sub_row - 1) * (A.cols - 1) + (sub_col < col ? sub_col : sub_col - 1)] = A.data[sub_row * A.cols + sub_col];
+                        submatrix.data[(sub_row < row ? sub_row : sub_row - 1) * (A.cols - 1) +
+                            (sub_col < col ? sub_col : sub_col - 1)] = A.data[sub_row * A.cols + sub_col];
                     }
                 }
             }
+
             result.data[col * A.cols + row] = ((row + col) % 2 ? -1 : 1) * matrix_determinant(submatrix) / det;
             memory_free(&submatrix);
         }
@@ -222,38 +252,66 @@ static Matrix matrix_inverse(Matrix A)
     return result;
 }
 
-// Функция для возведения матрицы в степень
+
 static Matrix matrix_power(Matrix A, long long int n)
 {
     if (A.rows != A.cols) {
-        handle_error("Возведение в степень возможно только для квадратных матриц.");
+        matrix_error("Возведение в степень возможно только для квадратных матриц.");
         return MATRIX_ZERO;
     }
 
     Matrix result = matrix_single(A.rows);
+    if (result.data == NULL) {
+        return MATRIX_ZERO;
+    }
+
+    Matrix temp_A = { A.rows, A.cols, NULL };
+    if (!matrix_allocate(&temp_A)) {
+        memory_free(&result);
+        return MATRIX_ZERO;
+    }
+
+    for (size_t i = 0; i < A.rows * A.cols; i++) {
+        temp_A.data[i] = A.data[i];
+    }
 
     while (n > 0) {
         if (n % 2 == 1) {
-            Matrix temp = matrix_multiply(result, A);
+            Matrix temp = matrix_multiply(result, temp_A);
+            if (temp.data == NULL) {
+                memory_free(&result);
+                memory_free(&temp_A);
+                return MATRIX_ZERO;
+            }
             memory_free(&result);
             result = temp;
         }
-        A = matrix_multiply(A, A);
+
+        Matrix new_A = matrix_multiply(temp_A, temp_A);
+        if (new_A.data == NULL) {
+            memory_free(&temp_A);
+            memory_free(&result);
+            return MATRIX_ZERO;
+        }
+        memory_free(&temp_A);
+        temp_A = new_A;
         n /= 2;
     }
 
+    memory_free(&temp_A);
     return result;
 }
 
-static Matrix matrix_identity(const size_t rows, const size_t cols) 
+
+static Matrix matrix_identity(const size_t rows, const size_t cols)
 {
     Matrix identity_matrix = { rows, cols, NULL };
     if (!matrix_allocate(&identity_matrix)) {
-        return MATRIX_ZERO; 
+        return MATRIX_ZERO;
     }
 
     for (size_t i = 0; i < identity_matrix.rows * identity_matrix.cols; ++i) {
-        identity_matrix.data[i] = 0.0; 
+        identity_matrix.data[i] = 0.0;
     }
 
     for (size_t i = 0; i < identity_matrix.rows; ++i) {
@@ -263,10 +321,11 @@ static Matrix matrix_identity(const size_t rows, const size_t cols)
     return identity_matrix;
 }
 
-static Matrix matrix_exponent(Matrix A, unsigned long long int terms) 
+
+static Matrix matrix_exponent(Matrix A, unsigned long long int terms)
 {
     if (A.rows != A.cols) {
-        handle_error("Матрица должна быть квадратной для вычисления экспоненты.");
+        matrix_error("Матрица должна быть квадратной для вычисления экспоненты.");
         return MATRIX_ZERO;
     }
 
@@ -274,7 +333,7 @@ static Matrix matrix_exponent(Matrix A, unsigned long long int terms)
     Matrix matrix_exponent_result = matrix_identity(A.rows, A.cols);
 
     if (terms == 0) {
-        return matrix_exponent_result; 
+        return matrix_exponent_result;
     }
 
     double factorial = 1.0;
@@ -297,6 +356,7 @@ static Matrix matrix_exponent(Matrix A, unsigned long long int terms)
     memory_free(&matrix_exponent_term);
     return matrix_exponent_result;
 }
+
 
 void make_calculations() {
     double array1[] = { 1, 2, 3, 4 };
