@@ -4,7 +4,7 @@
 #define PWR_R_PIN 5
 #define PWR_L_PIN 6
 #define SENS_R_PIN A0
-#define SENS_L_PIN A3
+#define SENS_L_PIN A1
 #define BTN_PIN 8
 #define BUZZER 11
 
@@ -90,6 +90,11 @@ void lineFollowing() {
   cur_color_L = analogRead(SENS_L_PIN);
   cur_color_R = analogRead(SENS_R_PIN);
 
+  // Для отладки выводим значения датчиков
+  Serial.print("L: "); Serial.print(cur_color_L);
+  Serial.print(" R: "); Serial.print(cur_color_R);
+  Serial.print(" Th: "); Serial.println(color_gray);
+
   // Движение вперед (оба датчика на черном)
   if (cur_color_L > color_gray && cur_color_R > color_gray) {
     search_time = 0;
@@ -103,16 +108,16 @@ void lineFollowing() {
     search_time = 0;
     digitalWrite(DIR_R_PIN, 1);
     digitalWrite(DIR_L_PIN, 0);
-    analogWrite(PWR_R_PIN, 120);
-    analogWrite(PWR_L_PIN, 80);
+    analogWrite(PWR_R_PIN, 150);
+    analogWrite(PWR_L_PIN, 100);
   }
   // Поворот направо (левый на белом, правый на черном)
   else if (cur_color_L < color_gray && cur_color_R > color_gray) {
     search_time = 0;
     digitalWrite(DIR_R_PIN, 0);
     digitalWrite(DIR_L_PIN, 1);
-    analogWrite(PWR_R_PIN, 80);
-    analogWrite(PWR_L_PIN, 120);
+    analogWrite(PWR_R_PIN, 100);
+    analogWrite(PWR_L_PIN, 150);
   }
   // Поиск линии (оба датчика на белом)
   else {
@@ -155,6 +160,7 @@ void turnLeft() {
   analogWrite(PWR_R_PIN, 100);
   analogWrite(PWR_L_PIN, 100);
   delay(300);
+  lineFollowing();
   arrived = false;
 }
 
@@ -164,6 +170,7 @@ void turnRight() {
   analogWrite(PWR_R_PIN, 100);
   analogWrite(PWR_L_PIN, 100);
   delay(300);
+  lineFollowing();
   arrived = false;
 }
 
@@ -173,15 +180,12 @@ void turnAround() {
   analogWrite(PWR_R_PIN, 100);
   analogWrite(PWR_L_PIN, 100);
   delay(500);
+  lineFollowing();
   arrived = false;
 }
 
 void moveForward() {
-  digitalWrite(DIR_R_PIN, 1);
-  digitalWrite(DIR_L_PIN, 1);
-  analogWrite(PWR_R_PIN, 80);
-  analogWrite(PWR_L_PIN, 80);
-  arrived = false;
+  lineFollowing();
 }
 
 void executeMovement(int direction) {
@@ -224,7 +228,12 @@ bool checkIntersection() {
 void processQR(String data) {
   if (data.length() > 0 && data[0] >= '0' && data[0] <= '9') {
     int node = data.toInt();
-    if (node >= 1 && node <= 11) {
+    if (current_node == node) {
+      Serial.print("QR detected same QR: ");
+      printNodeName(current_node);
+    }
+
+    else if (node >= 1 && node <= 11) {
       current_node = node;
       Serial.print("QR detected: ");
       printNodeName(current_node);
