@@ -270,7 +270,7 @@ std::cout << std::endl << "Общее время в пути: " << total_time <<
 
 int main() {
 
-    make_new_file("airports.csv");
+    make_new_file("T_T100_SEGMENT_ALL_CARRIER.csv");
 
     filter_file(100);
     
