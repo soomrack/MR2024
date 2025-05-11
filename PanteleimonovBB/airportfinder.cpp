@@ -101,7 +101,7 @@ public:
         }
 
         string line;
-        getline(file, line); // Skip header
+        getline(file, line);
 
         while (getline(file, line)) {
             stringstream ss(line);
