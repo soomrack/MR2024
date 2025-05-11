@@ -43,18 +43,18 @@ unsigned long search_time = 0;
 
 // Карта маршрутов
 const int ROUTE_MAP[12][4] = {
-  /* 0 */  {-1, -1, -1, -1},
-  /* 1 */  {-1, -1, -1, -1},
-  /* 2 */  {-1, -1, -1, CROSS_4},
-  /* 3 */  {-1, -1, -1, CROSS_4},
-  /* 4 */  {END_2, CROSS_7, END_3, -1},
-  /* 5 */  {-1, -1, -1, CROSS_7},
-  /* 6 */  {-1, -1, -1, CROSS_7},
+  /* 0 */  {0, 0, 0, 0},
+  /* 1 */  {0, 0, 0, 0},
+  /* 2 */  {0, 0, 0, CROSS_4},
+  /* 3 */  {0, 0, 0, CROSS_4},
+  /* 4 */  {END_2, CROSS_7, END_3, 0},
+  /* 5 */  {0, 0, 0, CROSS_7},
+  /* 6 */  {0, 0, 0, CROSS_7},
   /* 7 */  {END_5, CROSS_10, END_8, CROSS_4},
-  /* 8 */  {-1, -1, -1, CROSS_7},
-  /* 9 */  {-1, -1, -1, CROSS_10},
-  /* 10 */ {END_9, -1, END_11, CROSS_7},
-  /* 11 */ {-1, -1, -1, CROSS_10}
+  /* 8 */  {0, 0, 0, CROSS_7},
+  /* 9 */  {0, 0, 0, CROSS_10},
+  /* 10 */ {END_9, 0, END_11, CROSS_7},
+  /* 11 */ {0, 0, 0, CROSS_10}
 };
 
 // Системные переменные
@@ -82,8 +82,12 @@ void beep(int count) {
 }
 
 void stopMotors() {
-  analogWrite(PWR_R_PIN, 0);
-  analogWrite(PWR_L_PIN, 0);
+  // Плавная остановка
+  for(int i = BASE_SPEED; i >= 0; i-=10) {
+    analogWrite(PWR_R_PIN, i);
+    analogWrite(PWR_L_PIN, i);
+    delay(50);
+  }
 }
 
 // ============ Улучшенное движение по линии ============
@@ -91,20 +95,19 @@ void lineFollowing() {
   cur_color_L = analogRead(SENS_L_PIN);
   cur_color_R = analogRead(SENS_R_PIN);
 
-  // ПИД-регулятор для плавного движения
+  // ПИД-регулятор
   static int last_error = 0;
   static float integral = 0;
   
   int error = cur_color_L - cur_color_R;
-  integral += error * 0.1; // Интегральная составляющая
+  integral += error * 0.1;
   integral = constrain(integral, -100, 100);
   
-  int derivative = error - last_error; // Дифференциальная составляющая
+  int derivative = error - last_error;
   last_error = error;
   
-  int correction = error * 0.5 + integral * 0.01 + derivative * 0.2; // Коэффициенты можно настроить
+  int correction = error * 0.7 + integral * 0.05 + derivative * 0.3;
 
-  // Расчет скоростей моторов
   int leftSpeed = constrain(BASE_SPEED + correction, 0, MAX_SPEED);
   int rightSpeed = constrain(BASE_SPEED - correction, 0, MAX_SPEED);
 
@@ -123,7 +126,6 @@ void turnLeft() {
     analogWrite(PWR_R_PIN, TURN_SPEED);
     analogWrite(PWR_L_PIN, TURN_SPEED-20);
     
-    // Ранний выход если нашли линию
     if(analogRead(SENS_R_PIN) > color_gray) break;
   }
   lineFollowing();
@@ -155,11 +157,13 @@ void turnAround() {
 
 // ============ Навигация ============
 bool checkIntersection() {
+  if(color_gray == 0) return false;
+  
   static unsigned long lastDetection = 0;
-  bool detected = (analogRead(SENS_L_PIN) > color_gray && 
+  bool detected = (analogRead(SENS_L_PIN) > color_gray) && 
                  (analogRead(SENS_R_PIN) > color_gray);
   
-  if (detected && millis() - lastDetection > 500) {
+  if(detected && millis() - lastDetection > 500) {
     lastDetection = millis();
     return true;
   }
@@ -186,7 +190,7 @@ int calculateBestDirection() {
       return BACK;
       
     default: 
-      return -1; // Нет доступного пути
+      return -1;
   }
 }
 
@@ -200,14 +204,15 @@ void executeMovement(int direction) {
 }
 
 void processQR(String data) {
-  if (data.length() > 0 && data[0] >= '0' && data[0] <= '9') {
+  data.trim();
+  if(data.length() > 0 && isDigit(data[0])) {
     int node = data.toInt();
-    if (node >= 1 && node <= 11) {
+    if(node >= 1 && node <= 11) {
       current_node = node;
       Serial.print("QR detected: ");
       printNodeName(current_node);
       
-      if (current_node == target_node) {
+      if(current_node == target_node) {
         arrived = true;
         beep(3);
       } else {
@@ -218,14 +223,14 @@ void processQR(String data) {
 }
 
 void navigateToTarget() {
-  if (current_node == target_node) {
+  if(current_node == target_node) {
     arrived = true;
     beep(3);
     return;
   }
 
   int direction = calculateBestDirection();
-  if (direction == -1) {
+  if(direction == -1) {
     Serial.println("ERROR: No valid path");
     stopMotors();
     return;
@@ -233,14 +238,13 @@ void navigateToTarget() {
 
   executeMovement(direction);
 
-  // Движение до следующего перекрестка
   unsigned long startTime = millis();
   while(!checkIntersection() && millis() - startTime < 5000) {
     lineFollowing();
   }
   
-  if (checkIntersection()) {
-    delay(200); // Время на стабилизацию перед QR
+  if(checkIntersection()) {
+    delay(200);
   }
 }
 
@@ -248,7 +252,15 @@ void printNodeName(int node) {
   switch(node) {
     case END_1: Serial.println("END_1"); break;
     case END_2: Serial.println("END_2"); break;
-    // ... остальные точки
+    case END_3: Serial.println("END_3"); break;
+    case CROSS_4: Serial.println("CROSS_4"); break;
+    case END_5: Serial.println("END_5"); break;
+    case END_6: Serial.println("END_6"); break;
+    case CROSS_7: Serial.println("CROSS_7"); break;
+    case END_8: Serial.println("END_8"); break;
+    case END_9: Serial.println("END_9"); break;
+    case CROSS_10: Serial.println("CROSS_10"); break;
+    case END_11: Serial.println("END_11"); break;
     default: Serial.println(node);
   }
 }
@@ -257,29 +269,32 @@ void setup() {
   pin_init();
   Serial.begin(9600);
   
-  // Правильная калибровка датчиков
   Serial.println("Calibration started");
   
-  // 1. Черная линия
-  Serial.println("1. Place on BLACK line and press button");
+  // 1. Белая поверхность (первая!)
+  Serial.println("1. Place on WHITE surface and press button");
   while(digitalRead(BTN_PIN) == LOW);
-  color_black = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
+  color_white = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
   beep(1);
   
   delay(1000);
   
-  // 2. Белая поверхность
-  Serial.println("2. Place on WHITE surface and press button");
+  // 2. Черная линия
+  Serial.println("2. Place on BLACK line and press button");
   while(digitalRead(BTN_PIN) == LOW);
-  color_white = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
+  color_black = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
   beep(2);
   
-  // Пороговое значение
+  // Проверка калибровки
+  if(color_white <= color_black || abs(color_white - color_black) < 100) {
+    Serial.println("CALIBRATION ERROR!");
+    while(1) { beep(4); delay(1000); }
+  }
   color_gray = (color_white + color_black) / 2;
   
   Serial.println("Calibration results:");
-  Serial.print("Black: "); Serial.println(color_black);
   Serial.print("White: "); Serial.println(color_white);
+  Serial.print("Black: "); Serial.println(color_black);
   Serial.print("Threshold: "); Serial.println(color_gray);
   
   Serial.println("System READY");
@@ -298,21 +313,20 @@ void loop() {
     navigateToTarget();
   }
   
-  // Обработка команд с Serial
-  if (Serial.available()) {
+  if(Serial.available()) {
     String data = Serial.readStringUntil('\n');
     data.trim();
     
-    if (data.startsWith("GO")) {
+    if(data.startsWith("GO")) {
       int node = data.substring(2).toInt();
-      if (node >= 1 && node <= 11) {
+      if(node >= 1 && node <= 11) {
         target_node = node;
         arrived = false;
         Serial.print("New target: ");
         printNodeName(target_node);
       }
     }
-    else if (data == "STOP") {
+    else if(data == "STOP") {
       target_node = -1;
       arrived = true;
       stopMotors();
