@@ -44,22 +44,22 @@ unsigned long search_time = 0;
 // Карта маршрутов
 const int ROUTE_MAP[12][4] = {
   /* 0 */  {-1, -1, -1, -1},
-  /* 1 */  {-1, -1, -1, -1},
+  /* 1 */  {-1, -1, -1, CROSS_4},
   /* 2 */  {-1, -1, -1, CROSS_4},
   /* 3 */  {-1, -1, -1, CROSS_4},
-  /* 4 */  {END_2, CROSS_7, END_3, -1},
+  /* 4 */  {END_2, CROSS_7, END_3, END_1},
   /* 5 */  {-1, -1, -1, CROSS_7},
   /* 6 */  {-1, -1, -1, CROSS_7},
-  /* 7 */  {END_5, CROSS_10, END_8, CROSS_4},
-  /* 8 */  {-1, -1, -1, CROSS_7},
+  /* 7 */  {END_5, CROSS_10, END_6, CROSS_4},
+  /* 8 */  {-1, -1, -1, CROSS_10},
   /* 9 */  {-1, -1, -1, CROSS_10},
-  /* 10 */ {END_9, -1, END_11, CROSS_7},
+  /* 10 */ {END_9, END_8, END_11, CROSS_7},
   /* 11 */ {-1, -1, -1, CROSS_10}
 };
 
 // Системные переменные
 int current_node = -1;
-int target_node = -1;
+int target_node = 0;
 bool calibrated = false;
 bool arrived = false;
 
@@ -82,13 +82,9 @@ void beep(int count) {
 }
 
 void stopMotors() {
-  // Плавная остановка
-  for(int i = BASE_SPEED; i >= 0; i-=10) {
-    analogWrite(PWR_R_PIN, i);
-    analogWrite(PWR_L_PIN, i);
-    delay(50);
+  analogWrite(PWR_R_PIN, 0);
+  analogWrite(PWR_L_PIN, 0);
   }
-}
 
 // ============ Движение по линии ============
 void lineFollowing() {
@@ -240,8 +236,8 @@ int calculateBestDirection() {
       if(target_node == END_11) return RIGHT;
       return BACK;
       
-    default: 
-      return -1;
+    //default: 
+      //return -1;
   }
 }
 
@@ -315,13 +311,13 @@ void navigateToTarget() {
   }
 
   int direction = calculateBestDirection();
-  if(direction == -1) {
+  /*if(direction == -1) {
     // Если нет пути — разворот и сброс текущего узла
     Serial.println("No path: U-turn and reset");
     turnAround();
     current_node = -1; // Сброс для повторного чтения QR
     return;
-  }
+  }*/
 
   executeMovement(direction);
 
