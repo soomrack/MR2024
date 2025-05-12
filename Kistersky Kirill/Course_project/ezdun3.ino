@@ -29,8 +29,17 @@ enum {
   END_11 = 11
 };
 
+// Добавляем новый enum для относительных направлений
+enum MovementDirection {
+  MOVE_FORWARD,
+  MOVE_BACKWARD,
+  MOVE_LEFT,
+  MOVE_RIGHT
+};
+
+
 // Настройки движения
-#define BASE_SPEED 80
+#define BASE_SPEED 100
 #define TURN_SPEED 100
 #define MAX_SPEED 150
 #define TURN_TIME 350
@@ -43,25 +52,26 @@ unsigned long search_time = 0;
 
 // Карта маршрутов
 const int ROUTE_MAP[12][4] = {
-  /* 0 */  {-1, -1, -1, -1},
-  /* 1 */  {-1, -1, -1, CROSS_4},
-  /* 2 */  {-1, -1, -1, CROSS_4},
-  /* 3 */  {-1, -1, -1, CROSS_4},
+  /* 0 */  {0, 0, 0, 0},
+  /* 1 */  {0, 0, 0, BACK},
+  /* 2 */  {0, 0, 0, BACK},
+  /* 3 */  {0, 0, 0, BACK},
   /* 4 */  {END_2, CROSS_7, END_3, END_1},
-  /* 5 */  {-1, -1, -1, CROSS_7},
-  /* 6 */  {-1, -1, -1, CROSS_7},
+  /* 5 */  {0, 0, 0, BACK},
+  /* 6 */  {0, 0, 0, BACK},
   /* 7 */  {END_5, CROSS_10, END_6, CROSS_4},
-  /* 8 */  {-1, -1, -1, CROSS_10},
-  /* 9 */  {-1, -1, -1, CROSS_10},
+  /* 8 */  {0, 0, 0, BACK},
+  /* 9 */  {0, 0, 0, BACK},
   /* 10 */ {END_9, END_8, END_11, CROSS_7},
-  /* 11 */ {-1, -1, -1, CROSS_10}
+  /* 11 */ {0, 0, 0, BACK}
 };
 
 // Системные переменные
 int current_node = -1;
-int target_node = 0;
+int target_node = -1;
 bool calibrated = false;
 bool arrived = false;
+MovementDirection current_direction = MOVE_FORWARD;
 
 void pin_init() {
   pinMode(DIR_R_PIN, OUTPUT);
@@ -91,10 +101,6 @@ void lineFollowing() {
   // Чтение датчиков с отладкой
   cur_color_L = analogRead(SENS_L_PIN);
   cur_color_R = analogRead(SENS_R_PIN);
-  
-  //Serial.print("L:"); Serial.print(cur_color_L);
-  //Serial.print(" R:"); Serial.print(cur_color_R);
-  //Serial.print(" Th:"); Serial.println(color_gray);
 
   // Экстренные случаи (как у вас)
   if (cur_color_L > color_gray && cur_color_R > color_gray) {
@@ -103,6 +109,7 @@ void lineFollowing() {
     digitalWrite(DIR_L_PIN, 1);
     analogWrite(PWR_R_PIN, BASE_SPEED);
     analogWrite(PWR_L_PIN, BASE_SPEED);
+    current_direction = MOVE_FORWARD;
     search_time = 0;
     return;
   }
@@ -113,14 +120,15 @@ void lineFollowing() {
     if(search_time >= 10000) {
       end_music();
       stopMotors();
+      return;
     }
-    // Ваш алгоритм поиска линии
+
     if (last_color_L > color_gray) {
-      analogWrite(PWR_L_PIN, 100); // Плавный разворот
-      analogWrite(PWR_R_PIN, 0);
+      analogWrite(PWR_L_PIN, 120); // Плавный разворот
+      analogWrite(PWR_R_PIN, 80);
     } else {
-      analogWrite(PWR_L_PIN, 0);
-      analogWrite(PWR_R_PIN, 100);
+      analogWrite(PWR_L_PIN, 80);
+      analogWrite(PWR_R_PIN, 120);
     }
     return;
   }
@@ -137,10 +145,10 @@ void lineFollowing() {
 
   // Движение с плавностью PID, но с вашей логикой направлений
   if (cur_color_L > color_gray) { // Левее линии
-    leftSpeed = BASE_SPEED - 30; // Лёгкий подтормаживающий эффект
+    leftSpeed = BASE_SPEED - 5; // Лёгкий подтормаживающий эффект
   } 
   else if (cur_color_R > color_gray) { // Правее линии
-    rightSpeed = BASE_SPEED - 30;
+    rightSpeed = BASE_SPEED - 5;
   }
 
   digitalWrite(DIR_R_PIN, 1);
@@ -149,6 +157,7 @@ void lineFollowing() {
   analogWrite(PWR_L_PIN, leftSpeed);
   
   last_color_L = cur_color_L; // Сохраняем для поиска
+  search_time = 0;
 }
 
 void end_music() {
@@ -162,45 +171,70 @@ void end_music() {
 }
 
 // ============ Улучшенные повороты ============
-void turnLeft() {
+void turnRelative(bool turnRight) {
   unsigned long startTime = millis();
-  while(millis() - startTime < TURN_TIME) {
-    digitalWrite(DIR_R_PIN, 1);
-    digitalWrite(DIR_L_PIN, 0);
-    analogWrite(PWR_R_PIN, TURN_SPEED);
-    analogWrite(PWR_L_PIN, TURN_SPEED-20);
-    
-    if(analogRead(SENS_R_PIN) > color_gray) break;
+  bool actualTurnRight = turnRight;
+  
+  if(current_direction == MOVE_BACKWARD) {
+    actualTurnRight = !actualTurnRight;
   }
-  lineFollowing();
+  
+  while(millis() - startTime < TURN_TIME) {
+    if(actualTurnRight) {
+      digitalWrite(DIR_R_PIN, 0);
+      digitalWrite(DIR_L_PIN, 1);
+      analogWrite(PWR_R_PIN, TURN_SPEED-20);
+      analogWrite(PWR_L_PIN, TURN_SPEED);
+    } else {
+      digitalWrite(DIR_R_PIN, 1);
+      digitalWrite(DIR_L_PIN, 0);
+      analogWrite(PWR_R_PIN, TURN_SPEED);
+      analogWrite(PWR_L_PIN, TURN_SPEED-20);
+    }
+    
+    if((actualTurnRight && analogRead(SENS_L_PIN) > color_gray) ||
+       (!actualTurnRight && analogRead(SENS_R_PIN) > color_gray)) {
+      break;
+    }
+    
+    checkSerial();
+    if(current_node == target_node) break;
+  }
+  
+  // Обновляем текущее направление
+  if(turnRight) {
+    current_direction = static_cast<MovementDirection>((current_direction + 1) % 4);
+  } else {
+    current_direction = static_cast<MovementDirection>((current_direction + 3) % 4);
+  }
+}
+
+void turnLeft() {
+  turnRelative(false);
 }
 
 void turnRight() {
-  unsigned long startTime = millis();
-  while(millis() - startTime < TURN_TIME) {
-    digitalWrite(DIR_R_PIN, 0);
-    digitalWrite(DIR_L_PIN, 1);
-    analogWrite(PWR_R_PIN, TURN_SPEED-20);
-    analogWrite(PWR_L_PIN, TURN_SPEED);
-    
-    if(analogRead(SENS_L_PIN) > color_gray) break;
-  }
-  lineFollowing();
+  turnRelative(true);
 }
 
 void turnAround() {
-  unsigned long startTime = millis();
-  while(millis() - startTime < U_TURN_TIME) {
-    digitalWrite(DIR_R_PIN, 0);
-    digitalWrite(DIR_L_PIN, 1);
-    analogWrite(PWR_R_PIN, TURN_SPEED);
-    analogWrite(PWR_L_PIN, TURN_SPEED);
-
-    checkSerial(); // Проверка QR во время разворота!
-    if(current_node != -1) break; // Прерывание, если QR считан
-  }
-  lineFollowing();
+  turnRelative(false);
+  delay(100);
+  turnRelative(false);
 }
+
+void moveForward() {
+  digitalWrite(DIR_R_PIN, 1);
+  digitalWrite(DIR_L_PIN, 1);
+  current_direction = MOVE_FORWARD;
+}
+
+void moveBackward() {
+  digitalWrite(DIR_R_PIN, 0);
+  digitalWrite(DIR_L_PIN, 0);
+  current_direction = MOVE_BACKWARD;
+}
+
 
 // ============ Навигация ============
 bool checkIntersection() {
@@ -210,7 +244,7 @@ bool checkIntersection() {
   bool detected = (analogRead(SENS_L_PIN) > color_gray) && 
                  (analogRead(SENS_R_PIN) > color_gray);
   
-  if(detected && millis() - lastDetection > 500) {
+  if(detected && millis() - lastDetection > 300) {
     lastDetection = millis();
     return true;
   }
@@ -218,35 +252,66 @@ bool checkIntersection() {
 }
 
 int calculateBestDirection() {
+  if(current_node == -1) return -1;
   if(current_node == target_node) return -1;
+
+  // Для всех END-точек - только разворот
+  if(current_node >= END_1 && current_node <= END_11 && 
+     current_node != CROSS_4 && current_node != CROSS_7 && current_node != CROSS_10) {
+    return BACK;
+  }
   
+  // Определяем направление относительно текущего положения
   switch(current_node) {
     case CROSS_4:
+      if(target_node == END_1) return (current_direction == MOVE_BACKWARD) ? STRAIGHT : BACK;
       if(target_node == END_2) return LEFT;
       if(target_node == END_3) return RIGHT;
-      return STRAIGHT;
+      if(target_node == CROSS_7) return STRAIGHT;
+      break;
       
     case CROSS_7:
       if(target_node == END_5 || target_node == END_6) return LEFT;
       if(target_node == END_8) return RIGHT;
-      return STRAIGHT;
+      if(target_node == CROSS_4) return (current_direction == MOVE_FORWARD) ? BACK : STRAIGHT;
+      if(target_node == CROSS_10) return STRAIGHT;
+      break;
       
     case CROSS_10:
       if(target_node == END_9) return LEFT;
       if(target_node == END_11) return RIGHT;
-      return BACK;
-      
-    //default: 
-      //return -1;
+      if(target_node == END_8) return STRAIGHT;
+      if(target_node == CROSS_7) return (current_direction == MOVE_FORWARD) ? BACK : STRAIGHT;
+      break;
   }
+  
+  return -1;
 }
 
 void executeMovement(int direction) {
   switch(direction) {
-    case LEFT: turnLeft(); break;
-    case RIGHT: turnRight(); break;
-    case BACK: turnAround(); break;
-    default: lineFollowing();
+    case LEFT: 
+      turnLeft(); 
+      break;
+    case RIGHT: 
+      turnRight(); 
+      break;
+    case BACK: 
+      if(current_direction == MOVE_FORWARD) {
+        turnAround();
+      } else {
+        moveForward();
+      }
+      break;
+    case STRAIGHT: 
+      if(current_direction == MOVE_BACKWARD) {
+        moveBackward();
+      } else {
+        moveForward();
+      }
+      break;
+    default: 
+      stopMotors();
   }
 }
 
@@ -303,6 +368,12 @@ void checkSerial() {
 }
 
 void navigateToTarget() {
+  if(current_node == -1) {
+    Serial.println("Current node unknown - waiting for QR");
+    stopMotors();
+    return;
+  }
+
   if(current_node == target_node) {
     arrived = true;
     beep(3);
@@ -325,6 +396,7 @@ void navigateToTarget() {
   while(!checkIntersection() && millis() - startTime < 5000) {
     lineFollowing();
     checkSerial(); //Проверяем QR даже в движении!
+    if(current_node == target_node) break;
   }
   
   if(checkIntersection()) {
@@ -391,11 +463,7 @@ void loop() {
     return;
   }
   
-  if(target_node == -1) {
-    lineFollowing();
-  } else {
-    navigateToTarget();
-  }
-  
+
+  navigateToTarget();
   checkSerial();
 }
