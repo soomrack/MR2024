@@ -256,10 +256,17 @@ void determineNextMove() {
   } else if (possiblePaths[relativeLeft] == destination) {
     turnDirection = -1;
   } else {
-    turnDirection = 0;
+    turnDirection = 2; //поменяли с 0, чтобы инвертировать ориентацию при развороте
   }
 
-  orientation = (orientation + turnDirection + 4) % 4;
+  //orientation = (orientation + turnDirection + 4) % 4;
+  // Обновляем ориентацию с учетом поворота
+  if (turnDirection == 2) {
+    orientation = (orientation + 2) % 4; // Инвертируем направление
+  } else {
+    orientation = (orientation + turnDirection + 4) % 4;
+  }
+  
   currentState = STATE_TURNING;
   turnStartTime = millis();
   
