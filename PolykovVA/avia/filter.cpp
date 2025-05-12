@@ -72,7 +72,7 @@ void filter_csv(const string& input_path, const string& output_path) {
         } col_idx;
 
 
-        //Перебераем
+        //Перебираем
         for (size_t i = 0; i < headers.size(); ++i) {
             if (headers[i] == "ORIGIN") col_idx.origin = i;
             else if (headers[i] == "DEST") col_idx.dest = i;
