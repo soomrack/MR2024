@@ -12,10 +12,10 @@
 #include <locale>
 #include <memory>
 
-// Константы
-const int MIN_CONNECTION_TIME = 1800; // Минимальное время между рейсами (30 минут)
 
-// Исключения
+const int MIN_CONNECTION_TIME = 3600; // Минимальное время между рейсами (можно менять)
+
+
 class AirportException : public std::exception {
 private:
     std::string message;
@@ -33,7 +33,7 @@ public:
     const char* what() const noexcept override { return message.c_str(); }
 };
 
-// Класс для представления аэропорта
+
 class Airport {
 private:
     int id;
@@ -46,7 +46,6 @@ public:
     Airport(int id, const std::string& code, const std::string& city_state)
         : id(id), code(code), city_state(city_state) {}
 
-    // Геттеры
     int get_id() const { return id; }
     const std::string& get_code() const { return code; }
     const std::string& get_city_state() const { return city_state; }
@@ -56,7 +55,7 @@ public:
     }
 };
 
-// Класс для представления рейса
+
 class Flight {
 private:
     int origin_id;
@@ -69,13 +68,12 @@ public:
     Flight(int orig, int dest, int dist)
         : origin_id(orig), dest_id(dest), distance(dist) {}
 
-    // Геттеры
     int get_origin_id() const { return origin_id; }
     int get_destination_id() const { return dest_id; }
     int get_distance() const { return distance; }
 };
 
-// Класс для хранения графа аэропортов и рейсов
+
 class FlightGraph {
 private:
     std::unordered_map<int, Airport> airports;
@@ -94,7 +92,7 @@ public:
 
         while (std::getline(file, line)) {
             line_num++;
-            if (line.empty() || line_num == 1) continue; // Пропускаем заголовок
+            if (line.empty() || line_num == 1) continue;
 
             std::istringstream ss(line);
             std::string token;
@@ -136,7 +134,7 @@ public:
 
         while (std::getline(file, line)) {
             line_num++;
-            if (line.empty() || line_num == 1) continue; // Пропускаем заголовок
+            if (line.empty() || line_num == 1) continue;
 
             std::istringstream ss(line);
             std::string token;
@@ -193,7 +191,7 @@ public:
     }
 };
 
-// Класс для поиска кратчайшего пути
+
 class ShortestPathFinder {
 public:
     enum SearchCriteria {
@@ -301,7 +299,7 @@ public:
             throw AirportException("Путь между аэропортами не найден");
         }
 
-        // Восстанавливаем путь
+        // path reunite
         std::vector<Flight> path;
         auto node = final_node;
         while (node && node->prev) {
@@ -359,20 +357,22 @@ void print_path(const FlightGraph& graph, const std::vector<Flight>& path) {
 }
 
 int main() {
+
     setlocale(LC_ALL, "Russian");
+
     try {
         std::cout << "Инициализация данных аэропортов и рейсов..." << std::endl;
 
         FlightGraph graph;
 
-        // Загрузка данных из оптимизированных файлов
+        
         std::cout << "Загрузка данных аэропортов из airport_mapping.csv..." << std::endl;
         graph.load_airports("Database/airport_mapping.csv");
 
         std::cout << "Загрузка данных рейсов из airline_graph.csv..." << std::endl;
         graph.load_flights("Database/airline_graph.csv");
 
-        // Ввод данных пользователем
+
         std::string start_code, dest_code;
 
         std::cout << "\nВведите код аэропорта отправления (например, LAX): ";
@@ -381,12 +381,12 @@ int main() {
         std::cout << "Введите код аэропорта назначения (например, JFK): ";
         std::getline(std::cin, dest_code);
 
-        // Поиск пути
+
         std::cout << "\nПоиск кратчайшего пути..." << std::endl;
         auto path = ShortestPathFinder::find_shortest_path(
             graph, start_code, dest_code, ShortestPathFinder::SHORTEST_DISTANCE);
 
-        // Вывод результата
+
         print_path(graph, path);
     }
     catch (const FileException& e) {
