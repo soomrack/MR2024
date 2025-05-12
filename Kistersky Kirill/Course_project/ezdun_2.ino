@@ -275,6 +275,7 @@ void setup() {
   Serial.println("1. Place on WHITE surface and press button");
   while(digitalRead(BTN_PIN) == LOW);
   color_white = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
+  Serial.println(color_white);
   beep(1);
   
   delay(1000);
@@ -283,10 +284,11 @@ void setup() {
   Serial.println("2. Place on BLACK line and press button");
   while(digitalRead(BTN_PIN) == LOW);
   color_black = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
+  Serial.println(color_black);
   beep(2);
   
   // Проверка калибровки
-  if(color_white <= color_black || abs(color_white - color_black) < 100) {
+  if(color_white >= color_black || abs(color_white - color_black) < 100) {
     Serial.println("CALIBRATION ERROR!");
     while(1) { beep(4); delay(1000); }
   }
