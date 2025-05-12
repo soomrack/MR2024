@@ -1,6 +1,5 @@
 #include <stdint.h>
 
-
 const uint8_t PIN_PWM_LEFT = 6;
 const uint8_t PIN_DIR_LEFT = 7;
 const uint8_t PIN_PWM_RIGHT = 5;
@@ -8,273 +7,244 @@ const uint8_t PIN_DIR_RIGHT = 4;
 const uint8_t PIN_BUTTON = A2;
 const uint8_t PIN_BUZZER = 9;
 
+const uint8_t ANALOG_PINS[] = {A0, A1};
+const uint8_t NUM_SENSORS = sizeof(ANALOG_PINS);
 
-const uint8_t PINS_ANALOG[] = {A0, A1};
-const uint8_t SENSORS_NUM = sizeof(PINS_ANALOG);
-
-
+const unsigned long CALIBRATION_DURATION_MS = 4000;и
+const unsigned long BUZZER_DURATION_MS = 5100;
+const unsigned long BUZZER_TOGGLE_INTERVAL_MS = 2000;
+const unsigned long SEEK_DURATION_MS = 4000;
+const unsigned long LOOP_UPDATE_INTERVAL_MS = 1;
 const int DEBOUNCE_DELAY_MS = 5;
 
+const float KP = 7.0;
+const float KD = 30.0;
+const float KI = 0.01;
+const float INTEGRAL_LIMIT = 50.0;
 
-//PD regilator coefficients
-const float K_P = 7.0;
-const float K_D = 30.0;
+const int BASE_SPEED = 150;
+const int MAX_SPEED = 250;
+const int MIN_SPEED = -100;
+const int SEEK_LINE_CONTROL = 190;
+const int BLACK_THRESHOLD = 70;
 
+const float SMOOTHING_FACTOR = 0.2;
 
-const int SPEED = 180; //basic movement speed
+struct Limit {
+    int minVal;
+    int maxVal;
 
-
-//driving speed limits
-const int SPEED_MAX = 250;
-const int SPEED_MIN = -100;
-
-
-const int U_SEEK_LINE = 190; //u when start seek line
-const unsigned long SEEK_TIME = 4000; //ms
-
-
-const int BLACK_THRESHOLD = 70; //threshold for detecting black line
-
-
-struct Limit
-{
-    int min;
-    int max;
-
-    Limit()
-    {
-        min = 1024;
-        max = 0;
-    }
+    Limit() : minVal(1024), maxVal(0) {}
 };
 
+Limit calibrationData[NUM_SENSORS];
+int rawSensorValues[NUM_SENSORS];
+float normalizedSensorValues[NUM_SENSORS];
+float smoothedSensorValues[NUM_SENSORS];
 
-Limit calibration_data[SENSORS_NUM];
-int sensors_data_raw[SENSORS_NUM];
-int sensors_data[SENSORS_NUM];
-
-
-void pins_init()
-{
+void initPins() {
     pinMode(PIN_PWM_LEFT, OUTPUT);
     pinMode(PIN_DIR_LEFT, OUTPUT);
     pinMode(PIN_PWM_RIGHT, OUTPUT);
     pinMode(PIN_DIR_RIGHT, OUTPUT);
-
     pinMode(PIN_BUTTON, INPUT);
-
     pinMode(PIN_BUZZER, OUTPUT);
 }
 
+void setMotorSpeeds(int leftSpeed, int rightSpeed) {
+    leftSpeed = constrain(leftSpeed, -(int)UINT8_MAX, (int)UINT8_MAX);
+    rightSpeed = constrain(rightSpeed, -(int)UINT8_MAX, (int)UINT8_MAX);
 
-void motors_set_speed(int left, int right)
-{
-    left = constrain(left, -(int)UINT8_MAX, (int)UINT8_MAX);
-    right = constrain(right, -(int)UINT8_MAX, (int)UINT8_MAX);
+    digitalWrite(PIN_DIR_LEFT, leftSpeed < 0);
+    digitalWrite(PIN_DIR_RIGHT, rightSpeed < 0);
 
-    digitalWrite(PIN_DIR_LEFT, left < 0);
-    digitalWrite(PIN_DIR_RIGHT, right < 0);
-
-    analogWrite(PIN_PWM_LEFT, abs(left));
-    analogWrite(PIN_PWM_RIGHT, abs(right));
+    analogWrite(PIN_PWM_LEFT, abs(leftSpeed));
+    analogWrite(PIN_PWM_RIGHT, abs(rightSpeed));
 }
 
-
-//check button is pressed with bounce protection
-bool button_is_pressed()
-{
-    static bool old_state = 0;
-    static bool is_pressed = 0;
-    static unsigned long timeout_end = 0;
-
+bool isButtonPressed() {
+    static bool oldState = false;
+    static bool isPressed = false;
+    static unsigned long timeoutEnd = 0;
 
     bool state = digitalRead(PIN_BUTTON);
 
-    if(!is_pressed) {
-        if(state && !old_state) { //positive edge detection
-            is_pressed = 1;
-            timeout_end = millis() + DEBOUNCE_DELAY_MS;
+    if (!isPressed) {
+        if (state && !oldState) {
+            isPressed = true;
+            timeoutEnd = millis() + DEBOUNCE_DELAY_MS;
         }
-        old_state = state;
-    }
-    else {
-        if(millis() > timeout_end) {
-            is_pressed = 0;
-            if(state) return 1;
+        oldState = state;
+    } else {
+        if (millis() > timeoutEnd) {
+            isPressed = false;
+            if (state) return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
-
-void sensors_read_raw()
-{
-    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
-        sensors_data_raw[idx] = analogRead(PINS_ANALOG[idx]);
+void readRawSensors() {
+    for (uint8_t idx = 0; idx < NUM_SENSORS; idx++) {
+        rawSensorValues[idx] = analogRead(ANALOG_PINS[idx]);
     }
 }
 
+void calibrateSensors() {
+    readRawSensors();
 
-void sensors_calibrate()
-{
-    sensors_read_raw();
-
-    //update limits
-    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
-        if(sensors_data_raw[idx] < calibration_data[idx].min) {
-            calibration_data[idx].min = sensors_data_raw[idx];
+    for (uint8_t idx = 0; idx < NUM_SENSORS; idx++) {
+        if (rawSensorValues[idx] < calibrationData[idx].minVal) {
+            calibrationData[idx].minVal = rawSensorValues[idx];
         }
-
-        if(sensors_data_raw[idx] > calibration_data[idx].max) {
-            calibration_data[idx].max = sensors_data_raw[idx];
+        if (rawSensorValues[idx] > calibrationData[idx].maxVal) {
+            calibrationData[idx].maxVal = rawSensorValues[idx];
         }
     }
 }
 
+void performCalibration() {
+    unsigned long timeEnd = millis() + CALIBRATION_DURATION_MS;
 
-void calibration()
-{
-    unsigned long time_end = millis() + 4000;
+    setMotorSpeeds(120, -120);
 
-    motors_set_speed(120, -120); //start spinning
-
-    while(millis() < time_end) {
-        sensors_calibrate();
+    while (millis() < timeEnd) {
+        calibrateSensors();
     }
 
-    motors_set_speed(0, 0); //stop
+    setMotorSpeeds(0, 0);
 }
 
+void readSensors() {
+    readRawSensors();
 
-void sensors_read()
-{
-    sensors_read_raw();
+    for (uint8_t idx = 0; idx < NUM_SENSORS; idx++) {
+        normalizedSensorValues[idx] = map(rawSensorValues[idx], 
+                                         calibrationData[idx].minVal, 
+                                         calibrationData[idx].maxVal, 
+                                         0, 
+                                         100);
 
-    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
-        //make sensors output range 0 - 100
-        sensors_data[idx] = map(sensors_data_raw[idx], calibration_data[idx].min, calibration_data[idx].max, 0, 100);
+        smoothedSensorValues[idx] = (SMOOTHING_FACTOR * normalizedSensorValues[idx]) + 
+                                   ((1.0 - SMOOTHING_FACTOR) * smoothedSensorValues[idx]);
     }
 }
 
-
-bool is_on_line()
-{
-    bool line = 0;
-
-    for(uint8_t idx = 0; idx < SENSORS_NUM; idx++) {
-        if(sensors_data[idx] > BLACK_THRESHOLD) line = 1;
+bool isOnLine() {
+    for (uint8_t idx = 0; idx < NUM_SENSORS; idx++) {
+        if (smoothedSensorValues[idx] > BLACK_THRESHOLD) return true;
     }
-
-    return line;
+    return false;
 }
 
+float pidRegulator() {
+    static float previousError = 0.0;
+    static float integralSum = 0.0;
 
-int PD_regulator()
-{
-    static float err_old = 0.0f;
+    float error = smoothedSensorValues[0] - smoothedSensorValues[1];
+    
+    integralSum += error;
+    integralSum = constrain(integralSum, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
 
-    float err = sensors_data[0] - sensors_data[1];
-    float u = err * K_P + (err - err_old) * K_D;
-    err_old = err;
+    float controlSignal = (KP * error) + 
+                         (KI * integralSum) + 
+                         (KD * (error - previousError));
 
-    return u;
+    previousError = error;
+
+    return controlSignal;
 }
 
+bool seekLine(int* controlSignal) {
+    static unsigned long seekStartTime = 0;
+    static int previousControlSign = 0;
 
-bool seek_line(int* u)
-{
-    static unsigned long time_start_seek = 0;
-    static int u_old_sign = 0;
-
-    if(!is_on_line()) {
-        if(time_start_seek == 0) {
-            time_start_seek = millis();
+    if (!isOnLine()) {
+        if (seekStartTime == 0) {
+            seekStartTime = millis();
         }
 
-        *u = (float)u_old_sign * (float)U_SEEK_LINE * expf(-(float)(millis() - time_start_seek) / 4000.0f);
+        *controlSignal = (float)previousControlSign * 
+                        (float)SEEK_LINE_CONTROL * 
+                        exp(-(float)(millis() - seekStartTime) / (float)SEEK_DURATION_MS);
 
-        if((millis() - time_start_seek) > SEEK_TIME) return 0;
+        if ((millis() - seekStartTime) > SEEK_DURATION_MS) return false;
+    } else {
+        seekStartTime = 0;
     }
-    else {
-        time_start_seek = 0;
-    }
-    u_old_sign = (*u > 0) ? 1 : -1;
 
-    return 1;
+    previousControlSign = (*controlSignal > 0) ? 1 : -1;
+    return true;
 }
 
+bool followLine() {
+    readSensors();
 
-bool drive_line()
-{
-    sensors_read();
+    int controlSignal = pidRegulator();
 
-    int u = PD_regulator();
+    if (!seekLine(&controlSignal)) return false;
 
-    if(!seek_line(&u)) return 0;
+    int leftSpeed = constrain(BASE_SPEED + controlSignal, MIN_SPEED, MAX_SPEED);
+    int rightSpeed = constrain(BASE_SPEED - controlSignal, MIN_SPEED, MAX_SPEED);
+    setMotorSpeeds(leftSpeed, rightSpeed);
 
-    int left_speed = constrain(SPEED + u, SPEED_MIN, SPEED_MAX);
-    int right_speed = constrain(SPEED - u, SPEED_MIN, SPEED_MAX);
-    motors_set_speed(left_speed, right_speed);
-
-    return 1;
+    return true;
 }
 
+bool activateBuzzer() {
+    static unsigned long startTime = 0;
 
-bool buzz()
-{
-    static unsigned long start_time = 0;
-
-    if(start_time == 0) {
-        start_time = millis();
+    if (startTime == 0) {
+        startTime = millis();
     }
 
-    if((millis() - start_time) > 5100) {
-        start_time = 0;
-        return 0;
+    if ((millis() - startTime) > BUZZER_DURATION_MS) {
+        startTime = 0;
+        return false;
     }
 
-    if((millis() - start_time) % 2000 < 1000) {
-        analogWrite(PIN_BUZZER, 128);
-    }
-    else {
+    if ((millis() - startTime) % BUZZER_TOGGLE_INTERVAL_MS < BUZZER_TOGGLE_INTERVAL_MS / 2) {
+        analogWrite(PIN_BUZZER, 1);
+    } else {
         digitalWrite(PIN_BUZZER, 0);
     }
 
-    return 1;
+    return true;
 }
 
+void setup() {
+    initPins();
+    performCalibration();
 
-void setup()
-{
-    pins_init();
-
-    calibration();
+    for (uint8_t idx = 0; idx < NUM_SENSORS; idx++) {
+        smoothedSensorValues[idx] = 0.0;
+    }
 }
 
+void loop() {
+    static bool isRunning = false;
+    static bool isBuzzerActive = false;
+    static unsigned long lastUpdateTime = 0;
 
-void loop()
-{
-    static bool is_running = 0;
-    static bool is_buzzing = 0;
+    if (millis() - lastUpdateTime >= LOOP_UPDATE_INTERVAL_MS) {
+        lastUpdateTime = millis();
 
-    if(is_running) {
-        if(!drive_line()) {
-            is_running = 0;
-            is_buzzing = 1;
+        if (isRunning) {
+            if (!followLine()) {
+                isRunning = false;
+                isBuzzerActive = true;
+            }
+        } else {
+            setMotorSpeeds(0, 0);
+        }
+
+        if (isBuzzerActive) {
+            isBuzzerActive = activateBuzzer();
+        }
+
+        if (isButtonPressed()) {
+            isRunning = !isRunning;
         }
     }
-    else {
-        motors_set_speed(0, 0);
-    }
-
-    if(is_buzzing) {
-        is_buzzing = buzz();
-    }
-
-    if(button_is_pressed()) {
-        is_running = !is_running;
-    }
-
-    delay(1);
 }
