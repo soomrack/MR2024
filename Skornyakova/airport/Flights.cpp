@@ -62,13 +62,13 @@ std::vector<std::string> Flights::split_csv_line(const std::string& line)
 
 void Flights::extract_flight_data_csv() 
 {
-    std::string file_path = "C:\\Users\\krola\\Desktop\\par.csv";
+    std::string file_path;// = "C:\\Users\\krola\\Desktop\\par.csv";
     bool file_path_is_correct = false;
     std::fstream file;
     
 
     while(!file_path_is_correct) {
-        //std::cin >> file_path;
+        std::cin >> file_path;
         file.open(file_path);
 
           if (!file.is_open()) {

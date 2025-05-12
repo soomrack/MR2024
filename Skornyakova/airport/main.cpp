@@ -39,7 +39,7 @@ int main(){
     std::cin >> dest_index;
 
 
-using GraphEdge = std::vector<std::pair<AirportID, AirTime>>;
+/*using GraphEdge = std::vector<std::pair<AirportID, AirTime>>;
 using Graph = std::unordered_map<AirportID, GraphEdge>;
 
 std::pair<AirportID, AirTime> one (2,1);
@@ -69,7 +69,7 @@ Graph gra;
    Node node = {1,2,3,4,5,6};
    Flights myflights(gra,node);
    //myflights.printGraph();
-
+*/
   
    
   // Path mypath  ({1,2,3},{23,34,56});
