@@ -96,9 +96,9 @@ void lineFollowing() {
   cur_color_L = analogRead(SENS_L_PIN);
   cur_color_R = analogRead(SENS_R_PIN);
   
-  Serial.print("L:"); Serial.print(cur_color_L);
-  Serial.print(" R:"); Serial.print(cur_color_R);
-  Serial.print(" Th:"); Serial.println(color_gray);
+  //Serial.print("L:"); Serial.print(cur_color_L);
+  //Serial.print(" R:"); Serial.print(cur_color_R);
+  //Serial.print(" Th:"); Serial.println(color_gray);
 
   // Экстренные случаи (как у вас)
   if (cur_color_L > color_gray && cur_color_R > color_gray) {
@@ -199,6 +199,9 @@ void turnAround() {
     digitalWrite(DIR_L_PIN, 1);
     analogWrite(PWR_R_PIN, TURN_SPEED);
     analogWrite(PWR_L_PIN, TURN_SPEED);
+
+    checkSerial(); // Проверка QR во время разворота!
+    if(current_node != -1) break; // Прерывание, если QR считан
   }
   lineFollowing();
 }
@@ -268,6 +271,7 @@ void processQR(String data) {
         arrived = true;
         beep(3);
       } else {
+        arrived = false;
         beep(1);
       }
     }
@@ -306,13 +310,16 @@ void navigateToTarget() {
   if(current_node == target_node) {
     arrived = true;
     beep(3);
+    stopMotors();
     return;
   }
 
   int direction = calculateBestDirection();
   if(direction == -1) {
-    Serial.println("ERROR: No valid path");
-    stopMotors();
+    // Если нет пути — разворот и сброс текущего узла
+    Serial.println("No path: U-turn and reset");
+    turnAround();
+    current_node = -1; // Сброс для повторного чтения QR
     return;
   }
 
@@ -321,6 +328,7 @@ void navigateToTarget() {
   unsigned long startTime = millis();
   while(!checkIntersection() && millis() - startTime < 5000) {
     lineFollowing();
+    checkSerial(); //Проверяем QR даже в движении!
   }
   
   if(checkIntersection()) {
