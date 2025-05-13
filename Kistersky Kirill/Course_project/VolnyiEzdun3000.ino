@@ -11,9 +11,9 @@
 #define BUZZER 11
 
 // Настройки
-#define BASE_SPEED 150
-#define TURN_SPEED 200
-#define TURN_DURATION 500
+#define BASE_SPEED 75
+#define TURN_SPEED 120
+#define TURN_DURATION 2000
 #define BUZZ_DURATION 200
 
 // Направления
@@ -24,18 +24,18 @@
 
 // Карта маршрутов {N, E, S, W}
 const int ROUTE_MAP[12][4] = {
-  /* 0 */  {0,  0,  0,  0},
-  /* 1 */  {4,  0,  0,  0},
-  /* 2 */  {0,  0,  0,  4},
-  /* 3 */  {0,  4,  0,  0},
-  /* 4 */  {7,  2,  1,  3},
-  /* 5 */  {0,  0,  0,  7},
-  /* 6 */  {0,  7,  0,  0},
-  /* 7 */  {10, 5,  4,  6},
-  /* 8 */  {0,  0,  0, 10},
-  /* 9 */  {0, 10,  0,  0},
-  /* 10 */ {11, 8,  7,  9},
-  /* 11 */ {0,  0, 10,  0}
+  /* 0 */ { 0, 0, 0, 0 },
+  /* 1 */ { 4, 0, 0, 0 },
+  /* 2 */ { 0, 0, 0, 4 },
+  /* 3 */ { 0, 4, 0, 0 },
+  /* 4 */ { 7, 2, 1, 3 },
+  /* 5 */ { 0, 0, 0, 7 },
+  /* 6 */ { 0, 7, 0, 0 },
+  /* 7 */ { 10, 5, 4, 6 },
+  /* 8 */ { 0, 0, 0, 10 },
+  /* 9 */ { 0, 10, 0, 0 },
+  /* 10 */ { 11, 8, 7, 9 },
+  /* 11 */ { 0, 0, 10, 0 }
 };
 
 enum State {
@@ -62,6 +62,7 @@ unsigned long lineLostTime = 0;
 int lineThreshold = 0;
 int color_black = 0;
 int color_white = 0;
+bool flag_turning = 0;
 
 void setup() {
   pinMode(DIR_R_PIN, OUTPUT);
@@ -70,7 +71,7 @@ void setup() {
   pinMode(PWR_L_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT_PULLUP);
   pinMode(BUZZER, OUTPUT);
-  
+
   Serial.begin(9600);
   calibrateSensors();
   beep(1);
@@ -89,7 +90,7 @@ void checkSerial() {
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
     input.trim();
-    
+
     Serial.print("Received: ");
     Serial.println(input);
 
@@ -100,12 +101,11 @@ void checkSerial() {
         Serial.print("New destination: ");
         Serial.println(destination);
         //beep(2);
-        if(currentState == STATE_ARRIVED) {
+        if (currentState == STATE_ARRIVED) {
           currentState = STATE_FOLLOW_LINE;
         }
       }
-    }
-    else if (input.toInt() >= 1 && input.toInt() <= 11) {
+    } else if (input.toInt() >= 1 && input.toInt() <= 11) {
       handleQRCode(input.toInt());
     }
   }
@@ -127,7 +127,7 @@ void handleQRCode(int newPos) {
   Serial.print(currentPosition);
   Serial.print(" | Orientation: ");
   printDirection(orientation);
-  
+
   if (currentPosition == destination) {
     currentState = STATE_ARRIVED;
     //beep(3);
@@ -135,7 +135,7 @@ void handleQRCode(int newPos) {
 }
 
 void printDirection(int dir) {
-  const char* directions[] = {"NORTH", "EAST", "SOUTH", "WEST"};
+  const char* directions[] = { "NORTH", "EAST", "SOUTH", "WEST" };
   if (dir >= 0 && dir < 4) {
     Serial.println(directions[dir]);
   } else {
@@ -147,21 +147,19 @@ void handleSensors(int rightSensor, int leftSensor) {
   bool rightOnLine = rightSensor > lineThreshold;
   bool leftOnLine = leftSensor > lineThreshold;
 
-  switch(currentState) {
+  switch (currentState) {
     case STATE_FOLLOW_LINE:
       if (rightOnLine && leftOnLine) {
         setMotors(BASE_SPEED, BASE_SPEED);
+        //Serial.println("Followline"); //для тестирования
         lineLost = false;
-      } 
-      else if (rightOnLine) {
+      } else if (rightOnLine) {
         setMotors(BASE_SPEED, 0);
         lineLost = false;
-      } 
-      else if (leftOnLine) {
+      } else if (leftOnLine) {
         setMotors(0, BASE_SPEED);
         lineLost = false;
-      } 
-      else {
+      } else {
         if (!lineLost) {
           lineLost = true;
           lineLostTime = millis();
@@ -180,7 +178,7 @@ void handleSensors(int rightSensor, int leftSensor) {
 }
 
 void runStateMachine() {
-  switch(currentState) {
+  switch (currentState) {
     case STATE_CALIBRATE:
       if (lineThreshold == 0) {
         calibrateSensors();
@@ -201,7 +199,8 @@ void runStateMachine() {
       break;
 
     case STATE_FOLLOW_LINE:
-      if (rightOnLine() && leftOnLine()) {
+      if (currentPosition == 4 || currentPosition == 7 || currentPosition == 10) {
+        turnStartTime = millis();
         currentState = STATE_AT_INTERSECTION;
         Serial.println("Intersection detected");
         //beep(1);
@@ -218,10 +217,28 @@ void runStateMachine() {
       break;
 
     case STATE_TURNING:
-      if (millis() - turnStartTime >= TURN_DURATION) {
-        currentState = STATE_FOLLOW_LINE;
-        Serial.println("Turn completed");
+      if (flag_turning = 0) {
+        Serial.println("State turning");
+
+        if (turnDirection == 0) {
+          setMotors(BASE_SPEED, BASE_SPEED);  //Езда прямо
+        }
+        if (turnDirection == 1) {
+          setMotors(TURN_SPEED, BASE_SPEED);  // Поворот направо
+        }
+        if (turnDirection == -1) {
+          setMotors(BASE_SPEED, TURN_SPEED);  // Поворот налево
+        }
+
+        flag_turning = 1;
+
+        if (millis() - turnStartTime >= TURN_DURATION) {
+          currentState = STATE_FOLLOW_LINE;
+          Serial.println("Turn completed");
+          flag_turning = 0;
+        }
       }
+
       break;
 
     case STATE_DEAD_END:
@@ -246,13 +263,13 @@ void runStateMachine() {
 
 void determineNextMove() {
   int possiblePaths[4];
-  for(int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     possiblePaths[i] = ROUTE_MAP[currentPosition][(i + orientation) % 4];
   }
 
   int relativeForward = orientation;
-  int relativeRight = (orientation + 1) % 4;
-  int relativeLeft = (orientation + 3) % 4;
+  int relativeRight = (orientation + 1);
+  int relativeLeft = (orientation + 3);
 
   if (possiblePaths[relativeForward] == destination) {
     turnDirection = 0;
@@ -261,22 +278,21 @@ void determineNextMove() {
   } else if (possiblePaths[relativeLeft] == destination) {
     turnDirection = -1;
   } else {
-    turnDirection = 2; //поменяли с 0, чтобы инвертировать ориентацию при развороте
+    turnDirection = 2;  //поменяли с 0, чтобы инвертировать ориентацию при развороте
   }
-
   //orientation = (orientation + turnDirection + 4) % 4;
   // Обновляем ориентацию с учетом поворота
   if (turnDirection == 2) {
-    orientation = (orientation + 2) % 4; // Инвертируем направление
+    orientation = (orientation + 2);  // Инвертируем направление
   } else {
-    orientation = (orientation + turnDirection + 4) % 4;
+    orientation = (orientation + turnDirection + 4);
   }
-  
+
   currentState = STATE_TURNING;
-  turnStartTime = millis();
-  
+
   Serial.print("Turning ");
-  Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT" : "STRAIGHT");
+  Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
+                                                                    : "STRAIGHT");
 }
 
 void setMotors(int leftSpeed, int rightSpeed) {
@@ -286,48 +302,56 @@ void setMotors(int leftSpeed, int rightSpeed) {
   analogWrite(PWR_R_PIN, abs(rightSpeed));
 }
 
-void stopMotors() { 
-  setMotors(0, 0); 
+void stopMotors() {
+  setMotors(0, 0);
 }
 
 void calibrateSensors() {
   Serial.println("Calibration started");
-  
+
   // 1. Белая поверхность (первая!)
   Serial.println("1. Place on WHITE surface and press button");
-  while(digitalRead(BTN_PIN) == LOW);
+  while (digitalRead(BTN_PIN) == LOW)
+    ;
   color_white = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
   Serial.println(color_white);
   beep(1);
-  
+
   delay(1000);
-  
+
   // 2. Черная линия
   Serial.println("2. Place on BLACK line and press button");
-  while(digitalRead(BTN_PIN) == LOW);
+  while (digitalRead(BTN_PIN) == LOW)
+    ;
   color_black = (analogRead(SENS_L_PIN) + analogRead(SENS_R_PIN)) / 2;
   Serial.println(color_black);
   beep(2);
-  
+
   // Проверка калибровки
-  if(color_white >= color_black || abs(color_white - color_black) < 100) {
+  if (color_white >= color_black || abs(color_white - color_black) < 100) {
     Serial.println("CALIBRATION ERROR!");
-    while(1) { beep(1); delay(1000); }
+    while (1) {
+      beep(1);
+      delay(1000);
+    }
   }
   lineThreshold = (color_white + color_black) / 2;
-  
+
   Serial.println("Calibration results:");
-  Serial.print("White: "); Serial.println(color_white);
-  Serial.print("Black: "); Serial.println(color_black);
-  Serial.print("Threshold: "); Serial.println(lineThreshold);
+  Serial.print("White: ");
+  Serial.println(color_white);
+  Serial.print("Black: ");
+  Serial.println(color_black);
+  Serial.print("Threshold: ");
+  Serial.println(lineThreshold);
 }
 
 void beep(int count) {
-  for(int i = 0; i < count; i++) {
+  for (int i = 0; i < count; i++) {
     digitalWrite(BUZZER, HIGH);
     delay(BUZZ_DURATION);
     digitalWrite(BUZZER, LOW);
-    if(i < count - 1) delay(BUZZ_DURATION);
+    if (i < count - 1) delay(BUZZ_DURATION);
   }
 }
 
