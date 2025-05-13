@@ -233,3 +233,15 @@ Mat Mat::operator*(double scalar) const {
     result *= scalar;
     return result;
 }
+
+int main() {
+    double values[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    Mat mat(3, 3, values);
+    mat.print();
+
+    std::cout << "\nAfter multiplying by 10:\n";
+    Mat scaled = mat * 10;
+    scaled.print();
+
+    return 0;
+}
