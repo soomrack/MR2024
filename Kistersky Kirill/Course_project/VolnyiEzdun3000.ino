@@ -213,36 +213,33 @@ void runStateMachine() {
         Serial.println("Destination reached");
       } else {
         determineNextMove();
+        currentState = STATE_TURNING;
       }
       break;
 
     case STATE_TURNING:
-      if (flag_turning = 0) {
-        Serial.println("State turning");
+      Serial.println("State turning");
 
-        if (turnDirection == 0) {
-          Serial.print("Turning ");
-          Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                            : "STRAIGHT");
-          setMotors(BASE_SPEED, BASE_SPEED);  //Езда прямо
-        }
-        if (turnDirection == 1) {
-          setMotors(TURN_SPEED, BASE_SPEED);  // Поворот направо
-          Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                            : "STRAIGHT");
-        }
-        if (turnDirection == -1) {
-          setMotors(BASE_SPEED, TURN_SPEED);  // Поворот налево
-          Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                            : "STRAIGHT");
-        }
-
-        flag_turning = 1;
+      if (turnDirection == 0) {
+        Serial.print("Turning ");
+        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
+                                                                          : "STRAIGHT");
+        setMotors(BASE_SPEED, BASE_SPEED);  //Езда прямо
       }
+      if (turnDirection == 1) {
+        setMotors(TURN_SPEED, BASE_SPEED);  // Поворот направо
+        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
+                                                                          : "STRAIGHT");
+      }
+      if (turnDirection == -1) {
+        setMotors(BASE_SPEED, TURN_SPEED);  // Поворот налево
+        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
+                                                                          : "STRAIGHT");
+      }
+
       if (millis() - turnStartTime >= TURN_DURATION) {
         currentState = STATE_FOLLOW_LINE;
         Serial.println("Turn completed");
-        flag_turning = 0;
       }
 
       break;
@@ -293,8 +290,6 @@ void determineNextMove() {
   } else {
     orientation = (orientation + turnDirection + 4);
   }
-
-  currentState = STATE_TURNING;
 }
 
 void setMotors(int leftSpeed, int rightSpeed) {
