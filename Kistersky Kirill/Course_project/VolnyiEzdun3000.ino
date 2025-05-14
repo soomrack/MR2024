@@ -62,7 +62,7 @@ unsigned long lineLostTime = 0;
 int lineThreshold = 0;
 int color_black = 0;
 int color_white = 0;
-bool flag_turning = 0;
+
 
 void setup() {
   pinMode(DIR_R_PIN, OUTPUT);
@@ -118,9 +118,15 @@ void handleQRCode(int newPos) {
   // Определение ориентации
   for (int dir = 0; dir < 4; dir++) {
     if (ROUTE_MAP[previousPosition][dir] == currentPosition) {
-      orientation = dir;
+      orientation = dir % 4;  //защита от превышения
       break;
     }
+  }
+
+  // Переход в состояние перекрестка ТОЛЬКО через QR-код
+  if (currentPosition == 4 || currentPosition == 7 || currentPosition == 10) {
+    currentState = STATE_AT_INTERSECTION;
+    Serial.println("Intersection detected via QR");
   }
 
   Serial.print("Position: ");
@@ -130,20 +136,28 @@ void handleQRCode(int newPos) {
 
   if (currentPosition == destination) {
     currentState = STATE_ARRIVED;
-    //beep(3);
+    beep(3);
   }
 }
 
-void printDirection(int dir) {
+/*void printDirection(int dir) {
   const char* directions[] = { "NORTH", "EAST", "SOUTH", "WEST" };
   if (dir >= 0 && dir < 4) {
     Serial.println(directions[dir]);
   } else {
     Serial.println("UNKNOWN");
   }
+}*/
+
+void printDirection(int dir) {
+  const char* directions[] = { "NORTH", "EAST", "SOUTH", "WEST" };
+  Serial.println(directions[(dir % 4 + 4) % 4]);  // Гарантированный диапазон 0-3
 }
 
 void handleSensors(int rightSensor, int leftSensor) {
+  // Игнорировать датчики во время поворотов и на перекрестках
+  if (currentState == STATE_TURNING || currentState == STATE_AT_INTERSECTION) return;
+
   bool rightOnLine = rightSensor > lineThreshold;
   bool leftOnLine = leftSensor > lineThreshold;
 
@@ -151,7 +165,6 @@ void handleSensors(int rightSensor, int leftSensor) {
     case STATE_FOLLOW_LINE:
       if (rightOnLine && leftOnLine) {
         setMotors(BASE_SPEED, BASE_SPEED);
-        //Serial.println("Followline"); //для тестирования
         lineLost = false;
       } else if (rightOnLine) {
         setMotors(BASE_SPEED, 0);
@@ -169,11 +182,6 @@ void handleSensors(int rightSensor, int leftSensor) {
         }
       }
       break;
-
-    case STATE_AT_INTERSECTION:
-    case STATE_ARRIVED:
-      stopMotors();
-      break;
   }
 }
 
@@ -182,11 +190,9 @@ void runStateMachine() {
     case STATE_CALIBRATE:
       if (lineThreshold == 0) {
         calibrateSensors();
-        //beep(2);
         currentState = STATE_WAIT_DESTINATION;
         Serial.println("Calibration complete");
       } else {
-        //beep(2);
         currentState = STATE_WAIT_DESTINATION;
       }
       break;
@@ -198,13 +204,7 @@ void runStateMachine() {
       }
       break;
 
-    case STATE_FOLLOW_LINE:
-      if (currentPosition == 4 || currentPosition == 7 || currentPosition == 10) {
-        turnStartTime = millis();
-        currentState = STATE_AT_INTERSECTION;
-        Serial.println("Intersection detected");
-        //beep(1);
-      }
+    case STATE_FOLLOW_LINE:  // Убрана проверка позиции в FOLLOW_LINE - перекрестки только через QR
       break;
 
     case STATE_AT_INTERSECTION:
@@ -213,35 +213,49 @@ void runStateMachine() {
         Serial.println("Destination reached");
       } else {
         determineNextMove();
+        turnStartTime = millis();  // Критичный сброс таймера
         currentState = STATE_TURNING;
+        Serial.println("Starting navigation turn");
       }
       break;
 
     case STATE_TURNING:
-      Serial.println("State turning");
+      {
+        static bool turnMessageSent = false;
+        if (!turnMessageSent) {
+          Serial.print("Turning ");
+          // Четкое определение типа поворота
+          switch (turnDirection) {
+            case 0: Serial.println("STRAIGHT (line follow)"); break;
+            case 1: Serial.println("RIGHT"); break;
+            case -1: Serial.println("LEFT"); break;
+            case 2: Serial.println("U-TURN"); break;
+          }
+          turnMessageSent = true;
+        }
 
-      if (turnDirection == 0) {
-        Serial.print("Turning ");
-        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                          : "STRAIGHT");
-        setMotors(BASE_SPEED, BASE_SPEED);  //Езда прямо
-      }
-      if (turnDirection == 1) {
-        setMotors(TURN_SPEED, BASE_SPEED);  // Поворот направо
-        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                          : "STRAIGHT");
-      }
-      if (turnDirection == -1) {
-        setMotors(BASE_SPEED, TURN_SPEED);  // Поворот налево
-        Serial.println(turnDirection == 1 ? "RIGHT" : turnDirection == -1 ? "LEFT"
-                                                                          : "STRAIGHT");
-      }
+        // Особый случай: движение прямо с использованием алгоритма следования
+        if (turnDirection == 0) {
+          handleSensors(analogRead(SENS_R_PIN), analogRead(SENS_L_PIN));
+        }
+        // Управление моторами для поворотов
+        else {
+          if (turnDirection == 1) {
+            setMotors(TURN_SPEED, -TURN_SPEED);  // Направо
+          } else if (turnDirection == -1) {
+            setMotors(-TURN_SPEED, TURN_SPEED);  // Налево
+          } else if (turnDirection == 2) {
+            setMotors(-TURN_SPEED, TURN_SPEED);  // Разворот
+          }
+        }
 
-      if (millis() - turnStartTime >= TURN_DURATION) {
-        currentState = STATE_FOLLOW_LINE;
-        Serial.println("Turn completed");
+        if (millis() - turnStartTime >= TURN_DURATION) {
+          stopMotors();
+          currentState = STATE_FOLLOW_LINE;
+          turnMessageSent = false;
+          Serial.println("Turn finalized");
+        }
       }
-
       break;
 
     case STATE_DEAD_END:
@@ -271,8 +285,8 @@ void determineNextMove() {
   }
 
   int relativeForward = orientation;
-  int relativeRight = (orientation + 1)%4;
-  int relativeLeft = (orientation + 3)%4;
+  int relativeRight = (orientation + 1) % 4;
+  int relativeLeft = (orientation + 3) % 4;
 
   if (possiblePaths[relativeForward] == destination) {
     turnDirection = 0;
@@ -283,12 +297,10 @@ void determineNextMove() {
   } else {
     turnDirection = 2;  //поменяли с 0, чтобы инвертировать ориентацию при развороте
   }
-  //orientation = (orientation + turnDirection + 4) % 4;
-  // Обновляем ориентацию с учетом поворота
+  // Корректное обновление ориентации для всех случаев
+  orientation = (orientation + turnDirection + 4) % 4;
   if (turnDirection == 2) {
-    orientation = (orientation + 2)%4;  // Инвертируем направление
-  } else {
-    orientation = (orientation + turnDirection + 4)%4;
+    orientation = (orientation + 2) % 4; // Дополнительный поворот на 180
   }
 }
 
