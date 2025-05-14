@@ -271,8 +271,8 @@ void determineNextMove() {
   }
 
   int relativeForward = orientation;
-  int relativeRight = (orientation + 1);
-  int relativeLeft = (orientation + 3);
+  int relativeRight = (orientation + 1)%4;
+  int relativeLeft = (orientation + 3)%4;
 
   if (possiblePaths[relativeForward] == destination) {
     turnDirection = 0;
@@ -286,9 +286,9 @@ void determineNextMove() {
   //orientation = (orientation + turnDirection + 4) % 4;
   // Обновляем ориентацию с учетом поворота
   if (turnDirection == 2) {
-    orientation = (orientation + 2);  // Инвертируем направление
+    orientation = (orientation + 2)%4;  // Инвертируем направление
   } else {
-    orientation = (orientation + turnDirection + 4);
+    orientation = (orientation + turnDirection + 4)%4;
   }
 }
 
