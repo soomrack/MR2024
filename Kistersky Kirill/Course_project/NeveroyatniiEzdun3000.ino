@@ -136,6 +136,7 @@ void handleQRCode(int newPos) {
 
   if (currentPosition == destination) {
     currentState = STATE_ARRIVED;
+    Serial.println("Route completed");
     beep(3);
   }
 }
@@ -269,65 +270,110 @@ void runStateMachine() {
   }
 }
 
+
+// Вспомогательная функция для создания отступов
+String createIndent(int depth) {
+  String indent = "";
+  for (int i = 0; i < depth; i++) {
+    indent += "  "; // 2 пробела на уровень глубины
+  }
+  return indent;
+}
+
+int findBestDirectionDFS(int current, int target, int depth = 0) {
+  if (depth > 3) {
+    Serial.print(createIndent(depth));
+    Serial.println("Max depth exceeded. Returning -1");
+    return -1;
+  }
+
+  Serial.print(createIndent(depth));
+  Serial.print("Exploring node ");
+  Serial.print(current);
+  Serial.print(" (depth ");
+  Serial.print(depth);
+  Serial.println(")");
+
+  for (int dir = 0; dir < 4; dir++) {
+    int relativeDir = (orientation + dir) % 4;
+    int next = ROUTE_MAP[current][relativeDir];
+
+    Serial.print(createIndent(depth));
+    Serial.print("Direction ");
+    Serial.print(dir);
+    Serial.print(" (relative ");
+    Serial.print(relativeDir);
+    Serial.print(") → node ");
+    Serial.println(next);
+
+    if (next == target) {
+      Serial.print(createIndent(depth));
+      Serial.println("Target found! Choosing direction: " + String(dir));
+      return dir;
+    }
+
+    if (next == 0) {
+      Serial.print(createIndent(depth));
+      Serial.println("Dead end. Skipping.");
+      continue;
+    }
+
+    int result = findBestDirectionDFS(next, target, depth + 1);
+    if (result != -1) {
+      Serial.print(createIndent(depth));
+      Serial.println("Path found via direction: " + String(dir));
+      return dir;
+    }
+  }
+
+  Serial.print(createIndent(depth));
+  Serial.println("No path found in this branch");
+  return -1;
+}
+
 void determineNextMove() {
-  int possiblePaths[4];
-  // Заполняем массив возможных направлений относительно текущей ориентации
-  for (int i = 0; i < 4; i++) {
-    possiblePaths[i] = ROUTE_MAP[currentPosition][(i + orientation) % 4];
-  }
+  Serial.println("\n=== Планирование маршрута ===");
+  Serial.print("Текущая позиция: ");
+  Serial.print(currentPosition);
+  Serial.print(" | Цель: ");
+  Serial.println(destination);
+  Serial.print("Текущая ориентация: ");
+  printDirection(orientation);
 
-  // Отладочный вывод
-  Serial.print("Current: "); Serial.print(currentPosition);
-  Serial.print(" | Orient: "); Serial.print(orientation);
-  Serial.print(" | Dest: "); Serial.print(destination);
-  Serial.print(" | Paths: ");
-  Serial.print(possiblePaths[0]); Serial.print(" "); // Прямо
-  Serial.print(possiblePaths[1]); Serial.print(" "); // Направо
-  Serial.print(possiblePaths[2]); Serial.print(" "); // Назад
-  Serial.print(possiblePaths[3]); Serial.println(" "); // Налево
+  int bestDir = findBestDirectionDFS(currentPosition, destination);
 
-  // Выбираем направление в порядке приоритета: прямо → направо → налево → разворот
-  if (possiblePaths[0] == destination) { // Прямо
-    turnDirection = 0;
-  } 
-  else if (possiblePaths[1] == destination) { // Направо
-    turnDirection = 1;
-  } 
-  else if (possiblePaths[3] == destination) { // Налево (индекс 3 вместо -1)
-    turnDirection = -1; 
-  } 
-  else {
-    turnDirection = 2; // Разворот
-  }
-
-  // Корректное обновление ориентации
-  orientation = (orientation + turnDirection + 4) % 4;
-  if (turnDirection == 2) {
-    orientation = (orientation + 2) % 4; // Разворот = +2 к текущей ориентации
-  }
-  /*int possiblePaths[4];
-  for (int i = 0; i < 4; i++) {
-    possiblePaths[i] = ROUTE_MAP[currentPosition][(i + orientation) % 4];
-  }
-
-  int relativeForward = orientation;
-  int relativeRight = (orientation + 1) % 4;
-  int relativeLeft = (orientation + 3) % 4;
-
-  if (possiblePaths[relativeForward] == destination) {
-    turnDirection = 0;
-  } else if (possiblePaths[relativeRight] == destination) {
-    turnDirection = 1;
-  } else if (possiblePaths[relativeLeft] == destination) {
-    turnDirection = -1;
+  if (bestDir == -1) {
+    Serial.println("Нет доступного пути! Разворот.");
+    turnDirection = 2;
   } else {
-    turnDirection = 2;  //поменяли с 0, чтобы инвертировать ориентацию при развороте
+    // Конвертация абсолютного направления в относительный поворот
+    switch(bestDir) {
+      case 0:
+        turnDirection = 0;
+        Serial.println("Выбрано движение ПРЯМО");
+        break;
+      case 1:
+        turnDirection = 1;
+        Serial.println("Выбрано движение НАПРАВО");
+        break;
+      case 3:
+        turnDirection = -1;
+        Serial.println("Выбрано движение НАЛЕВО");
+        break;
+      default:
+        Serial.println("Ошибка! Неизвестное направление");
+    }
   }
-  // Корректное обновление ориентации для всех случаев
+
+  // Обновление ориентации
   orientation = (orientation + turnDirection + 4) % 4;
   if (turnDirection == 2) {
-    orientation = (orientation + 2) % 4; // Дополнительный поворот на 180
-  }*/
+    orientation = (orientation + 2) % 4;
+    Serial.println("Новая ориентация после разворота: ");
+    printDirection(orientation);
+  }
+
+  Serial.println("===============================\n");
 }
 
 void setMotors(int leftSpeed, int rightSpeed) {
