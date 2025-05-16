@@ -13,14 +13,16 @@
 // Настройки
 #define MAX_NODES 12
 #define MAX_EDGES 4
-#define BASE_SPEED 85
+#define BASE_SPEED 90
 #define TURN_SPEED 120
 #define TURN_DURATION 2000
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
-#define DECELERATION_INTERVAL 700  // Интервал замедления в мс
-#define DECELERATION_STEP 3        // Шаг уменьшения скорости
-#define MIN_SPEED 45               // Минимальная скорость
+#define DECELERATION_INTERVAL 700    // Интервал замедления в мс
+#define DECELERATION_STEP 5          // Шаг уменьшения скорости
+#define MIN_SPEED 45                 // Минимальная скорость
+#define ACCELERATION_INTERVAL 3000   // Интервал для обратного разгона
+#define DEAD_END_TURN_DURATION 2500  // Время для разворота в тупике
 
 // Направления
 #define NORTH 0
@@ -71,6 +73,8 @@ int color_black = 0;
 int color_white = 0;
 int currentSpeed = BASE_SPEED;
 unsigned long lastDecelerationTime = 0;
+unsigned long lastAccelerationTime = 0;
+bool acceleratingBack = false;
 
 // Структура для хранения пути
 struct Path {
@@ -86,6 +90,10 @@ Path findShortestPath(int start, int target) {
   int queue[MAX_NODES * 2];
   int front = 0, rear = 0;
 
+  // Храним предыдущий узел и направление
+  int parent[MAX_NODES] = { -1 };
+  int directions[MAX_NODES] = { -1 };
+
   // Инициализация
   queue[rear++] = start;
   queue[rear++] = -1;  // Направление для стартового узла отсутствует
@@ -98,14 +106,22 @@ Path findShortestPath(int start, int target) {
 
     // Проверка цели
     if (current == target) {
-      return { current, prevDir };
+      // Восстановление пути от цели к старту
+      int node = target;
+      while (parent[node] != start && node != -1) {
+        node = parent[node];
+      }
+      if (node == -1) return { -1, -1 };
+      return { target, directions[node] };
     }
 
-    // Перебор всех направлений
+    // Проверка направлений в порядке: N, E, S, W
     for (int dir = 0; dir < 4; dir++) {
       int next = ROUTE_MAP[current][dir];
       if (next != 0 && !visited[next]) {
         visited[next] = true;
+        parent[next] = current;
+        directions[next] = dir;
         queue[rear++] = next;
         queue[rear++] = dir;
       }
@@ -167,6 +183,11 @@ void handleQRCode(int newPos) {
   previousPosition = currentPosition;
   currentPosition = newPos;
 
+  // Сброс параметров скорости при обнаружении QR-кода
+  lastDecelerationTime = millis();
+  acceleratingBack = false;
+  currentSpeed = BASE_SPEED;
+
   // Определение ориентации
   for (int dir = 0; dir < 4; dir++) {
     if (ROUTE_MAP[previousPosition][dir] == currentPosition) {
@@ -177,7 +198,7 @@ void handleQRCode(int newPos) {
 
   // Переход в состояние перекрестка ТОЛЬКО через QR-код
   if ((currentPosition == 4 || currentPosition == 7 || currentPosition == 10) && currentState != STATE_WAIT_DESTINATION) {  //если нет цели, перекрёсток или нет - неважно
-    currentSpeed = BASE_SPEED; // Сброс скорости
+    currentSpeed = BASE_SPEED;                                                                                              // Сброс скорости
     currentState = STATE_STOP_AT_INTERSECTION;
     Serial.println("Intersection detected via QR");
   }
@@ -214,6 +235,17 @@ void handleSensors(int rightSensor, int leftSensor) {
           currentSpeed = max(currentSpeed - DECELERATION_STEP, MIN_SPEED);
         }
         lastDecelerationTime = millis();
+      }
+
+      // Механизм обратного разгона
+      if (currentSpeed <= MIN_SPEED && !acceleratingBack) {
+        lastAccelerationTime = millis();
+        acceleratingBack = true;
+      }
+
+      if (acceleratingBack && (millis() - lastAccelerationTime > ACCELERATION_INTERVAL)) {
+        currentSpeed = BASE_SPEED;
+        acceleratingBack = false;
       }
 
       if (rightOnLine && leftOnLine) {
@@ -268,8 +300,8 @@ void runStateMachine() {
           Serial.println("Destination reached");
         } else {
           determineNextMove();
-          turnStartTime = millis();  // Критичный сброс таймера
-          currentSpeed = BASE_SPEED; // Сброс скорости перед поворотом
+          turnStartTime = millis();   // Критичный сброс таймера
+          currentSpeed = BASE_SPEED;  // Сброс скорости перед поворотом
           currentState = STATE_TURNING;
           Serial.println("Starting navigation turn");
         }
@@ -326,12 +358,18 @@ void runStateMachine() {
       currentState = STATE_REVERSE;
       turnStartTime = millis();
       Serial.println("Dead end detected");
+      // Специальный разворот
+      setMotors(-BASE_SPEED, BASE_SPEED);  // Разворот на месте
       break;
 
     case STATE_REVERSE:
       if (millis() - turnStartTime >= TURN_DURATION) {
-        currentState = STATE_FOLLOW_LINE;
-        Serial.println("Reverse completed");
+        stopMotors();
+        // После разворота ищем новый путь
+        determineNextMove();
+        currentState = STATE_TURNING;
+        turnStartTime = millis();
+        Serial.println("Dead end turn completed");
       }
       break;
 
@@ -361,16 +399,27 @@ void determineNextMove() {
     turnDirection = 2;
     Serial.println("Путь не найден! Разворот.");
   } else {
+    // Абсолютное направление из карты
+    int requiredDir = result.direction;
     // Преобразование абсолютного направления в относительное
     turnDirection = (result.direction - orientation + 4) % 4;
     if (turnDirection == 3) turnDirection = -1;  // Налево
 
     Serial.print("Направление: ");
     Serial.println(result.direction);
+    // Обновление ориентации
+    orientation = requiredDir;
   }
 
   // Обновление ориентации
-  orientation = (orientation + turnDirection + 4) % 4;
+  //orientation = (orientation + turnDirection + 4) % 4;
+  Serial.print("Требуемый поворот: ");
+  switch (turnDirection) {
+    case 0: Serial.println("ПРЯМО"); break;
+    case 1: Serial.println("НАПРАВО"); break;
+    case -1: Serial.println("НАЛЕВО"); break;
+    case 2: Serial.println("РАЗВОРОТ"); break;
+  }
   Serial.print("Новая ориентация: ");
   printDirection(orientation);
   Serial.println("=============================");
