@@ -11,10 +11,16 @@
 #define BUZZER 11
 
 // Настройки
+#define MAX_NODES 12
+#define MAX_EDGES 4
 #define BASE_SPEED 85
 #define TURN_SPEED 120
 #define TURN_DURATION 2000
 #define BUZZ_DURATION 200
+#define STOP_DURATION 1000
+#define DECELERATION_INTERVAL 500  // Интервал замедления в мс
+#define DECELERATION_STEP 5        // Шаг уменьшения скорости
+#define MIN_SPEED 40               // Минимальная скорость
 
 // Направления
 #define NORTH 0
@@ -43,6 +49,7 @@ enum State {
   STATE_WAIT_DESTINATION,
   STATE_FOLLOW_LINE,
   STATE_AT_INTERSECTION,
+  STATE_STOP_AT_INTERSECTION,  // Новое состояние остановки
   STATE_TURNING,
   STATE_DEAD_END,
   STATE_REVERSE,
@@ -62,6 +69,51 @@ unsigned long lineLostTime = 0;
 int lineThreshold = 0;
 int color_black = 0;
 int color_white = 0;
+int currentSpeed = BASE_SPEED;
+unsigned long lastDecelerationTime = 0;
+
+// Структура для хранения пути
+struct Path {
+  int next_node;
+  int direction;
+};
+
+// Поиск кратчайшего пути (упрощенный BFS)
+Path findShortestPath(int start, int target) {
+  // Массив посещенных узлов
+  bool visited[MAX_NODES] = { false };
+  // Очередь для BFS: {current_node, previous_direction}
+  int queue[MAX_NODES * 2];
+  int front = 0, rear = 0;
+
+  // Инициализация
+  queue[rear++] = start;
+  queue[rear++] = -1;  // Направление для стартового узла отсутствует
+  visited[start] = true;
+
+  // Обход в ширину
+  while (front < rear) {
+    int current = queue[front++];
+    int prevDir = queue[front++];
+
+    // Проверка цели
+    if (current == target) {
+      return { current, prevDir };
+    }
+
+    // Перебор всех направлений
+    for (int dir = 0; dir < 4; dir++) {
+      int next = ROUTE_MAP[current][dir];
+      if (next != 0 && !visited[next]) {
+        visited[next] = true;
+        queue[rear++] = next;
+        queue[rear++] = dir;
+      }
+    }
+  }
+
+  return { -1, -1 };  // Путь не найден
+}
 
 
 void setup() {
@@ -124,8 +176,9 @@ void handleQRCode(int newPos) {
   }
 
   // Переход в состояние перекрестка ТОЛЬКО через QR-код
-  if ((currentPosition == 4 || currentPosition == 7 || currentPosition == 10) && currentState != STATE_WAIT_DESTINATION) { //если нет цели, перекрёсток или нет - неважно
-    currentState = STATE_AT_INTERSECTION;
+  if ((currentPosition == 4 || currentPosition == 7 || currentPosition == 10) && currentState != STATE_WAIT_DESTINATION) {  //если нет цели, перекрёсток или нет - неважно
+    currentSpeed = BASE_SPEED; // Сброс скорости
+    currentState = STATE_STOP_AT_INTERSECTION;
     Serial.println("Intersection detected via QR");
   }
 
@@ -155,14 +208,22 @@ void handleSensors(int rightSensor, int leftSensor) {
 
   switch (currentState) {
     case STATE_FOLLOW_LINE:
+      // Механизм плавного замедления
+      if (millis() - lastDecelerationTime > DECELERATION_INTERVAL) {
+        if (currentSpeed > MIN_SPEED) {
+          currentSpeed = max(currentSpeed - DECELERATION_STEP, MIN_SPEED);
+        }
+        lastDecelerationTime = millis();
+      }
+
       if (rightOnLine && leftOnLine) {
-        setMotors(BASE_SPEED, BASE_SPEED);
+        setMotors(currentSpeed, currentSpeed);
         lineLost = false;
       } else if (rightOnLine) {
-        setMotors(BASE_SPEED, 0);
+        setMotors(currentSpeed, 0);
         lineLost = false;
       } else if (leftOnLine) {
-        setMotors(0, BASE_SPEED);
+        setMotors(0, currentSpeed);
         lineLost = false;
       } else {
         if (!lineLost) {
@@ -170,7 +231,7 @@ void handleSensors(int rightSensor, int leftSensor) {
           lineLostTime = millis();
         }
         if (millis() - lineLostTime > 1000) {
-          setMotors(-BASE_SPEED, BASE_SPEED);
+          setMotors(BASE_SPEED, TURN_SPEED);
         }
       }
       break;
@@ -199,16 +260,26 @@ void runStateMachine() {
     case STATE_FOLLOW_LINE:  // Убрана проверка позиции в FOLLOW_LINE - перекрестки только через QR
       break;
 
-    case STATE_AT_INTERSECTION:
-      if (currentPosition == destination) {
-        currentState = STATE_ARRIVED;
-        Serial.println("Destination reached");
-      } else {
-        determineNextMove();
-        turnStartTime = millis();  // Критичный сброс таймера
-        currentState = STATE_TURNING;
-        Serial.println("Starting navigation turn");
+    case STATE_STOP_AT_INTERSECTION:
+      stopMotors();
+      if (millis() - turnStartTime > STOP_DURATION) {
+        if (currentPosition == destination) {
+          currentState = STATE_ARRIVED;
+          Serial.println("Destination reached");
+        } else {
+          determineNextMove();
+          turnStartTime = millis();  // Критичный сброс таймера
+          currentSpeed = BASE_SPEED; // Сброс скорости перед поворотом
+          currentState = STATE_TURNING;
+          Serial.println("Starting navigation turn");
+        }
       }
+      break;
+
+    case STATE_AT_INTERSECTION:
+      // Переносим логику в STATE_STOP_AT_INTERSECTION
+      currentState = STATE_STOP_AT_INTERSECTION;
+      turnStartTime = millis();  // Засекаем время остановки
       break;
 
     case STATE_TURNING:
@@ -275,105 +346,34 @@ void runStateMachine() {
 String createIndent(int depth) {
   String indent = "";
   for (int i = 0; i < depth; i++) {
-    indent += "  "; // 2 пробела на уровень глубины
+    indent += "  ";  // 2 пробела на уровень глубины
   }
   return indent;
 }
 
-int findBestDirectionDFS(int current, int target, int depth = 0) {
-  if (depth > 3) {
-    Serial.print(createIndent(depth));
-    Serial.println("Max depth exceeded. Returning -1");
-    return -1;
-  }
 
-  Serial.print(createIndent(depth));
-  Serial.print("Exploring node ");
-  Serial.print(current);
-  Serial.print(" (depth ");
-  Serial.print(depth);
-  Serial.println(")");
-
-  for (int dir = 0; dir < 4; dir++) {
-    int relativeDir = (orientation + dir) % 4;
-    int next = ROUTE_MAP[current][relativeDir];
-
-    Serial.print(createIndent(depth));
-    Serial.print("Direction ");
-    Serial.print(dir);
-    Serial.print(" (relative ");
-    Serial.print(relativeDir);
-    Serial.print(") → node ");
-    Serial.println(next);
-
-    if (next == target) {
-      Serial.print(createIndent(depth));
-      Serial.println("Target found! Choosing direction: " + String(dir));
-      return dir;
-    }
-
-    if (next == 0) {
-      Serial.print(createIndent(depth));
-      Serial.println("Dead end. Skipping.");
-      continue;
-    }
-
-    int result = findBestDirectionDFS(next, target, depth + 1);
-    if (result != -1) {
-      Serial.print(createIndent(depth));
-      Serial.println("Path found via direction: " + String(dir));
-      return dir;
-    }
-  }
-
-  Serial.print(createIndent(depth));
-  Serial.println("No path found in this branch");
-  return -1;
-}
-
+// Модифицированная функция determineNextMove
 void determineNextMove() {
   Serial.println("\n=== Планирование маршрута ===");
-  Serial.print("Текущая позиция: ");
-  Serial.print(currentPosition);
-  Serial.print(" | Цель: ");
-  Serial.println(destination);
-  Serial.print("Текущая ориентация: ");
-  printDirection(orientation);
+  Path result = findShortestPath(currentPosition, destination);
 
-  int bestDir = findBestDirectionDFS(currentPosition, destination);
-
-  if (bestDir == -1) {
-    Serial.println("Нет доступного пути! Разворот.");
+  if (result.next_node == -1) {
     turnDirection = 2;
+    Serial.println("Путь не найден! Разворот.");
   } else {
-    // Конвертация абсолютного направления в относительный поворот
-    switch(bestDir) {
-      case 0:
-        turnDirection = 0;
-        Serial.println("Выбрано движение ПРЯМО");
-        break;
-      case 1:
-        turnDirection = 1;
-        Serial.println("Выбрано движение НАПРАВО");
-        break;
-      case 3:
-        turnDirection = -1;
-        Serial.println("Выбрано движение НАЛЕВО");
-        break;
-      default:
-        Serial.println("Ошибка! Неизвестное направление");
-    }
+    // Преобразование абсолютного направления в относительное
+    turnDirection = (result.direction - orientation + 4) % 4;
+    if (turnDirection == 3) turnDirection = -1;  // Налево
+
+    Serial.print("Направление: ");
+    Serial.println(result.direction);
   }
 
   // Обновление ориентации
   orientation = (orientation + turnDirection + 4) % 4;
-  if (turnDirection == 2) {
-    orientation = (orientation + 2) % 4;
-    Serial.println("Новая ориентация после разворота: ");
-    printDirection(orientation);
-  }
-
-  Serial.println("===============================\n");
+  Serial.print("Новая ориентация: ");
+  printDirection(orientation);
+  Serial.println("=============================");
 }
 
 void setMotors(int leftSpeed, int rightSpeed) {
