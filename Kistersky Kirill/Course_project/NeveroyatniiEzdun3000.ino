@@ -18,9 +18,9 @@
 #define TURN_DURATION 2000
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
-#define DECELERATION_INTERVAL 500  // Интервал замедления в мс
-#define DECELERATION_STEP 5        // Шаг уменьшения скорости
-#define MIN_SPEED 40               // Минимальная скорость
+#define DECELERATION_INTERVAL 700  // Интервал замедления в мс
+#define DECELERATION_STEP 3        // Шаг уменьшения скорости
+#define MIN_SPEED 45               // Минимальная скорость
 
 // Направления
 #define NORTH 0
