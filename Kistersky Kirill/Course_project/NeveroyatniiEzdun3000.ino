@@ -13,22 +13,22 @@
 // Настройки
 #define MAX_NODES 12
 #define MAX_EDGES 4
-#define BASE_SPEED 90
+#define BASE_SPEED 85
 #define TURN_SPEED 120
 #define TURN_DURATION 2000
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
 #define DECELERATION_INTERVAL 700    // Интервал замедления в мс
-#define DECELERATION_STEP 5          // Шаг уменьшения скорости
+#define DECELERATION_STEP 7          // Шаг уменьшения скорости
 #define MIN_SPEED 45                 // Минимальная скорость
-#define ACCELERATION_INTERVAL 3000   // Интервал для обратного разгона
+#define ACCELERATION_INTERVAL 500   // Интервал для обратного разгона
 #define DEAD_END_TURN_DURATION 2500  // Время для разворота в тупике
 
 // Обновленные настройки для плавных поворотов
 #define TURN_RATIO 0.6f          // Соотношение скоростей моторов при повороте
-#define TURN_BASE_DURATION 1000  // Базовое время поворота (на 90 градусов)
-#define TURN_SPEED_MAIN 100      // Основная скорость поворота
-#define TURN_SPEED_SECONDARY 40  // Вспомогательная скорость
+#define TURN_BASE_DURATION 1500  // Базовое время поворота (на 90 градусов)
+#define TURN_SPEED_MAIN 120      // Основная скорость поворота
+#define TURN_SPEED_SECONDARY 75  // Вспомогательная скорость
 
 // Направления
 #define NORTH 0
@@ -82,6 +82,9 @@ unsigned long lastDecelerationTime = 0;
 unsigned long lastAccelerationTime = 0;
 bool acceleratingBack = false;
 unsigned long turnDuration = TURN_DURATION;
+
+// Добавляем флаг, чтобы можно было включать и отключать ускорение и замедление
+bool enableSpeedControl = false;  // Разрешение на управление скоростью
 
 // Структура для хранения пути
 struct Path {
@@ -237,7 +240,7 @@ void handleSensors(int rightSensor, int leftSensor) {
   switch (currentState) {
     case STATE_FOLLOW_LINE:
       // Механизм плавного замедления
-      if (millis() - lastDecelerationTime > DECELERATION_INTERVAL) {
+      if (enableSpeedControl && millis() - lastDecelerationTime > DECELERATION_INTERVAL) {
         if (currentSpeed > MIN_SPEED) {
           currentSpeed = max(currentSpeed - DECELERATION_STEP, MIN_SPEED);
         }
@@ -250,32 +253,38 @@ void handleSensors(int rightSensor, int leftSensor) {
         acceleratingBack = true;
       }
 
-      if (acceleratingBack && (millis() - lastAccelerationTime > ACCELERATION_INTERVAL)) {
+      if (enableSpeedControl && acceleratingBack && (millis() - lastAccelerationTime > ACCELERATION_INTERVAL)) {
         currentSpeed = BASE_SPEED;
         acceleratingBack = false;
       }
 
       if (rightOnLine && leftOnLine) {
+        // Оба датчика на линии - активируем управление скоростью
+        enableSpeedControl = true;
         setMotors(currentSpeed, currentSpeed);
         lineLost = false;
+
       } else if (rightOnLine) {
         setMotors(BASE_SPEED, 0);
+        enableSpeedControl = false;
         currentSpeed = BASE_SPEED;
-        //lastDecelerationTime = millis(); // "Обнуляем" таймер замедления
         lineLost = false;
+
       } else if (leftOnLine) {
         setMotors(0, BASE_SPEED);
+        enableSpeedControl = false;
         currentSpeed = BASE_SPEED;
-        //lastDecelerationTime = millis(); // "Обнуляем" таймер замедления
         lineLost = false;
+
       } else {
         if (!lineLost) {
+          enableSpeedControl = false;
+          currentSpeed = BASE_SPEED;
           lineLost = true;
           lineLostTime = millis();
         }
         if (millis() - lineLostTime > 5000) {
           setMotors(BASE_SPEED, TURN_SPEED);
-          Serial.println("lost line");
         }
       }
       break;
@@ -302,6 +311,12 @@ void runStateMachine() {
       break;
 
     case STATE_FOLLOW_LINE:  // Убрана проверка позиции в FOLLOW_LINE - перекрестки только через QR
+      // При возврате в режим следования сбрасываем скорость
+      if (!enableSpeedControl) {
+        currentSpeed = BASE_SPEED;
+        enableSpeedControl = true;
+        lastDecelerationTime = millis();
+      }
       break;
 
     case STATE_STOP_AT_INTERSECTION:
@@ -329,6 +344,8 @@ void runStateMachine() {
     case STATE_TURNING:
       {
         static bool turnMessageSent = false;
+        // При повороте жестко фиксируем скорость
+        enableSpeedControl = false;
         if (!turnMessageSent) {
           Serial.print("Turning ");
           // Четкое определение типа поворота
@@ -349,6 +366,7 @@ void runStateMachine() {
         // Особый случай: движение прямо с использованием алгоритма следования
         if (turnDirection == 0) {
           handleSensors(analogRead(SENS_R_PIN), analogRead(SENS_L_PIN));
+          currentSpeed = BASE_SPEED;
         }
         // Управление моторами для поворотов
         else {
@@ -362,7 +380,7 @@ void runStateMachine() {
         }
 
         // Плавный переход к линии
-        if (millis() - turnStartTime > turnDuration * 0.8) {
+        if (millis() - turnStartTime > turnDuration * 0.9) {
           // Начинаем постепенно включать следящий алгоритм
           handleSensors(analogRead(SENS_R_PIN), analogRead(SENS_L_PIN));
         }
