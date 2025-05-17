@@ -24,6 +24,12 @@
 #define ACCELERATION_INTERVAL 3000   // Интервал для обратного разгона
 #define DEAD_END_TURN_DURATION 2500  // Время для разворота в тупике
 
+// Обновленные настройки для плавных поворотов
+#define TURN_RATIO 0.6f          // Соотношение скоростей моторов при повороте
+#define TURN_BASE_DURATION 1000  // Базовое время поворота (на 90 градусов)
+#define TURN_SPEED_MAIN 100      // Основная скорость поворота
+#define TURN_SPEED_SECONDARY 40  // Вспомогательная скорость
+
 // Направления
 #define NORTH 0
 #define EAST 1
@@ -75,6 +81,7 @@ int currentSpeed = BASE_SPEED;
 unsigned long lastDecelerationTime = 0;
 unsigned long lastAccelerationTime = 0;
 bool acceleratingBack = false;
+unsigned long turnDuration = TURN_DURATION;
 
 // Структура для хранения пути
 struct Path {
@@ -252,18 +259,23 @@ void handleSensors(int rightSensor, int leftSensor) {
         setMotors(currentSpeed, currentSpeed);
         lineLost = false;
       } else if (rightOnLine) {
-        setMotors(currentSpeed, 0);
+        setMotors(BASE_SPEED, 0);
+        currentSpeed = BASE_SPEED;
+        //lastDecelerationTime = millis(); // "Обнуляем" таймер замедления
         lineLost = false;
       } else if (leftOnLine) {
-        setMotors(0, currentSpeed);
+        setMotors(0, BASE_SPEED);
+        currentSpeed = BASE_SPEED;
+        //lastDecelerationTime = millis(); // "Обнуляем" таймер замедления
         lineLost = false;
       } else {
         if (!lineLost) {
           lineLost = true;
           lineLostTime = millis();
         }
-        if (millis() - lineLostTime > 1000) {
+        if (millis() - lineLostTime > 5000) {
           setMotors(BASE_SPEED, TURN_SPEED);
+          Serial.println("lost line");
         }
       }
       break;
@@ -327,6 +339,11 @@ void runStateMachine() {
             case 2: Serial.println("U-TURN"); break;
           }
           turnMessageSent = true;
+          turnStartTime = millis();
+
+          // Автоматический расчет времени поворота
+          int turnMultiplier = (turnDirection == 2) ? 2 : 1;
+          turnDuration = TURN_BASE_DURATION * turnMultiplier;
         }
 
         // Особый случай: движение прямо с использованием алгоритма следования
@@ -336,12 +353,18 @@ void runStateMachine() {
         // Управление моторами для поворотов
         else {
           if (turnDirection == 1) {
-            setMotors(TURN_SPEED, -TURN_SPEED);  // Направо
+            setMotors(TURN_SPEED_MAIN, TURN_SPEED_SECONDARY);  // Направо
           } else if (turnDirection == -1) {
-            setMotors(-TURN_SPEED, TURN_SPEED);  // Налево
+            setMotors(TURN_SPEED_SECONDARY, TURN_SPEED_MAIN);  // Налево
           } else if (turnDirection == 2) {
-            setMotors(-TURN_SPEED, TURN_SPEED);  // Разворот
+            setMotors(TURN_SPEED_MAIN, -TURN_SPEED_MAIN);  // Разворот
           }
+        }
+
+        // Плавный переход к линии
+        if (millis() - turnStartTime > turnDuration * 0.8) {
+          // Начинаем постепенно включать следящий алгоритм
+          handleSensors(analogRead(SENS_R_PIN), analogRead(SENS_L_PIN));
         }
 
         if (millis() - turnStartTime >= TURN_DURATION) {
@@ -349,6 +372,9 @@ void runStateMachine() {
           currentState = STATE_FOLLOW_LINE;
           turnMessageSent = false;
           Serial.println("Turn finalized");
+
+          // Принудительный сброс скорости после поворота
+          currentSpeed = BASE_SPEED;
         }
       }
       break;
