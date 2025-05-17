@@ -15,7 +15,7 @@
 #define MAX_EDGES 4
 #define BASE_SPEED 85
 #define TURN_SPEED 120
-#define TURN_DURATION 1000
+#define TURN_DURATION 700
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
 #define DECELERATION_INTERVAL 300    // Интервал замедления в мс
@@ -27,7 +27,7 @@
 
 // Обновленные настройки для плавных поворотов
 #define TURN_RATIO 0.6f          // Соотношение скоростей моторов при повороте
-#define TURN_BASE_DURATION 1000  // Базовое время поворота (на 90 градусов)
+#define TURN_BASE_DURATION 700  // Базовое время поворота (на 90 градусов)
 #define TURN_SPEED_MAIN 120      // Основная скорость поворота
 #define TURN_SPEED_SECONDARY 75  // Вспомогательная скорость
 
@@ -35,6 +35,9 @@
 #define TURN_SLOWDOWN_MIN 45       // Минимальная скорость
 #define TURN_SLOWDOWN_STEP 10      // Шаг замедления
 #define TURN_SLOWDOWN_INTERVAL 50  // Интервал изменения
+
+#define PRE_TURN_MOVE_DURATION 300  // Движение прямо перед поворотом
+#define POST_TURN_MOVE_DURATION 500 // Движение прямо после поворота
 
 // Направления
 #define NORTH 0
@@ -276,13 +279,13 @@ void handleSensors(int rightSensor, int leftSensor) {
       } else if (rightOnLine) {
         setMotors(BASE_SPEED, 0);
         enableSpeedControl = false;
-        currentSpeed = BASE_SPEED;
+        currentSpeed = 75;
         lineLost = false;
 
       } else if (leftOnLine) {
         setMotors(0, BASE_SPEED);
         enableSpeedControl = false;
-        currentSpeed = BASE_SPEED;
+        currentSpeed = 75;
         lineLost = false;
 
       } else {
@@ -356,8 +359,23 @@ void runStateMachine() {
         static bool turnMessageSent = false;
         static int slowMotorSpeed = TURN_SLOWDOWN_START;
         static unsigned long lastSlowdownTime = 0;
+        static bool preMoveDone = false;
+        static bool postMoveDone = false;
+        static unsigned long phaseStart = 0;
         // При повороте жестко фиксируем скорость
         enableSpeedControl = false;
+
+        // Для поворотов влево/вправо добавляем фазы движения
+        if (abs(turnDirection) == 1 && !preMoveDone) {
+          if (millis() - turnStartTime < PRE_TURN_MOVE_DURATION) {
+            // Движение прямо перед поворотом
+            setMotors(BASE_SPEED, BASE_SPEED);
+            return;
+          } else {
+            preMoveDone = true;
+            phaseStart = millis();
+          }
+        }
 
         if (!turnMessageSent) {
           slowMotorSpeed = TURN_SLOWDOWN_START;  // Сброс при старте поворота
@@ -377,6 +395,7 @@ void runStateMachine() {
           int turnMultiplier = (turnDirection == 2) ? 2 : 1;
           turnDuration = TURN_BASE_DURATION * turnMultiplier;
         }
+
 
         // Особый случай: движение прямо с использованием алгоритма следования
         if (turnDirection == 0) {
@@ -403,6 +422,18 @@ void runStateMachine() {
           } else if (turnDirection == 2) {  // Разворот
             setMotors(TURN_SPEED_MAIN, -TURN_SPEED_MAIN);
           }
+
+          // После основного поворота добавляем движение прямо
+          if (abs(turnDirection) == 1 && millis() - phaseStart >= TURN_BASE_DURATION && !postMoveDone) {
+
+            if (millis() - phaseStart < TURN_BASE_DURATION + POST_TURN_MOVE_DURATION) {
+              // Движение прямо после поворота
+              setMotors(BASE_SPEED, BASE_SPEED);
+              return;
+            } else {
+              postMoveDone = true;
+            }
+          }
         }
 
         // Плавный переход к линии
@@ -411,18 +442,19 @@ void runStateMachine() {
           handleSensors(analogRead(SENS_R_PIN), analogRead(SENS_L_PIN));
         }
 
-        if (millis() - turnStartTime >= TURN_DURATION) {
+        // Завершение поворота
+        if ((millis() - phaseStart >= turnDuration) || (abs(turnDirection) == 1 && postMoveDone)) {
+
           stopMotors();
           currentState = STATE_FOLLOW_LINE;
           turnMessageSent = false;
-          Serial.println("Turn finalized");
-
-          // Принудительный сброс скорости после поворота
+          preMoveDone = false;
+          postMoveDone = false;
           currentSpeed = BASE_SPEED;
           enableSpeedControl = true;
-          lastDecelerationTime = millis();  // Критично! Сброс таймера замедления
-          acceleratingBack = false;
+          lastDecelerationTime = millis();
         }
+        break;
       }
       break;
 
