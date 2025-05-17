@@ -15,7 +15,7 @@
 #define MAX_EDGES 4
 #define BASE_SPEED 85
 #define TURN_SPEED 120
-#define TURN_DURATION 2000
+#define TURN_DURATION 1000
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
 #define DECELERATION_INTERVAL 300    // Интервал замедления в мс
@@ -27,7 +27,7 @@
 
 // Обновленные настройки для плавных поворотов
 #define TURN_RATIO 0.6f          // Соотношение скоростей моторов при повороте
-#define TURN_BASE_DURATION 2500  // Базовое время поворота (на 90 градусов)
+#define TURN_BASE_DURATION 1000  // Базовое время поворота (на 90 градусов)
 #define TURN_SPEED_MAIN 120      // Основная скорость поворота
 #define TURN_SPEED_SECONDARY 75  // Вспомогательная скорость
 
@@ -313,6 +313,7 @@ void runStateMachine() {
       break;
 
     case STATE_WAIT_DESTINATION:
+      enableSpeedControl = false;  // Гарантированный сброс
       if (destination != 0) {
         currentState = STATE_FOLLOW_LINE;
         Serial.println("Starting navigation");
@@ -419,6 +420,8 @@ void runStateMachine() {
           // Принудительный сброс скорости после поворота
           currentSpeed = BASE_SPEED;
           enableSpeedControl = true;
+          lastDecelerationTime = millis();  // Критично! Сброс таймера замедления
+          acceleratingBack = false;
         }
       }
       break;
