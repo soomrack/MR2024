@@ -18,17 +18,23 @@
 #define TURN_DURATION 2000
 #define BUZZ_DURATION 200
 #define STOP_DURATION 1000
-#define DECELERATION_INTERVAL 700    // Интервал замедления в мс
+#define DECELERATION_INTERVAL 300    // Интервал замедления в мс
 #define DECELERATION_STEP 7          // Шаг уменьшения скорости
 #define MIN_SPEED 45                 // Минимальная скорость
-#define ACCELERATION_INTERVAL 500   // Интервал для обратного разгона
+#define ACCELERATION_INTERVAL 200    // Интервал для обратного разгона
+#define ACCELERATION_STEP 7          // Добавим шаг разгона
 #define DEAD_END_TURN_DURATION 2500  // Время для разворота в тупике
 
 // Обновленные настройки для плавных поворотов
 #define TURN_RATIO 0.6f          // Соотношение скоростей моторов при повороте
-#define TURN_BASE_DURATION 1500  // Базовое время поворота (на 90 градусов)
+#define TURN_BASE_DURATION 2500  // Базовое время поворота (на 90 градусов)
 #define TURN_SPEED_MAIN 120      // Основная скорость поворота
 #define TURN_SPEED_SECONDARY 75  // Вспомогательная скорость
+
+#define TURN_SLOWDOWN_START 80     // Начальная скорость замедленного мотора
+#define TURN_SLOWDOWN_MIN 45       // Минимальная скорость
+#define TURN_SLOWDOWN_STEP 10      // Шаг замедления
+#define TURN_SLOWDOWN_INTERVAL 50  // Интервал изменения
 
 // Направления
 #define NORTH 0
@@ -249,13 +255,16 @@ void handleSensors(int rightSensor, int leftSensor) {
 
       // Механизм обратного разгона
       if (currentSpeed <= MIN_SPEED && !acceleratingBack) {
-        lastAccelerationTime = millis();
         acceleratingBack = true;
+        lastAccelerationTime = millis();  // Сброс таймера сразу при активации
       }
 
-      if (enableSpeedControl && acceleratingBack && (millis() - lastAccelerationTime > ACCELERATION_INTERVAL)) {
-        currentSpeed = BASE_SPEED;
-        acceleratingBack = false;
+      if (enableSpeedControl && acceleratingBack) {
+        if (millis() - lastAccelerationTime > ACCELERATION_INTERVAL) {
+          currentSpeed = min(currentSpeed + ACCELERATION_STEP, 65);
+          lastAccelerationTime = millis();
+          if (currentSpeed >= BASE_SPEED) acceleratingBack = false;
+        }
       }
 
       if (rightOnLine && leftOnLine) {
@@ -344,9 +353,14 @@ void runStateMachine() {
     case STATE_TURNING:
       {
         static bool turnMessageSent = false;
+        static int slowMotorSpeed = TURN_SLOWDOWN_START;
+        static unsigned long lastSlowdownTime = 0;
         // При повороте жестко фиксируем скорость
         enableSpeedControl = false;
+
         if (!turnMessageSent) {
+          slowMotorSpeed = TURN_SLOWDOWN_START;  // Сброс при старте поворота
+          lastSlowdownTime = millis();
           Serial.print("Turning ");
           // Четкое определение типа поворота
           switch (turnDirection) {
@@ -370,12 +384,23 @@ void runStateMachine() {
         }
         // Управление моторами для поворотов
         else {
-          if (turnDirection == 1) {
-            setMotors(TURN_SPEED_MAIN, TURN_SPEED_SECONDARY);  // Направо
-          } else if (turnDirection == -1) {
-            setMotors(TURN_SPEED_SECONDARY, TURN_SPEED_MAIN);  // Налево
-          } else if (turnDirection == 2) {
-            setMotors(TURN_SPEED_MAIN, -TURN_SPEED_MAIN);  // Разворот
+          // Управление моторами с плавным замедлением
+          if (turnDirection == 1) {  // Поворот направо
+            if (millis() - lastSlowdownTime > TURN_SLOWDOWN_INTERVAL) {
+              slowMotorSpeed = max(slowMotorSpeed - TURN_SLOWDOWN_STEP, TURN_SLOWDOWN_MIN);
+              lastSlowdownTime = millis();
+            }
+            setMotors(-slowMotorSpeed, TURN_SPEED);
+
+          } else if (turnDirection == -1) {  // Поворот налево
+            if (millis() - lastSlowdownTime > TURN_SLOWDOWN_INTERVAL) {
+              slowMotorSpeed = max(slowMotorSpeed - TURN_SLOWDOWN_STEP, TURN_SLOWDOWN_MIN);
+              lastSlowdownTime = millis();
+            }
+            setMotors(TURN_SPEED, -slowMotorSpeed);
+
+          } else if (turnDirection == 2) {  // Разворот
+            setMotors(TURN_SPEED_MAIN, -TURN_SPEED_MAIN);
           }
         }
 
@@ -393,6 +418,7 @@ void runStateMachine() {
 
           // Принудительный сброс скорости после поворота
           currentSpeed = BASE_SPEED;
+          enableSpeedControl = true;
         }
       }
       break;
