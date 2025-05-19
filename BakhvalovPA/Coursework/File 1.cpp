@@ -156,32 +156,6 @@ std::vector<int> generate_random_data(int size) {
     return data;
 }
 
-void performance_test() {
-    std::vector<int> sizes = { 1000, 10000, 50000, 100000, 500000 };
-
-    std::cout << "Performance test (insertion time):\n";
-    std::cout << std::setw(10) << "Size" << std::setw(15) << "Time (ms)" << std::setw(15) << "Time/Item (ns)\n";
-
-    for (int size : sizes) {
-        auto data = generate_random_data(size);
-        AVLTree tree;
-
-        auto start = std::chrono::high_resolution_clock::now();
-
-        for (int val : data) {
-            tree.insert(val);
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        double time_per_item = duration.count() * 1e6 / size; // наносекунды на операцию
-
-        std::cout << std::setw(10) << size
-            << std::setw(15) << duration.count()
-            << std::setw(15) << std::fixed << std::setprecision(2) << time_per_item
-            << "\n";
-    }
-}
 
 int main() {
     // Демонстрация работы с маленьким деревом
@@ -203,8 +177,6 @@ int main() {
     tree.print();
     std::cout << "\n";
 
-    // Запуск теста производительности
-    performance_test();
-
+   
     return 0;
 }
