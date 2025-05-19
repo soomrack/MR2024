@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm> // для reverse
 
 #define COLOR_OF_NODE_GREY 1
 #define COLOR_OF_NODE_BLACK 2
@@ -98,7 +99,7 @@ graph::graph(unsigned int size)
         ranks[currentRank][ranks[currentRank][0]] = i;
     }
 
-    for(unsigned int rank = 0; rank < size - 1; rank++)
+    for (unsigned int rank = 0; rank < size - 1; rank++)
     {
         for (unsigned int curNode = 1; curNode < ranks[rank][0] + 1; curNode++)
         {
@@ -136,12 +137,13 @@ bool graph::dfs(unsigned int curNode, uiVector &stack)
 {
     if (this->nodes[curNode].color == COLOR_OF_NODE_GREY)
     {
-        return true;
+        return true; // Цикл найден
     }
     if (this->nodes[curNode].color == COLOR_OF_NODE_BLACK)
     {
         return false;
     }
+
     this->nodes[curNode].color = COLOR_OF_NODE_GREY;
 
     unsigned int edgeCount = this->nodes[curNode].edgeSize();
@@ -153,6 +155,7 @@ bool graph::dfs(unsigned int curNode, uiVector &stack)
             return true;
         }
     }
+
     stack.push_back(curNode);
     this->nodes[curNode].color = COLOR_OF_NODE_BLACK;
     return false;
@@ -163,19 +166,18 @@ bool graph::topological_sort(uiVector &result)
     uiVector stack;
     for (unsigned int i = 0; i < this->amount; i++)
     {
-        if (dfs(i, stack))
+        if (this->nodes[i].color == 0)
         {
-            return false;
+            if (dfs(i, stack))
+            {
+                return false; // Цикл найден
+            }
         }
     }
 
-    result.resize(this->amount);
-    for (unsigned int i = 0; i < this->amount; i++)
-    {
-        unsigned int index = stack.back();
-        result[index] = i;
-        stack.pop_back();
-    }
+    // Переворачиваем стек в правильный порядок
+    std::reverse(stack.begin(), stack.end());
+    result = stack;
     return true;
 }
 
@@ -183,7 +185,7 @@ int main()
 {
     graph g(5);
     g.print();
-    
+
     uiVector sorted;
     if (g.topological_sort(sorted))
     {
@@ -198,6 +200,6 @@ int main()
     {
         std::cout << "Graph contains a cycle!" << std::endl;
     }
-    
+
     return 0;
 }
