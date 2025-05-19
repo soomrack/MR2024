@@ -30,7 +30,7 @@ public:
         srand(time(0));
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                data[i][j] = rand() % 19 - 9; // -9 to 9
+                data[i][j] = rand() % 19 - 9; 
             }
         }
     }
@@ -117,11 +117,22 @@ public:
     }
 
     double determinant() const {
-        if (rows != 3 || cols != 3) throw "Method works only for 3x3 matrices!";
+        if (rows != cols) throw "Matrix must be square!";
 
+        if (rows == 1) {
+            return data[0][0];
+        }
+
+        if (rows == 2) {
+            return data[0][0] * data[1][1] - data[0][1] * data[1][0];
+        }
+
+        if (rows ==3) {
         return data[0][0] * (data[1][1] * data[2][2] - data[1][2] * data[2][1])
             - data[0][1] * (data[1][0] * data[2][2] - data[1][2] * data[2][0])
             + data[0][2] * (data[1][0] * data[2][1] - data[1][1] * data[2][0]);
+        }
+   
     }
 
     Matrix exp(int terms = 10) const {
