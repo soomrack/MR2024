@@ -1,0 +1,3 @@
+/home/vova/Desktop/with_cv/build/CMakeFiles/capture.dir
+/home/vova/Desktop/with_cv/build/CMakeFiles/edit_cache.dir
+/home/vova/Desktop/with_cv/build/CMakeFiles/rebuild_cache.dir
