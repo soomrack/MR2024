@@ -11,11 +11,9 @@ private:
     std::vector<double> data;
 
 public:
-    // Конструкторы
     Matrix(size_t cols, size_t rows) : cols(cols), rows(rows), data(cols * rows, 0.0) {}
     Matrix() : cols(0), rows(0) {} // Пустая матрица
 
-    // Создание единичной матрицы
     static Matrix identity(size_t size) {
         Matrix m(size, size);
         for(size_t i = 0; i < size; ++i)
@@ -23,7 +21,6 @@ public:
         return m;
     }
 
-    // Доступ к элементам
     double& operator()(size_t row, size_t col) {
         return data[row * cols + col];
     }
@@ -32,7 +29,6 @@ public:
         return data[row * cols + col];
     }
 
-    // Операции с матрицами
     Matrix operator+(const Matrix& other) const {
         if(cols != other.cols || rows != other.rows)
             throw std::invalid_argument("Matrix dimensions mismatch for addition");
