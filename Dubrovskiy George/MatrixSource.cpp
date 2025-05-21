@@ -215,7 +215,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, const double* value) : rows
     //mult matrix
     Matrix& Matrix::operator*=(const Matrix & A)
     {
-        if (cols != A.rows || cols != A.cols) {
+        if (cols != A.rows) {
             throw MatrixException("Matrixes of different sizes\n");
         }
 
@@ -234,15 +234,15 @@ Matrix::Matrix(const size_t rows, const size_t cols, const double* value) : rows
 
     Matrix Matrix::operator*(const Matrix & A)
     {
-        if (cols != A.rows || cols != A.cols) {
+        if (cols != A.rows) {
             throw MatrixException("Matrixes of different sizes\n");
         }
 
         Matrix result(rows, A.cols);
-        for (size_t i = 0; i < rows; ++i) {
-            for (size_t j = 0; j < A.cols; ++j) {
+        for (size_t i = 0; i < rows; i++) {
+            for (size_t j = 0; j < A.cols; j++) {
                 result.data[i * A.cols + j] = 0;
-                for (size_t k = 0; k < cols; ++k) {
+                for (size_t k = 0; k < cols; k++) {
                     result.data[i * A.cols + j] += data[i * cols + k] * A.data[k * A.cols + j];
                 }
             }
