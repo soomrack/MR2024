@@ -222,6 +222,7 @@ Matrix::Matrix(const size_t rows, const size_t cols, const double* value) : rows
         Matrix mult(rows, A.cols);
         for (size_t row = 0; row < mult.rows; row++) {
             for (size_t col = 0; col < mult.cols; col++) {
+                result.data[row * A.cols + col] = 0;
                 for (size_t idx = 0; idx < cols; idx++) {
                     mult.data[row * mult.cols + col] += data[row * cols + idx] * A.data[idx * A.cols + col];
                 }
