@@ -1,16 +1,14 @@
 #include <DHT11.h>
 
 // --- Пины ---
-#define EXTERNAL_LIGHT_PIN A0
-#define SOIL_HUMI_PIN      A1
-#define AIR1_PIN           12
-#define AIR2_PIN           13
-#define AIR3_PIN           14
+#define EXTERNAL_LIGHT_PIN A0 //фоторезистор
+#define SOIL_HUMI_PIN      A1 //влажность почвы
+#define AIR1_PIN           12 //влажность воздуха
 
-#define WATER_PUMP_PIN     5
-#define LED_LIGHT_PIN      6
-#define FAN_PIN            7
-#define HEAT_PIN           4
+#define WATER_PUMP_PIN     5 //помпа
+#define LED_LIGHT_PIN      6 //светодиод
+#define FAN_PIN            7 //вентилятор
+#define HEAT_PIN           4 //нагреватель
 
 // --- Класс климата ---
 struct Climate {
@@ -69,29 +67,18 @@ struct RTC {
 
 // --- Сенсоры ---
 class SensorManager {
-  DHT11 dht1, dht2, dht3;
+  DHT11 dht1;
 public:
   unsigned int ext_light = 0, soil_humidity = 0, air_humidity = 0;
-  unsigned int air_temp1 = 0, air_temp2 = 0, air_temp3 = 0, avg_temp = 0;
-  SensorManager() : dht1(AIR1_PIN), dht2(AIR2_PIN), dht3(AIR3_PIN) {}
+  unsigned int air_temp1 = 0, avg_temp = 0;
+  SensorManager() : dht1(AIR1_PIN) {}
 
   void readAll() {
     ext_light = analogRead(EXTERNAL_LIGHT_PIN);
     soil_humidity = analogRead(SOIL_HUMI_PIN);
     air_humidity = dht1.readHumidity();
     air_temp1 = dht1.readTemperature();
-    air_temp2 = dht2.readTemperature();
-    air_temp3 = dht3.readTemperature();
-    calcAvgTemp();
-  }
-  void calcAvgTemp() {
-    int d1 = abs(air_temp1 - air_temp2);
-    int d2 = abs(air_temp1 - air_temp3);
-    int d3 = abs(air_temp2 - air_temp3);
-    int d = min(d1, min(d2, d3));
-    if (d == d1) avg_temp = (air_temp1 + air_temp2) / 2;
-    if (d == d2) avg_temp = (air_temp1 + air_temp3) / 2;
-    if (d == d3) avg_temp = (air_temp2 + air_temp3) / 2;
+    avg_temp = air_temp1;
   }
   void print() {
     Serial.println("------------------------------");
