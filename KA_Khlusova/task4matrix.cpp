@@ -53,10 +53,7 @@ Matrix::Matrix(size_t A_rows, size_t A_cols, double* A_data)
     cols = A_cols;
     data = A_data;
 
-    /*if (rows == 0  || cols == 0) {
-        throw MatrixException ("0 elements in matrix\n");
-    }*/
-
+  
     if (SIZE_MAX / cols < rows) { 
         throw MatrixException ("0 rows or colums\n");
         rows = 0;
