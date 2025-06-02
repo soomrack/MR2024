@@ -32,6 +32,7 @@ void init(std::vector<int> a) {
 }
 
 int main() {
+    srand(time(0))
     unsigned long int k = 1000 * 1000 * 1000;
         clock_t start, end;
         init(k);
@@ -53,7 +54,7 @@ int main() {
         end = clock();
 
         printf("Time %.7f ", ((double)end - start) / ((double)CLOCKS_PER_SEC));
-        printf("Elements %d\n", left- right);
+        printf("Elements %d\n", left- right+1);
     }
 }
 
