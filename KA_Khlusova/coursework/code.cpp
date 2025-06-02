@@ -17,6 +17,7 @@ int sum(int right) {
     return result;
 }
 
+#обновление 
 void inc(int idx, int delta) {
     for (; idx < n; idx = (idx | (idx + 1))) t[idx] += delta;
 }
