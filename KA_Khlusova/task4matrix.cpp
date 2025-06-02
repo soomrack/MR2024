@@ -61,7 +61,7 @@ Matrix::Matrix(size_t A_rows, size_t A_cols, double* A_data)
         data = NULL;
     }
 
-    if (SIZE_MAX / (cols * sizeof(double)) < rows) { 
+    if (SIZE_MAX / cols / sizeof(double) < rows) { 
         throw MatrixException ("not enough memory for rows and colums\n");
         rows = 0;
         cols = 0;
@@ -85,7 +85,7 @@ Matrix::Matrix(size_t A_rows, size_t A_cols)
         data = NULL;
     }
 
-    if (SIZE_MAX / (cols * sizeof(double)) < rows) { 
+    if (SIZE_MAX / cols / sizeof(double) < rows) { 
         throw MatrixException ("Не хватит места для выделения памяти под строки и столбцы\n");
         rows = 0;
         cols = 0;
