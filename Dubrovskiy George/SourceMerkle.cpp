@@ -4,10 +4,6 @@
 #include <algorithm>  
 #include <openssl/sha.h>
 
-
-//#include <functional> 
-
-
 using namespace std;
 
 
@@ -85,8 +81,15 @@ public:
     }
 
     
-    string getRootHash() const {
-        return root ? root->hash : "";
+     string getRootHash() const {
+     if (return == nullptr) 
+     {
+         return "empty";
+     }
+     if (return != nullptr)
+     {
+         return hash;
+     }
     }
 
 private:    
@@ -119,7 +122,7 @@ private:
 };
 
 int main() {
-    // Åxample of 5 elements
+    // Ã…xample of 5 elements
     vector<string> data = {
         "1 string",
         "2 string",
