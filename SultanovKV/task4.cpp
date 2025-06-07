@@ -16,12 +16,12 @@ private:
     size_t cols;
     double* data;
 public:
-    Matrix() : rows(0), cols(0), data(nullptr) { cout << ("constructor\n"); };
+    Matrix() : rows(0), cols(0), data(nullptr) {};
     Matrix(const size_t rows, const size_t cols);
     Matrix(const size_t rows, const size_t cols, double* data);
     Matrix(const Matrix& A);
     Matrix(Matrix&& A) noexcept;
-    ~Matrix() { rows = 0; cols = 0; delete[] data;cout << ("destructor\n");};
+    ~Matrix() { rows = 0; cols = 0; delete[] data;};
 public:
     Matrix& operator=(const Matrix& A);
     Matrix& operator=(Matrix&& A) noexcept;
@@ -54,7 +54,7 @@ public:
 Matrix::Matrix(const size_t rows, const size_t cols, double* value)
     :rows(rows), cols(cols), data(value)
 {
-    
+
     if (cols == 0 || rows == 0) {
         throw MatrixException("Initialized matrix with 0 rows / cols\n");
         return;
@@ -72,7 +72,6 @@ Matrix::Matrix(const size_t rows, const size_t cols, double* value)
 Matrix::Matrix(const size_t rows, const size_t cols)
     : rows(rows), cols(cols)
 {
-   
     if (cols == 0 || rows == 0) {
         throw MatrixException("Initialized matrix with 0 rows / cols\n");
         return;
@@ -87,7 +86,6 @@ Matrix::Matrix(const size_t rows, const size_t cols)
 
 Matrix::Matrix(const Matrix& A)
 {
-    cout << ("COPY\n");
     rows = A.rows;
     cols = A.cols;
     data = new MatrixItem[rows * cols];
@@ -97,7 +95,6 @@ Matrix::Matrix(const Matrix& A)
 
 Matrix::Matrix(Matrix&& A) noexcept : rows(A.rows), cols(A.cols), data(A.data)
 {
-    cout << ("move\n");
     A.rows = 0;
     A.cols = 0;
     A.data = nullptr;
@@ -106,7 +103,6 @@ Matrix::Matrix(Matrix&& A) noexcept : rows(A.rows), cols(A.cols), data(A.data)
 
 Matrix& Matrix::operator=(const Matrix& A)
 {
-    cout << ("COPY\n");
     if (this == &A) { return *this; };
 
     if (cols == A.cols && rows == A.rows) {
@@ -126,7 +122,6 @@ Matrix& Matrix::operator=(const Matrix& A)
 Matrix& Matrix::operator=(Matrix&& A) noexcept
 {
    
-    cout << ("MOVE\n");
     delete[] data;
     rows = A.rows;
     cols = A.cols;
@@ -178,7 +173,7 @@ Matrix& Matrix::operator*=(const Matrix& A)
 
 Matrix Matrix::operator+ (const Matrix& A)
 {
-    cout << ("SUM\n");
+
     Matrix result(*this);
     result += A;
     return result;
@@ -195,7 +190,6 @@ Matrix Matrix::operator- (const Matrix& A)
 
 Matrix Matrix::operator* (const Matrix& A)
 {
-    cout << ("MULT\n");
     if (cols != A.rows) {
         throw MatrixException("Matrixes dimensions do not match for multiplication\n");
     }
