@@ -14,21 +14,24 @@ private:
 public:
     Matrix(const size_t row, const size_t col); // Конструктор
     ~Matrix(); // Деструктор
-    Matrix& matrix_set(const double* values); // Заполнение матрицы
-    int matrix_print(); // Вывод матрицы
-    Matrix& matrix_copy(const Matrix& A);
+    Matrix& set(const double* values); // Заполнение матрицы
+    int print(); // Вывод матрицы
+    Matrix(const Matrix& A); // Конструктор копирования
+    Matrix(Matrix&& B) noexcept; // Конструктор переноса
+    Matrix& operator=(const Matrix& A); // Копирование
+    Matrix& operator=(Matrix&& B); // Перенос
+    Matrix& identity(); // Единичная матрица
 
-    Matrix& matrix_identity(); // Единичная матрица
-    Matrix& matrix_add(const Matrix& B); // Добавление
-    Matrix& matrix_negative_add(const Matrix& B); // Вычитание
-    Matrix& matrix_sum(const Matrix& A, const Matrix& B); // Сумма
-    Matrix& matrix_sub(const Matrix& A, const Matrix& B); // Разность
-    Matrix& matrix_multiplication_k(const double k); // Умножение на число
-    Matrix& matrix_multiplication(const Matrix& A, const Matrix& B); // Умножение матриц
-    Matrix& matrix_transp(const Matrix& A); // Транспонирование
-    double matrix_determinant(); // Детерминант
-    Matrix& matrix_pow(const Matrix& A, const unsigned int n); // Матрица в степени
-    Matrix& matrix_exp(const unsigned int target); // Экспонента в степени матрицы
+    Matrix& operator+=(const Matrix& B); // Добавление
+    Matrix& operator-=(const Matrix& B); // Вычитание
+    Matrix operator+(const Matrix& B); // Сумма
+    Matrix operator-(const Matrix& B); // Разность
+    Matrix& operator*=(const double k); // Умножение на число
+    Matrix operator*(const Matrix& B); // Умножение матриц
+    Matrix& T(const Matrix& A); // Транспонирование
+    double det(); // Детерминант
+    Matrix operator^(const unsigned int n); // Матрица в степени
+    Matrix& exp(const unsigned int target); // Экспонента в степени матрицы
 };
 
 enum MatrixExceptionLevel { ERROR, WARNING, INFO, DEBUG };
@@ -77,13 +80,13 @@ Matrix::~Matrix()
     delete[] data;
 }
 
-Matrix& Matrix::matrix_set(const double* values)
+Matrix& Matrix::set(const double* values)
 {
     memcpy(data, values, rows * cols * sizeof(double));
     return *this;
 }
 
-int Matrix::matrix_print()
+int Matrix::print()
 {
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < cols; col++) {
@@ -96,7 +99,7 @@ int Matrix::matrix_print()
 }
 
 // E
-Matrix& Matrix::matrix_identity() {
+Matrix& Matrix::identity() {
     if (rows != cols) {
         matrix_exception(WARNING, "not square");
         throw MatrixException("");
@@ -110,8 +113,22 @@ Matrix& Matrix::matrix_identity() {
     return *this;
 }
 
+Matrix::Matrix(const Matrix& A)
+{
+    memcpy(data, A.data, A.cols * A.rows * sizeof(double));
+}
+
+Matrix::Matrix(Matrix&& B) noexcept : rows(B.rows), cols(B.cols), data(B.data)
+{
+    data = B.data;
+
+    B.cols = 0;
+    B.rows = 0;
+    B.data = 0;
+}
+
 // B := A
-Matrix& Matrix::matrix_copy(const Matrix& A)
+Matrix& Matrix::operator=(const Matrix& A)
 {
     if ((A.cols != cols) || (A.rows != rows)) {
         matrix_exception(ERROR, "different sizes");
@@ -121,13 +138,33 @@ Matrix& Matrix::matrix_copy(const Matrix& A)
         matrix_exception(ERROR, "memory is not allocated");
         throw MatrixException("");
     }
-
+    
     memcpy(data, A.data, A.cols * A.rows * sizeof(double));
     return *this;
 }
 
+// A = B, B = 0
+Matrix& Matrix::operator=(Matrix&& B)
+{
+    if (this == &B) {
+        return *this;
+    }
+    if (rows != B.rows || cols != B.cols) {
+        matrix_exception(ERROR, "different sizes");
+        throw MatrixException("");
+    }
+    
+    data = B.data;
+
+    B.cols = 0;
+    B.rows = 0;
+    B.data = nullptr;
+
+    return *this;
+}
+
 // A += B
-Matrix& Matrix::matrix_add(const Matrix& B)
+Matrix& Matrix::operator+=(const Matrix& B)
 {
     if ((cols != B.cols) || (rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
@@ -141,7 +178,7 @@ Matrix& Matrix::matrix_add(const Matrix& B)
 }
 
 // A -= B
-Matrix& Matrix::matrix_negative_add(const Matrix& B)
+Matrix& Matrix::operator-=(const Matrix& B)
 {
     if ((cols != B.cols) || (rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
@@ -155,37 +192,39 @@ Matrix& Matrix::matrix_negative_add(const Matrix& B)
 }
 
 // C = A + B
-Matrix& Matrix::matrix_sum(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator+(const Matrix& B)
 {
-    if ((A.cols != B.cols) || (A.rows != B.rows) || (A.cols != cols) || (A.rows != rows) ||
-        (cols != B.cols) || (rows != B.rows)) {
+    if ((cols != B.cols) || (rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
         throw MatrixException("");
     }
-
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
-        data[idx] = A.data[idx] + B.data[idx];
+    
+    Matrix res(cols, rows);
+    
+    for (size_t idx = 0; idx < cols * rows; idx++) {
+        res.data[idx] = data[idx] + B.data[idx];
     }
-    return *this;
+    return res;
 }
 
 // C = A - B
-Matrix& Matrix::matrix_sub(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator-(const Matrix& B)
 {
-    if ((A.cols != B.cols) || (A.rows != B.rows) || (A.cols != cols) || (A.rows != rows) ||
-        (cols != B.cols) || (rows != B.rows)) {
+    if ((cols != B.cols) || (rows != B.rows)) {
         matrix_exception(ERROR, "different sizes");
         throw MatrixException("");
     }
 
-    for (size_t idx = 0; idx < A.cols * A.rows; idx++) {
-        data[idx] = A.data[idx] - B.data[idx];
+    Matrix res(cols, rows);
+
+    for (size_t idx = 0; idx < cols * rows; idx++) {
+        res.data[idx] = data[idx] - B.data[idx];
     }
-    return *this;
+    return res;
 }
 
 // A *= k
-Matrix& Matrix::matrix_multiplication_k(const double k)
+Matrix& Matrix::operator*=(const double k)
 {
     for (size_t idx = 0; idx < cols * rows; idx++) {
         data[idx] *= k;
@@ -194,26 +233,28 @@ Matrix& Matrix::matrix_multiplication_k(const double k)
 }
 
 // C = A * B
-Matrix& Matrix::matrix_multiplication(const Matrix& A, const Matrix& B)
+Matrix Matrix::operator*(const Matrix& B)
 {
-    if ((A.cols != B.rows) || (cols != B.cols) || (rows != A.rows)) {
+    if (cols != B.rows) {
         matrix_exception(ERROR, "incorrect sizes");
         throw MatrixException("");
     }
-
+    
+    Matrix res(cols, rows);
+    
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < cols; col++) {
-            data[row * cols + col] = 0;
-            for (size_t idx = 0; idx < A.cols; idx++) {
-                data[row * cols + col] += A.data[row * A.cols + idx] * B.data[idx * B.cols + col];
+            res.data[row * cols + col] = 0;
+            for (size_t idx = 0; idx < cols; idx++) {
+                res.data[row * cols + col] += data[row * cols + idx] * B.data[idx * B.cols + col];
             }
         }
     }
-    return *this;
+    return res;
 }
 
 // B = A ^ T
-Matrix& Matrix::matrix_transp(const Matrix& A)
+Matrix& Matrix::T(const Matrix& A)
 {
     if ((A.cols != cols) || (A.rows != rows)) {
         matrix_exception(ERROR, "different sizes");
@@ -228,7 +269,7 @@ Matrix& Matrix::matrix_transp(const Matrix& A)
     return *this;
 }
 
-double Matrix::matrix_determinant()
+double Matrix::det()
 {
     double det;
     if (cols != rows) {
@@ -262,65 +303,62 @@ double Matrix::matrix_determinant()
 }
 
 // B = A ^ n
-Matrix& Matrix::matrix_pow(const Matrix& A, const unsigned int n)
-{
-    if (A.rows != A.cols) {
-        matrix_exception(WARNING, "not square");
-        throw MatrixException("");
-    }
-
-    if ((A.cols != cols) || (A.rows != rows)) {
-        matrix_exception(ERROR, "different sizes");
-        throw MatrixException("");
-    }
-
-    if (n == 0) {
-        matrix_identity();
-    }
-
-    if (n == 1) {
-        matrix_copy(A);
-        return *this;
-    }
-
-    Matrix tmp = Matrix::Matrix(A.rows, A.cols);
-    if (tmp.data == NULL) {
-        matrix_exception(ERROR, "no memory allocated");
-        throw MatrixException("");
-    }
-
-    matrix_copy(A);
-
-    for (unsigned int pow = 1; pow < n; ++pow) {
-        matrix_multiplication(tmp, A);
-        matrix_copy(tmp);
-    }
-
-    return *this;
-}
-
-//e ^ A
-Matrix& Matrix::matrix_exp(const unsigned int target)
+Matrix Matrix::operator^(const unsigned int n)
 {
     if (rows != cols) {
         matrix_exception(WARNING, "not square");
         throw MatrixException("");
     }
 
-    Matrix temp = Matrix::Matrix(rows, cols);
-    temp.matrix_identity();
+    Matrix res(rows, cols);
+
+    if (n == 0) {
+        res.identity();
+        return res;
+    }
+
+    if (n == 1) {
+        res = *this;
+        return res;
+    }
+
+    Matrix tmp(rows, cols);
+    if (tmp.data == NULL) {
+        matrix_exception(ERROR, "no memory allocated");
+        throw MatrixException("");
+    }
+
+    res = *this;
+
+    for (unsigned int pow = 1; pow < n; ++pow) {
+        res = tmp * res;
+        tmp = res;
+    }
+
+    return res;
+}
+
+//e ^ A
+Matrix& Matrix::exp(const unsigned int target)
+{
+    if (rows != cols) {
+        matrix_exception(WARNING, "not square");
+        throw MatrixException("");
+    }
+
+    Matrix temp(rows, cols);
+    temp.identity();
 
     double factorial = 1.0;
     
     for (size_t idx = 1; idx < target + 1; idx++) {
-        Matrix tmp = Matrix::Matrix(rows, cols);
-        tmp.matrix_pow(*this ,idx);
+        Matrix tmp(rows, cols);
+        tmp = *this ^ idx;
         factorial *= idx;
-        tmp.matrix_multiplication_k(1 / factorial);
-        temp.matrix_add(tmp);
+        tmp*=(1 / factorial);
+        temp+=tmp;
     }
-    matrix_copy(temp);
-
+    *this = temp;
     return *this;
 }
 
@@ -332,55 +370,55 @@ int main()
     Matrix Y(2, 2);
     
     double valuesA[] = { 2.0, 3.0, 1.0, -1.0 };
-    A.matrix_set(valuesA);
+    A.set(valuesA);
     double valuesB[] = { 1., 2.,2., 1. };
-    B.matrix_set(valuesB);
+    B.set(valuesB);
     double valuesY[] = {2., 0., 0., -1.};
-    Y.matrix_set(valuesY);
-    A.matrix_print();
-    B.matrix_print();
-    Y.matrix_print();
+    Y.set(valuesY);
+    A.print();
+    B.print();
+    Y.print();
 
 
     printf("    A+=B\n");
-    A.matrix_add(B);
-    A.matrix_print();
+    A+=B;
+    A.print();
 
     printf("    A-=B\n");
-    A.matrix_negative_add(B);
-    A.matrix_print();
+    A-=B;
+    A.print();
 
     printf("    C = A + B\n");
-    C.matrix_sum(A, B);
-    C.matrix_print();
+    C = A + B;
+    C.print();
 
     printf("    C = A - B\n");
-    C.matrix_sub(A, B);
-    C.matrix_print();
+    C = A - B;
+    C.print();
 
     printf("    A *= k\n");
-    A.matrix_multiplication_k(5.78);
-    A.matrix_print();
+    A*=5.78;
+    A.print();
 
     printf("    C = A * B\n");
-    C.matrix_multiplication(A, B);
-    C.matrix_print();
+    C = A * B;
+    C.print();
 
     printf("    B = A ^ T\n");
-    C.matrix_transp(A);
-    C.matrix_print();
+    C.T(A);
+    C.print();
 
     printf("    det\n");
-    double det = A.matrix_determinant();
+    double det = A.det();
     printf("%f\n\n", det);
 
     printf("    B = A ^ n\n");
-    C.matrix_pow(A, 1);
-    C.matrix_print();
+    C = A ^ 1;
+    C.print();
 
     printf("    e ^ A\n");
-    Y.matrix_exp(4);
-    Y.matrix_print();
+    Y.exp(2);
+    Y.print();
 
     return 0;
 }
