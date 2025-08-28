@@ -83,7 +83,7 @@
       
    5. Алгоритм Ахо-Корасик
 
-   6. Rabin-Karp алгоритм, Boyer-Moore-Horspool алгоритм
+   6. Rabin-Karp алгоритм, Boyer-Moore-Horspool алгоритм (Дубинин)
 
    7. Алгоритм Укконена
       (Жданов)
