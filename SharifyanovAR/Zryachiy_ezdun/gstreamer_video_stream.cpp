@@ -1,3 +1,5 @@
+//    ###Это код для RaspberryPi###
+
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
