@@ -6,7 +6,7 @@
 #include <conio.h>
 
 std::atomic<bool> running(true);
-std::string raspberry_ip = "10.249.15.101";
+std::string raspberry_ip = "10.133.231.101";
 
 // Глобальный флаг для предотвращения накопления команд
 std::atomic<bool> sending_command(false);
