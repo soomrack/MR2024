@@ -1,5 +1,3 @@
-// ###Это программа для того чтобы "слушать" порт команд на малине, команды при жтом приходят с компа
-
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
@@ -13,105 +11,116 @@ std::atomic<bool> running(true);
 void handleCommand(char command) {
     switch(command) {
         case 'w':
-            std::cout << "Команда: ВПЕРЕД" << std::endl;
-            // Здесь код для движения вперед
+            std::cout << "Command: FORWARD" << std::endl;
+            // Code for forward movement
             break;
         case 'a':
-            std::cout << "Команда: ВЛЕВО" << std::endl;
-            // Здесь код для движения влево
+            std::cout << "Command: LEFT" << std::endl;
+            // Code for left movement
             break;
         case 's':
-            std::cout << "Команда: НАЗАД" << std::endl;
-            // Здесь код для движения назад
+            std::cout << "Command: BACKWARD" << std::endl;
+            // Code for backward movement
             break;
         case 'd':
-            std::cout << "Команда: ВПРАВО" << std::endl;
-            // Здесь код для движения вправо
+            std::cout << "Command: RIGHT" << std::endl;
+            // Code for right movement
             break;
         case ' ':
-            std::cout << "Команда: СТОП" << std::endl;
-            // Здесь код для остановки
+            std::cout << "Command: STOP" << std::endl;
+            // Code for stop
             break;
         case 'q':
-            std::cout << "Завершение работы..." << std::endl;
+            std::cout << "Shutting down..." << std::endl;
             running = false;
             break;
         default:
-            std::cout << "Неизвестная команда: " << command << std::endl;
+            std::cout << "Unknown command: " << command << std::endl;
     }
 }
 
-int main() {
-    int server_fd, new_socket;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char buffer[1024] = {0};
+void handleClient(int client_socket) {
+    char buffer[1024];
     
-    // Создаем socket файловый дескриптор
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        std::cerr << "Ошибка создания socket" << std::endl;
-        return -1;
-    }
+    std::cout << "Client connected!" << std::endl;
+    std::cout << "Available commands: w, a, s, d, space, q(exit)" << std::endl;
     
-    // Устанавливаем опции socket
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        std::cerr << "Ошибка setsockopt" << std::endl;
-        return -1;
-    }
-    
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY; // Принимаем соединения с любого IP
-    address.sin_port = htons(8888); // Порт 8888
-    
-    // Биндим socket к порту
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        std::cerr << "Ошибка bind" << std::endl;
-        return -1;
-    }
-    
-    // Начинаем слушать входящие соединения
-    if (listen(server_fd, 3) < 0) {
-        std::cerr << "Ошибка listen" << std::endl;
-        return -1;
-    }
-    
-    std::cout << "Сервер запущен. Ожидание подключения на порту 8888..." << std::endl;
-    
-    // Принимаем входящее соединение
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        std::cerr << "Ошибка accept" << std::endl;
-        return -1;
-    }
-    
-    std::cout << "Клиент подключен!" << std::endl;
-    std::cout << "Доступные команды: w, a, s, d, space, q(выход)" << std::endl;
-    
-    // Главный цикл приема команд
     while (running) {
         memset(buffer, 0, sizeof(buffer));
         
-        // Читаем данные от клиента
-        int valread = read(new_socket, buffer, 1024);
+        // Read data from client
+        int valread = read(client_socket, buffer, sizeof(buffer));
         
         if (valread > 0) {
-            // Обрабатываем каждую команду в буфере
+            // Process each command in buffer
             for (int i = 0; i < valread; i++) {
                 handleCommand(buffer[i]);
             }
         } else if (valread == 0) {
-            std::cout << "Клиент отключился" << std::endl;
+            std::cout << "Client disconnected" << std::endl;
             break;
         } else {
-            std::cerr << "Ошибка чтения" << std::endl;
+            std::cerr << "Read error" << std::endl;
             break;
         }
     }
     
-    // Закрываем соединения
-    close(new_socket);
+    close(client_socket);
+}
+
+int main() {
+    int server_fd;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    
+    // Create socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        std::cerr << "Socket creation error" << std::endl;
+        return -1;
+    }
+    
+    // Set socket options
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        std::cerr << "setsockopt error" << std::endl;
+        return -1;
+    }
+    
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY; // Accept connections from any IP
+    address.sin_port = htons(8888); // Port 8888
+    
+    // Bind socket to port
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        std::cerr << "Bind error" << std::endl;
+        return -1;
+    }
+    
+    // Start listening for incoming connections
+    if (listen(server_fd, 3) < 0) {
+        std::cerr << "Listen error" << std::endl;
+        return -1;
+    }
+    
+    std::cout << "Server started. Waiting for connection on port 8888..." << std::endl;
+    
+    // Main server loop - accept multiple clients
+    while (running) {
+        int client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        
+        if (client_socket < 0) {
+            std::cerr << "Accept error" << std::endl;
+            continue;
+        }
+        
+        // Handle client in a separate thread
+        std::thread client_thread(handleClient, client_socket);
+        client_thread.detach(); // Don't wait for thread to finish
+    }
+    
+    // Close server socket
     close(server_fd);
     
-    std::cout << "Сервер остановлен" << std::endl;
+    std::cout << "Server stopped" << std::endl;
     return 0;
 }
