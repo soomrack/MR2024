@@ -1,5 +1,3 @@
-//    ###Это код для RaspberryPi###
-
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -13,11 +11,11 @@ int main() {
         // Дочерний процесс - запускаем GStreamer
         std::cout << "Child process: Starting GStreamer" << std::endl;
         
-        execlp("gst-launch-1.0", "gst-launch-1.0", //здесь вместо 10.249.15.183 вводиим ip компа в локальной сети
+        execlp("gst-launch-1.0", "gst-launch-1.0",
                "v4l2src", "device=/dev/video0", "!",
                "image/jpeg,width=640,height=480,framerate=30/1", "!",
                "rtpjpegpay", "!", 
-               "udpsink", "host=10.249.15.183", "port=5600", "sync=false",
+               "udpsink", "host=10.133.231.183", "port=5600", "sync=false",
                NULL);
         
         // Если выполнение дошло до этой точки - ошибка!
