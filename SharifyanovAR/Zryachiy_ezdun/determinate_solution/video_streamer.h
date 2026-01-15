@@ -53,9 +53,9 @@ private:
             "t. ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 "
             "! autovideosink "
             "t. ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 "
-            "! x264enc bitrate=8000 speed-preset=ultrafast tune=zerolatency key-int-max=30 "
+            "! x264enc bitrate=1000 speed-preset=ultrafast tune=zerolatency key-int-max=30 "
             "! h264parse "
-            "! matroskamux streamable=true "  
+            "! matroskamux streamable=true "
             "! filesink location=\"" + output_file + "\"";
 
 
