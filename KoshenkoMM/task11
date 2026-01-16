@@ -1,0 +1,234 @@
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+#include <cmath>
+#include <iomanip>
+
+class Matrix {
+private:
+    size_t cols;
+    size_t rows;
+    std::vector<double> data;
+
+public:
+    // Конструкторы
+    Matrix(size_t cols, size_t rows) : cols(cols), rows(rows), data(cols * rows, 0.0) {}
+    Matrix() : cols(0), rows(0) {} // Пустая матрица
+
+    // Создание единичной матрицы
+    static Matrix identity(size_t size) {
+        Matrix m(size, size);
+        for(size_t i = 0; i < size; ++i)
+            m(i, i) = 1.0;
+        return m;
+    }
+
+    // Доступ к элементам
+    double& operator()(size_t row, size_t col) {
+        return data[row * cols + col];
+    }
+
+    const double& operator()(size_t row, size_t col) const {
+        return data[row * cols + col];
+    }
+
+    // Операции с матрицами
+    Matrix operator+(const Matrix& other) const {
+        if(cols != other.cols || rows != other.rows)
+            throw std::invalid_argument("Matrix dimensions mismatch for addition");
+        
+        Matrix result(cols, rows);
+        for(size_t i = 0; i < data.size(); ++i)
+            result.data[i] = data[i] + other.data[i];
+        return result;
+    }
+
+    Matrix operator-(const Matrix& other) const {
+        if(cols != other.cols || rows != other.rows)
+            throw std::invalid_argument("Matrix dimensions mismatch for subtraction");
+        
+        Matrix result(cols, rows);
+        for(size_t i = 0; i < data.size(); ++i)
+            result.data[i] = data[i] - other.data[i];
+        return result;
+    }
+
+    Matrix operator*(const Matrix& other) const {
+        if(cols != other.rows)
+            throw std::invalid_argument("Matrix dimensions mismatch for multiplication");
+        
+        Matrix result(other.cols, rows);
+        for(size_t i = 0; i < rows; ++i) {
+            for(size_t j = 0; j < other.cols; ++j) {
+                double sum = 0.0;
+                for(size_t k = 0; k < cols; ++k)
+                    sum += (*this)(i, k) * other(k, j);
+                result(i, j) = sum;
+            }
+        }
+        return result;
+    }
+
+    Matrix transpose() const {
+        Matrix result(rows, cols);
+        for(size_t i = 0; i < rows; ++i)
+            for(size_t j = 0; j < cols; ++j)
+                result(j, i) = (*this)(i, j);
+        return result;
+    }
+
+    Matrix multiply_scalar(double scalar) const {
+        Matrix result = *this;
+        for(auto& val : result.data)
+            val *= scalar;
+        return result;
+    }
+
+    // Вычисление определителя
+    double determinant() const {
+        if(cols != rows)
+            throw std::invalid_argument("Matrix must be square for determinant calculation");
+        
+        Matrix temp = *this;
+        double det = 1.0;
+        
+        for(size_t i = 0; i < cols; ++i) {
+            size_t pivot = i;
+            
+            for(size_t j = i + 1; j < cols; ++j)
+                if(fabs(temp(j, i)) > fabs(temp(pivot, i)))
+                    pivot = j;
+            
+            if(pivot != i) {
+                temp.data.swap_ranges(temp.data.begin() + i*cols,
+                                     temp.data.begin() + (i+1)*cols,
+                                     temp.data.begin() + pivot*cols);
+                det *= -1;
+            }
+            
+            if(temp(i, i) == 0.0)
+                return 0.0;
+            
+            for(size_t j = i + 1; j < cols; ++j) {
+                double factor = temp(j, i) / temp(i, i);
+                for(size_t k = i; k < cols; ++k)
+                    temp(j, k) -= factor * temp(i, k);
+            }
+            det *= temp(i, i);
+        }
+        return det;
+    }
+
+    // Обратная матрица
+    Matrix inverse() const {
+        if(cols != rows)
+            throw std::invalid_argument("Matrix must be square for inversion");
+        
+        double det = determinant();
+        if(det == 0.0)
+            throw std::invalid_argument("Matrix is singular and cannot be inverted");
+        
+        Matrix augmented(cols*2, rows);
+        for(size_t i = 0; i < rows; ++i) {
+            for(size_t j = 0; j < cols; ++j)
+                augmented(i, j) = (*this)(i, j);
+            augmented(i, cols + i) = 1.0;
+        }
+        
+        for(size_t i = 0; i < cols; ++i) {
+            double pivot = augmented(i, i);
+            for(size_t j = 0; j < cols*2; ++j)
+                augmented(i, j) /= pivot;
+            
+            for(size_t k = 0; k < rows; ++k) {
+                if(k != i) {
+                    double factor = augmented(k, i);
+                    for(size_t j = 0; j < cols*2; ++j)
+                        augmented(k, j) -= factor * augmented(i, j);
+                }
+            }
+        }
+        
+        Matrix result(cols, rows);
+        for(size_t i = 0; i < rows; ++i)
+            for(size_t j = 0; j < cols; ++j)
+                result(i, j) = augmented(i, cols + j);
+        
+        return result;
+    }
+
+    // Экспонента матрицы
+    Matrix exponent(unsigned n_terms) const {
+        if(cols != rows)
+            throw std::invalid_argument("Matrix must be square for exponentiation");
+        
+        Matrix result = identity(cols);
+        Matrix term = identity(cols);
+        
+        for(unsigned k = 1; k <= n_terms; ++k) {
+            term = term * (*this);
+            term = term.multiply_scalar(1.0 / k);
+            result = result + term;
+        }
+        return result;
+    }
+
+    // Вывод матрицы
+    void print(const std::string& title) const {
+        std::cout << title << "\n";
+        for(size_t i = 0; i < rows; ++i) {
+            std::cout << "[";
+            for(size_t j = 0; j < cols; ++j) {
+                std::cout << std::fixed << std::setw(6) << std::setprecision(2) << (*this)(i, j);
+                if(j < cols - 1) std::cout << " ";
+            }
+            std::cout << "]\n";
+        }
+        std::cout << "\n";
+    }
+
+    // Вывод определителя
+    void print_determinant(const std::string& title) const {
+        std::cout << title << "\n" << determinant() << "\n\n";
+    }
+};
+
+int main() {
+    try {
+        Matrix A(2, 2);
+        A(0, 0) = 1; A(0, 1) = 2;
+        A(1, 0) = 3; A(1, 1) = 4;
+
+        Matrix B(2, 2);
+        B(0, 0) = 1; B(0, 1) = 1;
+        B(1, 0) = 2; B(1, 1) = 2;
+
+        Matrix E = Matrix::identity(2);
+
+        Matrix C = A + B;
+        Matrix D = A - B;
+        Matrix P = A * B;
+        Matrix T = A.transpose();
+        Matrix K = A.multiply_scalar(2.0);
+        Matrix invA = A.inverse();
+        Matrix expA = A.exponent(3);
+
+        A.print("Matrix A:");
+        B.print("Matrix B:");
+        C.print("C = A + B:");
+        D.print("D = A - B:");
+        P.print("P = A * B:");
+        T.print("Transpose of A:");
+        K.print("K = 2 * A:");
+        E.print("Identity matrix:");
+        A.print_determinant("Determinant of A:");
+        expA.print("Matrix exponential of A:");
+        invA.print("Inverse of A:");
+
+    } catch(const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
