@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef VIDEO_STREAMER_H
 #define VIDEO_STREAMER_H
 

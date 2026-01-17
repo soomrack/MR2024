@@ -3,7 +3,6 @@
 #ifndef COMMAND_SENDER_H
 #define COMMAND_SENDER_H
 
-// ВАЖНО: сначала winsock2, потом windows.h
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
@@ -46,11 +45,9 @@ private:
         serverAddr.sin_family = AF_INET;
         serverAddr.sin_port = htons(Config::COMMAND_PORT);
 
-        // Используем старый способ вместо inet_pton
         serverAddr.sin_addr.s_addr = inet_addr(Config::RASPBERRY_IP.c_str());
 
-        // Устанавливаем таймауты
-        int timeout = 3000; // 3 секунды
+        int timeout = 3000;
         setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
         setsockopt(clientSocket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 
@@ -80,13 +77,11 @@ private:
                 connected = false;
                 closesocket(clientSocket);
 
-                // Пытаемся переподключиться
                 if (connectToRobot()) {
                     send(clientSocket, buffer, strlen(buffer), 0);
                 }
             }
             else {
-                // Вывод команды
                 switch (command) {
                 case 'w': std::cout << ">>> FORWARD" << std::endl; break;
                 case 's': std::cout << ">>> BACKWARD" << std::endl; break;
@@ -142,7 +137,6 @@ public:
         std::cout << "======================" << std::endl;
         std::cout << "Ready for commands..." << std::endl;
 
-        // Очищаем буфер клавиатуры
         while (_kbhit()) _getch();
 
         while (running) {
@@ -159,7 +153,7 @@ public:
                 }
             }
             else {
-                // Автостоп при отпускании
+
                 if (lastCommand != ' ' && lastCommand != 'q') {
                     sendCommand(' ');
                 }
@@ -168,7 +162,6 @@ public:
             Sleep(50);
         }
 
-        // Отправляем финальный стоп
         if (connected) {
             sendCommand(' ');
         }
