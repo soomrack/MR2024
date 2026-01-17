@@ -8,224 +8,176 @@
 #include <atomic>
 #include <fcntl.h>
 #include <termios.h>
-#include <unistd.h>
 #include <vector>
 #include <errno.h>
 
-#define PC_PORT 8888
+#define COMMAND_PORT 8888
+#define DATA_PORT_UDP 5601
 #define BUFFER_SIZE 1024
-#define SERIAL_PORT "/dev/ttyUSB0"
 #define SERIAL_BAUD 115200
 
 class SerialCommunicator {
 private:
     int serial_fd;
+    int udp_socket;
+
     std::atomic<bool> running;
     std::atomic<bool> connected;
+
     std::thread read_thread;
     std::mutex data_mutex;
     std::string last_sensor_data;
-    int client_socket;
-    
+
+    sockaddr_in pc_addr{};
+    sockaddr_in udp_bind_addr{};
+
 public:
-    SerialCommunicator() : serial_fd(-1), running(false), connected(false), client_socket(-1) {}
-    
+    SerialCommunicator()
+        : serial_fd(-1), udp_socket(-1), running(false), connected(false) {}
+
     ~SerialCommunicator() {
         disconnect();
     }
-    
-    bool connect(const std::string& port = SERIAL_PORT, int baudrate = SERIAL_BAUD) {
-        std::vector<std::string> possible_ports = {
+
+    bool connect(int baudrate = SERIAL_BAUD) {
+        std::vector<std::string> ports = {
             "/dev/ttyUSB0",
             "/dev/ttyUSB1",
             "/dev/ttyACM0",
             "/dev/ttyACM1"
         };
-        
-        std::string found_port;
-        int found_fd = -1;
-        
-        for (const auto& p : possible_ports) {
-            std::cout << "Попытка подключения к " << p << "..." << std::endl;
-            int fd = open(p.c_str(), O_RDWR | O_NOCTTY);
-            if (fd >= 0) {
-                std::cout << "Найден порт: " << p << std::endl;
-                found_port = p;
-                found_fd = fd;
+
+        for (auto &p : ports) {
+            serial_fd = open(p.c_str(), O_RDWR | O_NOCTTY);
+            if (serial_fd >= 0) {
+                std::cout << "Connected to Arduino on " << p << std::endl;
                 break;
             }
         }
-        
-        if (found_fd < 0) {
-            std::cerr << "Не удалось найти Arduino. Проверьте подключение." << std::endl;
-            std::cerr << "Попробуйте: ls /dev/tty*" << std::endl;
-            connected = false;
+
+        if (serial_fd < 0) {
+            std::cerr << "Arduino not found" << std::endl;
             return false;
         }
-        
-        serial_fd = found_fd;
-        std::cout << "Подключено к " << found_port << std::endl;
-        
-        struct termios tty;
-        memset(&tty, 0, sizeof(tty));
-        
-        if (tcgetattr(serial_fd, &tty) != 0) {
-            std::cerr << "Ошибка получения параметров порта: " << strerror(errno) << std::endl;
-            close(serial_fd);
-            connected = false;
-            return false;
-        }
-        
-        speed_t speed;
-        switch(baudrate) {
-            case 9600: speed = B9600; break;
-            case 19200: speed = B19200; break;
-            case 38400: speed = B38400; break;
-            case 57600: speed = B57600; break;
-            case 115200: speed = B115200; break;
-            default: speed = B115200; break;
-        }
-        
-        cfsetospeed(&tty, speed);
-        cfsetispeed(&tty, speed);
-        
-        tty.c_cflag &= ~PARENB;
-        tty.c_cflag &= ~CSTOPB;
-        tty.c_cflag &= ~CSIZE;
-        tty.c_cflag |= CS8;
-        tty.c_cflag &= ~CRTSCTS;
+
+        termios tty{};
+        tcgetattr(serial_fd, &tty);
+
+        cfsetospeed(&tty, B115200);
+        cfsetispeed(&tty, B115200);
+
+        tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
         tty.c_cflag |= CREAD | CLOCAL;
-        
-        tty.c_iflag &= ~(IXON | IXOFF | IXANY);
-        tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
-        
-        tty.c_oflag &= ~OPOST;
-        tty.c_oflag &= ~ONLCR;
-        
+        tty.c_cflag &= ~(PARENB | CSTOPB | CRTSCTS);
+
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY | ICRNL);
         tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-        
-        tty.c_cc[VMIN] = 0;
-        tty.c_cc[VTIME] = 10;
-        
-        if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
-            std::cerr << "Ошибка установки параметров порта: " << strerror(errno) << std::endl;
-            close(serial_fd);
-            connected = false;
+        tty.c_oflag &= ~OPOST;
+
+        tty.c_cc[VMIN]  = 0;
+        tty.c_cc[VTIME] = 5;
+
+        tcsetattr(serial_fd, TCSANOW, &tty);
+        tcflush(serial_fd, TCIOFLUSH);
+
+        // ===== UDP =====
+        udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+        if (udp_socket < 0) {
+            std::cerr << "UDP socket create error: " << strerror(errno) << std::endl;
             return false;
         }
-        
-        tcflush(serial_fd, TCIOFLUSH);
-        
-        usleep(2000000);
-        
-        std::cout << "Настройка порта завершена" << std::endl;
-        connected = true;
-        
+
+        int reuse = 1;
+        setsockopt(udp_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+
+        udp_bind_addr.sin_family = AF_INET;
+        udp_bind_addr.sin_addr.s_addr = INADDR_ANY;
+        udp_bind_addr.sin_port = 0;
+
+        bind(udp_socket, (sockaddr*)&udp_bind_addr, sizeof(udp_bind_addr));
+
+        pc_addr.sin_family = AF_INET;
+        pc_addr.sin_port = htons(DATA_PORT_UDP);
+        pc_addr.sin_addr.s_addr = inet_addr("10.133.231.183");
+
         running = true;
+        connected = true;
         read_thread = std::thread(&SerialCommunicator::readLoop, this);
-        
+
         return true;
     }
-    
+
     bool isConnected() const {
         return connected;
     }
-    
-    void setClientSocket(int socket) {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        client_socket = socket;
-    }
-    
-    void sendToArduino(const std::string& command) {
-        if (serial_fd >= 0 && !command.empty()) {
-            ssize_t written = write(serial_fd, command.c_str(), command.length());
-            if (written > 0) {
-                std::cout << "Отправлено на Arduino: '" << command << "'" << std::endl;
-            } else {
-                std::cerr << "Ошибка отправки на Arduino" << std::endl;
-            }
+
+    void sendToArduino(const std::string &cmd) {
+        if (serial_fd >= 0) {
+            write(serial_fd, cmd.c_str(), cmd.size());
         }
     }
-    
-    std::string getLastSensorData() {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        return last_sensor_data;
-    }
-    
+
     void readLoop() {
-        char buffer[256];
-        std::string data_buffer;
-        
-        std::cout << "Поток чтения с Arduino запущен" << std::endl;
-        
+        char buf[256];
+        std::string buffer;
+
         while (running) {
-            memset(buffer, 0, sizeof(buffer));
-            ssize_t n = read(serial_fd, buffer, sizeof(buffer) - 1);
-            
+            ssize_t n = read(serial_fd, buf, sizeof(buf));
+
             if (n > 0) {
-                data_buffer.append(buffer, n);
-                
+                buffer.append(buf, n);
                 size_t pos;
-                while ((pos = data_buffer.find('\n')) != std::string::npos) {
-                    std::string line = data_buffer.substr(0, pos);
-                    data_buffer.erase(0, pos + 1);
-                    
-                    if (!line.empty() && line.back() == '\r') {
+                while ((pos = buffer.find('\n')) != std::string::npos) {
+                    std::string line = buffer.substr(0, pos);
+                    buffer.erase(0, pos + 1);
+                    if (!line.empty() && line.back() == '\r')
                         line.pop_back();
-                    }
-                    
-                    if (!line.empty()) {
-                        processLine(line);
-                    }
+                    processLine(line);
                 }
             } else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-                std::cerr << "Ошибка чтения с Arduino: " << strerror(errno) << std::endl;
+                std::cerr << "Serial read error: " << strerror(errno) << std::endl;
                 break;
             }
-            
-            usleep(10000);
+
+            usleep(5000);
         }
-        
-        std::cout << "Поток чтения с Arduino завершен" << std::endl;
+
+        std::cout << "Serial read thread stopped" << std::endl;
     }
-    
-    void processLine(const std::string& line) {
-        std::cout << "Получено от Arduino: " << line << std::endl;
-        
-        {
-            std::lock_guard<std::mutex> lock(data_mutex);
-            
-            // Сохраняем данные сенсора (добавлены DISTANCE: и WARN:)
-            if (line.find("SENSOR:") == 0 || line.find("S:") == 0 || 
-                line.find("CMD:") == 0 || line.find("READY") == 0 ||
-                line.find("EXIT") == 0 || line.find("DISTANCE:") == 0 ||
-                line.find("WARN:") == 0) {
-                last_sensor_data = line;
-            }
-            
-            // Отправляем данные на ПК, если есть подключение
-            if (client_socket >= 0) {
-                std::string data_to_send = line + "\n";
-                ssize_t sent = send(client_socket, data_to_send.c_str(), data_to_send.length(), 0);
-                if (sent <= 0) {
-                    std::cerr << "Ошибка отправки данных на ПК" << std::endl;
-                }
-            }
+
+    void processLine(const std::string &line) {
+        std::cout << "Arduino: " << line << std::endl;
+        sendToPC(line);
+    }
+
+    void sendToPC(const std::string &msg) {
+        std::string out = msg + "\n";
+        ssize_t sent = sendto(
+            udp_socket,
+            out.c_str(),
+            out.size(),
+            0,
+            (sockaddr*)&pc_addr,
+            sizeof(pc_addr)
+        );
+
+        if (sent < 0) {
+            std::cerr << "UDP send error: " << strerror(errno) << std::endl;
         }
     }
-    
+
     void disconnect() {
         running = false;
         connected = false;
-        
-        if (read_thread.joinable()) {
+
+        if (read_thread.joinable())
             read_thread.join();
-        }
-        
-        if (serial_fd >= 0) {
+
+        if (serial_fd >= 0)
             close(serial_fd);
-            serial_fd = -1;
-        }
+
+        if (udp_socket >= 0)
+            close(udp_socket);
     }
 };
 
@@ -233,214 +185,73 @@ class RobotController {
 private:
     SerialCommunicator arduino;
     std::atomic<bool> running;
-    
+
 public:
     RobotController() : running(true) {
-        std::cout << "Инициализация контроллера робота..." << std::endl;
-        
         if (!arduino.connect()) {
-            std::cerr << "Не удалось подключиться к Arduino" << std::endl;
             running = false;
-        } else {
-            std::cout << "Arduino подключен успешно" << std::endl;
         }
     }
-    
-    ~RobotController() {
-        stop();
+
+    bool isRunning() const {
+        return running;
     }
-    
-    void setClientSocket(int socket) {
-        arduino.setClientSocket(socket);
-    }
-    
-    void executeCommand(char command) {
-        if (!arduino.isConnected()) {
-            std::cerr << "Arduino не подключен!" << std::endl;
-            return;
-        }
-        
-        switch(command) {
-            case 'w':
-                std::cout << "Движение ВПЕРЕД" << std::endl;
-                arduino.sendToArduino("w");
-                break;
-            case 's':
-                std::cout << "Движение НАЗАД" << std::endl;
-                arduino.sendToArduino("s");
-                break;
-            case 'a':
-                std::cout << "Поворот ВЛЕВО" << std::endl;
-                arduino.sendToArduino("a");
-                break;
-            case 'd':
-                std::cout << "Поворот ВПРАВО" << std::endl;
-                arduino.sendToArduino("d");
-                break;
-            case ' ':
-                std::cout << "СТОП" << std::endl;
-                arduino.sendToArduino(" ");
-                break;
+
+    void executeCommand(char c) {
+        switch (c) {
+            case 'w': arduino.sendToArduino("w\n"); break;
+            case 's': arduino.sendToArduino("s\n"); break;
+            case 'a': arduino.sendToArduino("a\n"); break;
+            case 'd': arduino.sendToArduino("d\n"); break;
+            case ' ': arduino.sendToArduino(" \n"); break;
             case 'q':
-                std::cout << "ВЫХОД" << std::endl;
-                arduino.sendToArduino("q");
+                arduino.sendToArduino("q\n");
                 running = false;
                 break;
-            default:
-                std::cout << "Неизвестная команда: " << command << std::endl;
+            default: break;
         }
-    }
-    
-    bool isRunning() const { 
-        return running; 
-    }
-    
-    bool isArduinoConnected() const {
-        return arduino.isConnected();
-    }
-    
-    void stop() {
-        if (arduino.isConnected()) {
-            arduino.sendToArduino(" ");
-        }
-        arduino.disconnect();
-        running = false;
     }
 };
 
-void handleClient(int clientSocket, RobotController& robot) {
-    char buffer[BUFFER_SIZE];
-    
-    robot.setClientSocket(clientSocket);
-    
-    std::string welcome = "Подключено к Raspberry Pi. Ожидание команд...\n";
-    send(clientSocket, welcome.c_str(), welcome.length(), 0);
-    
-    std::cout << "Начата обработка клиента" << std::endl;
-    
-    while(robot.isRunning()) {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(clientSocket, &readfds);
-        
-        struct timeval timeout;
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
-        
-        int activity = select(clientSocket + 1, &readfds, NULL, NULL, &timeout);
-        
-        if (activity < 0) {
-            std::cerr << "Ошибка select: " << strerror(errno) << std::endl;
-            break;
+void handleCommandClient(int client, RobotController &robot) {
+    char buf[BUFFER_SIZE];
+    while (robot.isRunning()) {
+        int n = recv(client, buf, sizeof(buf), 0);
+        if (n <= 0) break;
+
+        for (int i = 0; i < n; i++) {
+            if (buf[i] == '\n' || buf[i] == '\r') continue;
+            robot.executeCommand(buf[i]);
         }
-        
-        if (activity > 0 && FD_ISSET(clientSocket, &readfds)) {
-            memset(buffer, 0, BUFFER_SIZE);
-            
-            int bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
-            if(bytesRead <= 0) {
-                std::cout << "Клиент отключился или ошибка чтения: " << strerror(errno) << std::endl;
-                break;
-            }
-            
-            if(buffer[0] != '\0') {
-                std::cout << "Получена команда от ПК: '" << buffer[0] << "'" << std::endl;
-                robot.executeCommand(buffer[0]);
-            }
-        }
-        
-        usleep(100000);
     }
-    
-    std::cout << "Завершение обработки клиента" << std::endl;
-    close(clientSocket);
-    robot.setClientSocket(-1);
+    close(client);
 }
 
 int main() {
-    int serverSocket, clientSocket;
-    struct sockaddr_in serverAddr, clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
-    
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if(serverSocket < 0) {
-        std::cerr << "Ошибка создания сокета: " << strerror(errno) << std::endl;
-        return 1;
-    }
-    
+    int server = socket(AF_INET, SOCK_STREAM, 0);
     int opt = 1;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        std::cerr << "Ошибка установки SO_REUSEADDR/SO_REUSEPORT: " << strerror(errno) << std::endl;
-        close(serverSocket);
-        return 1;
-    }
-    
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PC_PORT);
-    
-    if(bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        std::cerr << "Ошибка привязки сокета: " << strerror(errno) << std::endl;
-        std::cerr << "Порт " << PC_PORT << " занят. Подождите 10 секунд или убейте процесс." << std::endl;
-        close(serverSocket);
-        
-        sleep(10);
-        
-        serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-        if (serverSocket < 0) {
-            std::cerr << "Ошибка повторного создания сокета" << std::endl;
-            return 1;
-        }
-        
-        setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
-        
-        if(bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-            std::cerr << "Повторная привязка также не удалась" << std::endl;
-            close(serverSocket);
-            return 1;
-        }
-    }
-    
-    if(listen(serverSocket, 5) < 0) {
-        std::cerr << "Ошибка прослушивания: " << strerror(errno) << std::endl;
-        close(serverSocket);
-        return 1;
-    }
-    
-    std::cout << "Сервер робота запущен на порту " << PC_PORT << std::endl;
-    std::cout << "Подключение к Arduino..." << std::endl;
-    
+    setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(COMMAND_PORT);
+
+    bind(server, (sockaddr*)&addr, sizeof(addr));
+    listen(server, 5);
+
+    std::cout << "TCP command server on port " << COMMAND_PORT << std::endl;
+    std::cout << "UDP sensor sender on port " << DATA_PORT_UDP << std::endl;
+
     RobotController robot;
-    
-    if (!robot.isArduinoConnected()) {
-        std::cerr << "Предупреждение: Arduino не подключен, некоторые функции будут недоступны" << std::endl;
-        std::cout << "Попробуйте выполнить команду: ls /dev/tty*" << std::endl;
-    } else {
-        std::cout << "Arduino успешно подключена" << std::endl;
-    }
-    
-    std::cout << "Ожидание подключения клиента..." << std::endl;
-    std::cout << "Для подключения используйте: telnet <ip_малины> " << PC_PORT << std::endl;
-    
-    while(robot.isRunning()) {
-        clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
-        if(clientSocket < 0) {
-            if (errno != EINTR) {
-                std::cerr << "Ошибка принятия подключения: " << strerror(errno) << std::endl;
-            }
-            continue;
+
+    while (robot.isRunning()) {
+        int client = accept(server, nullptr, nullptr);
+        if (client >= 0) {
+            std::thread(handleCommandClient, client, std::ref(robot)).detach();
         }
-        
-        std::cout << "Клиент подключен! IP: " << inet_ntoa(clientAddr.sin_addr) 
-                  << " Порт: " << ntohs(clientAddr.sin_port) << std::endl;
-        
-        handleClient(clientSocket, robot);
-        
-        std::cout << "Ожидание нового подключения..." << std::endl;
     }
-    
-    std::cout << "Сервер завершает работу..." << std::endl;
-    close(serverSocket);
-    
+
+    close(server);
     return 0;
 }
