@@ -1,10 +1,10 @@
-// command_sender.h
 #pragma once
 #ifndef COMMAND_SENDER_H
 #define COMMAND_SENDER_H
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -14,6 +14,7 @@
 #include <thread>
 #include <atomic>
 #include <string>
+
 #include "config.h"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -41,17 +42,17 @@ private:
             return false;
         }
 
-        sockaddr_in serverAddr;
+        sockaddr_in serverAddr{};
         serverAddr.sin_family = AF_INET;
         serverAddr.sin_port = htons(Config::COMMAND_PORT);
-
         serverAddr.sin_addr.s_addr = inet_addr(Config::RASPBERRY_IP.c_str());
 
         int timeout = 3000;
         setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
         setsockopt(clientSocket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 
-        std::cout << "Connecting to robot at " << Config::RASPBERRY_IP << ":" << Config::COMMAND_PORT << "..." << std::endl;
+        std::cout << "Connecting to robot at "
+            << Config::RASPBERRY_IP << ":" << Config::COMMAND_PORT << "..." << std::endl;
 
         if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
             std::cerr << "Connection failed: " << WSAGetLastError() << std::endl;
@@ -64,39 +65,46 @@ private:
     }
 
     void sendCommand(char command) {
-        if (!connected || clientSocket == INVALID_SOCKET) return;
+        if (!connected || clientSocket == INVALID_SOCKET)
+            return;
 
-        if (command != lastCommand) {
-            lastCommand = command;
+        if (command == lastCommand)
+            return;
 
-            char buffer[2] = { command, '\0' };
-            int result = send(clientSocket, buffer, strlen(buffer), 0);
+        lastCommand = command;
 
-            if (result == SOCKET_ERROR) {
-                std::cerr << "Send failed, trying to reconnect..." << std::endl;
-                connected = false;
-                closesocket(clientSocket);
+        char buffer[2] = { command, '\0' };
+        int result = send(clientSocket, buffer, 1, 0);
 
-                if (connectToRobot()) {
-                    send(clientSocket, buffer, strlen(buffer), 0);
-                }
+        if (result == SOCKET_ERROR) {
+            std::cerr << "Send failed, reconnecting..." << std::endl;
+            connected = false;
+            closesocket(clientSocket);
+
+            if (connectToRobot()) {
+                send(clientSocket, buffer, 1, 0);
             }
-            else {
-                switch (command) {
-                case 'w': std::cout << ">>> FORWARD" << std::endl; break;
-                case 's': std::cout << ">>> BACKWARD" << std::endl; break;
-                case 'a': std::cout << ">>> LEFT" << std::endl; break;
-                case 'd': std::cout << ">>> RIGHT" << std::endl; break;
-                case ' ': std::cout << ">>> STOP" << std::endl; break;
-                case 'q': std::cout << ">>> QUIT" << std::endl; break;
-                }
-            }
+            return;
+        }
+
+        switch (command) {
+        case 'w': std::cout << ">>> FORWARD" << std::endl; break;
+        case 's': std::cout << ">>> BACKWARD" << std::endl; break;
+        case 'a': std::cout << ">>> LEFT" << std::endl; break;
+        case 'd': std::cout << ">>> RIGHT" << std::endl; break;
+        case ' ': std::cout << ">>> STOP" << std::endl; break;
+        case 'l': std::cout << ">>> LOST MODE (RETURN HOME)" << std::endl; break;
+        case 'q': std::cout << ">>> QUIT" << std::endl; break;
+        default: break;
         }
     }
 
 public:
-    CommandSender() : running(true), connected(false),
-        clientSocket(INVALID_SOCKET), lastCommand(' ') {}
+    CommandSender()
+        : running(true),
+        connected(false),
+        clientSocket(INVALID_SOCKET),
+        lastCommand('\0') {}
 
     ~CommandSender() {
         stop();
@@ -104,7 +112,8 @@ public:
 
     void initialize() {
         std::cout << "=== Command Sender Initialized ===" << std::endl;
-        std::cout << "Target: " << Config::RASPBERRY_IP << ":" << Config::COMMAND_PORT << std::endl;
+        std::cout << "Target: " << Config::RASPBERRY_IP
+            << ":" << Config::COMMAND_PORT << std::endl;
 
         if (!initializeWinsock()) {
             running = false;
@@ -133,6 +142,7 @@ public:
         std::cout << "S - Backward" << std::endl;
         std::cout << "D - Right" << std::endl;
         std::cout << "SPACE - Stop" << std::endl;
+        std::cout << "L - Lost mode (return home)" << std::endl;
         std::cout << "Q - Quit" << std::endl;
         std::cout << "======================" << std::endl;
         std::cout << "Ready for commands..." << std::endl;
@@ -141,20 +151,21 @@ public:
 
         while (running) {
             if (_kbhit()) {
-                char key = _getch();
-                key = tolower(key);
+                char key = tolower(_getch());
 
                 if (key == 'q') {
+                    sendCommand('q');
                     running = false;
                     break;
                 }
-                else if (key == 'w' || key == 'a' || key == 's' || key == 'd' || key == ' ') {
+
+                if (key == 'w' || key == 'a' || key == 's' ||
+                    key == 'd' || key == ' ' || key == 'l') {
                     sendCommand(key);
                 }
             }
             else {
-
-                if (lastCommand != ' ' && lastCommand != 'q') {
+                if (lastCommand != ' ' && lastCommand != 'l') {
                     sendCommand(' ');
                 }
             }
@@ -162,21 +173,18 @@ public:
             Sleep(50);
         }
 
-        if (connected) {
-            sendCommand(' ');
-        }
+        sendCommand(' ');
     }
 
     void stop() {
         running = false;
 
-        if (connected) {
-            if (clientSocket != INVALID_SOCKET) {
-                closesocket(clientSocket);
-            }
-            WSACleanup();
-            connected = false;
+        if (connected && clientSocket != INVALID_SOCKET) {
+            closesocket(clientSocket);
         }
+
+        WSACleanup();
+        connected = false;
 
         std::cout << "Command sender stopped" << std::endl;
     }
