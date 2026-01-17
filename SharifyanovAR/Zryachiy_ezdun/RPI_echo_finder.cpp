@@ -9,112 +9,86 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <vector>
-#include <errno.h>
+#include <deque>
+#include <chrono>
 
 #define COMMAND_PORT 8888
 #define DATA_PORT_UDP 5601
 #define BUFFER_SIZE 1024
-#define SERIAL_BAUD 115200
+
+// ===================== UTILS =====================
+
+char invertCommand(char c) {
+    switch (c) {
+        case 'w': return 's';
+        case 's': return 'w';
+        case 'a': return 'd';
+        case 'd': return 'a';
+        case ' ': return ' ';
+        default:  return 0;
+    }
+}
+
+struct TimedCommand {
+    char cmd;
+    std::chrono::milliseconds duration;
+};
+
+// ================= SERIAL + UDP ==================
 
 class SerialCommunicator {
 private:
-    int serial_fd;
-    int udp_socket;
-
-    std::atomic<bool> running;
-    std::atomic<bool> connected;
-
-    std::thread read_thread;
-    std::mutex data_mutex;
-    std::string last_sensor_data;
-
+    int serial_fd{-1};
+    int udp_socket{-1};
     sockaddr_in pc_addr{};
-    sockaddr_in udp_bind_addr{};
+    std::thread read_thread;
+    std::atomic<bool> running{false};
 
 public:
-    SerialCommunicator()
-        : serial_fd(-1), udp_socket(-1), running(false), connected(false) {}
-
-    ~SerialCommunicator() {
-        disconnect();
-    }
-
-    bool connect(int baudrate = SERIAL_BAUD) {
+    bool connect() {
         std::vector<std::string> ports = {
             "/dev/ttyUSB0",
-            "/dev/ttyUSB1",
-            "/dev/ttyACM0",
-            "/dev/ttyACM1"
+            "/dev/ttyACM0"
         };
 
-        for (auto &p : ports) {
+        for (auto& p : ports) {
             serial_fd = open(p.c_str(), O_RDWR | O_NOCTTY);
             if (serial_fd >= 0) {
-                std::cout << "Connected to Arduino on " << p << std::endl;
+                std::cout << "[SERIAL] Arduino on " << p << std::endl;
                 break;
             }
         }
-
         if (serial_fd < 0) {
-            std::cerr << "Arduino not found" << std::endl;
+            std::cerr << "[SERIAL] Arduino not found\n";
             return false;
         }
 
         termios tty{};
         tcgetattr(serial_fd, &tty);
-
         cfsetospeed(&tty, B115200);
         cfsetispeed(&tty, B115200);
-
         tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
         tty.c_cflag |= CREAD | CLOCAL;
         tty.c_cflag &= ~(PARENB | CSTOPB | CRTSCTS);
-
-        tty.c_iflag &= ~(IXON | IXOFF | IXANY | ICRNL);
-        tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+        tty.c_lflag &= ~(ICANON | ECHO | ISIG);
         tty.c_oflag &= ~OPOST;
-
-        tty.c_cc[VMIN]  = 0;
-        tty.c_cc[VTIME] = 5;
-
         tcsetattr(serial_fd, TCSANOW, &tty);
-        tcflush(serial_fd, TCIOFLUSH);
 
-        // ===== UDP =====
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
-        if (udp_socket < 0) {
-            std::cerr << "UDP socket create error: " << strerror(errno) << std::endl;
-            return false;
-        }
-
-        int reuse = 1;
-        setsockopt(udp_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-
-        udp_bind_addr.sin_family = AF_INET;
-        udp_bind_addr.sin_addr.s_addr = INADDR_ANY;
-        udp_bind_addr.sin_port = 0;
-
-        bind(udp_socket, (sockaddr*)&udp_bind_addr, sizeof(udp_bind_addr));
-
         pc_addr.sin_family = AF_INET;
         pc_addr.sin_port = htons(DATA_PORT_UDP);
         pc_addr.sin_addr.s_addr = inet_addr("10.133.231.183");
 
         running = true;
-        connected = true;
         read_thread = std::thread(&SerialCommunicator::readLoop, this);
-
         return true;
     }
 
-    bool isConnected() const {
-        return connected;
-    }
-
-    void sendToArduino(const std::string &cmd) {
-        if (serial_fd >= 0) {
-            write(serial_fd, cmd.c_str(), cmd.size());
-        }
+    void sendToArduino(char c) {
+        if (serial_fd < 0) return;
+        char buf[2] = { c, '\n' };
+        write(serial_fd, buf, 2);
+        std::cout << "[CMD → ARDUINO] " << c << std::endl;
     }
 
     void readLoop() {
@@ -122,115 +96,151 @@ public:
         std::string buffer;
 
         while (running) {
-            ssize_t n = read(serial_fd, buf, sizeof(buf));
-
+            int n = read(serial_fd, buf, sizeof(buf));
             if (n > 0) {
                 buffer.append(buf, n);
                 size_t pos;
                 while ((pos = buffer.find('\n')) != std::string::npos) {
                     std::string line = buffer.substr(0, pos);
                     buffer.erase(0, pos + 1);
+
                     if (!line.empty() && line.back() == '\r')
                         line.pop_back();
-                    processLine(line);
+
+                    if (line.empty()) continue;
+
+                    std::cout << "[SENSOR] " << line << std::endl;
+
+                    std::string out = line + "\n";
+                    sendto(udp_socket, out.c_str(), out.size(), 0,
+                           (sockaddr*)&pc_addr, sizeof(pc_addr));
                 }
-            } else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-                std::cerr << "Serial read error: " << strerror(errno) << std::endl;
-                break;
             }
-
-            usleep(5000);
         }
-
-        std::cout << "Serial read thread stopped" << std::endl;
-    }
-
-    void processLine(const std::string &line) {
-        std::cout << "Arduino: " << line << std::endl;
-        sendToPC(line);
-    }
-
-    void sendToPC(const std::string &msg) {
-        std::string out = msg + "\n";
-        ssize_t sent = sendto(
-            udp_socket,
-            out.c_str(),
-            out.size(),
-            0,
-            (sockaddr*)&pc_addr,
-            sizeof(pc_addr)
-        );
-
-        if (sent < 0) {
-            std::cerr << "UDP send error: " << strerror(errno) << std::endl;
-        }
-    }
-
-    void disconnect() {
-        running = false;
-        connected = false;
-
-        if (read_thread.joinable())
-            read_thread.join();
-
-        if (serial_fd >= 0)
-            close(serial_fd);
-
-        if (udp_socket >= 0)
-            close(udp_socket);
     }
 };
+
+// ================= ROBOT LOGIC ===================
 
 class RobotController {
 private:
     SerialCommunicator arduino;
-    std::atomic<bool> running;
+    std::deque<TimedCommand> log;
+    std::mutex log_mutex;
+    std::atomic<bool> lost{false};
+
+    std::chrono::steady_clock::time_point last_time;
+    char last_cmd{' '};
 
 public:
-    RobotController() : running(true) {
-        if (!arduino.connect()) {
-            running = false;
-        }
+    RobotController() {
+        arduino.connect();
+        last_time = std::chrono::steady_clock::now();
     }
 
-    bool isRunning() const {
-        return running;
+    void handleCommand(char c) {
+        if (lost) return;
+
+        // LOST trigger
+        if (c == 'l') {
+            startLostMode();
+            return;
+        }
+
+        // filter allowed commands
+        if (c != 'w' && c != 'a' && c != 's' && c != 'd' && c != ' ')
+            return;
+
+        auto now = std::chrono::steady_clock::now();
+        auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time);
+        last_time = now;
+
+        // clamp duration (IMPORTANT)
+        if (delta > std::chrono::milliseconds(500))
+            delta = std::chrono::milliseconds(500);
+
+        {
+            std::lock_guard<std::mutex> lock(log_mutex);
+            if (!log.empty() && last_cmd == c) {
+                log.back().duration += delta;
+            } else {
+                log.push_back({c, delta});
+                last_cmd = c;
+            }
+        }
+
+        arduino.sendToArduino(c);
     }
 
-    void executeCommand(char c) {
-        switch (c) {
-            case 'w': arduino.sendToArduino("w\n"); break;
-            case 's': arduino.sendToArduino("s\n"); break;
-            case 'a': arduino.sendToArduino("a\n"); break;
-            case 'd': arduino.sendToArduino("d\n"); break;
-            case ' ': arduino.sendToArduino(" \n"); break;
-            case 'q':
-                arduino.sendToArduino("q\n");
-                running = false;
-                break;
-            default: break;
-        }
+    void startLostMode() {
+        if (lost) return;
+        lost = true;
+
+        std::thread([this]() {
+            std::cout << "\n[LOST MODE] START\n";
+
+            std::deque<TimedCommand> copy;
+            {
+                std::lock_guard<std::mutex> lock(log_mutex);
+                copy = log;
+            }
+
+            auto start = std::chrono::steady_clock::now();
+
+            for (auto it = copy.rbegin(); it != copy.rend(); ++it) {
+                if (std::chrono::steady_clock::now() - start >
+                    std::chrono::seconds(10))
+                    break;
+
+                char inv = invertCommand(it->cmd);
+                if (!inv) continue;
+
+                std::cout << "[LOST] " << inv
+                          << " for " << it->duration.count() << " ms\n";
+
+                arduino.sendToArduino(inv);
+                std::this_thread::sleep_for(it->duration);
+
+                // IMPORTANT: STOP between commands
+                arduino.sendToArduino(' ');
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            arduino.sendToArduino(' ');
+
+            {
+                std::lock_guard<std::mutex> lock(log_mutex);
+                log.clear();
+            }
+
+            lost = false;
+            last_cmd = ' ';
+            last_time = std::chrono::steady_clock::now();
+
+            std::cout << "[LOST MODE] END\n\n";
+        }).detach();
     }
 };
 
-void handleCommandClient(int client, RobotController &robot) {
+// ================= TCP ===========================
+
+void handleClient(int client, RobotController& robot) {
     char buf[BUFFER_SIZE];
-    while (robot.isRunning()) {
+    while (true) {
         int n = recv(client, buf, sizeof(buf), 0);
         if (n <= 0) break;
 
         for (int i = 0; i < n; i++) {
-            if (buf[i] == '\n' || buf[i] == '\r') continue;
-            robot.executeCommand(buf[i]);
+            if (buf[i] != '\n' && buf[i] != '\r')
+                robot.handleCommand(buf[i]);
         }
     }
     close(client);
+    std::cout << "[CLIENT DISCONNECTED]\n";
 }
 
 int main() {
     int server = socket(AF_INET, SOCK_STREAM, 0);
-    int opt = 1;
-    setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
@@ -240,18 +250,15 @@ int main() {
     bind(server, (sockaddr*)&addr, sizeof(addr));
     listen(server, 5);
 
-    std::cout << "TCP command server on port " << COMMAND_PORT << std::endl;
-    std::cout << "UDP sensor sender on port " << DATA_PORT_UDP << std::endl;
-
     RobotController robot;
 
-    while (robot.isRunning()) {
+    std::cout << "=== TCP 8888 | UDP 5601 READY ===\n";
+
+    while (true) {
         int client = accept(server, nullptr, nullptr);
         if (client >= 0) {
-            std::thread(handleCommandClient, client, std::ref(robot)).detach();
+            std::cout << "[CLIENT CONNECTED]\n";
+            std::thread(handleClient, client, std::ref(robot)).detach();
         }
     }
-
-    close(server);
-    return 0;
 }
