@@ -1,5 +1,4 @@
 #pragma once
-#ifndef COMMAND_SENDER_H
 #define COMMAND_SENDER_H
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -16,6 +15,7 @@
 #include <string>
 
 #include "config.h"
+#include "command_logger.h"  
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -86,6 +86,8 @@ private:
             }
             return;
         }
+
+        CommandLogger::log(command);
 
         switch (command) {
         case 'w': std::cout << ">>> FORWARD" << std::endl; break;
@@ -198,4 +200,4 @@ public:
     }
 };
 
-#endif // COMMAND_SENDER_H
+// COMMAND_SENDER_H
