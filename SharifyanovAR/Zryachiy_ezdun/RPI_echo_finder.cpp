@@ -11,10 +11,110 @@
 #include <vector>
 #include <deque>
 #include <chrono>
+#include <fstream>
+#include <iomanip>
+#include <filesystem>
+#include <sstream>
+#include <functional>
 
 #define COMMAND_PORT 8888
 #define DATA_PORT_UDP 5601
 #define BUFFER_SIZE 1024
+
+// ===================== LOGGING CLASS =====================
+
+class DataLogger {
+private:
+    std::ofstream cmdLogFile;
+    std::ofstream sensorLogFile;
+    std::mutex cmdMutex;
+    std::mutex sensorMutex;
+    std::string basePath;
+
+    std::string getTimestamp() {
+        auto now = std::chrono::system_clock::now();
+        auto in_time_t = std::chrono::system_clock::to_time_t(now);
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now.time_since_epoch()) % 1000;
+
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S");
+        ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+        return ss.str();
+    }
+
+public:
+    DataLogger() {
+        // Логи на рабочий стол
+        basePath = "/home/rick/Desktop/";
+        std::filesystem::create_directories(basePath);
+
+        std::string timestamp = getTimestamp();
+
+        cmdLogFile.open(basePath + "commands_" + timestamp + ".csv");
+        sensorLogFile.open(basePath + "sensors_" + timestamp + ".csv");
+
+        if (cmdLogFile.is_open()) {
+            cmdLogFile << "timestamp,command,duration_ms\n";
+            cmdLogFile << getTimestamp() << ",PROGRAM_START,0\n";
+            std::cout << "[LOGGER] Command log: " << basePath + "commands_" + timestamp + ".csv" << std::endl;
+        }
+
+        if (sensorLogFile.is_open()) {
+            sensorLogFile << "timestamp,distance_cm,blocked\n";
+            std::cout << "[LOGGER] Sensor log: " << basePath + "sensors_" + timestamp + ".csv" << std::endl;
+        }
+    }
+
+    ~DataLogger() {
+        if (cmdLogFile.is_open()) cmdLogFile.close();
+        if (sensorLogFile.is_open()) sensorLogFile.close();
+    }
+
+    void logCommand(char cmd, long duration_ms) {
+        std::lock_guard<std::mutex> lock(cmdMutex);
+        if (cmdLogFile.is_open()) {
+            cmdLogFile << getTimestamp() << "," 
+                       << cmd << "," 
+                       << duration_ms << "\n";
+            cmdLogFile.flush();
+        }
+    }
+
+    void logSensorData(float distance_cm, bool blocked) {
+        std::lock_guard<std::mutex> lock(sensorMutex);
+        if (sensorLogFile.is_open()) {
+            sensorLogFile << getTimestamp() << "," 
+                         << std::fixed << std::setprecision(2) << distance_cm << "," 
+                         << (blocked ? "true" : "false") << "\n";
+            sensorLogFile.flush();
+        }
+    }
+
+    void logLostModeStart() {
+        std::lock_guard<std::mutex> lock(cmdMutex);
+        if (cmdLogFile.is_open()) {
+            cmdLogFile << getTimestamp() << ",LOST_MODE_START,0\n";
+            cmdLogFile.flush();
+        }
+    }
+
+    void logLostModeEnd() {
+        std::lock_guard<std::mutex> lock(cmdMutex);
+        if (cmdLogFile.is_open()) {
+            cmdLogFile << getTimestamp() << ",LOST_MODE_END,0\n";
+            cmdLogFile.flush();
+        }
+    }
+
+    void logEmergencyStop() {
+        std::lock_guard<std::mutex> lock(cmdMutex);
+        if (cmdLogFile.is_open()) {
+            cmdLogFile << getTimestamp() << ",EMERGENCY_STOP,0\n";
+            cmdLogFile.flush();
+        }
+    }
+};
 
 // ===================== UTILS =====================
 
@@ -45,12 +145,10 @@ private:
     std::atomic<bool> running{false};
 
 public:
-    bool connect() {
-        std::vector<std::string> ports = {
-            "/dev/ttyUSB0",
-            "/dev/ttyACM0"
-        };
+    std::function<void(const std::string&)> onSensorData;
 
+    bool connect() {
+        std::vector<std::string> ports = {"/dev/ttyUSB0","/dev/ttyACM0"};
         for (auto& p : ports) {
             serial_fd = open(p.c_str(), O_RDWR | O_NOCTTY);
             if (serial_fd >= 0) {
@@ -77,7 +175,7 @@ public:
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
         pc_addr.sin_family = AF_INET;
         pc_addr.sin_port = htons(DATA_PORT_UDP);
-        pc_addr.sin_addr.s_addr = inet_addr("10.133.231.183");
+        pc_addr.sin_addr.s_addr = inet_addr("10.133.231.183"); // Заменить на IP ПК
 
         running = true;
         read_thread = std::thread(&SerialCommunicator::readLoop, this);
@@ -103,20 +201,34 @@ public:
                 while ((pos = buffer.find('\n')) != std::string::npos) {
                     std::string line = buffer.substr(0, pos);
                     buffer.erase(0, pos + 1);
-
-                    if (!line.empty() && line.back() == '\r')
-                        line.pop_back();
-
+                    if (!line.empty() && line.back() == '\r') line.pop_back();
                     if (line.empty()) continue;
 
                     std::cout << "[SENSOR] " << line << std::endl;
 
+                    // UDP
                     std::string out = line + "\n";
                     sendto(udp_socket, out.c_str(), out.size(), 0,
                            (sockaddr*)&pc_addr, sizeof(pc_addr));
+
+                    // Callback для RobotController
+                    if (onSensorData) {
+                        onSensorData(line);
+                    }
                 }
+            } else {
+                usleep(10000); // 10 ms
             }
         }
+    }
+
+    void stop() {
+        running = false;
+        if (read_thread.joinable())
+            read_thread.join();
+
+        if (serial_fd >= 0) { close(serial_fd); serial_fd = -1; }
+        if (udp_socket >= 0) { close(udp_socket); udp_socket = -1; }
     }
 };
 
@@ -128,26 +240,89 @@ private:
     std::deque<TimedCommand> log;
     std::mutex log_mutex;
     std::atomic<bool> lost{false};
+    DataLogger dataLogger;
 
     std::chrono::steady_clock::time_point last_time;
     char last_cmd{' '};
 
+    // Для логирования сенсоров
+    std::thread sensorLogThread;
+    std::atomic<bool> sensorLogging{true};
+    std::chrono::milliseconds sensorLogInterval{100};
+    std::string lastSensorData;
+    std::mutex sensorDataMutex;
+
+    void parseAndLogSensorData(const std::string& data) {
+        float distance = 0.0;
+        bool blocked = false;
+
+        size_t distPos = data.find("DISTANCE:");
+        if (distPos != std::string::npos) {
+            std::string distStr = data.substr(distPos + 9);
+            size_t cmPos = distStr.find("cm");
+            if (cmPos != std::string::npos) {
+                try {
+                    distance = std::stof(distStr.substr(0, cmPos));
+                    blocked = (data.find("BLOCKED") != std::string::npos);
+                    dataLogger.logSensorData(distance, blocked);
+
+                    if (blocked && distance < 20.0) {
+                        dataLogger.logEmergencyStop();
+                    }
+                } catch (...) {
+                    std::cerr << "[LOGGER] Failed to parse sensor data: " << data << std::endl;
+                }
+            }
+        }
+    }
+
+    void sensorLoggingLoop() {
+        while (sensorLogging) {
+            {
+                std::lock_guard<std::mutex> lock(sensorDataMutex);
+                if (!lastSensorData.empty()) {
+                    parseAndLogSensorData(lastSensorData);
+                }
+            }
+            std::this_thread::sleep_for(sensorLogInterval);
+        }
+    }
+
 public:
-    RobotController() {
-        arduino.connect();
-        last_time = std::chrono::steady_clock::now();
+    RobotController() : dataLogger() {
+        arduino.onSensorData = [this](const std::string& data) {
+            this->updateSensorData(data);
+        };
+
+        if (arduino.connect()) {
+            last_time = std::chrono::steady_clock::now();
+            sensorLogThread = std::thread(&RobotController::sensorLoggingLoop, this);
+        } else {
+            std::cerr << "[ROBOT] Failed to connect to Arduino" << std::endl;
+        }
+    }
+
+    ~RobotController() {
+        sensorLogging = false;
+        if (sensorLogThread.joinable())
+            sensorLogThread.join();
+        arduino.stop();
+    }
+
+    void updateSensorData(const std::string& sensorData) {
+        std::lock_guard<std::mutex> lock(sensorDataMutex);
+        lastSensorData = sensorData;
     }
 
     void handleCommand(char c) {
         if (lost) return;
 
-        // LOST trigger
         if (c == 'l') {
+            dataLogger.logLostModeStart();
             startLostMode();
             return;
         }
 
-        // filter allowed commands
         if (c != 'w' && c != 'a' && c != 's' && c != 'd' && c != ' ')
             return;
 
@@ -155,7 +330,6 @@ public:
         auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time);
         last_time = now;
 
-        // clamp duration (IMPORTANT)
         if (delta > std::chrono::milliseconds(500))
             delta = std::chrono::milliseconds(500);
 
@@ -166,6 +340,7 @@ public:
             } else {
                 log.push_back({c, delta});
                 last_cmd = c;
+                dataLogger.logCommand(c, delta.count());
             }
         }
 
@@ -188,8 +363,7 @@ public:
             auto start = std::chrono::steady_clock::now();
 
             for (auto it = copy.rbegin(); it != copy.rend(); ++it) {
-                if (std::chrono::steady_clock::now() - start >
-                    std::chrono::seconds(10))
+                if (std::chrono::steady_clock::now() - start > std::chrono::seconds(10))
                     break;
 
                 char inv = invertCommand(it->cmd);
@@ -201,7 +375,8 @@ public:
                 arduino.sendToArduino(inv);
                 std::this_thread::sleep_for(it->duration);
 
-                // IMPORTANT: STOP between commands
+                dataLogger.logCommand(inv, it->duration.count());
+
                 arduino.sendToArduino(' ');
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
@@ -213,6 +388,7 @@ public:
                 log.clear();
             }
 
+            dataLogger.logLostModeEnd();
             lost = false;
             last_cmd = ' ';
             last_time = std::chrono::steady_clock::now();
@@ -222,14 +398,13 @@ public:
     }
 };
 
-// ================= TCP ===========================
+// ================= TCP SERVER ====================
 
 void handleClient(int client, RobotController& robot) {
     char buf[BUFFER_SIZE];
     while (true) {
         int n = recv(client, buf, sizeof(buf), 0);
         if (n <= 0) break;
-
         for (int i = 0; i < n; i++) {
             if (buf[i] != '\n' && buf[i] != '\r')
                 robot.handleCommand(buf[i]);
@@ -241,24 +416,44 @@ void handleClient(int client, RobotController& robot) {
 
 int main() {
     int server = socket(AF_INET, SOCK_STREAM, 0);
+    if (server < 0) { std::cerr << "[SERVER] Failed to create socket\n"; return 1; }
+
+    int opt = 1;
+    setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(COMMAND_PORT);
 
-    bind(server, (sockaddr*)&addr, sizeof(addr));
-    listen(server, 5);
+    if (bind(server, (sockaddr*)&addr, sizeof(addr)) < 0) {
+        std::cerr << "[SERVER] Bind failed\n"; close(server); return 1;
+    }
+
+    if (listen(server, 5) < 0) {
+        std::cerr << "[SERVER] Listen failed\n"; close(server); return 1;
+    }
 
     RobotController robot;
 
-    std::cout << "=== TCP 8888 | UDP 5601 READY ===\n";
+    std::cout << "=====================================\n";
+    std::cout << "  ROBOT CONTROL SERVER\n";
+    std::cout << "  TCP Port: " << COMMAND_PORT << "\n";
+    std::cout << "  UDP Data Port: " << DATA_PORT_UDP << "\n";
+    std::cout << "  Logs: /home/rick/Desktop/\n";
+    std::cout << "=====================================\n\n";
 
     while (true) {
         int client = accept(server, nullptr, nullptr);
         if (client >= 0) {
-            std::cout << "[CLIENT CONNECTED]\n";
+            std::cout << "[CLIENT CONNECTED]" << std::endl;
             std::thread(handleClient, client, std::ref(robot)).detach();
+        } else {
+            std::cerr << "[SERVER] Accept failed\n";
+            usleep(1000000);
         }
     }
+
+    close(server);
+    return 0;
 }
