@@ -32,7 +32,7 @@ int main() {
                       "\"image/jpeg,width=640,height=480,framerate=30/1\" ! "
                       "tee name=t "
                       "t. ! queue ! rtpjpegpay ! "
-                      "udpsink host=10.133.231.183 port=5600 sync=false "
+                      "udpsink host=10.175.207.183 port=5600 sync=false "
                       "t. ! queue ! jpegdec ! videoconvert ! "
                       "x264enc speed-preset=ultrafast tune=zerolatency ! "
                       "h264parse ! mp4mux ! "
