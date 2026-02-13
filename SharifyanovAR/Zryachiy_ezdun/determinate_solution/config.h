@@ -13,7 +13,7 @@
 
 namespace Config {
     // IP адрес Raspberry Pi
-    const std::string RASPBERRY_IP = "10.133.231.101";
+    extern std::string RASPBERRY_IP = "10.175.207.101";
 
     // Порт для команд
     const int COMMAND_PORT = 8888;
@@ -22,7 +22,7 @@ namespace Config {
     // Порт для видео
     const int VIDEO_PORT = 5600;
 
-    // Путь к GStreamer
+    // Путь к GStreame
     const std::string GSTREAMER_PATH = "C:\\gstreamer\\1.0\\mingw_x86\\bin";
 
     // Путь к папке с видео
