@@ -29,7 +29,8 @@ private:
     std::ofstream sensorLogFile;
     std::mutex cmdMutex;
     std::mutex sensorMutex;
-    std::string basePath;
+    std::string basePathCommands;
+    std::string basePathSensors;
 
     std::string getTimestamp() {
         auto now = std::chrono::system_clock::now();
@@ -46,23 +47,25 @@ private:
 public:
     DataLogger() {
         // Логи на рабочий стол
-        basePath = "/home/rick/Desktop/";
-        std::filesystem::create_directories(basePath);
+        basePathCommands = "/home/rick/Desktop/robot_telemetry/commnds";
+        basePathSensors = "/home/rick/Desktop/robot_telemetry/sensors";
+        std::filesystem::create_directories(basePathCommands);
+        std::filesystem::create_directories(basePathSensors);
 
         std::string timestamp = getTimestamp();
 
-        cmdLogFile.open(basePath + "commands_" + timestamp + ".csv");
-        sensorLogFile.open(basePath + "sensors_" + timestamp + ".csv");
+        cmdLogFile.open(basePathCommands + "commands_" + timestamp + ".csv");
+        sensorLogFile.open(basePathSensors + "sensors_" + timestamp + ".csv");
 
         if (cmdLogFile.is_open()) {
             cmdLogFile << "timestamp,command,duration_ms\n";
             cmdLogFile << getTimestamp() << ",PROGRAM_START,0\n";
-            std::cout << "[LOGGER] Command log: " << basePath + "commands_" + timestamp + ".csv" << std::endl;
+            std::cout << "[LOGGER] Command log: " << basePathCommands + "commands_" + timestamp + ".csv" << std::endl;
         }
 
         if (sensorLogFile.is_open()) {
             sensorLogFile << "timestamp,distance_cm,blocked\n";
-            std::cout << "[LOGGER] Sensor log: " << basePath + "sensors_" + timestamp + ".csv" << std::endl;
+            std::cout << "[LOGGER] Sensor log: " << basePathSensors + "sensors_" + timestamp + ".csv" << std::endl;
         }
     }
 
@@ -175,7 +178,7 @@ public:
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
         pc_addr.sin_family = AF_INET;
         pc_addr.sin_port = htons(DATA_PORT_UDP);
-        pc_addr.sin_addr.s_addr = inet_addr("10.133.231.183"); // Заменить на IP ПК
+        pc_addr.sin_addr.s_addr = inet_addr("10.175.207.183"); // PC IP addr
 
         running = true;
         read_thread = std::thread(&SerialCommunicator::readLoop, this);
@@ -440,7 +443,7 @@ int main() {
     std::cout << "  ROBOT CONTROL SERVER\n";
     std::cout << "  TCP Port: " << COMMAND_PORT << "\n";
     std::cout << "  UDP Data Port: " << DATA_PORT_UDP << "\n";
-    std::cout << "  Logs: /home/rick/Desktop/\n";
+    std::cout << "  Logs: /home/rick/Desktop/robot_telemetry\n";
     std::cout << "=====================================\n\n";
 
     while (true) {
