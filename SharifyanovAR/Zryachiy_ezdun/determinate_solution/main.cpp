@@ -108,7 +108,7 @@ int main() {
     setupIP();
     showBanner();
 
-    // 🔥 Запуск второго проекта
+    //Запуск второго проекта
     if (!startDataReceiverProcess()) {
         std::cerr << "Cannot continue without Data Receiver.\n";
         return 1;
