@@ -57,6 +57,8 @@ qt_add_executable(Robot_ezdun_control
     data_logger.cpp
     data_receiver.cpp
     data_logger.h
+    batch_command_sender.h
+    batch_command_sender.cpp
 )
 
 target_include_directories(Robot_ezdun_control PRIVATE

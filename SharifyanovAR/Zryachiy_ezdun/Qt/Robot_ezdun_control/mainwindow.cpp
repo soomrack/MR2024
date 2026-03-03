@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "data_logger.h"
 #include "data_receiver.h"
+#include "batch_command_sender.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -14,13 +15,15 @@
 #include <QSpacerItem>
 #include <QFontDatabase>
 #include <QRegularExpression>
+#include <QLineEdit>  // Добавляем для batchCommandEdit
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-      sender(new CommandSender(this)),
-      streamer(new VideoStreamer(this)),
-      logger(new DataLogger(this)),
-      receiver(new DataReceiver(this))
+    sender(new CommandSender(this)),
+    streamer(new VideoStreamer(this)),
+    logger(new DataLogger(this)),
+    receiver(new DataReceiver(this)),
+    batchSender(new BatchCommandSender(this))  // Добавляем batchSender
 {
     setupUI();
     setupConnections();
@@ -46,6 +49,9 @@ MainWindow::~MainWindow()
 {
     streamer->stop();
     sender->disconnectFromRobot();
+    if (batchSender) {
+        batchSender->disconnectFromRobot();
+    }
 }
 
 void MainWindow::setupUI()
@@ -53,7 +59,7 @@ void MainWindow::setupUI()
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    // Общий стиль окна
+    // Общий стиль окна - добавляем стили для QLineEdit
     setStyleSheet(
         "QMainWindow {"
         "   background-color: #f5f5f5;"
@@ -87,13 +93,20 @@ void MainWindow::setupUI()
         "QLabel {"
         "   font-family: Arial;"
         "}"
+        "QLineEdit {"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 4px;"
+        "   padding: 6px;"
+        "   background-color: white;"
+        "   font-size: 11px;"
+        "}"
         );
 
     QVBoxLayout *mainLayout = new QVBoxLayout(central);
     mainLayout->setSpacing(8);
-    mainLayout->setContentsMargins(12, 8, 12, 8);  // компактнее отступы по краям
+    mainLayout->setContentsMargins(12, 8, 12, 8);
 
-    // ВЕРХНИЙ СТАТУС‑БАР (компактнее)
+    // ВЕРХНИЙ СТАТУС‑БАР
     QHBoxLayout *topLayout = new QHBoxLayout();
     topLayout->setSpacing(6);
 
@@ -121,8 +134,7 @@ void MainWindow::setupUI()
 
     mainLayout->addLayout(topLayout);
 
-
-    // БЛОК УПРАВЛЕНИЯ (меньше отступов и шрифта)
+    // БЛОК УПРАВЛЕНИЯ
     QFrame *controlCard = new QFrame();
     controlCard->setStyleSheet(
         "QFrame {"
@@ -147,8 +159,7 @@ void MainWindow::setupUI()
     ctrlLayout->addWidget(ctrlTitle);
 
     QLabel *instructions = new QLabel(
-        "W — Вперед    |    S — Назад    |    A — Влево    |    D — Вправо\n"
-        "ПРОБЕЛ — Остановка    |    L — Return to home"
+        "W — Вперед    |    S — Назад    |    A — Влево    |    D — Вправо   |   ПРОБЕЛ — Остановка    |    L — Return to home"
         );
     instructions->setStyleSheet(
         "background-color: #f8f9fa;"
@@ -164,8 +175,45 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(controlCard, 0, Qt::AlignTop);
 
+    // ========== НОВЫЙ БЛОК: ПАКЕТНЫЕ КОМАНДЫ ==========
+    QFrame *batchCard = new QFrame();
+    batchCard->setStyleSheet(
+        "QFrame {"
+        "   background-color: #f0f4f8;"
+        "   border-radius: 6px;"
+        "   border: 1px solid #c0c0c0;"
+        "   padding: 6px;"
+        "}"
+        );
 
-    // ОБЛАСТЬ ВИДЕО (важно: больше высоты, меньше рамок)
+    QHBoxLayout *batchLayout = new QHBoxLayout(batchCard);
+    batchLayout->setSpacing(6);
+    batchLayout->setContentsMargins(6, 6, 6, 6);
+
+    QLabel *batchLabel = new QLabel("📦 Пакетная команда:");
+    batchLabel->setStyleSheet("font-weight: bold; font-size: 11px; color: #555;");
+
+    batchCommandEdit = new QLineEdit();
+    batchCommandEdit->setPlaceholderText("Например: Forward:2s; Back:1s; Left:1s");
+    batchCommandEdit->setMinimumHeight(28);
+
+    sendBatchButton = new QPushButton("Отправить пакет");
+    sendBatchButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #9C27B0;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #7B1FA2;"
+        "}"
+        );
+
+    batchLayout->addWidget(batchLabel);
+    batchLayout->addWidget(batchCommandEdit, 1);
+    batchLayout->addWidget(sendBatchButton);
+
+    mainLayout->addWidget(batchCard);
+
+    // ОБЛАСТЬ ВИДЕО (немного уменьшаем высоту для пакетных команд)
     QFrame *videoCard = new QFrame();
     videoCard->setStyleSheet(
         "QFrame {"
@@ -189,8 +237,8 @@ void MainWindow::setupUI()
     videoCardLayout->addWidget(videoTitle);
 
     videoDisplay = new QLabel();
-    videoDisplay->setMinimumHeight(240);   // при этом окне 240 уже нормально смотрится
-    videoDisplay->setMaximumHeight(400);
+    videoDisplay->setMinimumHeight(220);   // Немного уменьшаем для пакетных команд
+    videoDisplay->setMaximumHeight(380);
     videoDisplay->setAlignment(Qt::AlignCenter);
     videoDisplay->setStyleSheet(
         "border: 1px solid #e0e0e0;"
@@ -204,10 +252,9 @@ void MainWindow::setupUI()
 
     videoCardLayout->addWidget(videoDisplay);
 
-    mainLayout->addWidget(videoCard, 1);   // растягиваем видео
+    mainLayout->addWidget(videoCard, 1);
 
-
-    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ (меньше)
+    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ
     QFrame *bottomCard = new QFrame();
     bottomCard->setStyleSheet(
         "QFrame {"
@@ -247,7 +294,7 @@ void MainWindow::setupUI()
     distanceLabel = new QLabel("---");
     distanceLabel->setStyleSheet(
         "background-color: #1e1e1e;"
-        "color: #4caf50;"                          // зелёный по умолчанию
+        "color: #4caf50;"
         "font-size: 32px;"
         "font-weight: bold;"
         "padding: 12px;"
@@ -310,8 +357,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(bottomCard, 0, Qt::AlignTop);
 
-
-    // СИСТЕМНЫЙ ЛОГ СНИЗУ (меньше)
+    // СИСТЕМНЫЙ ЛОГ
     QFrame *logCard = new QFrame();
     logCard->setStyleSheet(
         "QFrame {"
@@ -352,8 +398,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(logCard, 0, Qt::AlignTop);
 
-
-    // КНОПКИ УПРАВЛЕНИЯ ВНИЗУ (меньше, но всё равно видны)
+    // КНОПКИ УПРАВЛЕНИЯ
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(6);
 
@@ -392,19 +437,19 @@ void MainWindow::setupUI()
     buttonLayout->addStretch();
 
     mainLayout->addLayout(buttonLayout);
-
-    // Основной layout не тянет всё вниз
     mainLayout->setAlignment(Qt::AlignTop);
 }
 
 void MainWindow::setupConnections()
 {
-    // Подключение к роботу
+    // Подключение к роботу - обновляем для batchSender
     connect(connectButton, &QPushButton::clicked, this, [=]() {
-        if (sender->isConnected()) {
+        if (sender->isConnected() || (batchSender && batchSender->isConnected())) {
             sender->disconnectFromRobot();
+            if (batchSender) batchSender->disconnectFromRobot();
         } else {
             sender->connectToRobot();
+            if (batchSender) batchSender->connectToRobot();
         }
     });
 
@@ -416,7 +461,6 @@ void MainWindow::setupConnections()
     connect(stopVideoButton, &QPushButton::clicked, this, [=]() {
         streamer->stop();
     });
-
 
     // CommandSender — статусы и команды
     connect(sender, &CommandSender::connected, this, [=]() {
@@ -492,6 +536,57 @@ void MainWindow::setupConnections()
         logger->logSystem("Ошибка: " + error);
     });
 
+    // ========== ПОДКЛЮЧЕНИЯ ДЛЯ ПАКЕТНЫХ КОМАНД ==========
+
+    // Подключение batchSender
+    connect(batchSender, &BatchCommandSender::connected, this, [=]() {
+        logger->logSystem("Пакетный отправитель подключен");
+    });
+
+    connect(batchSender, &BatchCommandSender::disconnected, this, [=]() {
+        logger->logSystem("Пакетный отправитель отключен");
+    });
+
+    connect(batchSender, &BatchCommandSender::errorOccurred, this, [=](QString error) {
+        logger->logSystem("Ошибка пакетного отправителя: " + error);
+    });
+
+    connect(batchSender, &BatchCommandSender::batchCommandSent, this, [=](QString cmd) {
+        QString timeStr = QTime::currentTime().toString("hh:mm:ss");
+        commandsLog->append(
+            QString("<span style='color: #9C27B0; font-weight: bold;'>[%1] 📦 Пакет: %2</span>")
+                .arg(timeStr)
+                .arg(cmd)
+            );
+        logger->logCommand("Пакет: " + cmd);
+    });
+
+    connect(batchSender, &BatchCommandSender::batchCompleted, this, [=]() {
+        QString timeStr = QTime::currentTime().toString("hh:mm:ss");
+        commandsLog->append(
+            QString("<span style='color: #4CAF50; font-weight: bold;'>[%1] ✅ Пакет выполнен</span>")
+                .arg(timeStr)
+            );
+        logger->logSystem("Пакетная команда выполнена");
+    });
+
+    // Отправка пакетной команды по кнопке
+    connect(sendBatchButton, &QPushButton::clicked, this, [=]() {
+        QString command = batchCommandEdit->text().trimmed();
+        if (!command.isEmpty()) {
+            sendBatchCommand(command);
+            batchCommandEdit->clear();
+        }
+    });
+
+    // Отправка пакетной команды по Enter в поле ввода
+    connect(batchCommandEdit, &QLineEdit::returnPressed, this, [=]() {
+        QString command = batchCommandEdit->text().trimmed();
+        if (!command.isEmpty()) {
+            sendBatchCommand(command);
+            batchCommandEdit->clear();
+        }
+    });
 
     // VideoStreamer
     connect(streamer, &VideoStreamer::started, this, [=]() {
@@ -537,22 +632,13 @@ void MainWindow::setupConnections()
         logger->logSystem("Запись видео: " + file);
     });
 
-
-    // ================== ДАТЧИК РАССТОЯНИЯ (как в старом коде, 1:1) ==================
-
+    // ДАТЧИК РАССТОЯНИЯ
     connect(receiver, &DataReceiver::sensorDataReceived,
             this, [=](const QString& data)
             {
-                // В старом коде просто делали:
-                //   distanceLabel->setText(data);
-                // Оставляем так → 100% совместимость с форматом датчика
                 distanceLabel->setText(data);
-
-                // Логируем, что пришло
                 logger->logSystem("ДАТЧИК: " + data);
 
-                // Дополнительно можно попробовать автоматически выделить расстояние для цвета,
-                // но если вдруг датчик шлёт что‑то совсем нестандартное — просто оставим как есть.
                 QString clean = data.simplified();
                 QRegularExpression re(R"([\d.,]+)");
                 QRegularExpressionMatch match = re.match(clean);
@@ -560,14 +646,13 @@ void MainWindow::setupConnections()
                     return;
                 }
 
-                QString numStr = match.captured(0).replace(",", ".");   // 12,3 → 12.3
+                QString numStr = match.captured(0).replace(",", ".");
                 bool ok;
                 float distance = numStr.toFloat(&ok);
                 if (!ok) {
                     return;
                 }
 
-                // Обновляем только цвет, если удалось распарсить число
                 if (distance < 20.0) {
                     distanceLabel->setStyleSheet(
                         "background-color: #1e1e1e;"
@@ -588,7 +673,24 @@ void MainWindow::setupConnections()
                         );
                 }
             });
+}
 
+// Метод для отправки пакетной команды
+void MainWindow::sendBatchCommand(const QString& command)
+{
+    if (!batchSender) {
+        logger->logSystem("Ошибка: batchSender не инициализирован");
+        return;
+    }
+
+    if (!batchSender->isConnected()) {
+        logger->logSystem("Ошибка: не подключен к роботу");
+        // Можно показать предупреждение, но не обязательно
+        return;
+    }
+
+    batchSender->sendBatchCommand(command);
+    logger->logSystem("Отправлен пакет: " + command);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -651,7 +753,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
 
-    // Масштабируем видео с сохранением пропорций
     if (videoDisplay && !videoDisplay->pixmap().isNull()) {
         QPixmap scaled = videoDisplay->pixmap().scaled(
             videoDisplay->size(),
