@@ -2,11 +2,12 @@
 #include "command_logger.h"
 #include <QtCore>
 #include <QDebug>
+#include <QThread>
+#include <QRegularExpression>
 
 BatchCommandSender::BatchCommandSender(QObject *parent)
     : QObject(parent),
     socket(new QTcpSocket(this)),
-    currentBatchIndex(0),
     batchCount(0),
     lastResetTime(0)
 {
@@ -19,14 +20,23 @@ BatchCommandSender::BatchCommandSender(QObject *parent)
     connect(socket, &QTcpSocket::errorOccurred,
             this, &BatchCommandSender::onError);
 
+    // Таймер для отправки следующей команды
     batchTimer = new QTimer(this);
     batchTimer->setInterval(BATCH_EXECUTION_DELAY_MS);
     batchTimer->setSingleShot(true);
     connect(batchTimer, &QTimer::timeout,
             this, &BatchCommandSender::executeNextBatchCommand);
 
+    // Таймер для проверки завершения текущей команды
+    completionTimer = new QTimer(this);
+    completionTimer->setInterval(COMPLETION_CHECK_INTERVAL_MS);
+    connect(completionTimer, &QTimer::timeout,
+            this, &BatchCommandSender::checkCommandCompletion);
+
     batchTimerControl.start();
     lastResetTime = QDateTime::currentMSecsSinceEpoch();
+
+    currentCommand.duration = 0;
 }
 
 BatchCommandSender::~BatchCommandSender()
@@ -50,17 +60,29 @@ void BatchCommandSender::disconnectFromRobot()
 {
     if (socket->state() == QAbstractSocket::ConnectedState) {
         batchTimer->stop();
+        completionTimer->stop();
         socket->disconnectFromHost();
     }
 
     batchQueue.clear();
-    currentBatchIndex = 0;
+    currentCommand.command.clear();
+    currentCommand.duration = 0;
     batchCount = 0;
 }
 
 bool BatchCommandSender::isConnected() const
 {
     return socket->state() == QAbstractSocket::ConnectedState;
+}
+
+int BatchCommandSender::extractDuration(const QString& command)
+{
+    QRegularExpression re(":(\\d+)s");
+    QRegularExpressionMatch match = re.match(command);
+    if (match.hasMatch()) {
+        return match.captured(1).toInt();
+    }
+    return 1; // по умолчанию 1 секунда
 }
 
 void BatchCommandSender::sendBatchCommand(const QString& batchCommand)
@@ -72,22 +94,29 @@ void BatchCommandSender::sendBatchCommand(const QString& batchCommand)
     }
 
     if (!checkBatchRate()) {
-        qDebug() << "[BATCH] Rate limit exceeded";
+        qDebug() << "[BATCH] Rate limit exceeded, waiting...";
+        // Вместо отбрасывания, добавляем в очередь с задержкой
+        QTimer::singleShot(1000, [this, batchCommand]() {
+            sendBatchCommand(batchCommand);
+        });
         return;
     }
 
     qDebug() << "[BATCH] Queueing:" << batchCommand;
 
-    // Добавляем в очередь
-    batchQueue.append(batchCommand);
+    QueuedCommand cmd;
+    cmd.command = batchCommand;
+    cmd.duration = extractDuration(batchCommand);
 
-    // Если очередь пуста была - запускаем выполнение
-    if (batchQueue.size() == 1) {
-        batchTimer->start();
+    batchQueue.enqueue(cmd);
+
+    // Если очередь была пуста и ничего не выполняется - запускаем
+    if (batchQueue.size() == 1 && currentCommand.command.isEmpty()) {
+        qDebug() << "[BATCH] Starting queue execution";
+        executeNextBatchCommand();
     }
 
     emit batchCommandSent(batchCommand);
-    //CommandLogger::log(QString("BATCH: %1").arg(batchCommand).toStdString().c_str());
 }
 
 void BatchCommandSender::sendSimpleBatch(const QString& direction, int seconds)
@@ -103,32 +132,65 @@ QString BatchCommandSender::formatBatchCommand(const QString& direction, int sec
 
 void BatchCommandSender::executeNextBatchCommand()
 {
-    if (batchQueue.isEmpty() || currentBatchIndex >= batchQueue.size()) {
-        qDebug() << "[BATCH] Queue completed";
-        currentBatchIndex = 0;
+    completionTimer->stop();
+
+    if (batchQueue.isEmpty()) {
+        qDebug() << "[BATCH] Queue empty";
+        currentCommand.command.clear();
+        currentCommand.duration = 0;
         emit batchCompleted();
         return;
     }
 
-    QString batchCommand = batchQueue[currentBatchIndex];
+    // Берем следующую команду из очереди
+    currentCommand = batchQueue.dequeue();
 
-    qDebug() << "[BATCH] Executing:" << batchCommand
-             << "(" << (currentBatchIndex + 1) << "/" << batchQueue.size() << ")";
+    qDebug() << "[BATCH] Executing:" << currentCommand.command
+             << "(" << currentCommand.duration << "s)";
 
-    QByteArray data = batchCommand.toUtf8() + "\n";
+    // Отправляем команду
+    QByteArray data = currentCommand.command.toUtf8() + "\n";
     socket->write(data);
+    socket->flush();  // Важно! Принудительно отправляем
 
-    // Переходим к следующей команде
-    currentBatchIndex++;
+    qDebug() << "[BATCH] Command sent, waiting" << currentCommand.duration << "seconds";
 
-    // Если есть еще команды - продолжаем
-    if (currentBatchIndex < batchQueue.size()) {
-        batchTimer->start();
-    } else {
-        // Очередь завершена
-        currentBatchIndex = 0;
-        emit batchCompleted();
-        qDebug() << "[BATCH] All commands executed!";
+    // Запускаем таймер для проверки завершения
+    executionTimer.start();
+    completionTimer->start();
+}
+
+void BatchCommandSender::checkCommandCompletion()
+{
+    if (currentCommand.command.isEmpty()) {
+        completionTimer->stop();
+        return;
+    }
+
+    // Проверяем, прошло ли достаточно времени
+    if (executionTimer.elapsed() >= currentCommand.duration * 1000) {
+        qDebug() << "[BATCH] Command completed after" << executionTimer.elapsed() << "ms";
+
+        completionTimer->stop();
+
+        // Отправляем команду остановки
+        qDebug() << "[BATCH] Sending stop command";
+        socket->write(" \n");  // Пробел - команда остановки
+        socket->flush();
+
+        // Даем время на обработку остановки
+        QThread::msleep(100);
+
+        // Переходим к следующей команде
+        if (!batchQueue.isEmpty()) {
+            qDebug() << "[BATCH] Next command in queue, executing after delay";
+            batchTimer->start();
+        } else {
+            qDebug() << "[BATCH] All commands completed";
+            currentCommand.command.clear();
+            currentCommand.duration = 0;
+            emit batchCompleted();
+        }
     }
 }
 
@@ -141,13 +203,12 @@ bool BatchCommandSender::checkBatchRate()
         lastResetTime = now;
     }
 
-    batchCount++;
-
-    if (batchCount > MAX_BATCH_COMMANDS_PER_SECOND) {
+    if (batchCount >= MAX_BATCH_COMMANDS_PER_SECOND) {
         qDebug() << "[BATCH] Rate limit:" << batchCount << "commands/sec";
         return false;
     }
 
+    batchCount++;
     return true;
 }
 
@@ -160,6 +221,19 @@ void BatchCommandSender::resetBatchRate()
 void BatchCommandSender::onBatchComplete()
 {
     qDebug() << "[BATCH] Manual batch completion signal";
+
+    if (!currentCommand.command.isEmpty()) {
+        // Отправляем остановку
+        socket->write(" \n");
+        socket->flush();
+        currentCommand.command.clear();
+        currentCommand.duration = 0;
+    }
+
+    batchQueue.clear();
+    batchTimer->stop();
+    completionTimer->stop();
+
     emit batchCompleted();
 }
 
@@ -168,9 +242,9 @@ void BatchCommandSender::onConnected()
     qDebug() << "[BATCH] Connected to robot!";
     emit connected();
 
-    // Очищаем очередь при подключении
     batchQueue.clear();
-    currentBatchIndex = 0;
+    currentCommand.command.clear();
+    currentCommand.duration = 0;
     resetBatchRate();
 }
 
@@ -178,8 +252,10 @@ void BatchCommandSender::onDisconnected()
 {
     qDebug() << "[BATCH] Disconnected from robot";
     batchTimer->stop();
+    completionTimer->stop();
     batchQueue.clear();
-    currentBatchIndex = 0;
+    currentCommand.command.clear();
+    currentCommand.duration = 0;
     emit disconnected();
 }
 
@@ -188,6 +264,10 @@ void BatchCommandSender::onError(QAbstractSocket::SocketError)
     QString errorString = socket->errorString();
     qDebug() << "[BATCH] Socket error:" << errorString;
     emit errorOccurred(errorString);
+
+    batchTimer->stop();
+    completionTimer->stop();
     batchQueue.clear();
-    currentBatchIndex = 0;
+    currentCommand.command.clear();
+    currentCommand.duration = 0;
 }
