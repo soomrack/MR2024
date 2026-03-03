@@ -6,7 +6,7 @@
 
 namespace Config
 {
-inline const QString RASPBERRY_IP = "10.175.207.101";
+inline const QString RASPBERRY_IP = "10.209.227.101";
 
 inline constexpr int COMMAND_PORT = 8888;
 inline constexpr int DATA_PORT_UDP = 5601;

@@ -52,6 +52,11 @@ qt_add_executable(Robot_ezdun_control
     video_streamer.h
     video_streamer.cpp
     config.h
+    data_logger.h
+    data_receiver.h
+    data_logger.cpp
+    data_receiver.cpp
+    data_logger.h
 )
 
 target_include_directories(Robot_ezdun_control PRIVATE

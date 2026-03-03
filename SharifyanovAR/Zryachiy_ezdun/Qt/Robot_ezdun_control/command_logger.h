@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QMutex>
+#include <QTcpSocket>
 
 class CommandLogger
 {

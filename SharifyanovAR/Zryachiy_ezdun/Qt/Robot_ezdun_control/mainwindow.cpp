@@ -1,23 +1,45 @@
 #include "mainwindow.h"
+#include "data_logger.h"
+#include "data_receiver.h"
+
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QDateTime>
 #include <QResizeEvent>
 #include <QFocusEvent>
+#include <QTime>
+#include <QDebug>
+#include <QFrame>
+#include <QSpacerItem>
+#include <QFontDatabase>
+#include <QRegularExpression>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-    sender(new CommandSender(this)),
-    streamer(new VideoStreamer(this))
+      sender(new CommandSender(this)),
+      streamer(new VideoStreamer(this)),
+      logger(new DataLogger(this)),
+      receiver(new DataReceiver(this))
 {
     setupUI();
     setupConnections();
 
+    // Подключаем логгер к окну
+    connect(logger, &DataLogger::newLogMessage,
+            logBox, &QTextEdit::append);
+
+    // Запуск UDP датчика
+    if (receiver->start(5601)) {
+        logger->logSystem("UDP 5601 запущен (датчик расстояния)");
+    } else {
+        logger->logSystem("Ошибка запуска UDP 5601");
+    }
+
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
 
-    qDebug() << "MainWindow initialized";
+    logger->logSystem("MainWindow initialized");
 }
 
 MainWindow::~MainWindow()
@@ -31,62 +53,348 @@ void MainWindow::setupUI()
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(central);
-
-    // Статус подключения к роботу
-    connectionStatus = new QLabel("Отключен от робота");
-    connectionStatus->setStyleSheet("color: red; font-weight: bold;");
-    mainLayout->addWidget(connectionStatus);
-
-    // Инструкция по управлению
-    instructions = new QLabel(
-        "УПРАВЛЕНИЕ РОБОТОМ:\n"
-        "W - Вперед | S - Назад | A - Влево | D - Вправо\n"
-        "ПРОБЕЛ - Остановка | L - Return to home"
+    // Общий стиль окна
+    setStyleSheet(
+        "QMainWindow {"
+        "   background-color: #f5f5f5;"
+        "   font-family: Arial;"
+        "}"
+        "QPushButton {"
+        "   background-color: #2196F3;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 6px 14px;"
+        "   border-radius: 5px;"
+        "   font-weight: bold;"
+        "   font-size: 11px;"
+        "   min-height: 28px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #1976D2;"
+        "}"
+        "QPushButton:disabled {"
+        "   background-color: #b0b0b0;"
+        "   color: #666;"
+        "}"
+        "QTextEdit {"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 4px;"
+        "   background-color: white;"
+        "   font-family: 'Courier New';"
+        "   font-size: 11px;"
+        "   padding: 4px;"
+        "}"
+        "QLabel {"
+        "   font-family: Arial;"
+        "}"
         );
-    instructions->setStyleSheet("background-color: #f0f0f0; padding: 8px;");
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(central);
+    mainLayout->setSpacing(8);
+    mainLayout->setContentsMargins(12, 8, 12, 8);  // компактнее отступы по краям
+
+    // ВЕРХНИЙ СТАТУС‑БАР (компактнее)
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    topLayout->setSpacing(6);
+
+    connectionStatus = new QLabel("● Отключен");
+    connectionStatus->setStyleSheet(
+        "color: #f44336;"
+        "font-weight: bold;"
+        "font-size: 12px;"
+        "padding: 3px 6px;"
+        );
+    connectionStatus->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+    videoStatus = new QLabel("● Видео не активно");
+    videoStatus->setStyleSheet(
+        "color: #9e9e9e;"
+        "font-weight: bold;"
+        "font-size: 12px;"
+        "padding: 3px 6px;"
+        );
+    videoStatus->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
+    topLayout->addWidget(connectionStatus);
+    topLayout->addStretch();
+    topLayout->addWidget(videoStatus);
+
+    mainLayout->addLayout(topLayout);
+
+
+    // БЛОК УПРАВЛЕНИЯ (меньше отступов и шрифта)
+    QFrame *controlCard = new QFrame();
+    controlCard->setStyleSheet(
+        "QFrame {"
+        "   background-color: white;"
+        "   border-radius: 8px;"
+        "   border: 1px solid #e0e0e0;"
+        "   padding: 8px;"
+        "}"
+        );
+
+    QVBoxLayout *ctrlLayout = new QVBoxLayout(controlCard);
+    ctrlLayout->setSpacing(4);
+
+    QLabel *ctrlTitle = new QLabel("УПРАВЛЕНИЕ РОБОТОМ");
+    ctrlTitle->setStyleSheet(
+        "font-size: 14px;"
+        "font-weight: bold;"
+        "color: #333;"
+        "margin-bottom: 4px;"
+        );
+    ctrlTitle->setAlignment(Qt::AlignCenter);
+    ctrlLayout->addWidget(ctrlTitle);
+
+    QLabel *instructions = new QLabel(
+        "W — Вперед    |    S — Назад    |    A — Влево    |    D — Вправо\n"
+        "ПРОБЕЛ — Остановка    |    L — Return to home"
+        );
+    instructions->setStyleSheet(
+        "background-color: #f8f9fa;"
+        "border: 1px solid #e0e0e0;"
+        "border-radius: 6px;"
+        "font-size: 11px;"
+        "color: #555;"
+        "padding: 8px;"
+        );
     instructions->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(instructions);
+    instructions->setWordWrap(true);
+    ctrlLayout->addWidget(instructions);
 
-    // Статус видео
-    videoStatus = new QLabel("Видео: не активно");
-    videoStatus->setStyleSheet("color: gray;");
-    mainLayout->addWidget(videoStatus);
+    mainLayout->addWidget(controlCard, 0, Qt::AlignTop);
 
-    // Видео дисплей
+
+    // ОБЛАСТЬ ВИДЕО (важно: больше высоты, меньше рамок)
+    QFrame *videoCard = new QFrame();
+    videoCard->setStyleSheet(
+        "QFrame {"
+        "   background-color: white;"
+        "   border-radius: 6px;"
+        "   border: 1px solid #e0e0e0;"
+        "   padding: 6px;"
+        "}"
+        );
+
+    QVBoxLayout *videoCardLayout = new QVBoxLayout(videoCard);
+    videoCardLayout->setSpacing(4);
+
+    QLabel *videoTitle = new QLabel("ВИДЕОПОТОК");
+    videoTitle->setStyleSheet(
+        "font-size: 12px;"
+        "font-weight: bold;"
+        "color: #333;"
+        "margin-bottom: 2px;"
+        );
+    videoCardLayout->addWidget(videoTitle);
+
     videoDisplay = new QLabel();
-    videoDisplay->setMinimumHeight(360);
-    videoDisplay->setMaximumHeight(480);
-    videoDisplay->setStyleSheet("border: 2px solid #cccccc; background-color: black;");
+    videoDisplay->setMinimumHeight(240);   // при этом окне 240 уже нормально смотрится
+    videoDisplay->setMaximumHeight(400);
     videoDisplay->setAlignment(Qt::AlignCenter);
+    videoDisplay->setStyleSheet(
+        "border: 1px solid #e0e0e0;"
+        "border-radius: 5px;"
+        "background-color: #1a1a1a;"
+        );
 
-    // Показываем заглушку
     QPixmap placeholder(640, 480);
     placeholder.fill(Qt::black);
     videoDisplay->setPixmap(placeholder);
 
-    mainLayout->addWidget(videoDisplay);
+    videoCardLayout->addWidget(videoDisplay);
 
-    // Лог
+    mainLayout->addWidget(videoCard, 1);   // растягиваем видео
+
+
+    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ (меньше)
+    QFrame *bottomCard = new QFrame();
+    bottomCard->setStyleSheet(
+        "QFrame {"
+        "   background-color: white;"
+        "   border-radius: 8px;"
+        "   border: 1px solid #e0e0e0;"
+        "   padding: 6px;"
+        "}"
+        );
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout(bottomCard);
+    bottomLayout->setSpacing(8);
+    bottomLayout->setContentsMargins(6, 6, 6, 6);
+
+    // ЛЕВОЕ ОКНО — ДАТЧИК РАССТОЯНИЯ
+    QFrame *sensorFrame = new QFrame();
+    sensorFrame->setStyleSheet(
+        "QFrame {"
+        "   background-color: #f8f9fa;"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 6px;"
+        "   padding: 6px;"
+        "}"
+        );
+
+    QVBoxLayout *sensorLayout = new QVBoxLayout(sensorFrame);
+    sensorLayout->setSpacing(3);
+
+    QLabel *sensorTitle = new QLabel("ДАТЧИК РАССТОЯНИЯ");
+    sensorTitle->setStyleSheet(
+        "font-size: 11px;"
+        "font-weight: bold;"
+        "color: #666;"
+        );
+    sensorLayout->addWidget(sensorTitle);
+
+    distanceLabel = new QLabel("---");
+    distanceLabel->setStyleSheet(
+        "background-color: #1e1e1e;"
+        "color: #4caf50;"                          // зелёный по умолчанию
+        "font-size: 32px;"
+        "font-weight: bold;"
+        "padding: 12px;"
+        "border-radius: 6px;"
+        );
+    distanceLabel->setAlignment(Qt::AlignCenter);
+    distanceLabel->setMinimumHeight(70);
+    distanceLabel->setMaximumHeight(70);
+    sensorLayout->addWidget(distanceLabel);
+
+    QLabel *distanceUnit = new QLabel("сантиметров");
+    distanceUnit->setStyleSheet(
+        "color: #999;"
+        "font-size: 11px;"
+        );
+    distanceUnit->setAlignment(Qt::AlignCenter);
+    sensorLayout->addWidget(distanceUnit);
+
+    // ПРАВОЕ ОКНО — КОМАНДЫ WASD
+    QFrame *commandsFrame = new QFrame();
+    commandsFrame->setStyleSheet(
+        "QFrame {"
+        "   background-color: #f8f9fa;"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 6px;"
+        "   padding: 6px;"
+        "}"
+        );
+
+    QVBoxLayout *commandsLayout = new QVBoxLayout(commandsFrame);
+    commandsLayout->setSpacing(3);
+
+    QLabel *commandsTitle = new QLabel("ПОСЛЕДНИЕ КОМАНДЫ");
+    commandsTitle->setStyleSheet(
+        "font-size: 11px;"
+        "font-weight: bold;"
+        "color: #666;"
+        );
+    commandsLayout->addWidget(commandsTitle);
+
+    commandsLog = new QTextEdit();
+    commandsLog->setReadOnly(true);
+    commandsLog->setMaximumHeight(90);
+    commandsLog->setMinimumHeight(60);
+    commandsLog->setStyleSheet(
+        "QTextEdit {"
+        "   background-color: #ffffff;"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 4px;"
+        "   font-family: 'Courier New';"
+        "   font-size: 11px;"
+        "   padding: 3px;"
+        "}"
+        );
+
+    commandsLayout->addWidget(commandsLog);
+
+    bottomLayout->addWidget(sensorFrame, 1);
+    bottomLayout->addWidget(commandsFrame, 1);
+
+    mainLayout->addWidget(bottomCard, 0, Qt::AlignTop);
+
+
+    // СИСТЕМНЫЙ ЛОГ СНИЗУ (меньше)
+    QFrame *logCard = new QFrame();
+    logCard->setStyleSheet(
+        "QFrame {"
+        "   background-color: white;"
+        "   border-radius: 8px;"
+        "   border: 1px solid #e0e0e0;"
+        "   padding: 6px;"
+        "}"
+        );
+
+    QVBoxLayout *logLayout = new QVBoxLayout(logCard);
+    logLayout->setSpacing(3);
+
+    QLabel *logTitle = new QLabel("СИСТЕМНЫЙ ЛОГ");
+    logTitle->setStyleSheet(
+        "font-size: 11px;"
+        "font-weight: bold;"
+        "color: #666;"
+        );
+    logLayout->addWidget(logTitle);
+
     logBox = new QTextEdit();
     logBox->setReadOnly(true);
-    logBox->setMaximumHeight(120);
-    mainLayout->addWidget(logBox);
+    logBox->setMaximumHeight(90);
+    logBox->setMinimumHeight(60);
+    logBox->setStyleSheet(
+        "QTextEdit {"
+        "   background-color: #f8f9fa;"
+        "   border: 1px solid #e0e0e0;"
+        "   border-radius: 4px;"
+        "   font-family: 'Courier New';"
+        "   font-size: 11px;"
+        "   padding: 3px;"
+        "}"
+        );
 
-    // Кнопки
+    logLayout->addWidget(logBox);
+
+    mainLayout->addWidget(logCard, 0, Qt::AlignTop);
+
+
+    // КНОПКИ УПРАВЛЕНИЯ ВНИЗУ (меньше, но всё равно видны)
     QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->setSpacing(6);
 
-    connectButton = new QPushButton("Подключиться к роботу");
-    startVideoButton = new QPushButton("Старт видео");
-    stopVideoButton = new QPushButton("Стоп видео");
+    connectButton = new QPushButton("🔧 Подключиться");
+    startVideoButton = new QPushButton("▶ Старт видео");
+    stopVideoButton = new QPushButton("⏹ Стоп видео");
 
     stopVideoButton->setEnabled(false);
+
+    QString btnStyle =
+        "QPushButton {"
+        "   background-color: #2196F3;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 6px 14px;"
+        "   border-radius: 5px;"
+        "   font-weight: bold;"
+        "   font-size: 11px;"
+        "   min-height: 28px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #1976D2;"
+        "}"
+        "QPushButton:disabled {"
+        "   background-color: #b0b0b0;"
+        "   color: #666;"
+        "}";
+
+    connectButton->setStyleSheet(btnStyle);
+    startVideoButton->setStyleSheet(btnStyle);
+    stopVideoButton->setStyleSheet(btnStyle);
 
     buttonLayout->addWidget(connectButton);
     buttonLayout->addWidget(startVideoButton);
     buttonLayout->addWidget(stopVideoButton);
+    buttonLayout->addStretch();
 
     mainLayout->addLayout(buttonLayout);
+
+    // Основной layout не тянет всё вниз
+    mainLayout->setAlignment(Qt::AlignTop);
 }
 
 void MainWindow::setupConnections()
@@ -100,7 +408,7 @@ void MainWindow::setupConnections()
         }
     });
 
-    // Управление видео
+    // Видео
     connect(startVideoButton, &QPushButton::clicked, this, [=]() {
         streamer->start(videoDisplay);
     });
@@ -109,71 +417,178 @@ void MainWindow::setupConnections()
         streamer->stop();
     });
 
-    // Сигналы от CommandSender
+
+    // CommandSender — статусы и команды
     connect(sender, &CommandSender::connected, this, [=]() {
-        connectionStatus->setText("Подключен к роботу");
-        connectionStatus->setStyleSheet("color: green; font-weight: bold;");
-        connectButton->setText("Отключиться от робота");
-        logBox->append("[" + QTime::currentTime().toString() + "] Подключен к роботу");
+        connectionStatus->setText("● Подключен");
+        connectionStatus->setStyleSheet(
+            "color: #4caf50;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+        connectButton->setText("🔧 Отключиться");
+        logger->logSystem("Подключен к роботу");
     });
 
     connect(sender, &CommandSender::disconnected, this, [=]() {
-        connectionStatus->setText("Отключен от робота");
-        connectionStatus->setStyleSheet("color: red; font-weight: bold;");
-        connectButton->setText("Подключиться к роботу");
-        logBox->append("[" + QTime::currentTime().toString() + "] Отключен от робота");
+        connectionStatus->setText("● Отключен");
+        connectionStatus->setStyleSheet(
+            "color: #f44336;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+        connectButton->setText("🔧 Подключиться");
+        logger->logSystem("Отключен от робота");
     });
 
-    connect(sender, &CommandSender::commandSent, this,
-            [=](char cmd) {
-                QString commandStr;
-                switch(cmd) {
-                case 'w': commandStr = "Вперед"; break;
-                case 's': commandStr = "Назад"; break;
-                case 'a': commandStr = "Влево"; break;
-                case 'd': commandStr = "Вправо"; break;
-                case 'l': commandStr = "Return home"; break;
-                case ' ': commandStr = "Стоп"; break;
-                default: commandStr = QString("'%1'").arg(cmd);
-                }
-                logBox->append("[" + QTime::currentTime().toString() + "] Команда: " + commandStr);
-            });
+    connect(sender, &CommandSender::commandSent, this, [=](char cmd) {
+        QString commandStr;
+        QString color;
 
-    connect(sender, &CommandSender::errorOccurred, this,
-            [=](QString error) {
-                logBox->append("[" + QTime::currentTime().toString() + "] Ошибка: " + error);
-            });
+        switch(cmd) {
+        case 'w':
+            commandStr = "↑ Вперед";
+            color = "#4caf50";
+            break;
+        case 's':
+            commandStr = "↓ Назад";
+            color = "#f44336";
+            break;
+        case 'a':
+            commandStr = "← Влево";
+            color = "#ff9800";
+            break;
+        case 'd':
+            commandStr = "→ Вправо";
+            color = "#ff9800";
+            break;
+        case 'l':
+            commandStr = "⌂ Return home";
+            color = "#9c27b0";
+            break;
+        case ' ':
+            commandStr = "⏹ Стоп";
+            color = "#607d8b";
+            break;
+        default:
+            commandStr = QString("'%1'").arg(cmd);
+            color = "#999";
+        }
 
-    // Сигналы от VideoStreamer
+        QString timeStr = QTime::currentTime().toString("hh:mm:ss");
+        commandsLog->append(
+            QString("<span style='color: %1; font-weight: bold;'>[%2] %3</span>")
+                .arg(color)
+                .arg(timeStr)
+                .arg(commandStr)
+            );
+
+        logger->logCommand(commandStr);
+    });
+
+    connect(sender, &CommandSender::errorOccurred, this, [=](const QString &error) {
+        logger->logSystem("Ошибка: " + error);
+    });
+
+
+    // VideoStreamer
     connect(streamer, &VideoStreamer::started, this, [=]() {
         startVideoButton->setEnabled(false);
         stopVideoButton->setEnabled(true);
-        videoStatus->setText("Видео: активно");
-        videoStatus->setStyleSheet("color: green;");
-        logBox->append("[" + QTime::currentTime().toString() + "] Видео поток запущен");
+        videoStatus->setText("● Видео активно");
+        videoStatus->setStyleSheet(
+            "color: #4caf50;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+        logger->logSystem("Видео поток запущен");
     });
 
     connect(streamer, &VideoStreamer::stopped, this, [=]() {
         startVideoButton->setEnabled(true);
         stopVideoButton->setEnabled(false);
-        videoStatus->setText("Видео: не активно");
-        videoStatus->setStyleSheet("color: gray;");
-        logBox->append("[" + QTime::currentTime().toString() + "] Видео поток остановлен");
+        videoStatus->setText("● Видео не активно");
+        videoStatus->setStyleSheet(
+            "color: #9e9e9e;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+        logger->logSystem("Видео поток остановлен");
     });
 
-    connect(streamer, &VideoStreamer::errorOccurred, this,
-            [=](QString error) {
-                logBox->append("[" + QTime::currentTime().toString() + "] Ошибка видео: " + error);
-                startVideoButton->setEnabled(true);
-                stopVideoButton->setEnabled(false);
-                videoStatus->setText("Видео: ошибка");
-                videoStatus->setStyleSheet("color: red;");
+    connect(streamer, &VideoStreamer::errorOccurred, this, [=](const QString &error) {
+        logger->logSystem("Ошибка видео: " + error);
+        startVideoButton->setEnabled(true);
+        stopVideoButton->setEnabled(false);
+        videoStatus->setText("● Видео ошибка");
+        videoStatus->setStyleSheet(
+            "color: #f44336;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+    });
+
+    connect(streamer, &VideoStreamer::recordingStarted, this, [=](const QString &file) {
+        logger->logSystem("Запись видео: " + file);
+    });
+
+
+    // ================== ДАТЧИК РАССТОЯНИЯ (как в старом коде, 1:1) ==================
+
+    connect(receiver, &DataReceiver::sensorDataReceived,
+            this, [=](const QString& data)
+            {
+                // В старом коде просто делали:
+                //   distanceLabel->setText(data);
+                // Оставляем так → 100% совместимость с форматом датчика
+                distanceLabel->setText(data);
+
+                // Логируем, что пришло
+                logger->logSystem("ДАТЧИК: " + data);
+
+                // Дополнительно можно попробовать автоматически выделить расстояние для цвета,
+                // но если вдруг датчик шлёт что‑то совсем нестандартное — просто оставим как есть.
+                QString clean = data.simplified();
+                QRegularExpression re(R"([\d.,]+)");
+                QRegularExpressionMatch match = re.match(clean);
+                if (!match.hasMatch()) {
+                    return;
+                }
+
+                QString numStr = match.captured(0).replace(",", ".");   // 12,3 → 12.3
+                bool ok;
+                float distance = numStr.toFloat(&ok);
+                if (!ok) {
+                    return;
+                }
+
+                // Обновляем только цвет, если удалось распарсить число
+                if (distance < 20.0) {
+                    distanceLabel->setStyleSheet(
+                        "background-color: #1e1e1e;"
+                        "color: #f44336;"
+                        "font-size: 32px;"
+                        "font-weight: bold;"
+                        "padding: 12px;"
+                        "border-radius: 6px;"
+                        );
+                } else {
+                    distanceLabel->setStyleSheet(
+                        "background-color: #1e1e1e;"
+                        "color: #4caf50;"
+                        "font-size: 32px;"
+                        "font-weight: bold;"
+                        "padding: 12px;"
+                        "border-radius: 6px;"
+                        );
+                }
             });
 
-    connect(streamer, &VideoStreamer::recordingStarted, this,
-            [=](QString file) {
-                logBox->append("[" + QTime::currentTime().toString() + "] Запись: " + file);
-            });
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -189,10 +604,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     case Qt::Key_D:
         sender->onKeyPressed(event->key());
         break;
+
     case Qt::Key_Space:
         sender->stopRobot();
-        logBox->append("[" + QTime::currentTime().toString() + "] Остановка");
         break;
+
     case Qt::Key_L:
         sender->sendCommand('l');
         break;
@@ -225,13 +641,17 @@ void MainWindow::focusOutEvent(QFocusEvent *event)
 {
     if (sender && sender->isConnected()) {
         sender->stopRobot();
+        logger->logCommand("Авто-стоп (потеря фокуса)");
     }
     QMainWindow::focusOutEvent(event);
+    logger->logSystem("Фокус потерян (focusOutEvent)");
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
+
+    // Масштабируем видео с сохранением пропорций
     if (videoDisplay && !videoDisplay->pixmap().isNull()) {
         QPixmap scaled = videoDisplay->pixmap().scaled(
             videoDisplay->size(),

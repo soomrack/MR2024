@@ -14,6 +14,8 @@
 
 #include "command_sender.h"
 #include "video_streamer.h"
+#include "data_logger.h"
+#include "data_receiver.h"
 
 class MainWindow : public QMainWindow
 {
@@ -36,6 +38,8 @@ private:
 
     CommandSender *sender;
     VideoStreamer *streamer;
+    DataLogger* logger;
+    DataReceiver* receiver;
 
     QTextEdit *logBox;
     QLabel *connectionStatus;
@@ -46,6 +50,13 @@ private:
     QPushButton *connectButton;
     QPushButton *startVideoButton;
     QPushButton *stopVideoButton;
+
+
+    QTextEdit *commandsLog;
+    // Новые UI элементы для датчиков
+    QLabel *distanceLabel;
+    //QProgressBar *distanceProgress;
+    QLabel *temperatureValue;
 };
 
 #endif // MAINWINDOW_H
