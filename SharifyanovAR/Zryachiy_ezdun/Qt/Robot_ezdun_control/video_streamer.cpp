@@ -202,7 +202,7 @@ void GStreamerThread::run()
     qDebug() << "GStreamer pipeline started, waiting for video stream on port" << Config::VIDEO_PORT;
 
     // Главный цикл потока
-    while (m_running && !m_lastError.isEmpty() == false) {
+    while (m_running && m_lastError.isEmpty()) {
         QThread::msleep(10);
     }
 
@@ -225,6 +225,8 @@ VideoStreamer::VideoStreamer(QObject *parent)
     , m_displayLabel(nullptr)
     , m_displayTimer(new QTimer(this))
     , m_running(false)
+    , m_dualWidget(nullptr)
+    , m_frameCounter(0)
 {
     // Подключаем сигналы от потока
     connect(m_thread, &GStreamerThread::frameUpdated,
@@ -238,6 +240,8 @@ VideoStreamer::VideoStreamer(QObject *parent)
     connect(m_displayTimer, &QTimer::timeout,
             this, &VideoStreamer::updateDisplay);
     m_displayTimer->setInterval(33); // ~30 fps
+
+    m_detectionTimer.start();
 }
 
 VideoStreamer::~VideoStreamer()
@@ -381,7 +385,7 @@ void VideoStreamer::onStreamingStarted()
 
 void VideoStreamer::updateDisplay()
 {
-    if (!m_running || !m_displayLabel || !m_thread) {
+    if (!m_running || !m_thread) {
         return;
     }
 
@@ -398,19 +402,55 @@ void VideoStreamer::updateDisplay()
             QString timestamp = QDateTime::currentDateTime()
                                     .toString("hh:mm:ss.zzz");
             painter.drawText(10, 20, timestamp);
-
-            painter.drawText(frame.width() - 150, 20,
-                             QString("640x480"));
-
+            painter.drawText(frame.width() - 150, 20, "640x480");
             painter.end();
 
-            // Отображаем кадр
-            QPixmap pixmap = QPixmap::fromImage(frame);
-            m_displayLabel->setPixmap(pixmap.scaled(
-                m_displayLabel->size(),
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation
-                ));
+            // Если есть DualVideoWidget, показываем в нём
+            if (m_dualWidget) {
+                m_dualWidget->setLeftFrame(frame);
+
+                // Детекция каждого DETECTION_FRAME_SKIP-го кадра
+                m_frameCounter++;
+                if (m_frameCounter % DETECTION_FRAME_SKIP == 0) {
+                    processFrameForDetection();
+                }
+            }
+            // Иначе показываем в обычном лейбле (старое поведение)
+            else if (m_displayLabel) {
+                QPixmap pixmap = QPixmap::fromImage(frame);
+                m_displayLabel->setPixmap(pixmap.scaled(
+                    m_displayLabel->size(),
+                    Qt::KeepAspectRatio,
+                    Qt::SmoothTransformation
+                    ));
+            }
         }
+    }
+}
+
+void VideoStreamer::processFrameForDetection()
+{
+    if (!m_dualWidget || !m_thread) return;
+
+    QImage frame = m_thread->getCurrentFrame();
+    if (frame.isNull()) return;
+
+    // Получаем детектор из виджета
+    YOLODetector *detector = m_dualWidget->getDetector();
+
+    if (detector && detector->isLoaded()) {
+        // Запускаем детекцию
+        QVector<Detection> detections = detector->detect(frame, 0.5, 0.4);
+
+        // Рисуем результаты
+        QImage resultFrame = detector->drawDetections(frame, detections);
+        m_dualWidget->setRightFrame(resultFrame);
+
+        // Испускаем сигнал с обработанным кадром
+        emit frameProcessed(resultFrame, detections);
+    } else {
+        qDebug() << "YOLO detector not loaded yet";
+        // Если детектор не загружен, просто копируем оригинальный кадр
+        m_dualWidget->setRightFrame(frame);
     }
 }

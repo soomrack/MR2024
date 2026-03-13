@@ -12,8 +12,10 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QElapsedTimer>
 
 #include "config.h"
+#include "dual_video_widget.h"  // Добавлено
 
 // Предварительное объявление структур GStreamer
 struct _GstElement;
@@ -88,17 +90,23 @@ public:
     void stop();
     bool isRunning() const;
 
+    // Новые методы для работы с DualVideoWidget
+    void setDualWidget(DualVideoWidget *widget) { m_dualWidget = widget; }
+    DualVideoWidget* getDualWidget() const { return m_dualWidget; }
+
 signals:
     void started();
     void stopped();
     void errorOccurred(QString error);
     void recordingStarted(QString filePath);
+    void frameProcessed(QImage frame, QVector<Detection> detections); // Сигнал для обработанного кадра
 
 private slots:
     void onFrameUpdated();
     void onThreadError(QString error);
     void onStreamingStarted();
     void updateDisplay();
+    void processFrameForDetection(); // Новый слот для обработки кадра
 
 private:
     QString generateFilename() const;
@@ -108,6 +116,12 @@ private:
     QTimer *m_displayTimer;
     bool m_running;
     QString m_currentFile;
+
+    // Новые члены класса
+    DualVideoWidget *m_dualWidget;
+    int m_frameCounter;
+    static constexpr int DETECTION_FRAME_SKIP = 5; // Каждый 5-й кадр
+    QElapsedTimer m_detectionTimer;
 };
 
 #endif // VIDEO_STREAMER_H

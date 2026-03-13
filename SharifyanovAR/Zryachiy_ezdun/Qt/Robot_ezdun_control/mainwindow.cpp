@@ -2,6 +2,8 @@
 #include "data_logger.h"
 #include "data_receiver.h"
 #include "batch_command_sender.h"
+#include "dual_video_widget.h"  // ДОБАВЛЕНО
+#include "yolo_detector.h"       // ДОБАВЛЕНО
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -15,7 +17,13 @@
 #include <QSpacerItem>
 #include <QFontDatabase>
 #include <QRegularExpression>
-#include <QLineEdit>  // Добавляем для batchCommandEdit
+#include <QLineEdit>
+
+// ДОБАВЛЕНО для статистики YOLO
+QLabel *yoloObjectsLabel;
+QLabel *yoloTimeLabel;
+QLabel *yoloFpsLabel;
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -23,7 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
     streamer(new VideoStreamer(this)),
     logger(new DataLogger(this)),
     receiver(new DataReceiver(this)),
-    batchSender(new BatchCommandSender(this))  // Добавляем batchSender
+    batchSender(new BatchCommandSender(this)),
+    videoDisplay(nullptr)  // ИЗМЕНЕНО: было QLabel*, стало DualVideoWidget*
 {
     setupUI();
     setupConnections();
@@ -59,7 +68,7 @@ void MainWindow::setupUI()
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    // Общий стиль окна - добавляем стили для QLineEdit
+    // Общий стиль окна
     setStyleSheet(
         "QMainWindow {"
         "   background-color: #f5f5f5;"
@@ -175,7 +184,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(controlCard, 0, Qt::AlignTop);
 
-    // ========== НОВЫЙ БЛОК: ПАКЕТНЫЕ КОМАНДЫ ==========
+    // БЛОК ПАКЕТНЫХ КОМАНД
     QFrame *batchCard = new QFrame();
     batchCard->setStyleSheet(
         "QFrame {"
@@ -213,7 +222,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(batchCard);
 
-    // ОБЛАСТЬ ВИДЕО (немного уменьшаем высоту для пакетных команд)
+    // ========== ИЗМЕНЕНО: ОБЛАСТЬ ВИДЕО С YOLO ==========
     QFrame *videoCard = new QFrame();
     videoCard->setStyleSheet(
         "QFrame {"
@@ -227,6 +236,8 @@ void MainWindow::setupUI()
     QVBoxLayout *videoCardLayout = new QVBoxLayout(videoCard);
     videoCardLayout->setSpacing(4);
 
+    // Заголовок видео
+    QHBoxLayout *videoTitleLayout = new QHBoxLayout();
     QLabel *videoTitle = new QLabel("ВИДЕОПОТОК");
     videoTitle->setStyleSheet(
         "font-size: 12px;"
@@ -234,27 +245,34 @@ void MainWindow::setupUI()
         "color: #333;"
         "margin-bottom: 2px;"
         );
-    videoCardLayout->addWidget(videoTitle);
 
-    videoDisplay = new QLabel();
-    videoDisplay->setMinimumHeight(220);   // Немного уменьшаем для пакетных команд
+    // Статистика YOLO (маленькая строка справа от заголовка)
+    yoloObjectsLabel = new QLabel("📊 0");
+    yoloObjectsLabel->setStyleSheet("color: #4CAF50; font-size: 10px; font-weight: bold;");
+    yoloTimeLabel = new QLabel("⏱ 0мс");
+    yoloTimeLabel->setStyleSheet("color: #2196F3; font-size: 10px; font-weight: bold;");
+    yoloFpsLabel = new QLabel("⚡ 0fps");
+    yoloFpsLabel->setStyleSheet("color: #FF9800; font-size: 10px; font-weight: bold;");
+
+    videoTitleLayout->addWidget(videoTitle);
+    videoTitleLayout->addStretch();
+    videoTitleLayout->addWidget(yoloObjectsLabel);
+    videoTitleLayout->addWidget(yoloTimeLabel);
+    videoTitleLayout->addWidget(yoloFpsLabel);
+
+    videoCardLayout->addLayout(videoTitleLayout);
+
+    // ИЗМЕНЕНО: videoDisplay теперь DualVideoWidget
+    videoDisplay = new DualVideoWidget();
+    videoDisplay->setMinimumHeight(220);
     videoDisplay->setMaximumHeight(380);
-    videoDisplay->setAlignment(Qt::AlignCenter);
-    videoDisplay->setStyleSheet(
-        "border: 1px solid #e0e0e0;"
-        "border-radius: 5px;"
-        "background-color: #1a1a1a;"
-        );
-
-    QPixmap placeholder(640, 480);
-    placeholder.fill(Qt::black);
-    videoDisplay->setPixmap(placeholder);
 
     videoCardLayout->addWidget(videoDisplay);
 
     mainLayout->addWidget(videoCard, 1);
+    // ========== КОНЕЦ ИЗМЕНЕНИЙ В ВИДЕО ==========
 
-    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ
+    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ (БЕЗ ИЗМЕНЕНИЙ)
     QFrame *bottomCard = new QFrame();
     bottomCard->setStyleSheet(
         "QFrame {"
@@ -357,7 +375,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(bottomCard, 0, Qt::AlignTop);
 
-    // СИСТЕМНЫЙ ЛОГ
+    // СИСТЕМНЫЙ ЛОГ (БЕЗ ИЗМЕНЕНИЙ)
     QFrame *logCard = new QFrame();
     logCard->setStyleSheet(
         "QFrame {"
@@ -398,7 +416,7 @@ void MainWindow::setupUI()
 
     mainLayout->addWidget(logCard, 0, Qt::AlignTop);
 
-    // КНОПКИ УПРАВЛЕНИЯ
+    // КНОПКИ УПРАВЛЕНИЯ (БЕЗ ИЗМЕНЕНИЙ)
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(6);
 
@@ -442,7 +460,7 @@ void MainWindow::setupUI()
 
 void MainWindow::setupConnections()
 {
-    // Подключение к роботу - обновляем для batchSender
+    // Подключение к роботу
     connect(connectButton, &QPushButton::clicked, this, [=]() {
         if (sender->isConnected() || (batchSender && batchSender->isConnected())) {
             sender->disconnectFromRobot();
@@ -453,14 +471,19 @@ void MainWindow::setupConnections()
         }
     });
 
-    // Видео
+    // ========== ИЗМЕНЕНО: Видео с поддержкой DualVideoWidget ==========
     connect(startVideoButton, &QPushButton::clicked, this, [=]() {
-        streamer->start(videoDisplay);
+        if (videoDisplay) {
+            streamer->start(videoDisplay->getLeftVideoLabel());  // ИЗМЕНЕНО
+            // Подключаем VideoStreamer к DualVideoWidget
+            streamer->setDualWidget(videoDisplay);  // ДОБАВЛЕНО
+        }
     });
 
     connect(stopVideoButton, &QPushButton::clicked, this, [=]() {
         streamer->stop();
     });
+    // ========== КОНЕЦ ИЗМЕНЕНИЙ ==========
 
     // CommandSender — статусы и команды
     connect(sender, &CommandSender::connected, this, [=]() {
@@ -536,9 +559,7 @@ void MainWindow::setupConnections()
         logger->logSystem("Ошибка: " + error);
     });
 
-    // ========== ПОДКЛЮЧЕНИЯ ДЛЯ ПАКЕТНЫХ КОМАНД ==========
-
-    // Подключение batchSender
+    // ПОДКЛЮЧЕНИЯ ДЛЯ ПАКЕТНЫХ КОМАНД
     connect(batchSender, &BatchCommandSender::connected, this, [=]() {
         logger->logSystem("Пакетный отправитель подключен");
     });
@@ -570,7 +591,7 @@ void MainWindow::setupConnections()
         logger->logSystem("Пакетная команда выполнена");
     });
 
-    // Отправка пакетной команды по кнопке
+    // Отправка пакетной команды
     connect(sendBatchButton, &QPushButton::clicked, this, [=]() {
         QString command = batchCommandEdit->text().trimmed();
         if (!command.isEmpty()) {
@@ -579,7 +600,6 @@ void MainWindow::setupConnections()
         }
     });
 
-    // Отправка пакетной команды по Enter в поле ввода
     connect(batchCommandEdit, &QLineEdit::returnPressed, this, [=]() {
         QString command = batchCommandEdit->text().trimmed();
         if (!command.isEmpty()) {
@@ -587,6 +607,44 @@ void MainWindow::setupConnections()
             batchCommandEdit->clear();
         }
     });
+
+    // ========== ДОБАВЛЕНО: Подключение сигналов YOLO для статистики ==========
+    if (videoDisplay && videoDisplay->getDetector()) {
+        YOLODetector *detector = videoDisplay->getDetector();
+
+        connect(detector, &YOLODetector::detectionCompleted,
+                this, [=](QVector<Detection> detections, qint64 elapsedMs) {
+                    // Обновляем статистику в заголовке
+                    yoloObjectsLabel->setText(QString("📊 %1").arg(detections.size()));
+                    yoloTimeLabel->setText(QString("⏱ %1мс").arg(elapsedMs));
+
+                    // Расчет FPS
+                    static int frameCount = 0;
+                    static qint64 lastTime = 0;
+                    static float fps = 0;
+
+                    if (lastTime == 0) {
+                        lastTime = elapsedMs;
+                    } else {
+                        frameCount++;
+                        if (frameCount >= 10) {
+                            fps = 10000.0f / (elapsedMs - lastTime);
+                            lastTime = elapsedMs;
+                            frameCount = 0;
+                        }
+                    }
+                    yoloFpsLabel->setText(QString("⚡ %1fps").arg(fps, 0, 'f', 1));
+                });
+
+        connect(detector, &YOLODetector::modelLoaded, this, [=](bool success) {
+            if (success) {
+                logger->logSystem("✅ YOLO модель загружена");
+            } else {
+                logger->logSystem("❌ Ошибка загрузки YOLO");
+            }
+        });
+    }
+    // ========== КОНЕЦ ДОБАВЛЕНИЙ ==========
 
     // VideoStreamer
     connect(streamer, &VideoStreamer::started, this, [=]() {
@@ -685,7 +743,6 @@ void MainWindow::sendBatchCommand(const QString& command)
 
     if (!batchSender->isConnected()) {
         logger->logSystem("Ошибка: не подключен к роботу");
-        // Можно показать предупреждение, но не обязательно
         return;
     }
 
@@ -752,13 +809,104 @@ void MainWindow::focusOutEvent(QFocusEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
+    // Убрал старую логику с pixmap, так как теперь videoDisplay сам обрабатывает resize
+}
 
-    if (videoDisplay && !videoDisplay->pixmap().isNull()) {
-        QPixmap scaled = videoDisplay->pixmap().scaled(
-            videoDisplay->size(),
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation
+// ========== РЕАЛИЗАЦИИ НЕДОСТАЮЩИХ МЕТОДОВ ==========
+
+void MainWindow::onBatchCompleted()
+{
+    logger->logSystem("Пакетная команда завершена");
+}
+
+void MainWindow::updateConnectionStatus(bool connected)
+{
+    if (connected) {
+        connectionStatus->setText("● Подключен");
+        connectionStatus->setStyleSheet(
+            "color: #4caf50;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
             );
-        videoDisplay->setPixmap(scaled);
+    } else {
+        connectionStatus->setText("● Отключен");
+        connectionStatus->setStyleSheet(
+            "color: #f44336;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
     }
+}
+
+void MainWindow::updateVideoStatus(bool streaming)
+{
+    if (streaming) {
+        videoStatus->setText("● Видео активно");
+        videoStatus->setStyleSheet(
+            "color: #4caf50;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+    } else {
+        videoStatus->setText("● Видео не активно");
+        videoStatus->setStyleSheet(
+            "color: #9e9e9e;"
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "padding: 3px 6px;"
+            );
+    }
+}
+
+void MainWindow::logMessage(const QString& message)
+{
+    logger->logSystem(message);
+}
+
+void MainWindow::onDetectionCompleted(QVector<Detection> detections, qint64 elapsedMs)
+{
+    // Обновляем статистику в заголовке
+    yoloObjectsLabel->setText(QString("📊 %1").arg(detections.size()));
+    yoloTimeLabel->setText(QString("⏱ %1мс").arg(elapsedMs));
+
+    // Расчет FPS
+    static int frameCount = 0;
+    static qint64 lastTime = 0;
+    static float fps = 0;
+
+    if (lastTime == 0) {
+        lastTime = elapsedMs;
+    } else {
+        frameCount++;
+        if (frameCount >= 10) {
+            fps = 10000.0f / (elapsedMs - lastTime);
+            lastTime = elapsedMs;
+            frameCount = 0;
+        }
+    }
+    yoloFpsLabel->setText(QString("⚡ %1fps").arg(fps, 0, 'f', 1));
+
+    // Логируем если найдены объекты
+    if (!detections.isEmpty()) {
+        QStringList objectList;
+        for (const Detection& det : detections) {
+            objectList << QString("%1(%2%)").arg(det.className).arg((int)(det.confidence * 100));
+        }
+        if (objectList.size() > 3) {
+            objectList = objectList.mid(0, 3);
+            objectList << "...";
+        }
+        logger->logSystem(QString("YOLO: найдено %1 объектов [%2]")
+                              .arg(detections.size())
+                              .arg(objectList.join(", ")));
+    }
+}
+
+void MainWindow::updateYoloStats(const QString& stats)
+{
+    // Можно использовать для обновления дополнительной статистики
+    logger->logSystem("YOLO stats: " + stats);
 }

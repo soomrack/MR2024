@@ -1,19 +1,31 @@
 cmake_minimum_required(VERSION 3.19)
 project(Robot_ezdun_control LANGUAGES CXX)
 
-# Путь к GStreamer (твой новый путь)
+# Путь к GStreamer
 set(GSTREAMER_ROOT "C:/gstreamer/1.28/mingw_x86_64")
 
-# Проверяем существование пути
+# ===== ПУТЬ К СОБРАННОМУ OPENCV 4.9.0 =====
+set(OPENCV_ROOT "C:/opencv-4.9.0/build/Desktop_Qt_6_10_2_MinGW_64_bit-Debug/install")
+set(OPENCV_INCLUDE_DIR "${OPENCV_ROOT}/include")
+set(OPENCV_LIB_DIR "${OPENCV_ROOT}/x64/mingw/lib")
+set(OPENCV_BIN_DIR "${OPENCV_ROOT}/x64/mingw/bin")
+
+message(STATUS "========================================")
+message(STATUS "OpenCV 4.9.0 configuration:")
+message(STATUS "  Root: ${OPENCV_ROOT}")
+message(STATUS "  Include: ${OPENCV_INCLUDE_DIR}")
+message(STATUS "  Lib dir: ${OPENCV_LIB_DIR}")
+message(STATUS "  Bin dir: ${OPENCV_BIN_DIR}")
+message(STATUS "========================================")
+
+# Проверяем существование пути GStreamer
 if(NOT EXISTS ${GSTREAMER_ROOT})
     message(WARNING "GStreamer not found at ${GSTREAMER_ROOT}. Video streaming will not work!")
-    message(WARNING "Please install GStreamer from: https://gstreamer.freedesktop.org/download/")
     set(GSTREAMER_FOUND FALSE)
 else()
     set(GSTREAMER_FOUND TRUE)
     message(STATUS "GStreamer found at ${GSTREAMER_ROOT}")
 
-    # Пути к заголовкам GStreamer
     set(GSTREAMER_INCLUDE_DIRS
         ${GSTREAMER_ROOT}/include
         ${GSTREAMER_ROOT}/include/gstreamer-1.0
@@ -21,18 +33,8 @@ else()
         ${GSTREAMER_ROOT}/lib/glib-2.0/include
     )
 
-    # Пути к библиотекам GStreamer
     set(GSTREAMER_LIBRARY_DIRS
         ${GSTREAMER_ROOT}/lib
-    )
-
-    # Список библиотек GStreamer для линковки
-    set(GSTREAMER_LIBRARIES
-        gstreamer-1.0
-        gstapp-1.0
-        gobject-2.0
-        glib-2.0
-        intl
     )
 endif()
 
@@ -59,18 +61,46 @@ qt_add_executable(Robot_ezdun_control
     data_logger.h
     batch_command_sender.h
     batch_command_sender.cpp
+    yolo_detector.h
+    yolo_detector.cpp
+    dual_video_widget.h
+    dual_video_widget.cpp
 )
 
 target_include_directories(Robot_ezdun_control PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Добавляем GStreamer только если найден
+# ===== ПОДКЛЮЧАЕМ OPENCV 4.9.0 (WORLD) =====
+if(EXISTS ${OPENCV_INCLUDE_DIR})
+    message(STATUS "✅ OpenCV include found at ${OPENCV_INCLUDE_DIR}")
+    target_include_directories(Robot_ezdun_control PRIVATE ${OPENCV_INCLUDE_DIR})
+
+    # Ищем библиотеку opencv_world
+    file(GLOB OPENCV_WORLD_LIB
+        "${OPENCV_LIB_DIR}/libopencv_world*.a"
+    )
+
+    if(OPENCV_WORLD_LIB)
+        message(STATUS "✅ OpenCV world library found: ${OPENCV_WORLD_LIB}")
+        target_link_libraries(Robot_ezdun_control PRIVATE ${OPENCV_WORLD_LIB})
+        target_compile_definitions(Robot_ezdun_control PRIVATE HAVE_OPENCV=1)
+    else()
+        message(FATAL_ERROR "❌ OpenCV world library not found in ${OPENCV_LIB_DIR}")
+    endif()
+
+    # Добавляем путь к DLL для runtime
+    target_compile_definitions(Robot_ezdun_control PRIVATE
+        OPENCV_BIN_DIR="${OPENCV_BIN_DIR}")
+else()
+    message(FATAL_ERROR "❌ OpenCV include directory not found at ${OPENCV_INCLUDE_DIR}")
+endif()
+
+# Добавляем GStreamer если найден
 if(GSTREAMER_FOUND)
     target_include_directories(Robot_ezdun_control PRIVATE ${GSTREAMER_INCLUDE_DIRS})
     target_link_directories(Robot_ezdun_control PRIVATE ${GSTREAMER_LIBRARY_DIRS})
 
-    # Линкуем библиотеки GStreamer
     target_link_libraries(Robot_ezdun_control PRIVATE
         ${GSTREAMER_LIBRARY_DIRS}/libgstreamer-1.0.dll.a
         ${GSTREAMER_LIBRARY_DIRS}/libgstapp-1.0.dll.a
@@ -80,7 +110,7 @@ if(GSTREAMER_FOUND)
     )
 
     target_compile_definitions(Robot_ezdun_control PRIVATE HAVE_GSTREAMER=1)
-    message(STATUS "GStreamer libraries linked successfully")
+    message(STATUS "✅ GStreamer libraries linked successfully")
 else()
     target_compile_definitions(Robot_ezdun_control PRIVATE HAVE_GSTREAMER=0)
 endif()

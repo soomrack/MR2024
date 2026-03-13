@@ -17,12 +17,14 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QSplitter>  // Добавлено для разделения панелей
 
 #include "command_sender.h"
 #include "video_streamer.h"
 #include "data_logger.h"
 #include "data_receiver.h"
 #include "batch_command_sender.h"
+#include "dual_video_widget.h"  // Добавлено
 
 class MainWindow : public QMainWindow
 {
@@ -34,10 +36,14 @@ public:
 
 public slots:
     void sendBatchCommand(const QString& command);
-    //void onBatchCompleted();
-    //void updateConnectionStatus(bool connected);
-    //void updateVideoStatus(bool streaming);
-    //void logMessage(const QString& message);
+    void onBatchCompleted();
+    void updateConnectionStatus(bool connected);
+    void updateVideoStatus(bool streaming);
+    void logMessage(const QString& message);
+
+    // Новые слоты для YOLO
+    void onDetectionCompleted(QVector<Detection> detections, qint64 elapsedMs);
+    void updateYoloStats(const QString& stats);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -53,6 +59,7 @@ private:
     void createStatusPanel();
     void createLogPanel();
     void createVideoPanel();
+    void createYoloStatusPanel();  // Добавлено
 
     // Основные компоненты
     CommandSender *sender;
@@ -66,7 +73,9 @@ private:
     QLabel *connectionStatus;
     QLabel *videoStatus;
     QLabel *instructions;
-    QLabel *videoDisplay;
+
+    // ВИДЕО: Заменяем QLabel на DualVideoWidget
+    DualVideoWidget *videoDisplay;  // Изменено с QLabel на DualVideoWidget
 
     QPushButton *connectButton;
     QPushButton *startVideoButton;
@@ -92,6 +101,17 @@ private:
     QStringList currentBatchQueue;
 
     QLabel *batchStatusLabel;
+
+    // Новые элементы для YOLO статистики
+    QGroupBox *yoloStatsGroupBox;
+    QLabel *yoloObjectsLabel;
+    QLabel *yoloTimeLabel;
+    QLabel *yoloFpsLabel;
+    QLabel *yoloClassesLabel;
+
+    // Разделители для гибкого интерфейса
+    QSplitter *mainSplitter;
+    QSplitter *rightPanelSplitter;
 };
 
 #endif // MAINWINDOW_H
