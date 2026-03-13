@@ -79,7 +79,7 @@ private:
 
     static const int BATCH_RATE_LIMIT_MS = 1000;
     static const int MAX_BATCH_COMMANDS_PER_SECOND = 2;
-    static const int BATCH_EXECUTION_DELAY_MS = 500;  // Увеличил задержку
+    static const int BATCH_EXECUTION_DELAY_MS = 500;
     static const int COMPLETION_CHECK_INTERVAL_MS = 100;
 };
 

@@ -5,7 +5,6 @@
 #include <QStandardPaths>
 #include <QCoreApplication>
 
-// ================== Callback функции ==================
 
 GstFlowReturn new_sample_cb(GstElement *sink, gpointer user_data)
 {
@@ -19,21 +18,18 @@ GstFlowReturn new_sample_cb(GstElement *sink, gpointer user_data)
     GstBuffer *buffer = gst_sample_get_buffer(sample);
     GstCaps *caps = gst_sample_get_caps(sample);
 
-    // Получаем информацию о формате видео
+
     GstStructure *structure = gst_caps_get_structure(caps, 0);
     int width, height;
     gst_structure_get_int(structure, "width", &width);
     gst_structure_get_int(structure, "height", &height);
 
-    // Получаем данные кадра
     GstMapInfo map;
     gst_buffer_map(buffer, &map, GST_MAP_READ);
 
-    // Создаем QImage из данных RGB
     if (map.size > 0 && width > 0 && height > 0) {
         QImage image(map.data, width, height, QImage::Format_RGB888);
 
-        // Используем публичные методы для доступа к данным
         thread->lockMutex();
         thread->setCurrentFrame(image.copy());
         thread->setFrameNew(true);
@@ -102,7 +98,6 @@ gboolean bus_callback(GstBus *bus, GstMessage *msg, gpointer user_data)
     return TRUE;
 }
 
-// ================== GStreamerThread Implementation ==================
 
 GStreamerThread::GStreamerThread(QObject *parent)
     : QThread(parent)
@@ -148,13 +143,11 @@ QString GStreamerThread::getLastError()
 
 void GStreamerThread::run()
 {
-    // Инициализируем GStreamer
     gst_init(nullptr, nullptr);
 
     m_running = true;
     m_lastError.clear();
 
-    // Создаем pipeline для приема RTP/JPEG потока
     QString pipelineStr = QString(
                               "udpsrc port=%1 ! "
                               "application/x-rtp,encoding-name=JPEG,payload=26 ! "
@@ -176,7 +169,6 @@ void GStreamerThread::run()
         return;
     }
 
-    // Получаем appsink элемент
     m_appsink = gst_bin_get_by_name(GST_BIN(m_pipeline), "qt_sink");
     if (!m_appsink) {
         m_lastError = "Failed to get appsink element";
@@ -185,31 +177,25 @@ void GStreamerThread::run()
         return;
     }
 
-    // Настраиваем appsink
     g_object_set(m_appsink, "emit-signals", TRUE, "sync", FALSE, nullptr);
 
-    // Подключаем callback для новых кадров
     g_signal_connect(m_appsink, "new-sample", G_CALLBACK(new_sample_cb), this);
 
-    // Получаем bus для сообщений
     GstBus *bus = gst_element_get_bus(GST_ELEMENT(m_pipeline));
     guint bus_watch_id = gst_bus_add_watch(bus, bus_callback, this);
     gst_object_unref(bus);
 
-    // Запускаем pipeline
     gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PLAYING);
 
     qDebug() << "GStreamer pipeline started, waiting for video stream on port" << Config::VIDEO_PORT;
 
-    // Главный цикл потока
     while (m_running && m_lastError.isEmpty()) {
         QThread::msleep(10);
     }
 
-    // Останавливаем pipeline
+
     gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_NULL);
 
-    // Очищаем ресурсы
     g_source_remove(bus_watch_id);
     gst_object_unref(m_appsink);
     gst_object_unref(m_pipeline);
@@ -217,7 +203,6 @@ void GStreamerThread::run()
     qDebug() << "GStreamer thread finished";
 }
 
-// ================== VideoStreamer Implementation ==================
 
 VideoStreamer::VideoStreamer(QObject *parent)
     : QObject(parent)
@@ -282,7 +267,6 @@ void VideoStreamer::start(QLabel *videoLabel)
     m_displayLabel = videoLabel;
     m_currentFile = generateFilename();
 
-    // Показываем заглушку с сообщением о запуске
     QImage placeholder(640, 480, QImage::Format_RGB888);
     placeholder.fill(Qt::black);
 
@@ -300,7 +284,6 @@ void VideoStreamer::start(QLabel *videoLabel)
                                             Qt::KeepAspectRatio,
                                             Qt::SmoothTransformation));
 
-    // Запускаем поток GStreamer
     m_thread->start();
 
     m_running = true;
@@ -323,7 +306,6 @@ void VideoStreamer::stop()
 
     m_running = false;
 
-    // Очищаем дисплей
     if (m_displayLabel) {
         QImage placeholder(640, 480, QImage::Format_RGB888);
         placeholder.fill(Qt::black);
@@ -389,12 +371,10 @@ void VideoStreamer::updateDisplay()
         return;
     }
 
-    // Получаем новый кадр если есть
     if (m_thread->isFrameNew()) {
         QImage frame = m_thread->getCurrentFrame();
 
         if (!frame.isNull()) {
-            // Добавляем информацию о времени на кадр
             QPainter painter(&frame);
             painter.setPen(Qt::green);
             painter.setFont(QFont("Arial", 10));
@@ -405,7 +385,6 @@ void VideoStreamer::updateDisplay()
             painter.drawText(frame.width() - 150, 20, "640x480");
             painter.end();
 
-            // Если есть DualVideoWidget, показываем в нём
             if (m_dualWidget) {
                 m_dualWidget->setLeftFrame(frame);
 
@@ -415,7 +394,6 @@ void VideoStreamer::updateDisplay()
                     processFrameForDetection();
                 }
             }
-            // Иначе показываем в обычном лейбле (старое поведение)
             else if (m_displayLabel) {
                 QPixmap pixmap = QPixmap::fromImage(frame);
                 m_displayLabel->setPixmap(pixmap.scaled(
@@ -435,22 +413,18 @@ void VideoStreamer::processFrameForDetection()
     QImage frame = m_thread->getCurrentFrame();
     if (frame.isNull()) return;
 
-    // Получаем детектор из виджета
     YOLODetector *detector = m_dualWidget->getDetector();
 
     if (detector && detector->isLoaded()) {
-        // Запускаем детекцию
         QVector<Detection> detections = detector->detect(frame, 0.5, 0.4);
 
         // Рисуем результаты
         QImage resultFrame = detector->drawDetections(frame, detections);
         m_dualWidget->setRightFrame(resultFrame);
 
-        // Испускаем сигнал с обработанным кадром
         emit frameProcessed(resultFrame, detections);
     } else {
         qDebug() << "YOLO detector not loaded yet";
-        // Если детектор не загружен, просто копируем оригинальный кадр
         m_dualWidget->setRightFrame(frame);
     }
 }

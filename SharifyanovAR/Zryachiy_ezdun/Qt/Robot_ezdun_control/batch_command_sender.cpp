@@ -82,7 +82,7 @@ int BatchCommandSender::extractDuration(const QString& command)
     if (match.hasMatch()) {
         return match.captured(1).toInt();
     }
-    return 1; // по умолчанию 1 секунда
+    return 1;
 }
 
 void BatchCommandSender::sendBatchCommand(const QString& batchCommand)
@@ -110,7 +110,6 @@ void BatchCommandSender::sendBatchCommand(const QString& batchCommand)
 
     batchQueue.enqueue(cmd);
 
-    // Если очередь была пуста и ничего не выполняется - запускаем
     if (batchQueue.size() == 1 && currentCommand.command.isEmpty()) {
         qDebug() << "[BATCH] Starting queue execution";
         executeNextBatchCommand();
@@ -142,7 +141,6 @@ void BatchCommandSender::executeNextBatchCommand()
         return;
     }
 
-    // Берем следующую команду из очереди
     currentCommand = batchQueue.dequeue();
 
     qDebug() << "[BATCH] Executing:" << currentCommand.command
@@ -151,11 +149,9 @@ void BatchCommandSender::executeNextBatchCommand()
     // Отправляем команду
     QByteArray data = currentCommand.command.toUtf8() + "\n";
     socket->write(data);
-    socket->flush();  // Важно! Принудительно отправляем
-
+    socket->flush();
     qDebug() << "[BATCH] Command sent, waiting" << currentCommand.duration << "seconds";
 
-    // Запускаем таймер для проверки завершения
     executionTimer.start();
     completionTimer->start();
 }
@@ -167,7 +163,6 @@ void BatchCommandSender::checkCommandCompletion()
         return;
     }
 
-    // Проверяем, прошло ли достаточно времени
     if (executionTimer.elapsed() >= currentCommand.duration * 1000) {
         qDebug() << "[BATCH] Command completed after" << executionTimer.elapsed() << "ms";
 
@@ -178,10 +173,8 @@ void BatchCommandSender::checkCommandCompletion()
         socket->write(" \n");  // Пробел - команда остановки
         socket->flush();
 
-        // Даем время на обработку остановки
         QThread::msleep(100);
 
-        // Переходим к следующей команде
         if (!batchQueue.isEmpty()) {
             qDebug() << "[BATCH] Next command in queue, executing after delay";
             batchTimer->start();
@@ -223,7 +216,6 @@ void BatchCommandSender::onBatchComplete()
     qDebug() << "[BATCH] Manual batch completion signal";
 
     if (!currentCommand.command.isEmpty()) {
-        // Отправляем остановку
         socket->write(" \n");
         socket->flush();
         currentCommand.command.clear();

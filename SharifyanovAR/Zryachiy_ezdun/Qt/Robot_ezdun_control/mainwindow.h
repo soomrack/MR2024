@@ -17,14 +17,14 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSplitter>  // Добавлено для разделения панелей
+#include <QSplitter>
 
 #include "command_sender.h"
 #include "video_streamer.h"
 #include "data_logger.h"
 #include "data_receiver.h"
 #include "batch_command_sender.h"
-#include "dual_video_widget.h"  // Добавлено
+#include "dual_video_widget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -59,7 +59,7 @@ private:
     void createStatusPanel();
     void createLogPanel();
     void createVideoPanel();
-    void createYoloStatusPanel();  // Добавлено
+    void createYoloStatusPanel();
 
     // Основные компоненты
     CommandSender *sender;
@@ -74,8 +74,8 @@ private:
     QLabel *videoStatus;
     QLabel *instructions;
 
-    // ВИДЕО: Заменяем QLabel на DualVideoWidget
-    DualVideoWidget *videoDisplay;  // Изменено с QLabel на DualVideoWidget
+    // ВИДЕО
+    DualVideoWidget *videoDisplay;
 
     QPushButton *connectButton;
     QPushButton *startVideoButton;
@@ -102,7 +102,7 @@ private:
 
     QLabel *batchStatusLabel;
 
-    // Новые элементы для YOLO статистики
+    //для YOLO статистики
     QGroupBox *yoloStatsGroupBox;
     QLabel *yoloObjectsLabel;
     QLabel *yoloTimeLabel;

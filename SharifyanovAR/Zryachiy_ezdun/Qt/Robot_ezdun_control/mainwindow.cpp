@@ -2,8 +2,8 @@
 #include "data_logger.h"
 #include "data_receiver.h"
 #include "batch_command_sender.h"
-#include "dual_video_widget.h"  // ДОБАВЛЕНО
-#include "yolo_detector.h"       // ДОБАВЛЕНО
+#include "dual_video_widget.h"
+#include "yolo_detector.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -18,8 +18,8 @@
 #include <QFontDatabase>
 #include <QRegularExpression>
 #include <QLineEdit>
+#include <QElapsedTimer>
 
-// ДОБАВЛЕНО для статистики YOLO
 QLabel *yoloObjectsLabel;
 QLabel *yoloTimeLabel;
 QLabel *yoloFpsLabel;
@@ -32,16 +32,14 @@ MainWindow::MainWindow(QWidget *parent)
     logger(new DataLogger(this)),
     receiver(new DataReceiver(this)),
     batchSender(new BatchCommandSender(this)),
-    videoDisplay(nullptr)  // ИЗМЕНЕНО: было QLabel*, стало DualVideoWidget*
+    videoDisplay(nullptr)
 {
     setupUI();
     setupConnections();
 
-    // Подключаем логгер к окну
     connect(logger, &DataLogger::newLogMessage,
             logBox, &QTextEdit::append);
 
-    // Запуск UDP датчика
     if (receiver->start(5601)) {
         logger->logSystem("UDP 5601 запущен (датчик расстояния)");
     } else {
@@ -68,386 +66,329 @@ void MainWindow::setupUI()
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    // Общий стиль окна
     setStyleSheet(
-        "QMainWindow {"
-        "   background-color: #f5f5f5;"
+        "QMainWindow, QWidget {"
+        "   background-color: #1a1a2e;"
         "   font-family: Arial;"
         "}"
         "QPushButton {"
-        "   background-color: #2196F3;"
-        "   color: white;"
-        "   border: none;"
-        "   padding: 6px 14px;"
-        "   border-radius: 5px;"
+        "   background-color: #0f3460;"
+        "   color: #e0e0e0;"
+        "   border: 1px solid #16213e;"
+        "   padding: 6px 16px;"
+        "   border-radius: 6px;"
         "   font-weight: bold;"
-        "   font-size: 11px;"
-        "   min-height: 28px;"
+        "   font-size: 12px;"
+        "   min-height: 30px;"
         "}"
         "QPushButton:hover {"
-        "   background-color: #1976D2;"
+        "   background-color: #1a4a7a;"
+        "   border: 1px solid #4fc3f7;"
         "}"
         "QPushButton:disabled {"
-        "   background-color: #b0b0b0;"
-        "   color: #666;"
+        "   background-color: #1a1a2e;"
+        "   color: #444;"
+        "   border: 1px solid #222;"
         "}"
         "QTextEdit {"
-        "   border: 1px solid #e0e0e0;"
+        "   border: 1px solid #0f3460;"
         "   border-radius: 4px;"
-        "   background-color: white;"
+        "   background-color: #0d0d1a;"
+        "   color: #a0c4ff;"
         "   font-family: 'Courier New';"
         "   font-size: 11px;"
         "   padding: 4px;"
         "}"
         "QLabel {"
         "   font-family: Arial;"
+        "   color: #c0c0d0;"
         "}"
         "QLineEdit {"
-        "   border: 1px solid #e0e0e0;"
+        "   border: 1px solid #0f3460;"
         "   border-radius: 4px;"
         "   padding: 6px;"
-        "   background-color: white;"
-        "   font-size: 11px;"
+        "   background-color: #0d0d1a;"
+        "   color: #e0e0e0;"
+        "   font-size: 12px;"
+        "}"
+        "QFrame {"
+        "   background-color: #16213e;"
+        "   border-radius: 8px;"
         "}"
         );
 
     QVBoxLayout *mainLayout = new QVBoxLayout(central);
-    mainLayout->setSpacing(8);
-    mainLayout->setContentsMargins(12, 8, 12, 8);
+    mainLayout->setSpacing(6);
+    mainLayout->setContentsMargins(10, 8, 10, 8);
 
-    // ВЕРХНИЙ СТАТУС‑БАР
+    // ВЕРХНИЙ СТАТУС-БАР
     QHBoxLayout *topLayout = new QHBoxLayout();
-    topLayout->setSpacing(6);
+    topLayout->setSpacing(8);
 
     connectionStatus = new QLabel("● Отключен");
     connectionStatus->setStyleSheet(
-        "color: #f44336;"
-        "font-weight: bold;"
-        "font-size: 12px;"
-        "padding: 3px 6px;"
+        "color: #f44336; font-weight: bold; font-size: 13px;"
+        "padding: 3px 8px; background-color: transparent;"
         );
     connectionStatus->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
     videoStatus = new QLabel("● Видео не активно");
     videoStatus->setStyleSheet(
-        "color: #9e9e9e;"
-        "font-weight: bold;"
-        "font-size: 12px;"
-        "padding: 3px 6px;"
+        "color: #607d8b; font-weight: bold; font-size: 13px;"
+        "padding: 3px 8px; background-color: transparent;"
         );
     videoStatus->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
     topLayout->addWidget(connectionStatus);
     topLayout->addStretch();
     topLayout->addWidget(videoStatus);
-
     mainLayout->addLayout(topLayout);
 
     // БЛОК УПРАВЛЕНИЯ
     QFrame *controlCard = new QFrame();
     controlCard->setStyleSheet(
-        "QFrame {"
-        "   background-color: white;"
-        "   border-radius: 8px;"
-        "   border: 1px solid #e0e0e0;"
-        "   padding: 8px;"
-        "}"
+        "QFrame { background-color: #16213e; border-radius: 8px;"
+        "border: 1px solid #0f3460; padding: 6px; }"
         );
 
     QVBoxLayout *ctrlLayout = new QVBoxLayout(controlCard);
     ctrlLayout->setSpacing(4);
+    ctrlLayout->setContentsMargins(10, 6, 10, 6);
 
     QLabel *ctrlTitle = new QLabel("УПРАВЛЕНИЕ РОБОТОМ");
     ctrlTitle->setStyleSheet(
-        "font-size: 14px;"
-        "font-weight: bold;"
-        "color: #333;"
-        "margin-bottom: 4px;"
+        "font-size: 13px; font-weight: bold; color: #4fc3f7;"
+        "background-color: transparent; letter-spacing: 1px;"
         );
     ctrlTitle->setAlignment(Qt::AlignCenter);
     ctrlLayout->addWidget(ctrlTitle);
 
     QLabel *instructions = new QLabel(
-        "W — Вперед    |    S — Назад    |    A — Влево    |    D — Вправо   |   ПРОБЕЛ — Остановка    |    L — Return to home"
+        "W — Вперед    |    S — Назад    |    A — Влево    |    D — Вправо    |    ПРОБЕЛ — Стоп    |    L — Return to home"
         );
     instructions->setStyleSheet(
-        "background-color: #f8f9fa;"
-        "border: 1px solid #e0e0e0;"
-        "border-radius: 6px;"
-        "font-size: 11px;"
-        "color: #555;"
-        "padding: 8px;"
+        "background-color: #0f1a2e; border: 1px solid #0f3460; border-radius: 5px;"
+        "font-size: 11px; color: #90a4ae; padding: 6px;"
         );
     instructions->setAlignment(Qt::AlignCenter);
     instructions->setWordWrap(true);
     ctrlLayout->addWidget(instructions);
 
-    mainLayout->addWidget(controlCard, 0, Qt::AlignTop);
+    mainLayout->addWidget(controlCard);
 
     // БЛОК ПАКЕТНЫХ КОМАНД
     QFrame *batchCard = new QFrame();
     batchCard->setStyleSheet(
-        "QFrame {"
-        "   background-color: #f0f4f8;"
-        "   border-radius: 6px;"
-        "   border: 1px solid #c0c0c0;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #16213e; border-radius: 8px;"
+        "border: 1px solid #0f3460; padding: 6px; }"
         );
 
     QHBoxLayout *batchLayout = new QHBoxLayout(batchCard);
-    batchLayout->setSpacing(6);
-    batchLayout->setContentsMargins(6, 6, 6, 6);
+    batchLayout->setSpacing(8);
+    batchLayout->setContentsMargins(10, 6, 10, 6);
 
-    QLabel *batchLabel = new QLabel("📦 Пакетная команда:");
-    batchLabel->setStyleSheet("font-weight: bold; font-size: 11px; color: #555;");
+    QLabel *batchLabel = new QLabel("📦 Пакет:");
+    batchLabel->setStyleSheet(
+        "font-weight: bold; font-size: 12px; color: #ce93d8; background-color: transparent;"
+        );
 
     batchCommandEdit = new QLineEdit();
     batchCommandEdit->setPlaceholderText("Например: Forward:2s; Back:1s; Left:1s");
-    batchCommandEdit->setMinimumHeight(28);
+    batchCommandEdit->setMinimumHeight(30);
 
     sendBatchButton = new QPushButton("Отправить пакет");
     sendBatchButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #9C27B0;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #7B1FA2;"
-        "}"
+        "QPushButton { background-color: #6a1b9a; color: white;"
+        "border: 1px solid #9c27b0; border-radius: 6px; padding: 6px 16px;"
+        "font-weight: bold; font-size: 12px; }"
+        "QPushButton:hover { background-color: #7b1fa2; border: 1px solid #ce93d8; }"
         );
 
     batchLayout->addWidget(batchLabel);
     batchLayout->addWidget(batchCommandEdit, 1);
     batchLayout->addWidget(sendBatchButton);
-
     mainLayout->addWidget(batchCard);
 
-    // ========== ИЗМЕНЕНО: ОБЛАСТЬ ВИДЕО С YOLO ==========
+    // ВИДЕОПОТОК — занимает всё свободное место
     QFrame *videoCard = new QFrame();
     videoCard->setStyleSheet(
-        "QFrame {"
-        "   background-color: white;"
-        "   border-radius: 6px;"
-        "   border: 1px solid #e0e0e0;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #16213e; border-radius: 8px;"
+        "border: 1px solid #0f3460; padding: 6px; }"
         );
 
     QVBoxLayout *videoCardLayout = new QVBoxLayout(videoCard);
     videoCardLayout->setSpacing(4);
+    videoCardLayout->setContentsMargins(8, 6, 8, 6);
 
-    // Заголовок видео
     QHBoxLayout *videoTitleLayout = new QHBoxLayout();
+
     QLabel *videoTitle = new QLabel("ВИДЕОПОТОК");
     videoTitle->setStyleSheet(
-        "font-size: 12px;"
-        "font-weight: bold;"
-        "color: #333;"
-        "margin-bottom: 2px;"
+        "font-size: 13px; font-weight: bold; color: #4fc3f7;"
+        "background-color: transparent; letter-spacing: 1px;"
         );
 
-    // Статистика YOLO (маленькая строка справа от заголовка)
     yoloObjectsLabel = new QLabel("📊 0");
-    yoloObjectsLabel->setStyleSheet("color: #4CAF50; font-size: 10px; font-weight: bold;");
+    yoloObjectsLabel->setStyleSheet(
+        "color: #66bb6a; font-size: 12px; font-weight: bold; background-color: transparent;"
+        );
     yoloTimeLabel = new QLabel("⏱ 0мс");
-    yoloTimeLabel->setStyleSheet("color: #2196F3; font-size: 10px; font-weight: bold;");
+    yoloTimeLabel->setStyleSheet(
+        "color: #42a5f5; font-size: 12px; font-weight: bold; background-color: transparent;"
+        );
     yoloFpsLabel = new QLabel("⚡ 0fps");
-    yoloFpsLabel->setStyleSheet("color: #FF9800; font-size: 10px; font-weight: bold;");
+    yoloFpsLabel->setStyleSheet(
+        "color: #ffa726; font-size: 12px; font-weight: bold; background-color: transparent;"
+        );
 
     videoTitleLayout->addWidget(videoTitle);
     videoTitleLayout->addStretch();
     videoTitleLayout->addWidget(yoloObjectsLabel);
+    videoTitleLayout->addSpacing(10);
     videoTitleLayout->addWidget(yoloTimeLabel);
+    videoTitleLayout->addSpacing(10);
     videoTitleLayout->addWidget(yoloFpsLabel);
-
     videoCardLayout->addLayout(videoTitleLayout);
 
-    // ИЗМЕНЕНО: videoDisplay теперь DualVideoWidget
     videoDisplay = new DualVideoWidget();
-    videoDisplay->setMinimumHeight(220);
-    videoDisplay->setMaximumHeight(380);
-
-    videoCardLayout->addWidget(videoDisplay);
+    videoDisplay->setMinimumHeight(300);
+    videoDisplay->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    videoCardLayout->addWidget(videoDisplay, 1);
 
     mainLayout->addWidget(videoCard, 1);
-    // ========== КОНЕЦ ИЗМЕНЕНИЙ В ВИДЕО ==========
 
-    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ (БЕЗ ИЗМЕНЕНИЙ)
+    // НИЖНИЙ БЛОК: ДАТЧИК + КОМАНДЫ
     QFrame *bottomCard = new QFrame();
     bottomCard->setStyleSheet(
-        "QFrame {"
-        "   background-color: white;"
-        "   border-radius: 8px;"
-        "   border: 1px solid #e0e0e0;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #16213e; border-radius: 8px;"
+        "border: 1px solid #0f3460; padding: 6px; }"
         );
 
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomCard);
     bottomLayout->setSpacing(8);
-    bottomLayout->setContentsMargins(6, 6, 6, 6);
+    bottomLayout->setContentsMargins(8, 6, 8, 6);
 
-    // ЛЕВОЕ ОКНО — ДАТЧИК РАССТОЯНИЯ
+    // Датчик расстояния
     QFrame *sensorFrame = new QFrame();
     sensorFrame->setStyleSheet(
-        "QFrame {"
-        "   background-color: #f8f9fa;"
-        "   border: 1px solid #e0e0e0;"
-        "   border-radius: 6px;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #0f1a2e; border: 1px solid #0f3460;"
+        "border-radius: 6px; padding: 6px; }"
         );
 
     QVBoxLayout *sensorLayout = new QVBoxLayout(sensorFrame);
     sensorLayout->setSpacing(3);
+    sensorLayout->setContentsMargins(8, 6, 8, 6);
 
     QLabel *sensorTitle = new QLabel("ДАТЧИК РАССТОЯНИЯ");
     sensorTitle->setStyleSheet(
-        "font-size: 11px;"
-        "font-weight: bold;"
-        "color: #666;"
+        "font-size: 11px; font-weight: bold; color: #4fc3f7;"
+        "background-color: transparent; letter-spacing: 1px;"
         );
     sensorLayout->addWidget(sensorTitle);
 
     distanceLabel = new QLabel("---");
     distanceLabel->setStyleSheet(
-        "background-color: #1e1e1e;"
-        "color: #4caf50;"
-        "font-size: 32px;"
-        "font-weight: bold;"
-        "padding: 12px;"
-        "border-radius: 6px;"
+        "background-color: #050d1a; color: #00e676;"
+        "font-size: 32px; font-weight: bold; padding: 10px;"
+        "border-radius: 6px; border: 1px solid #00695c;"
         );
     distanceLabel->setAlignment(Qt::AlignCenter);
-    distanceLabel->setMinimumHeight(70);
-    distanceLabel->setMaximumHeight(70);
+    distanceLabel->setMinimumHeight(65);
+    distanceLabel->setMaximumHeight(65);
     sensorLayout->addWidget(distanceLabel);
 
     QLabel *distanceUnit = new QLabel("сантиметров");
     distanceUnit->setStyleSheet(
-        "color: #999;"
-        "font-size: 11px;"
+        "color: #546e7a; font-size: 11px; background-color: transparent;"
         );
     distanceUnit->setAlignment(Qt::AlignCenter);
     sensorLayout->addWidget(distanceUnit);
 
-    // ПРАВОЕ ОКНО — КОМАНДЫ WASD
+    // Последние команды
     QFrame *commandsFrame = new QFrame();
     commandsFrame->setStyleSheet(
-        "QFrame {"
-        "   background-color: #f8f9fa;"
-        "   border: 1px solid #e0e0e0;"
-        "   border-radius: 6px;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #0f1a2e; border: 1px solid #0f3460;"
+        "border-radius: 6px; padding: 6px; }"
         );
 
     QVBoxLayout *commandsLayout = new QVBoxLayout(commandsFrame);
     commandsLayout->setSpacing(3);
+    commandsLayout->setContentsMargins(8, 6, 8, 6);
 
     QLabel *commandsTitle = new QLabel("ПОСЛЕДНИЕ КОМАНДЫ");
     commandsTitle->setStyleSheet(
-        "font-size: 11px;"
-        "font-weight: bold;"
-        "color: #666;"
+        "font-size: 11px; font-weight: bold; color: #4fc3f7;"
+        "background-color: transparent; letter-spacing: 1px;"
         );
     commandsLayout->addWidget(commandsTitle);
 
     commandsLog = new QTextEdit();
     commandsLog->setReadOnly(true);
     commandsLog->setMaximumHeight(90);
-    commandsLog->setMinimumHeight(60);
-    commandsLog->setStyleSheet(
-        "QTextEdit {"
-        "   background-color: #ffffff;"
-        "   border: 1px solid #e0e0e0;"
-        "   border-radius: 4px;"
-        "   font-family: 'Courier New';"
-        "   font-size: 11px;"
-        "   padding: 3px;"
-        "}"
-        );
-
+    commandsLog->setMinimumHeight(65);
     commandsLayout->addWidget(commandsLog);
 
     bottomLayout->addWidget(sensorFrame, 1);
-    bottomLayout->addWidget(commandsFrame, 1);
+    bottomLayout->addWidget(commandsFrame, 2);
+    mainLayout->addWidget(bottomCard);
 
-    mainLayout->addWidget(bottomCard, 0, Qt::AlignTop);
-
-    // СИСТЕМНЫЙ ЛОГ (БЕЗ ИЗМЕНЕНИЙ)
+    // СИСТЕМНЫЙ ЛОГ
     QFrame *logCard = new QFrame();
     logCard->setStyleSheet(
-        "QFrame {"
-        "   background-color: white;"
-        "   border-radius: 8px;"
-        "   border: 1px solid #e0e0e0;"
-        "   padding: 6px;"
-        "}"
+        "QFrame { background-color: #16213e; border-radius: 8px;"
+        "border: 1px solid #0f3460; padding: 6px; }"
         );
 
     QVBoxLayout *logLayout = new QVBoxLayout(logCard);
     logLayout->setSpacing(3);
+    logLayout->setContentsMargins(8, 6, 8, 6);
 
     QLabel *logTitle = new QLabel("СИСТЕМНЫЙ ЛОГ");
     logTitle->setStyleSheet(
-        "font-size: 11px;"
-        "font-weight: bold;"
-        "color: #666;"
+        "font-size: 11px; font-weight: bold; color: #4fc3f7;"
+        "background-color: transparent; letter-spacing: 1px;"
         );
     logLayout->addWidget(logTitle);
 
     logBox = new QTextEdit();
     logBox->setReadOnly(true);
-    logBox->setMaximumHeight(90);
-    logBox->setMinimumHeight(60);
-    logBox->setStyleSheet(
-        "QTextEdit {"
-        "   background-color: #f8f9fa;"
-        "   border: 1px solid #e0e0e0;"
-        "   border-radius: 4px;"
-        "   font-family: 'Courier New';"
-        "   font-size: 11px;"
-        "   padding: 3px;"
-        "}"
-        );
-
+    logBox->setMaximumHeight(80);
+    logBox->setMinimumHeight(55);
     logLayout->addWidget(logBox);
 
-    mainLayout->addWidget(logCard, 0, Qt::AlignTop);
+    mainLayout->addWidget(logCard);
 
-    // КНОПКИ УПРАВЛЕНИЯ (БЕЗ ИЗМЕНЕНИЙ)
+    // КНОПКИ УПРАВЛЕНИЯ
     QHBoxLayout *buttonLayout = new QHBoxLayout();
-    buttonLayout->setSpacing(6);
+    buttonLayout->setSpacing(8);
 
-    connectButton = new QPushButton("🔧 Подключиться");
+    connectButton    = new QPushButton("🔧 Подключиться");
     startVideoButton = new QPushButton("▶ Старт видео");
-    stopVideoButton = new QPushButton("⏹ Стоп видео");
+    stopVideoButton  = new QPushButton("⏹ Стоп видео");
 
     stopVideoButton->setEnabled(false);
 
-    QString btnStyle =
-        "QPushButton {"
-        "   background-color: #2196F3;"
-        "   color: white;"
-        "   border: none;"
-        "   padding: 6px 14px;"
-        "   border-radius: 5px;"
-        "   font-weight: bold;"
-        "   font-size: 11px;"
-        "   min-height: 28px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #1976D2;"
-        "}"
-        "QPushButton:disabled {"
-        "   background-color: #b0b0b0;"
-        "   color: #666;"
-        "}";
-
-    connectButton->setStyleSheet(btnStyle);
-    startVideoButton->setStyleSheet(btnStyle);
-    stopVideoButton->setStyleSheet(btnStyle);
+    connectButton->setStyleSheet(
+        "QPushButton { background-color: #0f3460; color: #e0e0e0;"
+        "border: 1px solid #1565c0; border-radius: 6px; padding: 7px 18px;"
+        "font-weight: bold; font-size: 12px; min-height: 32px; }"
+        "QPushButton:hover { background-color: #1565c0; border: 1px solid #4fc3f7; }"
+        "QPushButton:disabled { background-color: #1a1a2e; color: #444; border: 1px solid #222; }"
+        );
+    startVideoButton->setStyleSheet(
+        "QPushButton { background-color: #1b5e20; color: #e0e0e0;"
+        "border: 1px solid #2e7d32; border-radius: 6px; padding: 7px 18px;"
+        "font-weight: bold; font-size: 12px; min-height: 32px; }"
+        "QPushButton:hover { background-color: #2e7d32; border: 1px solid #66bb6a; }"
+        "QPushButton:disabled { background-color: #1a1a2e; color: #444; border: 1px solid #222; }"
+        );
+    stopVideoButton->setStyleSheet(
+        "QPushButton { background-color: #37474f; color: #e0e0e0;"
+        "border: 1px solid #455a64; border-radius: 6px; padding: 7px 18px;"
+        "font-weight: bold; font-size: 12px; min-height: 32px; }"
+        "QPushButton:hover { background-color: #455a64; border: 1px solid #90a4ae; }"
+        "QPushButton:disabled { background-color: #1a1a2e; color: #444; border: 1px solid #222; }"
+        );
 
     buttonLayout->addWidget(connectButton);
     buttonLayout->addWidget(startVideoButton);
@@ -471,28 +412,23 @@ void MainWindow::setupConnections()
         }
     });
 
-    // ========== ИЗМЕНЕНО: Видео с поддержкой DualVideoWidget ==========
     connect(startVideoButton, &QPushButton::clicked, this, [=]() {
         if (videoDisplay) {
-            streamer->start(videoDisplay->getLeftVideoLabel());  // ИЗМЕНЕНО
-            // Подключаем VideoStreamer к DualVideoWidget
-            streamer->setDualWidget(videoDisplay);  // ДОБАВЛЕНО
+            streamer->start(videoDisplay->getLeftVideoLabel());
+            streamer->setDualWidget(videoDisplay);
         }
     });
 
     connect(stopVideoButton, &QPushButton::clicked, this, [=]() {
         streamer->stop();
     });
-    // ========== КОНЕЦ ИЗМЕНЕНИЙ ==========
 
-    // CommandSender — статусы и команды
+    // CommandSender
     connect(sender, &CommandSender::connected, this, [=]() {
         connectionStatus->setText("● Подключен");
         connectionStatus->setStyleSheet(
-            "color: #4caf50;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #66bb6a; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
         connectButton->setText("🔧 Отключиться");
         logger->logSystem("Подключен к роботу");
@@ -501,10 +437,8 @@ void MainWindow::setupConnections()
     connect(sender, &CommandSender::disconnected, this, [=]() {
         connectionStatus->setText("● Отключен");
         connectionStatus->setStyleSheet(
-            "color: #f44336;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #f44336; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
         connectButton->setText("🔧 Подключиться");
         logger->logSystem("Отключен от робота");
@@ -515,43 +449,20 @@ void MainWindow::setupConnections()
         QString color;
 
         switch(cmd) {
-        case 'w':
-            commandStr = "↑ Вперед";
-            color = "#4caf50";
-            break;
-        case 's':
-            commandStr = "↓ Назад";
-            color = "#f44336";
-            break;
-        case 'a':
-            commandStr = "← Влево";
-            color = "#ff9800";
-            break;
-        case 'd':
-            commandStr = "→ Вправо";
-            color = "#ff9800";
-            break;
-        case 'l':
-            commandStr = "⌂ Return home";
-            color = "#9c27b0";
-            break;
-        case ' ':
-            commandStr = "⏹ Стоп";
-            color = "#607d8b";
-            break;
-        default:
-            commandStr = QString("'%1'").arg(cmd);
-            color = "#999";
+        case 'w': commandStr = "↑ Вперед";     color = "#66bb6a"; break;
+        case 's': commandStr = "↓ Назад";       color = "#ef5350"; break;
+        case 'a': commandStr = "← Влево";       color = "#ffa726"; break;
+        case 'd': commandStr = "→ Вправо";      color = "#ffa726"; break;
+        case 'l': commandStr = "⌂ Return home"; color = "#ce93d8"; break;
+        case ' ': commandStr = "⏹ Стоп";        color = "#90a4ae"; break;
+        default:  commandStr = QString("'%1'").arg(cmd); color = "#555";
         }
 
         QString timeStr = QTime::currentTime().toString("hh:mm:ss");
         commandsLog->append(
             QString("<span style='color: %1; font-weight: bold;'>[%2] %3</span>")
-                .arg(color)
-                .arg(timeStr)
-                .arg(commandStr)
+                .arg(color).arg(timeStr).arg(commandStr)
             );
-
         logger->logCommand(commandStr);
     });
 
@@ -559,7 +470,7 @@ void MainWindow::setupConnections()
         logger->logSystem("Ошибка: " + error);
     });
 
-    // ПОДКЛЮЧЕНИЯ ДЛЯ ПАКЕТНЫХ КОМАНД
+    // Пакетные команды
     connect(batchSender, &BatchCommandSender::connected, this, [=]() {
         logger->logSystem("Пакетный отправитель подключен");
     });
@@ -575,9 +486,8 @@ void MainWindow::setupConnections()
     connect(batchSender, &BatchCommandSender::batchCommandSent, this, [=](QString cmd) {
         QString timeStr = QTime::currentTime().toString("hh:mm:ss");
         commandsLog->append(
-            QString("<span style='color: #9C27B0; font-weight: bold;'>[%1] 📦 Пакет: %2</span>")
-                .arg(timeStr)
-                .arg(cmd)
+            QString("<span style='color: #ce93d8; font-weight: bold;'>[%1] 📦 Пакет: %2</span>")
+                .arg(timeStr).arg(cmd)
             );
         logger->logCommand("Пакет: " + cmd);
     });
@@ -585,13 +495,12 @@ void MainWindow::setupConnections()
     connect(batchSender, &BatchCommandSender::batchCompleted, this, [=]() {
         QString timeStr = QTime::currentTime().toString("hh:mm:ss");
         commandsLog->append(
-            QString("<span style='color: #4CAF50; font-weight: bold;'>[%1] ✅ Пакет выполнен</span>")
+            QString("<span style='color: #66bb6a; font-weight: bold;'>[%1] ✅ Пакет выполнен</span>")
                 .arg(timeStr)
             );
         logger->logSystem("Пакетная команда выполнена");
     });
 
-    // Отправка пакетной команды
     connect(sendBatchButton, &QPushButton::clicked, this, [=]() {
         QString command = batchCommandEdit->text().trimmed();
         if (!command.isEmpty()) {
@@ -608,30 +517,25 @@ void MainWindow::setupConnections()
         }
     });
 
-    // ========== ДОБАВЛЕНО: Подключение сигналов YOLO для статистики ==========
+    // YOLO статистика
     if (videoDisplay && videoDisplay->getDetector()) {
         YOLODetector *detector = videoDisplay->getDetector();
 
         connect(detector, &YOLODetector::detectionCompleted,
                 this, [=](QVector<Detection> detections, qint64 elapsedMs) {
-                    // Обновляем статистику в заголовке
                     yoloObjectsLabel->setText(QString("📊 %1").arg(detections.size()));
                     yoloTimeLabel->setText(QString("⏱ %1мс").arg(elapsedMs));
 
-                    // Расчет FPS
+                    static QElapsedTimer fpsTimer;
                     static int frameCount = 0;
-                    static qint64 lastTime = 0;
-                    static float fps = 0;
-
-                    if (lastTime == 0) {
-                        lastTime = elapsedMs;
-                    } else {
-                        frameCount++;
-                        if (frameCount >= 10) {
-                            fps = 10000.0f / (elapsedMs - lastTime);
-                            lastTime = elapsedMs;
-                            frameCount = 0;
-                        }
+                    static float fps = 0.0f;
+                    if (!fpsTimer.isValid()) fpsTimer.start();
+                    frameCount++;
+                    qint64 elapsed = fpsTimer.elapsed();
+                    if (elapsed >= 1000) {
+                        fps = frameCount * 1000.0f / elapsed;
+                        frameCount = 0;
+                        fpsTimer.restart();
                     }
                     yoloFpsLabel->setText(QString("⚡ %1fps").arg(fps, 0, 'f', 1));
                 });
@@ -644,7 +548,6 @@ void MainWindow::setupConnections()
             }
         });
     }
-    // ========== КОНЕЦ ДОБАВЛЕНИЙ ==========
 
     // VideoStreamer
     connect(streamer, &VideoStreamer::started, this, [=]() {
@@ -652,10 +555,8 @@ void MainWindow::setupConnections()
         stopVideoButton->setEnabled(true);
         videoStatus->setText("● Видео активно");
         videoStatus->setStyleSheet(
-            "color: #4caf50;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #66bb6a; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
         logger->logSystem("Видео поток запущен");
     });
@@ -665,10 +566,8 @@ void MainWindow::setupConnections()
         stopVideoButton->setEnabled(false);
         videoStatus->setText("● Видео не активно");
         videoStatus->setStyleSheet(
-            "color: #9e9e9e;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #607d8b; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
         logger->logSystem("Видео поток остановлен");
     });
@@ -679,10 +578,8 @@ void MainWindow::setupConnections()
         stopVideoButton->setEnabled(false);
         videoStatus->setText("● Видео ошибка");
         videoStatus->setStyleSheet(
-            "color: #f44336;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #f44336; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
     });
 
@@ -690,7 +587,7 @@ void MainWindow::setupConnections()
         logger->logSystem("Запись видео: " + file);
     });
 
-    // ДАТЧИК РАССТОЯНИЯ
+    // Датчик расстояния
     connect(receiver, &DataReceiver::sensorDataReceived,
             this, [=](const QString& data)
             {
@@ -700,40 +597,29 @@ void MainWindow::setupConnections()
                 QString clean = data.simplified();
                 QRegularExpression re(R"([\d.,]+)");
                 QRegularExpressionMatch match = re.match(clean);
-                if (!match.hasMatch()) {
-                    return;
-                }
+                if (!match.hasMatch()) return;
 
                 QString numStr = match.captured(0).replace(",", ".");
                 bool ok;
                 float distance = numStr.toFloat(&ok);
-                if (!ok) {
-                    return;
-                }
+                if (!ok) return;
 
                 if (distance < 20.0) {
                     distanceLabel->setStyleSheet(
-                        "background-color: #1e1e1e;"
-                        "color: #f44336;"
-                        "font-size: 32px;"
-                        "font-weight: bold;"
-                        "padding: 12px;"
-                        "border-radius: 6px;"
+                        "background-color: #050d1a; color: #ff1744;"
+                        "font-size: 32px; font-weight: bold; padding: 10px;"
+                        "border-radius: 6px; border: 1px solid #b71c1c;"
                         );
                 } else {
                     distanceLabel->setStyleSheet(
-                        "background-color: #1e1e1e;"
-                        "color: #4caf50;"
-                        "font-size: 32px;"
-                        "font-weight: bold;"
-                        "padding: 12px;"
-                        "border-radius: 6px;"
+                        "background-color: #050d1a; color: #00e676;"
+                        "font-size: 32px; font-weight: bold; padding: 10px;"
+                        "border-radius: 6px; border: 1px solid #00695c;"
                         );
                 }
             });
 }
 
-// Метод для отправки пакетной команды
 void MainWindow::sendBatchCommand(const QString& command)
 {
     if (!batchSender) {
@@ -763,11 +649,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     case Qt::Key_D:
         sender->onKeyPressed(event->key());
         break;
-
     case Qt::Key_Space:
         sender->stopRobot();
         break;
-
     case Qt::Key_L:
         sender->sendCommand('l');
         break;
@@ -809,10 +693,7 @@ void MainWindow::focusOutEvent(QFocusEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
-    // Убрал старую логику с pixmap, так как теперь videoDisplay сам обрабатывает resize
 }
-
-// ========== РЕАЛИЗАЦИИ НЕДОСТАЮЩИХ МЕТОДОВ ==========
 
 void MainWindow::onBatchCompleted()
 {
@@ -824,18 +705,14 @@ void MainWindow::updateConnectionStatus(bool connected)
     if (connected) {
         connectionStatus->setText("● Подключен");
         connectionStatus->setStyleSheet(
-            "color: #4caf50;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #66bb6a; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
     } else {
         connectionStatus->setText("● Отключен");
         connectionStatus->setStyleSheet(
-            "color: #f44336;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #f44336; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
     }
 }
@@ -845,18 +722,14 @@ void MainWindow::updateVideoStatus(bool streaming)
     if (streaming) {
         videoStatus->setText("● Видео активно");
         videoStatus->setStyleSheet(
-            "color: #4caf50;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #66bb6a; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
     } else {
         videoStatus->setText("● Видео не активно");
         videoStatus->setStyleSheet(
-            "color: #9e9e9e;"
-            "font-weight: bold;"
-            "font-size: 12px;"
-            "padding: 3px 6px;"
+            "color: #607d8b; font-weight: bold; font-size: 13px;"
+            "padding: 3px 8px; background-color: transparent;"
             );
     }
 }
@@ -868,28 +741,22 @@ void MainWindow::logMessage(const QString& message)
 
 void MainWindow::onDetectionCompleted(QVector<Detection> detections, qint64 elapsedMs)
 {
-    // Обновляем статистику в заголовке
     yoloObjectsLabel->setText(QString("📊 %1").arg(detections.size()));
     yoloTimeLabel->setText(QString("⏱ %1мс").arg(elapsedMs));
 
-    // Расчет FPS
+    static QElapsedTimer fpsTimer;
     static int frameCount = 0;
-    static qint64 lastTime = 0;
-    static float fps = 0;
-
-    if (lastTime == 0) {
-        lastTime = elapsedMs;
-    } else {
-        frameCount++;
-        if (frameCount >= 10) {
-            fps = 10000.0f / (elapsedMs - lastTime);
-            lastTime = elapsedMs;
-            frameCount = 0;
-        }
+    static float fps = 0.0f;
+    if (!fpsTimer.isValid()) fpsTimer.start();
+    frameCount++;
+    qint64 elapsed = fpsTimer.elapsed();
+    if (elapsed >= 1000) {
+        fps = frameCount * 1000.0f / elapsed;
+        frameCount = 0;
+        fpsTimer.restart();
     }
     yoloFpsLabel->setText(QString("⚡ %1fps").arg(fps, 0, 'f', 1));
 
-    // Логируем если найдены объекты
     if (!detections.isEmpty()) {
         QStringList objectList;
         for (const Detection& det : detections) {
@@ -907,6 +774,5 @@ void MainWindow::onDetectionCompleted(QVector<Detection> detections, qint64 elap
 
 void MainWindow::updateYoloStats(const QString& stats)
 {
-    // Можно использовать для обновления дополнительной статистики
     logger->logSystem("YOLO stats: " + stats);
 }

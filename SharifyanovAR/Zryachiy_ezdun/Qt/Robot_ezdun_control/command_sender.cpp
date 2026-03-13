@@ -281,14 +281,7 @@ void CommandSender::onConnected()
     commandTimer.restart();
     resetCommandRate();
 
-    QTimer::singleShot(1000, this, [=]() {
-        if (isConnected()) {
-            qDebug() << "Sending test command (lights)";
-            QByteArray data;
-            data.append('l');
-            socket->write(data);
-        }
-    });
+
 }
 
 void CommandSender::onDisconnected()
