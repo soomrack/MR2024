@@ -1,57 +1,48 @@
-#define WIN32_LEAN_AND_MEAN
+#include "data_receiver.h"
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#include <iostream>
+DataReceiver::DataReceiver(QObject *parent)
+    : QObject(parent),
+    m_socket(new QUdpSocket(this)),
+    m_filterByAddress(false)
+{
+    connect(m_socket, &QUdpSocket::readyRead,
+            this, &DataReceiver::onReadyRead);
+}
 
-#pragma comment(lib, "ws2_32.lib")
+bool DataReceiver::start(quint16 port)
+{
+    return m_socket->bind(QHostAddress::Any, port);
+}
 
-#define DATA_PORT_UDP 5601
-#define BUFFER_SIZE 1024
-
-int main() {
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        std::cerr << "WSAStartup failed\n";
-        return 1;
+void DataReceiver::setAllowedAddress(const QString& address)
+{
+    if (!address.isEmpty()) {
+        m_allowedAddress = QHostAddress(address);
+        m_filterByAddress = true;
+    } else {
+        m_filterByAddress = false;
     }
+}
 
-    SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == INVALID_SOCKET) {
-        std::cerr << "Socket creation failed\n";
-        WSACleanup();
-        return 1;
-    }
+void DataReceiver::onReadyRead()
+{
+    while (m_socket->hasPendingDatagrams())
+    {
+        QByteArray datagram;
+        QHostAddress senderAddress;
+        quint16 senderPort;
 
-    sockaddr_in addr{};
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(DATA_PORT_UDP);
+        datagram.resize(m_socket->pendingDatagramSize());
 
-    if (bind(sock, (sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
-        std::cerr << "Bind failed\n";
-        closesocket(sock);
-        WSACleanup();
-        return 1;
-    }
+        m_socket->readDatagram(datagram.data(), datagram.size(),
+                               &senderAddress, &senderPort);
 
-    std::cout << "=====================================\n";
-    std::cout << "   SENSOR DATA RECEIVER (UDP)\n";
-    std::cout << "   Listening on port " << DATA_PORT_UDP << "\n";
-    std::cout << "=====================================\n\n";
-
-    char buffer[BUFFER_SIZE];
-
-    while (true) {
-        int len = recv(sock, buffer, BUFFER_SIZE - 1, 0);
-        if (len > 0) {
-            buffer[len] = '\0';
-            std::cout << buffer;
+        // Проверяем, если включена фильтрация по IP
+        if (m_filterByAddress && senderAddress != m_allowedAddress) {
+            // Игнорируем пакеты с других адресов
+            continue;
         }
-    }
 
-    closesocket(sock);
-    WSACleanup();
-    return 0;
+        emit sensorDataReceived(QString::fromUtf8(datagram).trimmed());
+    }
 }

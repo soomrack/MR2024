@@ -1,32 +1,19 @@
-// config.h
 #pragma once
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <string>
+#include <QString>
 
-// Configuration flags - set to 0 to disable components
-#define ENABLE_VIDEO_STREAM   1  // Set to 0 to disable video
-#define ENABLE_COMMAND_SENDER 1  // Set to 0 to disable command sending
-#define ENABLE_DATA_RECEIVER  0  // Set to 0 to disable data receiving
+namespace Config
+{
+inline const QString RASPBERRY_IP = "10.209.227.101";
 
+inline constexpr int COMMAND_PORT = 8888;
+inline constexpr int DATA_PORT_UDP = 5601;
+inline constexpr int VIDEO_PORT = 5600;
 
-namespace Config {
-    // IP адрес Raspberry Pi
-    const std::string RASPBERRY_IP = "10.133.231.101";
-
-    // Порт для команд
-    const int COMMAND_PORT = 8888;
-    const int DATA_PORT_UDP = 5601;     // Для получения данных
-
-    // Порт для видео
-    const int VIDEO_PORT = 5600;
-
-    // Путь к GStreamer
-    const std::string GSTREAMER_PATH = "C:\\gstreamer\\1.0\\mingw_x86\\bin";
-
-    // Путь к папке с видео
-    const std::string RECORDING_PATH = "C:\\Telemetry_recorded";
+inline const QString GSTREAMER_PATH =
+    "C:/gstreamer/1.28/mingw_x86_64/bin";
 }
 
 #endif // CONFIG_H
