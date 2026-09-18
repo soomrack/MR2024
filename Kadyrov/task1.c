@@ -152,17 +152,6 @@ Matrix matrix_multiply(Matrix A, Matrix B) {
     return result;
 }
 
-// Нахождение транспонированной матрицы
-Matrix matrix_transpose(Matrix mat) {
-    Matrix result = matrix_create(mat.cols, mat.rows);
-    for (size_t row = 0; row < result.rows; ++row) {
-        for (size_t col = 0; col < result.cols; ++col) {
-            result.data[col * result.rows + row] = mat.data[row * mat.cols + col];
-        }
-    }
-    return result;
-}
-
 // Нахождение экспоненты матрицы
 Matrix matrix_exponent(Matrix mat) {
     if (mat.rows != mat.cols) {
