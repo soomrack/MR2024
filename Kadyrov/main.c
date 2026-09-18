@@ -153,8 +153,6 @@ void bob_deposit(const int month)
     bob.deposit += bob.account;
     bob.account = 0;
 
-    if (month == 12) {
-        bob.deposit *= DEPOSIT_PERCENT;
     }
 }
 
